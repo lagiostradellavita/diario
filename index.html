@@ -116,7 +116,7 @@
   .today{display:flex; flex-direction:column; gap:14px;
     background:linear-gradient(180deg,var(--surface),var(--surface-2));}
   .today-main{display:flex; align-items:baseline; gap:10px;}
-  .big{font-size:74px; font-weight:850; line-height:.9; letter-spacing:-.03em;
+  .big{font-size:90px; font-weight:850; line-height:.9; letter-spacing:-.03em;
     font-variant-numeric:tabular-nums;}
   .today-label{font-size:16px; color:var(--ink-soft); font-weight:700; padding-bottom:8px;}
   .today-breakdown{display:flex; gap:9px; flex-wrap:wrap;}
@@ -340,27 +340,15 @@
   <section class="card">
     <h2 class="section-title">Dati e backup</h2>
     <div class="data-actions">
-      <button id="btnCopy">📋 Copia dati</button>
-      <button id="btnPaste">📥 Incolla dati</button>
       <button id="btnExcel">📊 Esporta in Excel</button>
       <button id="btnBackup">💾 Salva backup</button>
-      <button id="btnRestore">↩︎ Ripristina (file)</button>
       <button id="btnClear" class="danger-btn">Cancella tutto</button>
-      <input type="file" id="fileRestore" accept=".json,application/json" hidden>
-    </div>
-    <div id="dataPanel" class="data-panel" hidden>
-      <p id="dataHint" class="fineprint" style="margin:0 0 8px"></p>
-      <textarea id="dataText" class="data-text" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
-      <div class="panel-actions">
-        <button id="dataAction" class="primary"></button>
-        <button id="dataClose" class="link-btn">Chiudi</button>
-      </div>
     </div>
     <p class="fineprint">I dati restano salvati solo su questo telefono, in questo browser.
       Esporta o salva un backup ogni tanto per non perderli.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario del fumo · v9</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario del fumo · v10</p>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -737,52 +725,7 @@
     }catch(e){ toast("Dati non validi"); return false; }
   }
 
-  document.getElementById("btnRestore").onclick=function(){ document.getElementById("fileRestore").click(); };
-  document.getElementById("fileRestore").onchange=function(ev){
-    var f=ev.target.files && ev.target.files[0]; if(!f) return;
-    var r=new FileReader();
-    r.onload=function(){ importFromText(r.result); };
-    r.readAsText(f);
-    ev.target.value="";
-  };
-
-  // ---- copia / incolla dati (travaso senza file) ----
-  var dPanel=document.getElementById("dataPanel"),
-      dHint=document.getElementById("dataHint"),
-      dText=document.getElementById("dataText"),
-      dAction=document.getElementById("dataAction");
-  function closeDataPanel(){ dPanel.hidden=true; dText.value=""; }
-  document.getElementById("dataClose").onclick=closeDataPanel;
-  document.getElementById("btnCopy").onclick=function(){
-    if(!entries.length){ toast("Non c'è ancora niente da copiare"); return; }
-    var data=JSON.stringify({app:"diario-fumo",v:1,entries:entries});
-    dHint.textContent="Questi sono i tuoi dati. Tocca «Copia»; se non copia, tieni premuto nel riquadro → Seleziona tutto → Copia.";
-    dText.value=data; dText.readOnly=true;
-    dAction.textContent="Copia";
-    dAction.onclick=function(){
-      dText.readOnly=false; dText.focus(); dText.select();
-      try{ dText.setSelectionRange(0, data.length); }catch(e){}
-      var ok=false; try{ ok=document.execCommand("copy"); }catch(e){}
-      dText.readOnly=true;
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(data).then(
-          function(){ toast("Copiato ✓ ("+entries.length+" righe)"); },
-          function(){ toast(ok?"Copiato ✓ ("+entries.length+" righe)":"Copia a mano dal riquadro"); });
-      } else { toast(ok?"Copiato ✓ ("+entries.length+" righe)":"Copia a mano dal riquadro"); }
-    };
-    dPanel.hidden=false;
-  };
-  document.getElementById("btnPaste").onclick=function(){
-    dHint.textContent="Incolla qui i dati copiati (tieni premuto nel riquadro → Incolla), poi tocca «Ripristina».";
-    dText.value=""; dText.readOnly=false;
-    dAction.textContent="Ripristina";
-    dAction.onclick=function(){
-      var t=(dText.value||"").trim();
-      if(!t){ toast("Prima incolla i dati nel riquadro"); return; }
-      if(importFromText(t)) closeDataPanel();
-    };
-    dPanel.hidden=false; dText.focus();
-  };
+  // (rimossi: «Copia dati», «Incolla dati» e «Ripristina da file» — non più necessari dopo il travaso)
 
   document.getElementById("btnClear").onclick=function(){
     if(!entries.length){ toast("È già vuoto"); return; }
