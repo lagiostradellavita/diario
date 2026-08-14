@@ -237,6 +237,15 @@
     touch-action:manipulation;}
   .data-actions button:active{background:var(--track);}
   .data-actions .danger-btn{color:var(--danger); grid-column:1 / -1;}
+  .data-panel{margin-top:11px; display:flex; flex-direction:column; gap:9px;}
+  .data-panel[hidden]{display:none;}
+  .data-text{width:100%; min-height:100px; resize:vertical; box-sizing:border-box;
+    font-family:ui-monospace,Menlo,monospace; font-size:12.5px; line-height:1.45;
+    color:var(--ink); background:var(--surface-2); border:1px solid var(--line);
+    border-radius:12px; padding:11px 12px;}
+  .panel-actions{display:flex; gap:10px; align-items:center;}
+  .data-panel .primary{width:auto; flex:1;}
+  .data-panel .link-btn{width:auto; padding:12px;}
   .fineprint{font-size:13px; color:var(--muted); margin:12px 2px 0; line-height:1.5;}
 
   /* ---- toast ---- */
@@ -331,17 +340,27 @@
   <section class="card">
     <h2 class="section-title">Dati e backup</h2>
     <div class="data-actions">
+      <button id="btnCopy">📋 Copia dati</button>
+      <button id="btnPaste">📥 Incolla dati</button>
       <button id="btnExcel">📊 Esporta in Excel</button>
       <button id="btnBackup">💾 Salva backup</button>
-      <button id="btnRestore">↩︎ Ripristina</button>
+      <button id="btnRestore">↩︎ Ripristina (file)</button>
       <button id="btnClear" class="danger-btn">Cancella tutto</button>
       <input type="file" id="fileRestore" accept=".json,application/json" hidden>
+    </div>
+    <div id="dataPanel" class="data-panel" hidden>
+      <p id="dataHint" class="fineprint" style="margin:0 0 8px"></p>
+      <textarea id="dataText" class="data-text" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+      <div class="panel-actions">
+        <button id="dataAction" class="primary"></button>
+        <button id="dataClose" class="link-btn">Chiudi</button>
+      </div>
     </div>
     <p class="fineprint">I dati restano salvati solo su questo telefono, in questo browser.
       Esporta o salva un backup ogni tanto per non perderli.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario del fumo · v8</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario del fumo · v9</p>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -696,33 +715,73 @@
     else toast("Backup non disponibile qui");
   };
 
+  function importFromText(text){
+    try{
+      var obj=JSON.parse(text);
+      var list = Array.isArray(obj)? obj : (obj && obj.entries);
+      if(!Array.isArray(list)) throw new Error("formato");
+      var clean = list.filter(function(e){ return e && e.ts && e.tipo && TIPI[e.tipo]; })
+        .map(function(e){ return { id:e.id||uid(), ts:e.ts, tipo:e.tipo, q:Math.max(1,(e.q|0)||1) }; });
+      var seen={}; entries.forEach(function(e){ seen[e.id]=true; });
+      var addedIds=[];
+      clean.forEach(function(e){ if(!seen[e.id]){ entries.push(e); seen[e.id]=true; addedIds.push(e.id); } });
+      save(); render();
+      if(addedIds.length){
+        pushUndo("ripristino di "+addedIds.length+" righe", function(){
+          var rm={}; addedIds.forEach(function(id){ rm[id]=true; });
+          entries = entries.filter(function(e){ return !rm[e.id]; });
+        });
+        toast("Ripristinate "+addedIds.length+" righe", "Annulla", doUndo);
+      } else { toast("Nessuna nuova riga (già presenti)"); }
+      return true;
+    }catch(e){ toast("Dati non validi"); return false; }
+  }
+
   document.getElementById("btnRestore").onclick=function(){ document.getElementById("fileRestore").click(); };
   document.getElementById("fileRestore").onchange=function(ev){
     var f=ev.target.files && ev.target.files[0]; if(!f) return;
     var r=new FileReader();
-    r.onload=function(){
-      try{
-        var obj=JSON.parse(r.result);
-        var list = Array.isArray(obj)? obj : (obj && obj.entries);
-        if(!Array.isArray(list)) throw new Error("formato");
-        var clean = list.filter(function(e){ return e && e.ts && e.tipo && TIPI[e.tipo]; })
-          .map(function(e){ return { id:e.id||uid(), ts:e.ts, tipo:e.tipo, q:Math.max(1,(e.q|0)||1) }; });
-        // unione: evita doppioni per id
-        var seen={}; entries.forEach(function(e){ seen[e.id]=true; });
-        var addedIds=[];
-        clean.forEach(function(e){ if(!seen[e.id]){ entries.push(e); seen[e.id]=true; addedIds.push(e.id); } });
-        save(); render();
-        if(addedIds.length){
-          pushUndo("ripristino di "+addedIds.length+" righe", function(){
-            var rm={}; addedIds.forEach(function(id){ rm[id]=true; });
-            entries = entries.filter(function(e){ return !rm[e.id]; });
-          });
-          toast("Ripristinate "+addedIds.length+" righe", "Annulla", doUndo);
-        } else { toast("Nessuna nuova riga"); }
-      }catch(e){ toast("File di backup non valido"); }
-    };
+    r.onload=function(){ importFromText(r.result); };
     r.readAsText(f);
     ev.target.value="";
+  };
+
+  // ---- copia / incolla dati (travaso senza file) ----
+  var dPanel=document.getElementById("dataPanel"),
+      dHint=document.getElementById("dataHint"),
+      dText=document.getElementById("dataText"),
+      dAction=document.getElementById("dataAction");
+  function closeDataPanel(){ dPanel.hidden=true; dText.value=""; }
+  document.getElementById("dataClose").onclick=closeDataPanel;
+  document.getElementById("btnCopy").onclick=function(){
+    if(!entries.length){ toast("Non c'è ancora niente da copiare"); return; }
+    var data=JSON.stringify({app:"diario-fumo",v:1,entries:entries});
+    dHint.textContent="Questi sono i tuoi dati. Tocca «Copia»; se non copia, tieni premuto nel riquadro → Seleziona tutto → Copia.";
+    dText.value=data; dText.readOnly=true;
+    dAction.textContent="Copia";
+    dAction.onclick=function(){
+      dText.readOnly=false; dText.focus(); dText.select();
+      try{ dText.setSelectionRange(0, data.length); }catch(e){}
+      var ok=false; try{ ok=document.execCommand("copy"); }catch(e){}
+      dText.readOnly=true;
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(data).then(
+          function(){ toast("Copiato ✓ ("+entries.length+" righe)"); },
+          function(){ toast(ok?"Copiato ✓ ("+entries.length+" righe)":"Copia a mano dal riquadro"); });
+      } else { toast(ok?"Copiato ✓ ("+entries.length+" righe)":"Copia a mano dal riquadro"); }
+    };
+    dPanel.hidden=false;
+  };
+  document.getElementById("btnPaste").onclick=function(){
+    dHint.textContent="Incolla qui i dati copiati (tieni premuto nel riquadro → Incolla), poi tocca «Ripristina».";
+    dText.value=""; dText.readOnly=false;
+    dAction.textContent="Ripristina";
+    dAction.onclick=function(){
+      var t=(dText.value||"").trim();
+      if(!t){ toast("Prima incolla i dati nel riquadro"); return; }
+      if(importFromText(t)) closeDataPanel();
+    };
+    dPanel.hidden=false; dText.focus();
   };
 
   document.getElementById("btnClear").onclick=function(){
