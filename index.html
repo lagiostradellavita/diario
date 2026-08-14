@@ -1,0 +1,740 @@
+<meta charset="utf-8">
+<title>Diario del fumo</title>
+<script>
+  /* Assicura la resa a misura di telefono (device-width) e le zone sicure del notch,
+     anche quando la pagina viene aperta come file locale senza viewport meta. */
+  (function(){
+    var m=document.querySelector('meta[name=viewport]');
+    if(!m){ m=document.createElement("meta"); m.name="viewport"; (document.head||document.documentElement).appendChild(m); }
+    m.setAttribute("content","width=device-width, initial-scale=1, viewport-fit=cover");
+  })();
+</script>
+<script>
+  /* Icona su misura per la schermata Home + apertura a tutto schermo quando lanciata da lì */
+  (function(){
+    function rr(x,a,b,w,h,r){ x.beginPath(); x.moveTo(a+r,b); x.arcTo(a+w,b,a+w,b+h,r); x.arcTo(a+w,b+h,a,b+h,r); x.arcTo(a,b+h,a,b,r); x.arcTo(a,b,a+w,b,r); x.closePath(); }
+    function drawIcon(){
+      try{
+        var S=180, c=document.createElement("canvas"); c.width=S; c.height=S;
+        var x=c.getContext("2d");
+        var g=x.createLinearGradient(0,0,S,S); g.addColorStop(0,"#FF6A24"); g.addColorStop(1,"#C41E0A");
+        x.fillStyle=g; x.fillRect(0,0,S,S);
+        var cy=S*0.60, h=S*0.185, x0=S*0.12, x1=S*0.86, w=x1-x0, r=h*0.30;
+        x.fillStyle="#FFFFFF"; rr(x,x0,cy-h/2,w,h,r); x.fill();
+        var fw=w*0.27; x.fillStyle="#E7A24E"; rr(x,x1-fw,cy-h/2,fw,h,r); x.fill();
+        x.fillStyle="rgba(0,0,0,.16)"; x.fillRect(x1-fw,cy-h/2,Math.max(2,S*0.014),h);
+        x.save(); rr(x,x0,cy-h/2,w,h,r); x.clip();
+        var eg=x.createLinearGradient(x0,cy,x0+w*0.18,cy);
+        eg.addColorStop(0,"#FFD23F"); eg.addColorStop(.5,"#FF6A00"); eg.addColorStop(1,"rgba(255,90,0,0)");
+        x.fillStyle=eg; x.fillRect(x0,cy-h/2,w*0.2,h); x.restore();
+        var er=h*0.9, rg=x.createRadialGradient(x0,cy,1,x0,cy,er);
+        rg.addColorStop(0,"#FFF0B0"); rg.addColorStop(.4,"rgba(255,140,0,.65)"); rg.addColorStop(1,"rgba(255,90,0,0)");
+        x.fillStyle=rg; x.beginPath(); x.arc(x0,cy,er,0,7); x.fill();
+        x.strokeStyle="rgba(255,255,255,.92)"; x.lineWidth=S*0.038; x.lineCap="round";
+        var sy=cy-h/2-2; x.beginPath(); x.moveTo(x0+w*0.02,sy);
+        x.bezierCurveTo(x0-18,sy-32,x0+26,sy-52,x0-6,sy-86); x.stroke();
+        return c.toDataURL("image/png");
+      }catch(e){ return null; }
+    }
+    function meta(n,v){ var m=document.createElement("meta"); m.name=n; m.content=v; (document.head||document.documentElement).appendChild(m); }
+    var d=drawIcon();
+    if(d){ var l=document.createElement("link"); l.rel="apple-touch-icon"; l.setAttribute("sizes","180x180"); l.href=d; (document.head||document.documentElement).appendChild(l); }
+    meta("apple-mobile-web-app-title","Diario fumo");
+  })();
+</script>
+<style>
+  /* ---- Palette: "carta & brace" -------------------------------------- */
+  :root{
+    --bg:#F4F3F0; --surface:#FFFFFF; --surface-2:#FBFAF8;
+    --ink:#211E1C; --ink-soft:#57514C; --muted:#8A827C; --line:#E7E3DE;
+    --track:#ECE8E2;
+    --accent:#C2410C; --on-accent:#FFFFFF; --on-c:#FFFFFF;
+    --t-risc:#0F766E; --t-trin:#A16207; --t-norm:#C2410C;
+    --good:#15803D; --danger:#B91C1C;
+    --shadow:0 1px 2px rgba(33,30,28,.05), 0 6px 20px -10px rgba(33,30,28,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141312; --surface:#1E1C1A; --surface-2:#26231F;
+      --ink:#F3EFE9; --ink-soft:#C6BEB4; --muted:#978D85; --line:#322E29;
+      --track:#2A2622;
+      --accent:#F97316; --on-accent:#211307;
+      --t-risc:#2DD4BF; --t-trin:#E0A82E; --t-norm:#FB7A3C;
+      --good:#4ADE80; --danger:#F87171;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141312; --surface:#1E1C1A; --surface-2:#26231F;
+    --ink:#F3EFE9; --ink-soft:#C6BEB4; --muted:#978D85; --line:#322E29;
+    --track:#2A2622;
+    --accent:#F97316; --on-accent:#211307; --on-c:#1A1512;
+    --t-risc:#2DD4BF; --t-trin:#E0A82E; --t-norm:#FB7A3C;
+    --good:#4ADE80; --danger:#F87171;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-text-size-adjust:100%; line-height:1.45;
+    min-height:100vh; min-height:100svh;
+    overscroll-behavior-y:contain;
+  }
+  .wrap{max-width:900px; margin:0 auto;
+    padding:max(16px,env(safe-area-inset-top)) max(15px,env(safe-area-inset-right))
+            max(34px,env(safe-area-inset-bottom)) max(15px,env(safe-area-inset-left));
+    display:flex; flex-direction:column; gap:13px;}
+
+  /* header */
+  .top{display:flex; align-items:center; gap:12px; padding:4px 2px 2px;}
+  .mark{font-size:34px; line-height:1;
+    filter:drop-shadow(0 2px 5px rgba(194,65,12,.35));}
+  .top h1{margin:0; font-size:24px; font-weight:850; letter-spacing:-.02em;}
+  .top .sub{margin:2px 0 0; font-size:13.5px; color:var(--muted);
+    text-transform:capitalize;}
+  .brandtext{min-width:0;}
+  .undo-btn{margin-left:auto; flex:none; appearance:none; cursor:pointer; font-family:inherit;
+    display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+    background:var(--surface); color:var(--accent); font-weight:750; font-size:15px;
+    border:1px solid var(--line); border-radius:999px; padding:9px 15px 9px 13px; min-height:44px;
+    box-shadow:var(--shadow); touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
+  .undo-btn:active{background:var(--track); transform:scale(.97);}
+  .undo-btn[hidden]{display:none;}
+
+  .card{background:var(--surface); border:1px solid var(--line);
+    border-radius:18px; padding:16px; box-shadow:var(--shadow);}
+
+  .section-title{margin:0 0 13px; font-size:13px; font-weight:800;
+    letter-spacing:.07em; text-transform:uppercase; color:var(--muted);}
+  .row-between{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
+  .muted-sm{font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums;}
+
+  /* ---- today ---- */
+  .today{display:flex; flex-direction:column; gap:14px;
+    background:linear-gradient(180deg,var(--surface),var(--surface-2));}
+  .today-main{display:flex; align-items:baseline; gap:10px;}
+  .big{font-size:74px; font-weight:850; line-height:.9; letter-spacing:-.03em;
+    font-variant-numeric:tabular-nums;}
+  .today-label{font-size:16px; color:var(--ink-soft); font-weight:700; padding-bottom:8px;}
+  .today-breakdown{display:flex; gap:9px; flex-wrap:wrap;}
+  .today-context{display:flex; gap:10px 18px; flex-wrap:wrap; font-size:14px;
+    color:var(--muted); padding-top:2px; border-top:1px solid var(--line);
+    margin-top:2px; padding-top:13px;}
+  .today-context b{color:var(--ink-soft); font-weight:700;
+    font-variant-numeric:tabular-nums;}
+
+  .chip{display:inline-flex; align-items:center; gap:7px; font-size:14.5px;
+    font-weight:700; padding:7px 13px; border-radius:999px;
+    background:color-mix(in srgb, var(--c) 16%, var(--surface));
+    color:var(--c); border:1.5px solid color-mix(in srgb, var(--c) 34%, transparent);
+    font-variant-numeric:tabular-nums;}
+  .chip .dot{width:10px; height:10px; border-radius:50%; background:var(--c);}
+
+  /* ---- quick add ---- */
+  .quick{display:grid; grid-template-columns:1fr 1fr 1fr; gap:11px;}
+  .qbtn{appearance:none; cursor:pointer; -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation; user-select:none;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    padding:20px 6px 17px; border-radius:18px; min-height:108px;
+    background:var(--c); border:none;
+    color:var(--on-c); font-weight:800;
+    box-shadow:0 7px 18px -7px color-mix(in srgb, var(--c) 65%, transparent);
+    transition:transform .06s ease, filter .15s ease;}
+  .qbtn:active{transform:scale(.95); filter:brightness(1.07);}
+  .qbtn .qic{width:36px; height:36px;}
+  .qbtn .qlab{font-size:16.5px; letter-spacing:-.01em;}
+  .qbtn .qadd{font-size:12.5px; font-weight:700; color:var(--on-c); opacity:.82;}
+
+  .link-btn{appearance:none; background:none; border:none; cursor:pointer;
+    color:var(--accent); font-weight:750; font-size:15.5px; padding:14px 4px 2px;
+    width:100%; text-align:center; font-family:inherit; touch-action:manipulation;}
+
+  /* ---- detail form ---- */
+  .detail{display:flex; flex-direction:column; gap:14px; margin-top:6px;
+    padding-top:14px; border-top:1px dashed var(--line);}
+  .detail[hidden]{display:none;}
+  .field{display:flex; flex-direction:column; gap:7px;}
+  .field > label{font-size:14px; font-weight:700; color:var(--ink-soft);
+    letter-spacing:.01em;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  input[type=date],input[type=time]{font-family:inherit; font-size:16px;
+    color:var(--ink); background:var(--surface-2); border:1px solid var(--line);
+    border-radius:12px; padding:11px 12px; width:100%; min-height:46px;}
+
+  .seg{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;
+    background:var(--surface-2); border:1px solid var(--line);
+    border-radius:13px; padding:4px;}
+  .seg button{appearance:none; border:none; cursor:pointer; font-family:inherit;
+    background:transparent; color:var(--ink-soft); font-weight:700; font-size:15px;
+    padding:12px 4px; border-radius:10px; touch-action:manipulation;
+    transition:background .15s, color .15s;}
+  .seg button.on{background:var(--c); color:var(--on-c);
+    box-shadow:0 2px 8px -2px color-mix(in srgb,var(--c) 60%,transparent);}
+
+  .stepper{display:flex; align-items:center; gap:0; background:var(--surface-2);
+    border:1px solid var(--line); border-radius:13px; overflow:hidden;
+    width:fit-content;}
+  .stepper button{appearance:none; border:none; background:transparent; cursor:pointer;
+    font-size:26px; font-weight:600; color:var(--accent); width:58px; height:54px;
+    line-height:1; touch-action:manipulation; font-family:inherit;}
+  .stepper button:active{background:var(--track);}
+  .stepper .val{min-width:62px; text-align:center; font-size:23px; font-weight:800;
+    font-variant-numeric:tabular-nums;}
+
+  .primary{appearance:none; cursor:pointer; font-family:inherit; width:100%;
+    background:var(--accent); color:var(--on-accent); font-weight:800; font-size:17.5px;
+    border:none; border-radius:14px; padding:16px; min-height:56px;
+    touch-action:manipulation; transition:transform .06s, filter .15s;
+    box-shadow:0 7px 18px -7px color-mix(in srgb, var(--accent) 60%, transparent);}
+  .primary:active{transform:scale(.99); filter:brightness(.95);}
+
+  /* ---- chart ---- */
+  .chart{display:flex; gap:7px; align-items:flex-end; padding-top:2px;}
+  .col{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;}
+  .col .num{font-size:13px; font-weight:800; color:var(--ink-soft);
+    font-variant-numeric:tabular-nums;}
+  .col .num.z{color:var(--muted); opacity:.6;}
+  .barwrap{height:92px; width:100%; display:flex; align-items:flex-end; justify-content:center;}
+  .bar{width:70%; max-width:42px; min-width:18px; display:flex; flex-direction:column-reverse;
+    border-radius:7px 7px 3px 3px; overflow:hidden; background:var(--track);}
+  .bar .seg{width:100%;}
+  .col .wd{font-size:12.5px; color:var(--muted); text-transform:capitalize;}
+  .col.today-col .wd{color:var(--accent); font-weight:800;}
+
+  /* ---- history ---- */
+  .day{margin-top:14px;}
+  .day:first-child{margin-top:0;}
+  .day-head{display:flex; align-items:baseline; justify-content:space-between;
+    padding:0 2px 8px; border-bottom:1px solid var(--line); margin-bottom:4px;}
+  .day-head .dname{font-size:16px; font-weight:800; text-transform:capitalize;}
+  .day-head .dtot{font-size:13.5px; color:var(--muted); font-weight:700;
+    font-variant-numeric:tabular-nums;}
+  .rowitem{display:flex; align-items:center; gap:12px; padding:12px 2px;
+    border-bottom:1px solid var(--line);}
+  .rowitem:last-child{border-bottom:none;}
+  .rowitem .time{font-size:14.5px; color:var(--muted); width:50px; flex:none;
+    font-variant-numeric:tabular-nums;}
+  .rowitem .tname{flex:1; font-size:16.5px; font-weight:650; display:flex;
+    align-items:center; gap:9px;}
+  .rowitem .tdot{width:12px; height:12px; border-radius:50%; background:var(--c); flex:none;}
+  .rowitem .q{font-size:16px; font-weight:800; color:var(--ink-soft);
+    font-variant-numeric:tabular-nums;}
+  .rowitem .q::before{content:"×"; color:var(--muted); font-weight:500; margin-right:1px;}
+  .del{appearance:none; border:none; background:transparent; cursor:pointer;
+    color:var(--muted); padding:9px; border-radius:10px; line-height:0;
+    touch-action:manipulation;}
+  .del:active{background:var(--track); color:var(--danger);}
+  .empty{color:var(--muted); font-size:15px; text-align:center; padding:24px 0;}
+
+  /* ---- data section ---- */
+  .data-actions{display:grid; grid-template-columns:1fr 1fr; gap:9px;}
+  .data-actions button{appearance:none; cursor:pointer; font-family:inherit;
+    background:var(--surface-2); border:1px solid var(--line); color:var(--ink);
+    font-weight:700; font-size:15px; padding:14px; border-radius:13px; min-height:52px;
+    touch-action:manipulation;}
+  .data-actions button:active{background:var(--track);}
+  .data-actions .danger-btn{color:var(--danger); grid-column:1 / -1;}
+  .fineprint{font-size:13px; color:var(--muted); margin:12px 2px 0; line-height:1.5;}
+
+  /* ---- toast ---- */
+  .toast{position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom,0px));
+    transform:translateX(-50%); z-index:50; max-width:calc(100% - 28px);
+    display:flex; align-items:center; gap:14px; background:var(--ink); color:var(--bg);
+    padding:13px 13px 13px 17px; border-radius:14px; font-size:15px; font-weight:650;
+    box-shadow:0 10px 30px -8px rgba(0,0,0,.5); animation:pop .18s ease;}
+  .toast[hidden]{display:none;}
+  .toast button{appearance:none; border:none; background:color-mix(in srgb,var(--bg) 18%,transparent);
+    color:var(--bg); font-family:inherit; font-weight:800; font-size:14.5px; cursor:pointer;
+    padding:9px 15px; border-radius:10px; touch-action:manipulation;}
+  @keyframes pop{from{opacity:0; transform:translate(-50%,10px)} to{opacity:1; transform:translate(-50%,0)}}
+
+  /* iPhone piccoli (mini / SE / 320-360px) */
+  @media (max-width:374px){
+    .big{font-size:64px;}
+    .card{padding:15px;}
+    .quick{gap:9px;}
+    .qbtn{min-height:96px; padding:16px 4px 14px;}
+    .qbtn .qlab{font-size:15px;}
+    .qbtn .qic{width:32px; height:32px;}
+    .today-context{gap:9px 14px; font-size:13px;}
+    .top h1{font-size:22px;}
+    .undo-btn{font-size:13.5px; padding:8px 12px 8px 10px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="mark">🚬</span>
+    <div class="brandtext">
+      <h1>Diario del fumo</h1>
+      <p class="sub" id="todayDate"></p>
+    </div>
+    <button class="undo-btn" id="btnUndo" type="button" hidden aria-label="Annulla l'ultima azione">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      <span>Annulla</span>
+    </button>
+  </header>
+
+  <!-- OGGI -->
+  <section class="card today">
+    <div class="today-main">
+      <div class="big" id="todayTotal">0</div>
+      <div class="today-label">sigarette<br>oggi</div>
+    </div>
+    <div class="today-breakdown" id="todayBreakdown"></div>
+    <div class="today-context" id="todayContext"></div>
+  </section>
+
+  <!-- AGGIUNGI -->
+  <section class="card">
+    <h2 class="section-title">Aggiungi adesso</h2>
+    <div class="quick" id="quick"></div>
+    <button class="link-btn" id="toggleDetail">＋ Aggiungi con data e ora</button>
+    <div class="detail" id="detail" hidden>
+      <div class="grid2">
+        <div class="field"><label for="fData">Data</label><input type="date" id="fData"></div>
+        <div class="field"><label for="fOra">Ora</label><input type="time" id="fOra"></div>
+      </div>
+      <div class="field"><label>Tipo</label><div class="seg" id="fTipoSeg"></div></div>
+      <div class="field"><label>Quantità</label>
+        <div class="stepper">
+          <button id="qMinus" aria-label="Diminuisci">−</button>
+          <span class="val" id="qVal">1</span>
+          <button id="qPlus" aria-label="Aumenta">+</button>
+        </div>
+      </div>
+      <button class="primary" id="saveDetail">Salva</button>
+    </div>
+  </section>
+
+  <!-- 7 GIORNI -->
+  <section class="card">
+    <h2 class="section-title">Ultimi 7 giorni</h2>
+    <div class="chart" id="chart"></div>
+  </section>
+
+  <!-- STORICO -->
+  <section class="card">
+    <div class="row-between">
+      <h2 class="section-title" style="margin:0">Storico</h2>
+      <span class="muted-sm" id="histCount"></span>
+    </div>
+    <div id="history" style="margin-top:12px"></div>
+  </section>
+
+  <!-- DATI -->
+  <section class="card">
+    <h2 class="section-title">Dati e backup</h2>
+    <div class="data-actions">
+      <button id="btnExcel">📊 Esporta in Excel</button>
+      <button id="btnBackup">💾 Salva backup</button>
+      <button id="btnRestore">↩︎ Ripristina</button>
+      <button id="btnClear" class="danger-btn">Cancella tutto</button>
+      <input type="file" id="fileRestore" accept=".json,application/json" hidden>
+    </div>
+    <p class="fineprint">I dati restano salvati solo su questo telefono, in questo browser.
+      Esporta o salva un backup ogni tanto per non perderli.</p>
+  </section>
+
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario del fumo · v7</p>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "diario-fumo:v1";
+
+  var TIPI = {
+    riscaldate:{ label:"Riscaldate", cvar:"--t-risc" },
+    trinciate: { label:"Trinciate",  cvar:"--t-trin" },
+    normali:   { label:"Normali",    cvar:"--t-norm" }
+  };
+  var ORDER = ["riscaldate","trinciate","normali"];
+
+  // ---- stato ----
+  var entries = load();
+  var detailTipo = "normali";
+  var detailQ = 1;
+  var toastTimer = null;
+  var undoStack = [];
+
+  function load(){
+    try{ var raw = localStorage.getItem(KEY); if(!raw) return [];
+      var a = JSON.parse(raw); return Array.isArray(a) ? a : [];
+    }catch(e){ return []; }
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(entries)); }
+    catch(e){ toast("Impossibile salvare su questo telefono"); }
+  }
+  function uid(){
+    try{ return crypto.randomUUID(); }catch(e){}
+    return Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);
+  }
+
+  // ---- date helpers ----
+  function pad(n){ return (n<10?"0":"")+n; }
+  function dayKey(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function fmtTime(d){ return pad(d.getHours())+":"+pad(d.getMinutes()); }
+  function fmtDayLong(d){
+    return d.toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"});
+  }
+  function fmtWeekday(d){ return d.toLocaleDateString("it-IT",{weekday:"short"}).replace(".",""); }
+  function relName(key){
+    var t=new Date(); var y=new Date(); y.setDate(t.getDate()-1);
+    if(key===dayKey(t)) return "Oggi";
+    if(key===dayKey(y)) return "Ieri";
+    var p=key.split("-"); return fmtDayLong(new Date(+p[0],+p[1]-1,+p[2]));
+  }
+  function num(n){ return n.toLocaleString("it-IT"); }
+
+  // ---- azioni ----
+  function addEntry(tipo, q, when){
+    var d = when || new Date();
+    var e = { id:uid(), ts:d.toISOString(), tipo:tipo, q:Math.max(1, q|0) };
+    entries.push(e); save(); render();
+    var lbl = (e.q===1? "1 " : e.q+" ")+TIPI[tipo].label.toLowerCase();
+    pushUndo("aggiunta di "+lbl, function(){ entries = entries.filter(function(x){ return x.id!==e.id; }); });
+    toast("Aggiunta: "+lbl, "Annulla", doUndo);
+  }
+  function deleteEntry(id){
+    var idx=-1,i; for(i=0;i<entries.length;i++){ if(entries[i].id===id){ idx=i; break; } }
+    if(idx<0) return;
+    var removed = entries[idx];
+    entries.splice(idx,1); save(); render();
+    pushUndo("riga eliminata", function(){ entries.splice(Math.min(idx, entries.length), 0, removed); });
+    toast("Riga eliminata", "Annulla", doUndo);
+  }
+
+  // ---- toast ----
+  function toast(msg, actionLabel, onAction){
+    var el = document.getElementById("toast");
+    el.innerHTML = "";
+    var span = document.createElement("span"); span.textContent = msg; el.appendChild(span);
+    if(actionLabel){
+      var b = document.createElement("button"); b.textContent = actionLabel;
+      b.onclick = function(){ hideToast(); if(onAction) onAction(); };
+      el.appendChild(b);
+    }
+    el.hidden = false;
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 5000);
+  }
+  function hideToast(){ var el=document.getElementById("toast"); el.hidden=true; if(toastTimer) clearTimeout(toastTimer); }
+
+  // ---- undo (annulla) ----
+  function pushUndo(label, fn){
+    undoStack.push({ label:label, undo:fn });
+    if(undoStack.length>50) undoStack.shift();
+    updateUndoBtn();
+  }
+  function doUndo(){
+    var a = undoStack.pop();
+    if(!a){ updateUndoBtn(); return; }
+    a.undo(); save(); render();
+    toast("Annullato: "+a.label);
+  }
+  function updateUndoBtn(){
+    var b=document.getElementById("btnUndo"); if(!b) return;
+    b.hidden = (undoStack.length===0);
+  }
+  document.getElementById("btnUndo").onclick = doUndo;
+
+  // ---- render ----
+  function render(){
+    var now = new Date();
+    document.getElementById("todayDate").textContent = fmtDayLong(now);
+
+    var todayK = dayKey(now);
+    var yKey; var yd=new Date(); yd.setDate(now.getDate()-1); yKey=dayKey(yd);
+
+    // conteggi
+    var byDay = {};       // key -> total
+    var todayByType = { riscaldate:0, trinciate:0, normali:0 };
+    entries.forEach(function(e){
+      var d=new Date(e.ts); var k=dayKey(d);
+      byDay[k]=(byDay[k]||0)+e.q;
+      if(k===todayK) todayByType[e.tipo]=(todayByType[e.tipo]||0)+e.q;
+    });
+    var todayTot = todayByType.riscaldate+todayByType.trinciate+todayByType.normali;
+
+    document.getElementById("todayTotal").textContent = num(todayTot);
+
+    // breakdown chips
+    var bd = document.getElementById("todayBreakdown"); bd.innerHTML="";
+    ORDER.forEach(function(t){
+      if(todayByType[t]<=0) return;
+      var c=document.createElement("span"); c.className="chip";
+      c.style.setProperty("--c","var("+TIPI[t].cvar+")");
+      c.innerHTML='<span class="dot"></span>'+TIPI[t].label+" "+num(todayByType[t]);
+      bd.appendChild(c);
+    });
+    if(todayTot===0){ bd.innerHTML='<span class="muted-sm">Nessuna sigaretta oggi 👍</span>'; }
+
+    // contesto: ieri, media 7gg
+    var last7=0, i, k;
+    for(i=0;i<7;i++){ var dd=new Date(); dd.setDate(now.getDate()-i); k=dayKey(dd); last7+=(byDay[k]||0); }
+    var media = last7/7;
+    var ctx = document.getElementById("todayContext");
+    ctx.innerHTML = "Ieri <b>"+num(byDay[yKey]||0)+"</b>"
+      + " &nbsp;·&nbsp; Media 7 gg <b>"+media.toLocaleString("it-IT",{minimumFractionDigits:1,maximumFractionDigits:1})+"</b>"
+      + " &nbsp;·&nbsp; Totale 7 gg <b>"+num(last7)+"</b>";
+
+    renderChart(now, byDay, todayK);
+    renderHistory();
+    updateUndoBtn();
+  }
+
+  function renderChart(now, byDay, todayK){
+    var days=[]; var i;
+    for(i=6;i>=0;i--){ var d=new Date(); d.setDate(now.getDate()-i); days.push(d); }
+    // per-type per-day
+    var perDay = {};
+    days.forEach(function(d){ perDay[dayKey(d)]={riscaldate:0,trinciate:0,normali:0}; });
+    entries.forEach(function(e){ var k=dayKey(new Date(e.ts)); if(perDay[k]) perDay[k][e.tipo]+=e.q; });
+    var max=1;
+    days.forEach(function(d){ var t=byDay[dayKey(d)]||0; if(t>max) max=t; });
+
+    var chart=document.getElementById("chart"); chart.innerHTML="";
+    days.forEach(function(d){
+      var k=dayKey(d); var tot=byDay[k]||0;
+      var col=document.createElement("div"); col.className="col"+(k===todayK?" today-col":"");
+
+      var numEl=document.createElement("div"); numEl.className="num"+(tot===0?" z":"");
+      numEl.textContent=num(tot); col.appendChild(numEl);
+
+      var wrap=document.createElement("div"); wrap.className="barwrap";
+      var bar=document.createElement("div"); bar.className="bar";
+      var h = tot===0 ? 3 : Math.round((tot/max)*78);
+      bar.style.height = h+"px";
+      ORDER.forEach(function(t){
+        var v=perDay[k][t]; if(v<=0) return;
+        var seg=document.createElement("div"); seg.className="seg";
+        seg.style.height=(v/tot*100)+"%";
+        seg.style.background="var("+TIPI[t].cvar+")";
+        bar.appendChild(seg);
+      });
+      wrap.appendChild(bar); col.appendChild(wrap);
+
+      var wd=document.createElement("div"); wd.className="wd"; wd.textContent=fmtWeekday(d);
+      col.appendChild(wd);
+      chart.appendChild(col);
+    });
+  }
+
+  function renderHistory(){
+    var host=document.getElementById("history"); host.innerHTML="";
+    var total = entries.reduce(function(s,e){ return s+e.q; },0);
+    document.getElementById("histCount").textContent =
+      entries.length ? num(total)+" in totale" : "";
+
+    if(!entries.length){
+      host.innerHTML='<div class="empty">Ancora niente.<br>Tocca un pulsante qui sopra per iniziare.</div>';
+      return;
+    }
+    var sorted=entries.slice().sort(function(a,b){ return b.ts<a.ts?-1:(b.ts>a.ts?1:0); });
+    var groups={}, keys=[];
+    sorted.forEach(function(e){
+      var k=dayKey(new Date(e.ts));
+      if(!groups[k]){ groups[k]=[]; keys.push(k); }
+      groups[k].push(e);
+    });
+    keys.forEach(function(k){
+      var wrap=document.createElement("div"); wrap.className="day";
+      var tot=groups[k].reduce(function(s,e){ return s+e.q; },0);
+      var head=document.createElement("div"); head.className="day-head";
+      head.innerHTML='<span class="dname">'+relName(k)+'</span>'
+        +'<span class="dtot">'+num(tot)+(tot===1?" sigaretta":" sigarette")+'</span>';
+      wrap.appendChild(head);
+      groups[k].forEach(function(e){
+        var d=new Date(e.ts);
+        var row=document.createElement("div"); row.className="rowitem";
+        var meta=TIPI[e.tipo]||{label:e.tipo,cvar:"--muted"};
+        row.innerHTML=
+          '<span class="time">'+fmtTime(d)+'</span>'
+          +'<span class="tname"><span class="tdot" style="--c:var('+meta.cvar+')"></span>'+meta.label+'</span>'
+          +'<span class="q">'+num(e.q)+'</span>';
+        var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina");
+        del.innerHTML='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+        del.onclick=function(){ deleteEntry(e.id); };
+        row.appendChild(del);
+        wrap.appendChild(row);
+      });
+      host.appendChild(wrap);
+    });
+  }
+
+  // ---- quick buttons ----
+  function cigIcon(){
+    return '<svg class="qic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="13" width="16" height="5" rx="1"/><line x1="12" y1="13" x2="12" y2="18"/><path d="M20 8.5c1 .6 1 1.9 0 2.5M18 6.5c1.6 1 1.6 3 0 4"/></svg>';
+  }
+  (function buildQuick(){
+    var q=document.getElementById("quick");
+    ORDER.forEach(function(t){
+      var b=document.createElement("button"); b.className="qbtn"; b.type="button";
+      b.style.setProperty("--c","var("+TIPI[t].cvar+")");
+      b.innerHTML=cigIcon()+'<span class="qlab">'+TIPI[t].label+'</span><span class="qadd">+1 adesso</span>';
+      b.onclick=function(){ addEntry(t,1,new Date()); };
+      q.appendChild(b);
+    });
+  })();
+
+  // ---- detail form ----
+  (function buildSeg(){
+    var seg=document.getElementById("fTipoSeg");
+    ORDER.forEach(function(t){
+      var b=document.createElement("button"); b.type="button"; b.textContent=TIPI[t].label;
+      b.dataset.tipo=t; b.style.setProperty("--c","var("+TIPI[t].cvar+")");
+      if(t===detailTipo) b.className="on";
+      b.onclick=function(){
+        detailTipo=t;
+        Array.prototype.forEach.call(seg.children,function(c){
+          c.className = (c.dataset.tipo===t)?"on":"";
+        });
+      };
+      seg.appendChild(b);
+    });
+  })();
+
+  function setQ(v){ detailQ=Math.max(1,Math.min(99,v)); document.getElementById("qVal").textContent=detailQ; }
+  document.getElementById("qMinus").onclick=function(){ setQ(detailQ-1); };
+  document.getElementById("qPlus").onclick=function(){ setQ(detailQ+1); };
+
+  document.getElementById("toggleDetail").onclick=function(){
+    var d=document.getElementById("detail"); var btn=this;
+    if(d.hidden){
+      var now=new Date();
+      document.getElementById("fData").value=dayKey(now);
+      document.getElementById("fOra").value=fmtTime(now);
+      d.hidden=false; btn.textContent="− Nascondi";
+    } else { d.hidden=true; btn.textContent="＋ Aggiungi con data e ora"; }
+  };
+
+  document.getElementById("saveDetail").onclick=function(){
+    var dv=document.getElementById("fData").value;
+    var tv=document.getElementById("fOra").value;
+    var when;
+    if(dv){ when=new Date(dv+"T"+(tv||"12:00")); if(isNaN(when.getTime())) when=new Date(); }
+    else when=new Date();
+    addEntry(detailTipo, detailQ, when);
+    setQ(1);
+    document.getElementById("detail").hidden=true;
+    document.getElementById("toggleDetail").textContent="＋ Aggiungi con data e ora";
+  };
+
+  // ---- export / backup ----
+  function csvCell(v){ v=String(v); return /[";\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+  function buildCSV(){
+    var rows=[["Data","Ora","Tipo","Quantità"]];
+    entries.slice().sort(function(a,b){ return a.ts<b.ts?-1:1; }).forEach(function(e){
+      var d=new Date(e.ts);
+      rows.push([ d.toLocaleDateString("it-IT"), fmtTime(d), (TIPI[e.tipo]||{}).label||e.tipo, e.q ]);
+    });
+    return "﻿"+rows.map(function(r){ return r.map(csvCell).join(";"); }).join("\r\n");
+  }
+
+  function mimeFor(fn){
+    if(/\.json$/i.test(fn)) return "application/json;charset=utf-8";
+    if(/\.csv$/i.test(fn))  return "text/csv;charset=utf-8";
+    return "text/plain;charset=utf-8";
+  }
+  function downloadBlob(filename, data){
+    try{
+      var blob = (typeof Blob!=="undefined" && data instanceof Blob) ? data : new Blob([data], {type:mimeFor(filename)});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = filename; a.style.display = "none";
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); if(a.parentNode) a.parentNode.removeChild(a); }, 1500);
+      return true;
+    }catch(e){ return false; }
+  }
+
+  async function saveFile(filename, data, fallbackName){
+    // Online (artefatto) i download passano dalla capability di Claude;
+    // in locale (file aperto dal computer) si usa il download del browser.
+    if(window.claude && claude.use){
+      var cap=null;
+      try{ cap = await claude.use("downloads"); }catch(e){}
+      if(!cap){ return {ok:false, reason:"unavailable"}; }
+      try{
+        await cap.save({filename:filename, data:data});
+        return {ok:true, name:filename};
+      }catch(err){
+        var code = err && err.code;
+        if(code==="extension_not_enabled" && fallbackName){
+          try{ await cap.save({filename:fallbackName, data:data}); return {ok:true, name:fallbackName}; }
+          catch(e2){ return {ok:false, reason:(e2&&e2.code)||"error"}; }
+        }
+        return {ok:false, reason:code||"error"};
+      }
+    }
+    return downloadBlob(filename, data) ? {ok:true, name:filename} : {ok:false, reason:"error"};
+  }
+
+  document.getElementById("btnExcel").onclick=async function(){
+    if(!entries.length){ toast("Non c'è ancora niente da esportare"); return; }
+    var res=await saveFile("diario-fumo.csv", buildCSV(), "diario-fumo.txt");
+    if(res.ok) toast("Salvato: "+res.name);
+    else if(res.reason==="declined") toast("Esportazione annullata");
+    else toast("Esportazione non disponibile qui");
+  };
+
+  document.getElementById("btnBackup").onclick=async function(){
+    if(!entries.length){ toast("Non c'è ancora niente da salvare"); return; }
+    var data=JSON.stringify({app:"diario-fumo",v:1,entries:entries},null,2);
+    var res=await saveFile("diario-fumo-backup.json", data, null);
+    if(res.ok) toast("Backup salvato");
+    else if(res.reason==="declined") toast("Backup annullato");
+    else toast("Backup non disponibile qui");
+  };
+
+  document.getElementById("btnRestore").onclick=function(){ document.getElementById("fileRestore").click(); };
+  document.getElementById("fileRestore").onchange=function(ev){
+    var f=ev.target.files && ev.target.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){
+      try{
+        var obj=JSON.parse(r.result);
+        var list = Array.isArray(obj)? obj : (obj && obj.entries);
+        if(!Array.isArray(list)) throw new Error("formato");
+        var clean = list.filter(function(e){ return e && e.ts && e.tipo && TIPI[e.tipo]; })
+          .map(function(e){ return { id:e.id||uid(), ts:e.ts, tipo:e.tipo, q:Math.max(1,(e.q|0)||1) }; });
+        // unione: evita doppioni per id
+        var seen={}; entries.forEach(function(e){ seen[e.id]=true; });
+        var addedIds=[];
+        clean.forEach(function(e){ if(!seen[e.id]){ entries.push(e); seen[e.id]=true; addedIds.push(e.id); } });
+        save(); render();
+        if(addedIds.length){
+          pushUndo("ripristino di "+addedIds.length+" righe", function(){
+            var rm={}; addedIds.forEach(function(id){ rm[id]=true; });
+            entries = entries.filter(function(e){ return !rm[e.id]; });
+          });
+          toast("Ripristinate "+addedIds.length+" righe", "Annulla", doUndo);
+        } else { toast("Nessuna nuova riga"); }
+      }catch(e){ toast("File di backup non valido"); }
+    };
+    r.readAsText(f);
+    ev.target.value="";
+  };
+
+  document.getElementById("btnClear").onclick=function(){
+    if(!entries.length){ toast("È già vuoto"); return; }
+    if(confirm("Cancellare TUTTE le sigarette registrate?\n\nPuoi annullare subito con il pulsante «Annulla», ma per sicurezza fai prima «Salva backup».")){
+      var old=entries.slice();
+      entries=[]; save(); render();
+      pushUndo("cancella tutto ("+old.length+" righe)", function(){ entries = old.slice(); });
+      toast("Tutto cancellato", "Annulla", doUndo);
+    }
+  };
+
+  render();
+})();
+</script>
