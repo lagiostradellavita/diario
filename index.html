@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 35; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 36; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -915,25 +915,47 @@
     </header>
     <section class="card">
       <div class="row-between"><h2 class="section-title" style="margin:0">Oggi</h2><span id="evacSummary" class="stat-summary"></span></div>
-      <div class="quick quick-2" style="margin-top:12px">
-        <button class="qbtn" type="button" id="qUrina" style="--c:#0EA5E9"><span style="font-size:28px;line-height:1">💧</span><span class="qlab">Urina</span><span class="qadd">＋1 adesso</span></button>
-        <button class="qbtn" type="button" id="qFeci" style="--c:#A16207"><span style="font-size:28px;line-height:1">💩</span><span class="qlab">Feci</span><span class="qadd">＋1 adesso</span></button>
+      <p class="fineprint" style="margin:2px 0 10px">Tocca <b>Urina</b> o <b>Feci</b>: aggiungi colore, quantità e il resto, oppure registra al volo.</p>
+      <div class="quick quick-2">
+        <button class="qbtn" type="button" id="qUrina" style="--c:#0EA5E9"><span style="font-size:28px;line-height:1">💧</span><span class="qlab">Urina</span><span class="qadd">tocca per registrare</span></button>
+        <button class="qbtn" type="button" id="qFeci" style="--c:#A16207"><span style="font-size:28px;line-height:1">💩</span><span class="qlab">Feci</span><span class="qadd">tocca per registrare</span></button>
       </div>
-      <button class="link-btn" id="evacAddWhen">＋ con data e ora</button>
-      <div class="detail" id="evacForm" hidden>
-        <div class="field"><label>Tipo</label>
-          <div class="seg" id="evacTipo" style="--c:#0D9488; grid-template-columns:1fr 1fr">
-            <button type="button" data-t="urina" class="on">Urina</button>
-            <button type="button" data-t="feci">Feci</button>
-          </div>
-        </div>
-        <div class="grid2">
-          <div class="field"><label for="evacData">Data</label><input type="date" id="evacData"></div>
-          <div class="field"><label for="evacOra">Ora</label><input type="time" id="evacOra"></div>
-        </div>
-        <div class="field"><label for="evacNota">Nota (facoltativa)</label><input type="text" id="evacNota" placeholder="es. normale, dura…"></div>
-        <div class="panel-actions"><button class="primary" id="evacSave">Salva</button><button class="link-btn" id="evacCancel">Annulla</button></div>
+    </section>
+    <section class="card" id="urinaCard" hidden>
+      <h2 class="section-title">💧 Urina</h2>
+      <p class="group-lbl">Colore</p>
+      <div id="urinaColore" class="chips"></div>
+      <div class="chip-add"><input type="text" id="urinaColoreInput" placeholder="Altro colore…"><button type="button" id="urinaColoreBtn">＋</button></div>
+      <p class="group-lbl">Quantità</p>
+      <div id="urinaQta" class="chips"></div>
+      <div class="chip-add"><input type="text" id="urinaQtaInput" placeholder="Altra quantità…"><button type="button" id="urinaQtaBtn">＋</button></div>
+      <p class="group-lbl">Fastidi (anche più di uno)</p>
+      <div id="urinaFastidi" class="chips"></div>
+      <div class="chip-add"><input type="text" id="urinaFastidiInput" placeholder="Aggiungi un fastidio…"><button type="button" id="urinaFastidiBtn">＋</button></div>
+      <button class="link-btn" id="urinaWhenToggle" style="margin-top:8px">＋ cambia data e ora</button>
+      <div class="grid2" id="urinaWhen" hidden>
+        <div class="field"><label for="urinaData">Data</label><input type="date" id="urinaData"></div>
+        <div class="field"><label for="urinaOra">Ora</label><input type="time" id="urinaOra"></div>
       </div>
+      <div class="panel-actions" style="margin-top:14px"><button class="primary" id="urinaSave">Registra</button><button class="link-btn" id="urinaCancel">Annulla</button></div>
+    </section>
+    <section class="card" id="feciCard" hidden>
+      <h2 class="section-title">💩 Feci</h2>
+      <p class="group-lbl">Colore</p>
+      <div id="feciColore" class="chips"></div>
+      <div class="chip-add"><input type="text" id="feciColoreInput" placeholder="Altro colore…"><button type="button" id="feciColoreBtn">＋</button></div>
+      <p class="group-lbl">Quantità</p>
+      <div id="feciQta" class="chips"></div>
+      <div class="chip-add"><input type="text" id="feciQtaInput" placeholder="Altra quantità…"><button type="button" id="feciQtaBtn">＋</button></div>
+      <p class="group-lbl">Morbidezza</p>
+      <div id="feciMorb" class="chips"></div>
+      <div class="chip-add"><input type="text" id="feciMorbInput" placeholder="Altro…"><button type="button" id="feciMorbBtn">＋</button></div>
+      <button class="link-btn" id="feciWhenToggle" style="margin-top:8px">＋ cambia data e ora</button>
+      <div class="grid2" id="feciWhen" hidden>
+        <div class="field"><label for="feciData">Data</label><input type="date" id="feciData"></div>
+        <div class="field"><label for="feciOra">Ora</label><input type="time" id="feciOra"></div>
+      </div>
+      <div class="panel-actions" style="margin-top:14px"><button class="primary" id="feciSave">Registra</button><button class="link-btn" id="feciCancel">Annulla</button></div>
     </section>
     <section class="card">
       <h2 class="section-title">Storico</h2>
@@ -941,7 +963,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v35</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v36</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1508,7 +1530,7 @@
   function ymd(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
   function fmtDur(ms){ var s=Math.max(0,Math.floor(ms/1000)), m=Math.floor(s/60); s=s%60; if(m>=60){ var h=Math.floor(m/60); m=m%60; return h+":"+pad2(m)+":"+pad2(s); } return m+":"+pad2(s); }
   // chip multi-selezione con aggiunte personali che restano
-  function makeChipGroup(containerId, preset, customKey){
+  function makeChipGroup(containerId, preset, customKey, single){
     var custom=[]; try{ var _c=JSON.parse(localStorage.getItem(customKey)); if(Array.isArray(_c)) custom=_c; }catch(e){}
     var sel={};
     function opts(){ return preset.concat(custom); }
@@ -1516,13 +1538,21 @@
       var host=document.getElementById(containerId); if(!host) return; host.innerHTML="";
       opts().forEach(function(lbl){
         var b=document.createElement("button"); b.type="button"; b.className="chip-sel"+(sel[lbl]?" on":""); b.textContent=lbl;
-        b.onclick=function(){ if(sel[lbl]) delete sel[lbl]; else sel[lbl]=true; b.classList.toggle("on"); };
+        b.onclick=function(){
+          if(single){
+            var wasOn=!!sel[lbl]; sel={};
+            Array.prototype.forEach.call(host.querySelectorAll(".chip-sel"), function(x){ x.classList.remove("on"); });
+            if(!wasOn){ sel[lbl]=true; b.classList.add("on"); }
+          } else {
+            if(sel[lbl]) delete sel[lbl]; else sel[lbl]=true; b.classList.toggle("on");
+          }
+        };
         host.appendChild(b);
       });
     }
     function add(lbl){ lbl=(lbl||"").trim(); if(!lbl) return false; if(opts().indexOf(lbl)>=0) return false; custom.push(lbl); try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} render(); return true; }
     render();
-    return { selected:function(){ return Object.keys(sel); }, clear:function(){ sel={}; render(); }, add:add };
+    return { selected:function(){ return Object.keys(sel); }, value:function(){ var k=Object.keys(sel); return k.length?k[0]:""; }, clear:function(){ sel={}; render(); }, add:add };
   }
   function wireAdd(inputId, btnId, group){
     var inp=document.getElementById(inputId), btn=document.getElementById(btnId); if(!inp||!btn) return;
@@ -1569,8 +1599,8 @@
   };
 
   // ---- Salute: fastidi fisici + stato psicologico ----
-  var FASTIDI=["Capogiri","Mal di testa","Nausea","Stanchezza","Fiato corto","Dolori muscolari","Tensione al collo","Fascicolazioni","Acufene","Nebbia mentale","Palpitazioni","Caviglie gonfie","Insonnia","Fastidio vescica"];
-  var PSICO=["Ansia","Stress","Attacco di panico","Umore basso","Agitazione","Pensieri ossessivi","Irritabilità"];
+  var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Nausea","Vomito","Stanchezza","Fiato corto","Tosse","Bruciore di stomaco","Dolori addominali","Dolori muscolari","Spasmi muscolari","Mal di schiena","Dolori articolari","Tensione al collo","Fascicolazioni","Acufene","Nebbia mentale","Palpitazioni","Caviglie gonfie","Sudorazione notturna","Insonnia","Fastidio vescica"];
+  var PSICO=["Ansia","Stress","Attacco di panico","Tristezza","Umore basso","Depressione","Agitazione","Pensieri ossessivi","Irritabilità"];
   var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts");
   var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts");
   wireAdd("fastidiAddInput","fastidiAddBtn", fastidiG);
@@ -1597,10 +1627,26 @@
     saluteLog.push({id:uid(), ts:Date.now(), voci:v}); saveSaluteLog(); fastidiG.clear(); psicoG.clear(); renderSalute(); toast("Registrato ✓");
   };
 
-  // ---- Evacuazioni: Urina / Feci (stile fumo) ----
+  // ---- Evacuazioni: Urina / Feci con colore, quantità, morbidezza/fastidi ----
   var EVAC_LBL={urina:"Urina", feci:"Feci"};
   var evac=[]; try{ var _ev=JSON.parse(localStorage.getItem("salute-evac")); if(Array.isArray(_ev)) evac=_ev; }catch(e){}
   function saveEvac(){ try{ localStorage.setItem("salute-evac", JSON.stringify(evac)); }catch(e){} }
+  // gruppi di scelta con aggiunta manuale che resta — colore/quantità/morbidezza a scelta singola, fastidi multipli
+  var uColore=makeChipGroup("urinaColore",["Trasparente","Giallo paglierino","Giallo","Giallo scuro","Ambrato","Arancione","Rosato","Torbido"],"salute-urina-colore",true);
+  var uQta=makeChipGroup("urinaQta",["Poca","Normale","Molta"],"salute-urina-qta",true);
+  var uFastidi=makeChipGroup("urinaFastidi",["Bruciore","Urgenza","Difficoltà a urinare","Dolore","Cattivo odore","Sangue"],"salute-urina-fastidi",false);
+  wireAdd("urinaColoreInput","urinaColoreBtn",uColore); wireAdd("urinaQtaInput","urinaQtaBtn",uQta); wireAdd("urinaFastidiInput","urinaFastidiBtn",uFastidi);
+  var fColore=makeChipGroup("feciColore",["Marrone","Marrone scuro","Marrone chiaro","Giallo","Verde","Nero","Chiaro/pallido","Rossastro"],"salute-feci-colore",true);
+  var fQta=makeChipGroup("feciQta",["Poca","Normale","Molta"],"salute-feci-qta",true);
+  var fMorb=makeChipGroup("feciMorb",["Dure a palline","Dure e grumose","Screpolate","Morbide e lisce","Morbide a pezzi","Poltacee","Liquide"],"salute-feci-morb",true);
+  wireAdd("feciColoreInput","feciColoreBtn",fColore); wireAdd("feciQtaInput","feciQtaBtn",fQta); wireAdd("feciMorbInput","feciMorbBtn",fMorb);
+  function evacLabel(x){
+    var p=[]; if(x.colore)p.push(x.colore); if(x.quantita)p.push(x.quantita);
+    if(x.tipo==="feci"){ if(x.morbidezza)p.push(x.morbidezza); }
+    else { if(x.fastidi&&x.fastidi.length)p.push(x.fastidi.join(", ")); }
+    if(!p.length && x.nota)p.push(x.nota);
+    return (x.tipo==="feci"?"💩 Feci":"💧 Urina")+(p.length?" · "+p.join(" · "):"");
+  }
   function evacCounts(){ var dK=dayKey(new Date()), u=0,f=0; evac.forEach(function(x){ if(dayKey(new Date(x.ts))===dK){ if(x.tipo==="feci")f++; else u++; } }); return {u:u,f:f,tot:u+f}; }
   function renderEvac(){
     document.getElementById("evacDate").textContent=fmtDayLong(new Date());
@@ -1618,32 +1664,33 @@
         host.appendChild(h);
       }
       var row=document.createElement("div"); row.className="rowitem";
-      var lbl=(x.tipo==="feci"?"💩 Feci":"💧 Urina")+(x.nota?' · '+esc(x.nota):'');
-      row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname">'+lbl+'</span>';
+      row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname">'+esc(evacLabel(x))+'</span>';
       var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
       del.onclick=function(){ evac=evac.filter(function(y){return y.id!==x.id;}); saveEvac(); renderEvac(); };
       row.appendChild(del); host.appendChild(row);
     });
   }
-  function evacRecord(ts, tipo, nota){ evac.push({id:uid(), ts:ts, tipo:tipo, nota:nota||""}); saveEvac(); renderEvac(); toast(EVAC_LBL[tipo]+" registrata ✓"); }
-  document.getElementById("qUrina").onclick=function(){ evacRecord(Date.now(), "urina", ""); };
-  document.getElementById("qFeci").onclick=function(){ evacRecord(Date.now(), "feci", ""); };
-  var evacTipo="urina";
-  Array.prototype.forEach.call(document.querySelectorAll("#evacTipo button"), function(b){
-    b.onclick=function(){ Array.prototype.forEach.call(document.querySelectorAll("#evacTipo button"), function(x){ x.classList.remove("on"); }); b.classList.add("on"); evacTipo=b.dataset.t; };
-  });
-  document.getElementById("evacAddWhen").onclick=function(){
-    var f=document.getElementById("evacForm"); f.hidden=!f.hidden;
-    if(!f.hidden){ var n=new Date(); document.getElementById("evacData").value=ymd(n); document.getElementById("evacOra").value=hhmm(n); }
+  function evacPush(rec){ evac.push(rec); saveEvac(); renderEvac(); toast(EVAC_LBL[rec.tipo]+" registrata ✓"); }
+  function evacScrollTo(id){ var c=document.getElementById(id); c.hidden=false; try{ c.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} }
+  document.getElementById("qUrina").onclick=function(){ document.getElementById("feciCard").hidden=true; evacScrollTo("urinaCard"); };
+  document.getElementById("qFeci").onclick=function(){ document.getElementById("urinaCard").hidden=true; evacScrollTo("feciCard"); };
+  function evacWhenSetup(dataId,oraId){ var n=new Date(); document.getElementById(dataId).value=ymd(n); document.getElementById(oraId).value=hhmm(n); }
+  document.getElementById("urinaWhenToggle").onclick=function(){ var w=document.getElementById("urinaWhen"); w.hidden=!w.hidden; if(!w.hidden) evacWhenSetup("urinaData","urinaOra"); };
+  document.getElementById("feciWhenToggle").onclick=function(){ var w=document.getElementById("feciWhen"); w.hidden=!w.hidden; if(!w.hidden) evacWhenSetup("feciData","feciOra"); };
+  function evacWhenTs(dataId,oraId,whenId){ var w=document.getElementById(whenId); if(w && !w.hidden){ var d=document.getElementById(dataId).value, t=document.getElementById(oraId).value; if(d&&t){ var ts=new Date(d+"T"+t).getTime(); if(!isNaN(ts)) return ts; } } return Date.now(); }
+  document.getElementById("urinaCancel").onclick=function(){ document.getElementById("urinaCard").hidden=true; };
+  document.getElementById("feciCancel").onclick=function(){ document.getElementById("feciCard").hidden=true; };
+  document.getElementById("urinaSave").onclick=function(){
+    var ts=evacWhenTs("urinaData","urinaOra","urinaWhen");
+    evacPush({id:uid(), ts:ts, tipo:"urina", colore:uColore.value(), quantita:uQta.value(), fastidi:uFastidi.selected(), nota:""});
+    uColore.clear(); uQta.clear(); uFastidi.clear();
+    document.getElementById("urinaWhen").hidden=true; document.getElementById("urinaCard").hidden=true;
   };
-  document.getElementById("evacCancel").onclick=function(){ document.getElementById("evacForm").hidden=true; };
-  document.getElementById("evacSave").onclick=function(){
-    var d=document.getElementById("evacData").value, t=document.getElementById("evacOra").value;
-    if(!d||!t){ toast("Metti data e ora"); return; }
-    var ts=new Date(d+"T"+t).getTime(); if(isNaN(ts)){ toast("Data/ora non valida"); return; }
-    var nota=(document.getElementById("evacNota").value||"").trim();
-    document.getElementById("evacForm").hidden=true; document.getElementById("evacNota").value="";
-    evacRecord(ts, evacTipo, nota);
+  document.getElementById("feciSave").onclick=function(){
+    var ts=evacWhenTs("feciData","feciOra","feciWhen");
+    evacPush({id:uid(), ts:ts, tipo:"feci", colore:fColore.value(), quantita:fQta.value(), morbidezza:fMorb.value(), nota:""});
+    fColore.clear(); fQta.clear(); fMorb.clear();
+    document.getElementById("feciWhen").hidden=true; document.getElementById("feciCard").hidden=true;
   };
 
   // ---- Attività Fisiche: avvio/termine con cronometro ----
@@ -1899,8 +1946,13 @@
     var u=0,f=0; rows.forEach(function(x){ if(x.tipo==="feci")f++; else u++; });
     h+='<p class="rep-sum">Totale <b>'+rows.length+'</b> · 💧 Urina '+u+' · 💩 Feci '+f+'</p>';
     h+=svgBars(bucketSeries(rows,function(x){return x.ts;},function(){return 1;},(e-s)>45*86400000),"#0D9488");
-    h+='<table><tr><th>Quando</th><th>Tipo</th><th>Nota</th></tr>';
-    rows.forEach(function(x){ h+='<tr><td>'+dmt(x.ts)+'</td><td>'+(x.tipo==="feci"?"Feci":"Urina")+'</td><td>'+e2(x.nota||"")+'</td></tr>'; });
+    h+='<table><tr><th>Quando</th><th>Tipo</th><th>Dettagli</th></tr>';
+    rows.forEach(function(x){
+      var det=[]; if(x.colore)det.push(x.colore); if(x.quantita)det.push(x.quantita);
+      if(x.tipo==="feci"){ if(x.morbidezza)det.push(x.morbidezza); } else { if(x.fastidi&&x.fastidi.length)det.push(x.fastidi.join(", ")); }
+      if(!det.length && x.nota)det.push(x.nota);
+      h+='<tr><td>'+dmt(x.ts)+'</td><td>'+(x.tipo==="feci"?"Feci":"Urina")+'</td><td>'+e2(det.join(" · "))+'</td></tr>';
+    });
     h+='</table>';
     return h;
   }
