@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 29; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 30; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -346,6 +346,7 @@
 
   /* ---- Referti e documenti ---- */
   #docFileInput{display:none;}
+  .mdoc-file{display:none;}
   .doc-cat-head{font-size:13px; font-weight:800; color:var(--ink-soft); margin:16px 0 2px; text-transform:uppercase; letter-spacing:.04em;}
   .doc-row{display:flex; align-items:center; gap:11px; padding:12px 2px; border-bottom:1px solid var(--line);}
   .doc-row:last-child{border-bottom:none;}
@@ -884,7 +885,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v29</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v30</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1877,6 +1878,14 @@
   function docDelete(id){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("files","readwrite"); tx.objectStore("files").delete(id); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
   function docGet(id){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var rq=db.transaction("files","readonly").objectStore("files").get(id); rq.onsuccess=function(){res(rq.result);}; rq.onerror=function(){rej(rq.error);}; }); }); }
   function fmtSize(n){ if(n>=1048576) return String(Math.round(n/1048576*10)/10).replace(".",",")+" MB"; return Math.max(1,Math.round(n/1024))+" KB"; }
+  function docRowEl(f, refreshFn){
+    var d=new Date(f.ts), ic=(f.tipo&&f.tipo.indexOf("pdf")>=0)?"📄":"🖼️";
+    var row=document.createElement("div"); row.className="doc-row";
+    row.innerHTML='<span class="doc-ic">'+ic+'</span><span class="doc-meta"><div class="doc-name">'+esc(f.nome)+'</div><div class="doc-sub">'+pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()+' · '+fmtSize(f.size||0)+'</div></span>';
+    var open=document.createElement("button"); open.className="doc-open"; open.type="button"; open.textContent="Apri"; open.onclick=function(){ docView(f.id); };
+    var del=document.createElement("button"); del.className="del"; del.type="button"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH; del.onclick=function(){ if(confirm("Eliminare «"+f.nome+"»?")){ docDelete(f.id).then(refreshFn); } };
+    row.appendChild(open); row.appendChild(del); return row;
+  }
   function renderDocList(){
     var host=document.getElementById("docList"); if(!host) return; host.innerHTML='<div class="empty" style="padding:12px 0">…</div>';
     docAll().then(function(list){
@@ -1886,16 +1895,7 @@
       var byCat={}; list.forEach(function(f){ (byCat[f.cat]=byCat[f.cat]||[]).push(f); });
       Object.keys(byCat).forEach(function(cat){
         var h=document.createElement("div"); h.className="doc-cat-head"; h.textContent=cat+" ("+byCat[cat].length+")"; host.appendChild(h);
-        byCat[cat].forEach(function(f){
-          var d=new Date(f.ts), ic=(f.tipo&&f.tipo.indexOf("pdf")>=0)?"📄":"🖼️";
-          var row=document.createElement("div"); row.className="doc-row";
-          row.innerHTML='<span class="doc-ic">'+ic+'</span><span class="doc-meta"><div class="doc-name">'+esc(f.nome)+'</div><div class="doc-sub">'+pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()+' · '+fmtSize(f.size||0)+'</div></span>';
-          var open=document.createElement("button"); open.className="doc-open"; open.type="button"; open.textContent="Apri";
-          open.onclick=function(){ docView(f.id); };
-          var del=document.createElement("button"); del.className="del"; del.type="button"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-          del.onclick=function(){ if(confirm("Eliminare «"+f.nome+"»?")){ docDelete(f.id).then(renderDocList); } };
-          row.appendChild(open); row.appendChild(del); host.appendChild(row);
-        });
+        byCat[cat].forEach(function(f){ host.appendChild(docRowEl(f, renderDocList)); });
       });
     }).catch(function(){ host.innerHTML='<div class="empty">I documenti non sono disponibili in questa modalità.</div>'; });
   }
@@ -1921,6 +1921,39 @@
     ev.target.value="";
   };
   renderDocList();
+
+  // documenti dentro ogni modulo (stessa memoria, taggati per modulo)
+  var MOD_LABEL={fumo:"Fumo", pillole:"Pillole", esercizio:"Attività Fisiche", alimentazione:"Alimentazione", salute:"Salute", evac:"Evacuazioni"};
+  var modDocRender={};
+  Object.keys(MOD_LABEL).forEach(function(mod){
+    var sec=document.getElementById("mod-"+mod); if(!sec) return;
+    var card=document.createElement("section"); card.className="card";
+    card.innerHTML='<h2 class="section-title">Documenti allegati</h2><button class="primary mdoc-attach" type="button">📎 Allega foto o PDF</button><input type="file" class="mdoc-file" accept="image/*,application/pdf" multiple><div class="mdoc-list" style="margin-top:8px"></div>';
+    sec.appendChild(card);
+    var file=card.querySelector(".mdoc-file"), listEl=card.querySelector(".mdoc-list");
+    function render(){
+      listEl.innerHTML='<div class="empty" style="padding:10px 0">…</div>';
+      docAll().then(function(list){
+        var mine=list.filter(function(f){ return f.modulo===mod; }).sort(function(a,b){ return b.ts-a.ts; });
+        listEl.innerHTML="";
+        if(!mine.length){ listEl.innerHTML='<div class="empty">Nessun documento allegato qui.</div>'; return; }
+        mine.forEach(function(f){ listEl.appendChild(docRowEl(f, function(){ render(); renderDocList(); })); });
+      }).catch(function(){ listEl.innerHTML='<div class="empty">Documenti non disponibili in questa modalità.</div>'; });
+    }
+    card.querySelector(".mdoc-attach").onclick=function(){ file.click(); };
+    file.onchange=function(ev){
+      var files=ev.target.files; if(!files||!files.length){ return; }
+      var arr=Array.prototype.slice.call(files), done=0, ok=0;
+      arr.forEach(function(fl){ var r=new FileReader();
+        r.onload=function(){ docPut({id:uid(), cat:MOD_LABEL[mod], modulo:mod, nome:fl.name||"documento", tipo:fl.type||"", size:fl.size||0, ts:Date.now(), buf:r.result})
+          .then(function(){ ok++; }).catch(function(){}).then(function(){ done++; if(done===arr.length){ render(); renderDocList(); toast(ok?(ok===1?"Allegato ✓":ok+" allegati ✓"):"Impossibile salvare"); } }); };
+        r.onerror=function(){ done++; if(done===arr.length){ render(); } };
+        r.readAsArrayBuffer(fl);
+      });
+      ev.target.value="";
+    };
+    modDocRender[mod]=render; render();
+  });
 
   // ---- Menu (home) + navigazione ----
   function renderMenu(){
@@ -1981,6 +2014,7 @@
     else if(m==="salute") renderSalute();
     else if(m==="evac") renderEvac();
     else if(m==="fumo") render();
+    if(m==="menu"){ renderDocList(); } else if(modDocRender[m]){ modDocRender[m](); }
   }
   Array.prototype.forEach.call(document.querySelectorAll(".menu-card"), function(c){ c.onclick=function(){ showMod(c.dataset.mod); }; });
   Array.prototype.forEach.call(document.querySelectorAll("[data-back]"), function(b){ b.onclick=function(){ showMod("menu"); }; });
