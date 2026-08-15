@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 41; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 42; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -464,8 +464,10 @@
   .bar{width:84%; max-width:42px; min-width:24px; display:flex; flex-direction:column-reverse;
     border-radius:7px 7px 3px 3px; overflow:hidden; background:var(--track);}
   .bar .seg{width:100%;}
-  .col .wd{font-size:14px; color:var(--muted); text-transform:capitalize; white-space:nowrap;}
+  .col .wd{font-size:14px; color:var(--muted); text-transform:capitalize; white-space:nowrap; text-align:center;}
   .col.today-col .wd{color:var(--accent); font-weight:800;}
+  .col .wd-sub{display:block; font-size:11.5px; color:var(--muted); font-weight:700; margin-top:1px; letter-spacing:-.02em;}
+  .col.today-col .wd-sub{color:var(--accent);}
 
   /* ---- history ---- */
   .day{margin-top:14px;}
@@ -1013,7 +1015,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v41</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v42</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1198,7 +1200,7 @@
       sumText="Oggi "+num(todayTot); sumLvl=levelOf(todayTot);
     } else if(statView==="giorno"){
       for(i=13;i>=0;i--){ d=new Date(); d.setDate(now.getDate()-i); k=dayKey(d); t=byDay[k]||0;
-        bars.push({v:t, label:fmtWeekday(d).charAt(0).toUpperCase(), lvl:levelOf(t), num:true, today:k===todayK}); }
+        bars.push({v:t, label:fmtWeekday(d).charAt(0).toUpperCase(), sub:pad(d.getDate())+"/"+pad(d.getMonth()+1), lvl:levelOf(t), num:true, today:k===todayK}); }
       sumText="Oggi "+num(todayTot); sumLvl=levelOf(todayTot);
     } else if(statView==="settimana"){
       var cur=weekStart(now);
@@ -1242,7 +1244,10 @@
       var seg=document.createElement("div"); seg.className="seg"; seg.style.height="100%";
       seg.style.background = b.lvl ? "var("+lvlVar(b.lvl)+")" : "var(--accent)";
       bar.appendChild(seg); wrap.appendChild(bar); col.appendChild(wrap);
-      var wd=document.createElement("div"); wd.className="wd"; wd.textContent=b.label; col.appendChild(wd);
+      var wd=document.createElement("div"); wd.className="wd";
+      if(b.sub){ wd.textContent=b.label; var sb=document.createElement("span"); sb.className="wd-sub"; sb.textContent=b.sub; wd.appendChild(sb); }
+      else { wd.textContent=b.label; }
+      col.appendChild(wd);
       chart.appendChild(col);
     });
     var s=document.getElementById("statSummary"); s.textContent=sumText; s.style.color="var("+lvlVar(sumLvl)+")";
