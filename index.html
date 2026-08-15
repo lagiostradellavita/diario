@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 27; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 28; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -297,10 +297,11 @@
   .link-btn{appearance:none; background:none; border:none; cursor:pointer;
     color:var(--accent); font-weight:750; font-size:15.5px; padding:14px 4px 2px;
     width:100%; text-align:center; font-family:inherit; touch-action:manipulation;}
-  #toggleDetail, #pilAddBtn, #eserAddBtn{ background:var(--surface-2);
+  #toggleDetail, #pilAddBtn, #eserAddBtn, #repToggle{ background:var(--surface-2);
     border:1.6px dashed color-mix(in srgb, var(--accent) 55%, var(--line));
     border-radius:14px; padding:14px; margin-top:8px; min-height:52px; font-size:16px;}
-  #toggleDetail:active, #pilAddBtn:active, #eserAddBtn:active{ background:var(--track); }
+  #toggleDetail:active, #pilAddBtn:active, #eserAddBtn:active, #repToggle:active{ background:var(--track); }
+  #repOptions[hidden]{display:none;}
 
   /* ---- detail form ---- */
   .detail{display:flex; flex-direction:column; gap:14px; margin-top:6px;
@@ -527,9 +528,9 @@
         <div class="field"><label for="pfPeso">Peso (kg)</label><input type="number" inputmode="decimal" id="pfPeso" data-pf="peso" placeholder="es. 82"></div>
         <div class="field"><label for="pfGruppo">Gruppo sanguigno</label><input type="text" id="pfGruppo" data-pf="gruppo" placeholder="es. 0+"></div>
         <div class="field"><label for="pfMedico">Medico curante</label><input type="text" id="pfMedico" data-pf="medico"></div>
-        <div class="field" style="grid-column:1/-1"><label for="pfAllergie">Allergie</label><input type="text" id="pfAllergie" data-pf="allergie"></div>
-        <div class="field" style="grid-column:1/-1"><label for="pfPatologie">Patologie / condizioni note</label><input type="text" id="pfPatologie" data-pf="patologie"></div>
-        <div class="field" style="grid-column:1/-1"><label for="pfFarmaci">Farmaci abituali</label><input type="text" id="pfFarmaci" data-pf="farmaci"></div>
+        <div class="field" style="grid-column:1/-1"><label for="pfAllergie">Allergie</label><input type="text" id="pfAllergie" data-pf="allergie" list="dlAllergie" autocomplete="off"></div>
+        <div class="field" style="grid-column:1/-1"><label for="pfPatologie">Patologie / condizioni note</label><input type="text" id="pfPatologie" data-pf="patologie" list="dlPatologie" autocomplete="off"></div>
+        <div class="field" style="grid-column:1/-1"><label for="pfFarmaci">Farmaci abituali</label><input type="text" id="pfFarmaci" data-pf="farmaci" list="dlFarmaci" autocomplete="off"></div>
         <div class="field" style="grid-column:1/-1"><label for="pfEmerg">Contatto d'emergenza</label><input type="text" id="pfEmerg" data-pf="emergenza"></div>
         <div class="field" style="grid-column:1/-1"><label for="pfNote">Note</label><input type="text" id="pfNote" data-pf="note"></div>
       </div>
@@ -540,8 +541,40 @@
       <p class="fineprint">Si salva anche da solo mentre scrivi. Resta solo sul tuo telefono e finisce in cima ai tuoi report.</p>
       </div>
     </section>
+    <datalist id="dlPatologie">
+      <option>Ipertensione</option><option>Diabete tipo 2</option><option>Diabete tipo 1</option>
+      <option>Colesterolo alto</option><option>Trigliceridi alti</option><option>Steatosi epatica (fegato grasso)</option>
+      <option>Asma</option><option>BPCO</option><option>Ipotiroidismo</option><option>Ipertiroidismo</option>
+      <option>Reflusso gastroesofageo</option><option>Gastrite</option><option>Emicrania</option>
+      <option>Ansia</option><option>Depressione</option><option>Attacchi di panico</option>
+      <option>Disturbo ossessivo-compulsivo</option><option>Insonnia</option>
+      <option>Artrosi</option><option>Osteoporosi</option><option>Scoliosi</option><option>Ernia del disco</option>
+      <option>Cervicalgia</option><option>Lombalgia</option>
+      <option>Fibrillazione atriale</option><option>Aritmia</option><option>Insufficienza renale</option>
+      <option>Ipertrofia prostatica</option><option>Anemia</option>
+      <option>Psoriasi</option><option>Dermatite</option><option>Leucemia</option><option>Linfoma</option><option>Tumore</option>
+    </datalist>
+    <datalist id="dlAllergie">
+      <option>Nessuna</option><option>Pollini</option><option>Graminacee</option><option>Parietaria</option>
+      <option>Acari della polvere</option><option>Peli di animali</option><option>Nichel</option>
+      <option>Penicillina</option><option>Aspirina</option><option>FANS</option>
+      <option>Lattosio</option><option>Glutine</option><option>Frutta secca</option><option>Arachidi</option>
+      <option>Crostacei</option><option>Uova</option><option>Latte</option><option>Soia</option><option>Fragole</option>
+      <option>Punture di insetti</option>
+    </datalist>
+    <datalist id="dlFarmaci">
+      <option>Tachipirina (paracetamolo)</option><option>Aspirina</option><option>Cardioaspirina</option>
+      <option>Ibuprofene</option><option>Oki (ketoprofene)</option><option>Moment</option>
+      <option>Pantoprazolo</option><option>Omeprazolo</option><option>Lansoprazolo</option>
+      <option>Ramipril</option><option>Amlodipina</option><option>Bisoprololo</option><option>Nebivololo</option>
+      <option>Metformina</option><option>Atorvastatina</option><option>Simvastatina</option><option>Rosuvastatina</option>
+      <option>Levotiroxina (Eutirox)</option><option>Vitamina D</option><option>Vitamina B12</option>
+      <option>Omega 3</option><option>Magnesio</option>
+    </datalist>
     <h2 class="menu-grid-title">Report PDF</h2>
     <section class="card">
+      <button class="link-btn" id="repToggle">📄 Crea un report PDF</button>
+      <div id="repOptions" hidden>
       <div class="field"><label>Periodo</label>
         <div id="repPeriod" class="rep-seg">
           <button type="button" class="chip-sel on" data-p="giorno">Giorno</button>
@@ -560,8 +593,12 @@
         <button type="button" class="chip-sel on" data-m="salute">Salute</button>
         <button type="button" class="chip-sel on" data-m="evac">Evacuazioni</button>
       </div>
-      <button class="primary" id="repGen" style="margin-top:15px">Genera report PDF</button>
-      <p class="fineprint">Si apre l'anteprima; poi <b>«Stampa / Salva PDF»</b> → su iPhone scegli «Salva in file» (o Condividi → Salva su File).</p>
+      <div class="panel-actions" style="margin-top:15px">
+        <button class="primary" id="repGen">Genera report PDF</button>
+        <button class="link-btn" id="repOptClose">Chiudi</button>
+      </div>
+      <p class="fineprint">Si apre l'anteprima; poi <b>«Stampa / Salva PDF»</b> → su iPhone «Salva in file».</p>
+      </div>
     </section>
     <h2 class="menu-grid-title">Dati e backup</h2>
     <section class="card">
@@ -821,7 +858,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v27</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v28</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1777,6 +1814,8 @@
     document.getElementById("reportView").hidden=false;
     try{ window.scrollTo(0,0); }catch(e){}
   }
+  document.getElementById("repToggle").onclick=function(){ document.getElementById("repToggle").hidden=true; document.getElementById("repOptions").hidden=false; };
+  document.getElementById("repOptClose").onclick=function(){ document.getElementById("repOptions").hidden=true; document.getElementById("repToggle").hidden=false; };
   document.getElementById("repGen").onclick=genReport;
   document.getElementById("repPrint").onclick=function(){ try{ window.print(); }catch(e){ toast("Usa Condividi → Stampa"); } };
   document.getElementById("repClose").onclick=function(){ document.getElementById("reportView").hidden=true; };
