@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 37; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 38; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -342,6 +342,19 @@
   .pasto-row .pr-nome{font-weight:800; font-size:15.5px; color:var(--ink); flex:0 0 auto;}
   .pasto-row input{flex:1 1 90px; min-width:0; padding:9px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15px;}
   .pasto-row .pr-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:9px; width:34px; height:34px; font-size:18px; cursor:pointer; touch-action:manipulation;}
+  #cicloNote{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
+  .ciclo-prev{margin:10px 0 2px; padding:12px 14px; border-radius:14px; background:var(--surface-2); border:1px solid var(--line); font-size:15.5px; font-weight:700; color:var(--ink-soft); line-height:1.45;}
+  .ciclo-prev b{color:var(--ink); font-weight:850;}
+  .ciclo-prev.late{background:color-mix(in srgb, #E11D48 12%, var(--surface)); border-color:color-mix(in srgb,#E11D48 40%, var(--line)); color:#E11D48;}
+  .ciclo-prev.late b{color:#E11D48;}
+  .ciclo-chart-box{background:#fff; border-radius:12px; padding:8px 4px 4px; margin-top:4px;}
+  .ciclo-chart-box .cc-cap{font-size:13px; font-weight:700; color:#555; padding:2px 8px 0;}
+  .ciclo-row{position:relative; padding:11px 34px 11px 0; border-top:1px solid var(--line);}
+  .ciclo-row .cr-main{font-weight:800; color:var(--ink); font-size:15.5px;}
+  .ciclo-row .cr-sub{color:var(--muted); font-size:14px; margin-top:2px; line-height:1.45;}
+  .ciclo-row .cr-early{color:#059669; font-weight:800;}
+  .ciclo-row .cr-late{color:#E11D48; font-weight:800;}
+  .ciclo-row .cr-del{position:absolute; top:9px; right:0; appearance:none; border:none; background:none; color:var(--muted); cursor:pointer; padding:2px; touch-action:manipulation;}
 
   /* ---- detail form ---- */
   .detail{display:flex; flex-direction:column; gap:14px; margin-top:6px;
@@ -917,6 +930,28 @@
       </div>
       <button class="primary" id="saluteReg" style="margin-top:17px">Registra adesso</button>
     </section>
+    <section class="card" id="cicloCard">
+      <div class="row-between"><h2 class="section-title" style="margin:0">🩸 Ciclo</h2><span id="cicloSummary" class="stat-summary"></span></div>
+      <div id="cicloPrevisione" class="ciclo-prev"></div>
+      <div class="quick quick-2" style="margin-top:8px">
+        <button class="qbtn" type="button" id="cicloInizio" style="--c:#E11D48"><span style="font-size:26px;line-height:1">🩸</span><span class="qlab">Inizio ciclo</span><span class="qadd">tocca per segnare</span></button>
+        <button class="qbtn" type="button" id="cicloFine" style="--c:#7C3AED"><span style="font-size:26px;line-height:1">✅</span><span class="qlab">Fine ciclo</span><span class="qadd">tocca per segnare</span></button>
+      </div>
+      <button class="link-btn" id="cicloWhenToggle" style="margin-top:6px">＋ usa un'altra data</button>
+      <div class="field" id="cicloWhen" hidden style="margin-top:8px"><label for="cicloData">Data</label><input type="date" id="cicloData"></div>
+      <div id="cicloAttr" hidden>
+        <p class="group-lbl">Tipo di flusso</p>
+        <div id="cicloFlusso" class="chips"></div>
+        <div class="chip-add"><input type="text" id="cicloFlussoInput" placeholder="Altro…"><button type="button" id="cicloFlussoBtn">＋</button></div>
+        <p class="group-lbl">Anticoncezionale</p>
+        <div id="cicloAntic" class="chips"></div>
+        <div class="chip-add"><input type="text" id="cicloAnticInput" placeholder="Altro…"><button type="button" id="cicloAnticBtn">＋</button></div>
+        <p class="group-lbl">Note</p>
+        <textarea id="cicloNote" rows="2" placeholder="Note su questo ciclo (dolori, sintomi…)"></textarea>
+      </div>
+      <div id="cicloGrafico" style="margin-top:12px"></div>
+      <div id="cicloStorico" style="margin-top:4px"></div>
+    </section>
     <section class="card">
       <h2 class="section-title">Storico</h2>
       <div id="saluteList"></div>
@@ -980,7 +1015,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v37</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v38</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1692,6 +1727,90 @@
   };
   renderFoodCats(); renderPasto();
 
+  // ---- Ciclo mestruale: inizio/fine, flusso, anticoncezionale, previsione, grafico ----
+  var CICLO_FLUSSO=["Scarso","Regolare","Abbondante"];
+  var CICLO_ANTIC=["Nessuno","Pillola","Cerotto","Anello","Spirale/IUD","Iniezione"];
+  var cicloFlussoCustom=[]; try{ var _cf=JSON.parse(localStorage.getItem("salute-ciclo-flusso-opts")); if(Array.isArray(_cf)) cicloFlussoCustom=_cf; }catch(e){}
+  var cicloAnticCustom=[]; try{ var _ca=JSON.parse(localStorage.getItem("salute-ciclo-antic-opts")); if(Array.isArray(_ca)) cicloAnticCustom=_ca; }catch(e){}
+  var cicli=[]; try{ var _ci=JSON.parse(localStorage.getItem("salute-ciclo")); if(Array.isArray(_ci)) cicli=_ci; }catch(e){}
+  function saveCicli(){ try{ localStorage.setItem("salute-ciclo", JSON.stringify(cicli)); }catch(e){} }
+  function cicloShort(ts){ var d=new Date(ts); return pad2(d.getDate())+"/"+pad2(d.getMonth()+1); }
+  function cicloLong(ts){ var d=new Date(ts); return pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear(); }
+  function cicloSorted(){ return cicli.slice().sort(function(a,b){ return a.inizio-b.inizio; }); }
+  function cicloOpen(){ for(var i=0;i<cicli.length;i++){ if(cicli[i].fine==null) return cicli[i]; } return null; }
+  function cicloCurrent(){ if(!cicli.length) return null; var op=cicloOpen(); if(op) return op; return cicli.slice().sort(function(a,b){ return b.inizio-a.inizio; })[0]; }
+  function cicloAvgDist(sorted){ if(sorted.length<2) return null; var s=0; for(var i=1;i<sorted.length;i++){ s+=(sorted[i].inizio-sorted[i-1].inizio); } return Math.round(s/(sorted.length-1)/86400000); }
+  function renderChoiceInto(containerId, opts, current, onPick){
+    var host=document.getElementById(containerId); if(!host) return; host.innerHTML="";
+    opts.forEach(function(o){ var b=document.createElement("button"); b.type="button"; b.className="chip-sel"+(current===o?" on":""); b.textContent=o; b.onclick=function(){ onPick(current===o?"":o); }; host.appendChild(b); });
+  }
+  function cicloAddOpt(customArr, storageKey, presetArr, inputId){
+    var inp=document.getElementById(inputId), v=(inp.value||"").trim(); if(!v) return;
+    if(presetArr.concat(customArr).indexOf(v)>=0){ toast("Già presente"); return; }
+    customArr.push(v); try{ localStorage.setItem(storageKey, JSON.stringify(customArr)); }catch(e){} inp.value=""; renderCiclo();
+  }
+  function renderCiclo(){
+    if(!document.getElementById("cicloCard")) return;
+    var sorted=cicloSorted(), op=cicloOpen(), cur=cicloCurrent(), avg=cicloAvgDist(sorted);
+    var sum=document.getElementById("cicloSummary");
+    sum.textContent = op ? "in corso" : (sorted.length? (sorted.length+(sorted.length===1?" ciclo":" cicli")) : "");
+    sum.style.color = op ? "#E11D48" : "var(--muted)";
+    var prev=document.getElementById("cicloPrevisione"); prev.className="ciclo-prev";
+    if(op){ var giorno=Math.floor((Date.now()-op.inizio)/86400000)+1; prev.innerHTML='🩸 <b>Ciclo in corso</b> — giorno '+giorno+'. Tocca «Fine ciclo» quando finisce.'; }
+    else if(sorted.length>=2){
+      var last=sorted[sorted.length-1].inizio, predicted=last+avg*86400000, days=Math.round((predicted-Date.now())/86400000);
+      if(days>=0){ prev.innerHTML='📅 Prossimo ciclo previsto <b>'+cicloLong(predicted)+'</b> — tra <b>'+days+'</b> '+(days===1?'giorno':'giorni')+'. <span style="font-weight:600;color:var(--muted)">Mediamente ogni '+avg+' giorni.</span>'; }
+      else { prev.classList.add("late"); prev.innerHTML='⚠️ <b>In ritardo di '+(-days)+'</b> '+((-days)===1?'giorno':'giorni')+' — era previsto il <b>'+cicloLong(predicted)+'</b>.'; }
+    }
+    else { prev.innerHTML='Segna almeno <b>2 cicli</b> e ti dirò quando dovrebbe arrivare il prossimo.'; }
+    var attr=document.getElementById("cicloAttr");
+    if(cur){
+      attr.hidden=false;
+      renderChoiceInto("cicloFlusso", CICLO_FLUSSO.concat(cicloFlussoCustom), cur.flusso||"", function(v){ cur.flusso=v; saveCicli(); renderCiclo(); });
+      renderChoiceInto("cicloAntic", CICLO_ANTIC.concat(cicloAnticCustom), cur.antic||"", function(v){ cur.antic=v; saveCicli(); renderCiclo(); });
+      var nt=document.getElementById("cicloNote"); if(document.activeElement!==nt) nt.value=cur.note||"";
+    } else { attr.hidden=true; }
+    var completed=sorted.filter(function(c){ return c.fine!=null; }), gbox=document.getElementById("cicloGrafico");
+    if(completed.length){
+      var series=completed.map(function(c){ return {lbl:cicloShort(c.inizio), val:Math.round((c.fine-c.inizio)/86400000)+1}; });
+      gbox.innerHTML='<div class="ciclo-chart-box"><div class="cc-cap">Durata del ciclo (giorni)</div>'+svgBars(series,"#E11D48")+'</div>';
+    } else { gbox.innerHTML=""; }
+    var host=document.getElementById("cicloStorico"); host.innerHTML="";
+    if(!sorted.length){ host.innerHTML='<div class="empty">Nessun ciclo segnato. Tocca «Inizio ciclo» quando arriva.</div>'; return; }
+    var rev=sorted.slice().reverse();
+    rev.forEach(function(c){
+      var i=sorted.indexOf(c);
+      var row=document.createElement("div"); row.className="ciclo-row";
+      var durata = c.fine!=null? (Math.round((c.fine-c.inizio)/86400000)+1) : null;
+      var main = '🩸 '+cicloLong(c.inizio) + (c.fine!=null? ' → '+cicloShort(c.fine)+' · <b>'+durata+'</b> gg' : ' · in corso');
+      var sub=[];
+      if(i>0){ var dist=Math.round((c.inizio-sorted[i-1].inizio)/86400000), extra=""; if(avg!=null){ var diff=dist-avg; if(diff>0) extra=' <span class="cr-late">(+'+diff+' gg ritardo)</span>'; else if(diff<0) extra=' <span class="cr-early">('+diff+' gg anticipo)</span>'; } sub.push('distanza dal precedente: <b>'+dist+'</b> gg'+extra); }
+      if(c.flusso) sub.push('flusso: '+esc(c.flusso));
+      if(c.antic) sub.push('anticoncezionale: '+esc(c.antic));
+      if(c.note) sub.push(esc(c.note));
+      row.innerHTML='<div class="cr-main">'+main+'</div>'+(sub.length?'<div class="cr-sub">'+sub.join(' · ')+'</div>':'');
+      var del=document.createElement("button"); del.className="cr-del"; del.type="button"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
+      del.onclick=function(){ cicli=cicli.filter(function(y){return y.id!==c.id;}); saveCicli(); renderCiclo(); };
+      row.appendChild(del); host.appendChild(row);
+    });
+  }
+  document.getElementById("cicloWhenToggle").onclick=function(){ var w=document.getElementById("cicloWhen"); w.hidden=!w.hidden; if(!w.hidden && !document.getElementById("cicloData").value){ document.getElementById("cicloData").value=ymd(new Date()); } };
+  function cicloChosenTs(){ var w=document.getElementById("cicloWhen"); if(w && !w.hidden){ var d=document.getElementById("cicloData").value; if(d){ var ts=new Date(d+"T12:00:00").getTime(); if(!isNaN(ts)) return ts; } } return Date.now(); }
+  document.getElementById("cicloInizio").onclick=function(){
+    if(cicloOpen()){ toast("C'è già un ciclo aperto: segna prima la fine"); return; }
+    cicli.push({id:uid(), inizio:cicloChosenTs(), fine:null, flusso:"", antic:"", note:""}); saveCicli();
+    document.getElementById("cicloWhen").hidden=true; renderCiclo(); toast("Inizio ciclo segnato ✓");
+  };
+  document.getElementById("cicloFine").onclick=function(){
+    var op=cicloOpen(); if(!op){ toast("Nessun ciclo aperto da chiudere"); return; }
+    var ts=cicloChosenTs(); if(ts<op.inizio){ toast("La fine non può essere prima dell'inizio"); return; }
+    op.fine=ts; saveCicli(); document.getElementById("cicloWhen").hidden=true; renderCiclo(); toast("Fine ciclo segnata ✓");
+  };
+  document.getElementById("cicloFlussoBtn").onclick=function(){ cicloAddOpt(cicloFlussoCustom,"salute-ciclo-flusso-opts",CICLO_FLUSSO,"cicloFlussoInput"); };
+  document.getElementById("cicloAnticBtn").onclick=function(){ cicloAddOpt(cicloAnticCustom,"salute-ciclo-antic-opts",CICLO_ANTIC,"cicloAnticInput"); };
+  document.getElementById("cicloNote").oninput=function(){ var c=cicloCurrent(); if(c){ c.note=document.getElementById("cicloNote").value; saveCicli(); } };
+  renderCiclo();
+
   // ---- Salute: fastidi fisici + stato psicologico ----
   var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Nausea","Vomito","Stanchezza","Fiato corto","Tosse","Bruciore di stomaco","Dolori addominali","Dolori muscolari","Spasmi muscolari","Mal di schiena","Dolori articolari","Tensione al collo","Fascicolazioni","Acufene","Nebbia mentale","Palpitazioni","Caviglie gonfie","Sudorazione notturna","Insonnia","Fastidio vescica"];
   var PSICO=["Ansia","Stress","Attacco di panico","Tristezza","Umore basso","Depressione","Agitazione","Pensieri ossessivi","Irritabilità"];
@@ -1703,6 +1822,7 @@
   function saveSaluteLog(){ try{ localStorage.setItem("salute-log", JSON.stringify(saluteLog)); }catch(e){} }
   function renderSalute(){
     document.getElementById("saluteDate").textContent=fmtDayLong(new Date());
+    try{ renderCiclo(); }catch(e){}
     var host=document.getElementById("saluteList"); host.innerHTML="";
     if(!saluteLog.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Seleziona i fastidi e tocca «Registra adesso».</div>'; return; }
     var sorted=saluteLog.slice().sort(function(a,b){ return b.ts-a.ts; }), lastDay=null;
