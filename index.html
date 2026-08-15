@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 24; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 25; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -215,12 +215,16 @@
     padding:12px 16px; background:#fff; border-bottom:1px solid #e2e2e2;}
   .rep-toolbar .primary{width:auto; flex:1;}
   .rep-toolbar .link-btn{width:auto; padding:14px 12px; color:#555;}
-  #reportBody{max-width:760px; margin:0 auto; padding:20px 22px 60px;}
+  #reportBody{width:100%; max-width:760px; margin:0 auto; padding:20px 22px 60px; box-sizing:border-box; overflow-x:hidden;}
   #reportBody h1{font-size:26px; margin:0 0 3px; letter-spacing:-.02em;}
   #reportBody .rep-meta{color:#555; font-size:14px; margin:0 0 22px;}
   #reportBody h2{font-size:20px; margin:26px 0 8px; padding-bottom:6px; border-bottom:2px solid #eee;}
   #reportBody .rep-sum{font-size:15.5px; line-height:1.5; margin:0 0 10px;}
   #reportBody .rep-empty{color:#888; font-size:14px; font-style:italic; margin:0 0 6px;}
+  #reportBody .rep-person{font-size:15px; color:#1a1a1a; font-weight:650; margin:0 0 4px;}
+  .rep-chart{width:100%; max-width:100%; height:auto; display:block; margin:8px 0 14px; break-inside:avoid;}
+  #reportBody table{table-layout:fixed;}
+  #reportBody td{word-break:break-word; overflow-wrap:anywhere;}
   #reportBody table{width:100%; border-collapse:collapse; font-size:14px; margin:6px 0 4px;}
   #reportBody th,#reportBody td{text-align:left; padding:7px 8px; border-bottom:1px solid #ececec; vertical-align:top;}
   #reportBody th{background:#f5f5f5; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.03em; color:#444;}
@@ -305,10 +309,10 @@
   .field{display:flex; flex-direction:column; gap:7px;}
   .field > label{font-size:14px; font-weight:700; color:var(--ink-soft);
     letter-spacing:.01em;}
-  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-  input[type=date],input[type=time],input[type=text]{font-family:inherit; font-size:16px;
-    color:var(--ink); background:var(--surface-2); border:1px solid var(--line);
-    border-radius:12px; padding:11px 12px; width:100%; min-height:46px;}
+  .grid2{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;}
+  input[type=date],input[type=time],input[type=text],input[type=number]{font-family:inherit; font-size:16px;
+    color:var(--ink); background:var(--surface-2); border:1px solid var(--line); box-sizing:border-box;
+    border-radius:12px; padding:11px 12px; width:100%; min-width:0; min-height:46px;}
 
   .seg{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;
     background:var(--surface-2); border:1px solid var(--line);
@@ -494,6 +498,30 @@
       <button class="menu-card" type="button" data-mod="salute" style="--mc:#E11D48"><span class="mc-emoji">🩺</span><span class="mc-text"><span class="mc-name">Salute</span><span class="mc-st" id="st-salute"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="evac" style="--mc:#0D9488"><span class="mc-emoji">🚽</span><span class="mc-text"><span class="mc-name">Evacuazioni</span><span class="mc-st" id="st-evac"></span></span><span class="mc-chev">›</span></button>
     </div>
+    <h2 class="menu-grid-title">Il mio profilo</h2>
+    <section class="card">
+      <div class="grid2">
+        <div class="field" style="grid-column:1/-1"><label for="pfNome">Nome e cognome</label><input type="text" id="pfNome" data-pf="nome" placeholder="Nome e cognome"></div>
+        <div class="field"><label for="pfNascita">Data di nascita</label><input type="date" id="pfNascita" data-pf="nascita"></div>
+        <div class="field" style="grid-column:1/-1"><label>Sesso</label>
+          <div class="seg" id="pfSesso" style="--c:#2563EB">
+            <button type="button" data-s="Uomo">Uomo</button>
+            <button type="button" data-s="Donna">Donna</button>
+            <button type="button" data-s="Altro">Altro</button>
+          </div>
+        </div>
+        <div class="field"><label for="pfAltezza">Altezza (cm)</label><input type="number" inputmode="numeric" id="pfAltezza" data-pf="altezza" placeholder="es. 175"></div>
+        <div class="field"><label for="pfPeso">Peso (kg)</label><input type="number" inputmode="decimal" id="pfPeso" data-pf="peso" placeholder="es. 82"></div>
+        <div class="field"><label for="pfGruppo">Gruppo sanguigno</label><input type="text" id="pfGruppo" data-pf="gruppo" placeholder="es. 0+"></div>
+        <div class="field"><label for="pfMedico">Medico curante</label><input type="text" id="pfMedico" data-pf="medico"></div>
+        <div class="field" style="grid-column:1/-1"><label for="pfAllergie">Allergie</label><input type="text" id="pfAllergie" data-pf="allergie"></div>
+        <div class="field" style="grid-column:1/-1"><label for="pfPatologie">Patologie / condizioni note</label><input type="text" id="pfPatologie" data-pf="patologie"></div>
+        <div class="field" style="grid-column:1/-1"><label for="pfFarmaci">Farmaci abituali</label><input type="text" id="pfFarmaci" data-pf="farmaci"></div>
+        <div class="field" style="grid-column:1/-1"><label for="pfEmerg">Contatto d'emergenza</label><input type="text" id="pfEmerg" data-pf="emergenza"></div>
+        <div class="field" style="grid-column:1/-1"><label for="pfNote">Note</label><input type="text" id="pfNote" data-pf="note"></div>
+      </div>
+      <p class="fineprint">Si compila una volta e finisce in cima ai tuoi report. Resta solo sul tuo telefono.</p>
+    </section>
     <h2 class="menu-grid-title">Report PDF</h2>
     <section class="card">
       <div class="field"><label>Periodo</label>
@@ -775,7 +803,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v24</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v25</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1534,6 +1562,18 @@
   };
   document.getElementById("eserAddInput").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("eserAddBtn").click(); } });
 
+  // ---- Profilo personale ----
+  var profilo={}; try{ var _pf=JSON.parse(localStorage.getItem("salute-profilo")); if(_pf && typeof _pf==="object") profilo=_pf; }catch(e){}
+  function saveProfilo(){ try{ localStorage.setItem("salute-profilo", JSON.stringify(profilo)); }catch(e){} }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-pf]"), function(inp){
+    if(profilo[inp.dataset.pf]!=null) inp.value=profilo[inp.dataset.pf];
+    inp.addEventListener("input", function(){ profilo[inp.dataset.pf]=inp.value; saveProfilo(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#pfSesso button"), function(b){
+    if(b.dataset.s===profilo.sesso) b.classList.add("on");
+    b.onclick=function(){ Array.prototype.forEach.call(document.querySelectorAll("#pfSesso button"),function(x){x.classList.remove("on");}); b.classList.add("on"); profilo.sesso=b.dataset.s; saveProfilo(); };
+  });
+
   // ---- Report PDF ----
   var repPeriod="giorno";
   Array.prototype.forEach.call(document.querySelectorAll("#repPeriod .chip-sel"), function(b){
@@ -1556,6 +1596,54 @@
   function dkDisp(k){ var p=k.split("-"); return p[2]+"/"+p[1]+"/"+p[0]; }
   function dmt(ts){ var d=new Date(ts); return pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+" "+hhmm(d); }
   function e2(s){ return esc(String(s==null?"":s)); }
+  function bucketSeries(rows, tsOf, valOf, byMonth){
+    var m={};
+    rows.forEach(function(it){ var d=new Date(tsOf(it)); var k=byMonth?(d.getFullYear()+"-"+pad2(d.getMonth()+1)):dayKey(d); m[k]=(m[k]||0)+valOf(it); });
+    return Object.keys(m).sort().map(function(k){ var p=k.split("-"); return {lbl: byMonth?(MESI[+p[1]-1]+" "+p[0].slice(2)):(p[2]+"/"+p[1]), val:Math.round(m[k]*10)/10}; });
+  }
+  function svgBars(series, color){
+    if(!series.length) return '';
+    var W=700,H=190,pB=30,pT=20,pX=6;
+    var max=0; series.forEach(function(d){ if(d.val>max)max=d.val; }); if(max<=0)max=1;
+    var n=series.length, bw=(W-pX*2)/n, barW=Math.min(bw*0.68,46);
+    var step=n<=18?1:Math.ceil(n/18);
+    var s='<svg class="rep-chart" width="100%" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">';
+    s+='<line x1="'+pX+'" y1="'+(H-pB)+'" x2="'+(W-pX)+'" y2="'+(H-pB)+'" stroke="#ddd" stroke-width="1"/>';
+    series.forEach(function(d,i){
+      var x=pX+i*bw+(bw-barW)/2, hh=(H-pB-pT)*(d.val/max), y=(H-pB)-hh;
+      s+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(0,hh).toFixed(1)+'" rx="3" fill="'+color+'"/>';
+      if(d.val>0) s+='<text x="'+(x+barW/2).toFixed(1)+'" y="'+(y-4).toFixed(1)+'" text-anchor="middle" font-size="11" fill="#333">'+String(d.val).replace(".",",")+'</text>';
+      if(i%step===0) s+='<text x="'+(x+barW/2).toFixed(1)+'" y="'+(H-pB+15).toFixed(1)+'" text-anchor="middle" font-size="10" fill="#888">'+esc(d.lbl)+'</text>';
+    });
+    s+='</svg>';
+    return s;
+  }
+  function ageFrom(iso){ try{ var b=new Date(iso+"T00:00:00"), n=new Date(), a=n.getFullYear()-b.getFullYear(), m=n.getMonth()-b.getMonth(); if(m<0||(m===0&&n.getDate()<b.getDate()))a--; return (a>=0&&a<130)?a:null; }catch(e){ return null; } }
+  function bmiCalc(hCm,wKg){ var h=parseFloat(String(hCm==null?"":hCm).replace(",",".")), w=parseFloat(String(wKg==null?"":wKg).replace(",",".")); if(!h||!w)return null; var b=w/((h/100)*(h/100)); return String(Math.round(b*10)/10).replace(".",","); }
+  function repProfilo(){
+    var p=profilo;
+    var has=p.nome||p.nascita||p.sesso||p.altezza||p.peso||p.gruppo||p.allergie||p.patologie||p.farmaci||p.medico||p.emergenza||p.note;
+    if(!has) return '';
+    var line=[];
+    if(p.nascita){ var a=ageFrom(p.nascita); line.push("Nato/a il "+dkDisp(p.nascita)+(a!=null?" ("+a+" anni)":"")); }
+    if(p.sesso) line.push(p.sesso);
+    if(p.altezza) line.push(p.altezza+" cm");
+    if(p.peso) line.push(p.peso+" kg");
+    var bmi=bmiCalc(p.altezza,p.peso); if(bmi) line.push("BMI "+bmi);
+    var h='<h2>👤 Dati personali</h2>';
+    if(p.nome) h+='<p class="rep-person">'+e2(p.nome)+'</p>';
+    if(line.length) h+='<p class="rep-sum">'+e2(line.join(" · "))+'</p>';
+    var rf=[];
+    if(p.gruppo) rf.push(["Gruppo sanguigno",p.gruppo]);
+    if(p.allergie) rf.push(["Allergie",p.allergie]);
+    if(p.patologie) rf.push(["Patologie / condizioni",p.patologie]);
+    if(p.farmaci) rf.push(["Farmaci abituali",p.farmaci]);
+    if(p.medico) rf.push(["Medico curante",p.medico]);
+    if(p.emergenza) rf.push(["Contatto d'emergenza",p.emergenza]);
+    if(p.note) rf.push(["Note",p.note]);
+    if(rf.length){ h+='<table>'; rf.forEach(function(r){ h+='<tr><th style="width:40%">'+r[0]+'</th><td>'+e2(r[1])+'</td></tr>'; }); h+='</table>'; }
+    return h;
+  }
   function repFumo(s,e){
     var h='<h2>🚬 Fumo</h2>';
     var rows=entries.filter(function(x){ var t=+new Date(x.ts); return t>=s&&t<=e; });
@@ -1566,6 +1654,7 @@
     var media=Math.round(tot/days.length*10)/10;
     var bt=ORDER.filter(function(t){return byType[t];}).map(function(t){return TIPI[t].label+': '+byType[t];});
     h+='<p class="rep-sum">Totale <b>'+tot+'</b> sigarette · '+days.length+' giorni · media '+String(media).replace(".",",")+'/giorno'+(bt.length?'<br>'+bt.join(' · '):'')+'</p>';
+    h+=svgBars(bucketSeries(rows,function(x){return +new Date(x.ts);},function(x){return x.q;},days.length>45),"#C2410C");
     if(days.length>45){
       var byM={}; days.forEach(function(k){ var m=k.slice(0,7); byM[m]=(byM[m]||0)+byDay[k]; });
       h+='<table><tr><th>Mese</th><th class="num">Sigarette</th></tr>';
@@ -1601,6 +1690,7 @@
     if(!rows.length) return h+'<p class="rep-empty">Nessuna attività nel periodo.</p>';
     var totDur=0; rows.forEach(function(x){ totDur+=x.dur; });
     h+='<p class="rep-sum">'+rows.length+' sessioni · tempo totale <b>'+fmtDur(totDur)+'</b></p>';
+    h+=svgBars(bucketSeries(rows,function(x){return x.tsEnd;},function(x){return Math.round(x.dur/60000);},(e-s)>45*86400000),"#2563EB");
     h+='<table><tr><th>Quando</th><th>Attività</th><th class="num">Durata</th></tr>';
     rows.forEach(function(x){ h+='<tr><td>'+dmt(x.tsEnd)+'</td><td>'+e2(x.nome)+'</td><td class="num">'+fmtDur(x.dur)+'</td></tr>'; });
     h+='</table>';
@@ -1612,7 +1702,8 @@
     var meals=ciboLog.filter(function(x){return x.ts>=s&&x.ts<=e;}).sort(function(a,b){return a.ts-b.ts;});
     if(!wdays.length && !meals.length) return h+'<p class="rep-empty">Nessun dato nel periodo.</p>';
     if(wdays.length){ var tw=0; wdays.forEach(function(k){ tw+=alimWater[k]; });
-      h+='<p class="rep-sum">Acqua: media <b>'+String(Math.round(tw/wdays.length*10)/10).replace(".",",")+'</b> bicchieri/giorno ('+wdays.length+' giorni)</p>'; }
+      h+='<p class="rep-sum">Acqua: media <b>'+String(Math.round(tw/wdays.length*10)/10).replace(".",",")+'</b> bicchieri/giorno ('+wdays.length+' giorni)</p>';
+      h+=svgBars(bucketSeries(wdays.map(function(k){return {ts:new Date(k+"T00:00:00").getTime(), g:alimWater[k]};}),function(x){return x.ts;},function(x){return x.g;},(e-s)>45*86400000),"#16A34A"); }
     if(meals.length){
       h+='<table><tr><th>Quando</th><th>Alimenti</th></tr>';
       meals.forEach(function(m){ h+='<tr><td>'+dmt(m.ts)+'</td><td>'+e2((m.cibi||[]).join(", "))+'</td></tr>'; });
@@ -1638,6 +1729,7 @@
     if(!rows.length) return h+'<p class="rep-empty">Niente nel periodo.</p>';
     var u=0,f=0; rows.forEach(function(x){ if(x.tipo==="feci")f++; else u++; });
     h+='<p class="rep-sum">Totale <b>'+rows.length+'</b> · 💧 Urina '+u+' · 💩 Feci '+f+'</p>';
+    h+=svgBars(bucketSeries(rows,function(x){return x.ts;},function(){return 1;},(e-s)>45*86400000),"#0D9488");
     h+='<table><tr><th>Quando</th><th>Tipo</th><th>Nota</th></tr>';
     rows.forEach(function(x){ h+='<tr><td>'+dmt(x.ts)+'</td><td>'+(x.tipo==="feci"?"Feci":"Urina")+'</td><td>'+e2(x.nota||"")+'</td></tr>'; });
     h+='</table>';
@@ -1651,6 +1743,7 @@
     var order=["fumo","pillole","esercizio","alimentazione","salute","evac"];
     var body='<h1>Diario Salute — Report '+r.lbl+'</h1>';
     body+='<p class="rep-meta">Periodo: '+(repPeriod==="giorno"?dmy(r.sd):dmy(r.sd)+" – "+dmy(r.ed))+' · generato il '+dmy(new Date())+'</p>';
+    body+=repProfilo();
     order.forEach(function(m){ if(mods.indexOf(m)>=0){ body+=B[m](r.s, r.e); } });
     document.getElementById("reportBody").innerHTML=body;
     document.getElementById("reportView").hidden=false;
