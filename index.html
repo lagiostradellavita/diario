@@ -1,5 +1,7 @@
 <meta charset="utf-8">
 <title>Diario Salute</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#059669">
 <script>
   /* Assicura la resa a misura di telefono (device-width) e le zone sicure del notch,
      anche quando la pagina viene aperta come file locale senza viewport meta. */
@@ -46,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 22; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 23; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -720,7 +722,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v22</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v23</p>
 </div>
 
 <div class="toast" id="toast" hidden></div>
