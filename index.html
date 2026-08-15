@@ -319,6 +319,12 @@
     touch-action:manipulation;}
   .data-actions button:active{background:var(--track);}
   .data-actions .danger-btn{color:var(--danger); grid-column:1 / -1;}
+  .data-actions .wide-btn{grid-column:1 / -1;}
+  .restore-panel{margin-top:11px; display:flex; flex-direction:column; gap:10px;
+    padding:14px; background:var(--surface-2); border:1px solid var(--line); border-radius:14px;}
+  .restore-panel[hidden]{display:none;}
+  .restore-help{font-size:13.5px; color:var(--ink-soft); margin:0; line-height:1.5;}
+  .restore-panel input[type=file]{font-size:14px; color:var(--ink);}
   .data-panel{margin-top:11px; display:flex; flex-direction:column; gap:9px;}
   .data-panel[hidden]{display:none;}
   .data-text{width:100%; min-height:100px; resize:vertical; box-sizing:border-box;
@@ -472,10 +478,21 @@
     <div class="data-actions">
       <button id="btnExcel">📊 Esporta in Excel</button>
       <button id="btnBackup">💾 Salva backup</button>
+      <button id="btnRestore" class="wide-btn">♻️ Ripristina backup</button>
       <button id="btnClear" class="danger-btn">Cancella tutto</button>
     </div>
+    <div id="restorePanel" class="restore-panel" hidden>
+      <p class="restore-help">Rimetti le sigarette da un backup salvato prima. Scegli il file <b>diario-fumo-backup.json</b>:</p>
+      <input id="fileRestore" type="file" accept=".json,application/json,.txt,text/plain">
+      <p class="restore-help">…oppure <b>incolla</b> qui il testo del backup e premi Ripristina:</p>
+      <textarea id="restoreText" class="data-text" placeholder='{ "app":"diario-fumo", "entries":[ … ] }'></textarea>
+      <div class="panel-actions">
+        <button class="primary" id="restoreDo">Ripristina dal testo</button>
+        <button class="link-btn" id="restoreCancel">Chiudi</button>
+      </div>
+    </div>
     <p class="fineprint">I dati restano salvati solo su questo telefono, in questo browser.
-      Esporta o salva un backup ogni tanto per non perderli.</p>
+      Salva un backup ogni tanto: con «Ripristina backup» lo puoi sempre rimettere.</p>
   </section>
   </section><!-- /mod-fumo -->
 
@@ -568,7 +585,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v15</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v16</p>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -974,6 +991,24 @@
     else if(res.reason==="declined") toast("Backup annullato");
     else toast("Backup non disponibile qui");
   };
+
+  document.getElementById("btnRestore").onclick=function(){
+    var p=document.getElementById("restorePanel"); p.hidden=!p.hidden;
+    if(!p.hidden){ try{ p.scrollIntoView({behavior:"smooth", block:"nearest"}); }catch(e){} }
+  };
+  document.getElementById("fileRestore").onchange=function(ev){
+    var f=ev.target.files && ev.target.files[0]; if(!f){ return; }
+    var r=new FileReader();
+    r.onload=function(){ if(importFromText(String(r.result||""))){ document.getElementById("restorePanel").hidden=true; } if(ev.target) ev.target.value=""; };
+    r.onerror=function(){ toast("Impossibile leggere il file"); if(ev.target) ev.target.value=""; };
+    r.readAsText(f);
+  };
+  document.getElementById("restoreDo").onclick=function(){
+    var t=document.getElementById("restoreText").value||"";
+    if(!t.trim()){ toast("Incolla prima il testo del backup"); return; }
+    if(importFromText(t)){ document.getElementById("restoreText").value=""; document.getElementById("restorePanel").hidden=true; }
+  };
+  document.getElementById("restoreCancel").onclick=function(){ document.getElementById("restorePanel").hidden=true; };
 
   function importFromText(text){
     try{
