@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 60; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 61; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1011,7 +1011,9 @@
       <button class="primary" id="saluteReg" style="margin-top:14px">Registra adesso</button>
     </section>
     <section class="card" id="parametriCard">
-      <h2 class="section-title" style="margin:0">📊 Parametri</h2>
+      <div class="food-cat" id="collapParam">
+        <button type="button" class="fc-head" id="headParam"><span>📊 Parametri</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyParam" hidden>
       <div id="parametriSummary" style="margin-top:3px; font-size:15px; font-weight:750; color:var(--ink-soft); white-space:normal;"></div>
       <p class="group-lbl">🩸 Pressione arteriosa (mmHg)</p>
       <div class="param-line">
@@ -1036,6 +1038,8 @@
         <div class="field"><label for="paramOra">Ora</label><input type="time" id="paramOra"></div>
       </div>
       <div id="parametriStorico" style="margin-top:12px"></div>
+        </div>
+      </div>
     </section>
     <section class="card" id="cicloCard">
       <div class="row-between"><h2 class="section-title" style="margin:0">🩸 Ciclo</h2><span id="cicloSummary" class="stat-summary"></span></div>
@@ -1230,7 +1234,7 @@
     <p class="fineprint" style="text-align:center; margin:0">L'avviso è <b>in-app</b> (agenda + suggerimenti in Home): l'app non può far squillare una notifica. Per un promemoria che suona, usa una Sveglia/Promemoria iOS.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v60</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v61</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2312,6 +2316,7 @@
   }
   saluteCollapWire("headFastidi","bodyFastidi","collapFastidi");
   saluteCollapWire("headPsico","bodyPsico","collapPsico");
+  saluteCollapWire("headParam","bodyParam","collapParam");
   function updateSaluteCount(){
     var nf=fastidiG.selected().length, np=psicoG.selected().length;
     var lf=document.getElementById("lblFastidi"), lp=document.getElementById("lblPsico");
