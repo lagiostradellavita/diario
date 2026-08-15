@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 28; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 29; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -343,6 +343,19 @@
     touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
   .pf-edit-btn:active{background:var(--track);}
   #pfForm[hidden]{display:none;}
+
+  /* ---- Referti e documenti ---- */
+  #docFileInput{display:none;}
+  .doc-cat-head{font-size:13px; font-weight:800; color:var(--ink-soft); margin:16px 0 2px; text-transform:uppercase; letter-spacing:.04em;}
+  .doc-row{display:flex; align-items:center; gap:11px; padding:12px 2px; border-bottom:1px solid var(--line);}
+  .doc-row:last-child{border-bottom:none;}
+  .doc-ic{font-size:27px; flex:none; line-height:1;}
+  .doc-meta{flex:1; min-width:0;}
+  .doc-name{font-size:16.5px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .doc-sub{font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums;}
+  .doc-open{appearance:none; flex:none; cursor:pointer; font-family:inherit; font-weight:750; font-size:14px;
+    background:var(--surface-2); border:1px solid var(--line); color:var(--accent); border-radius:10px; padding:9px 14px; touch-action:manipulation;}
+  .doc-open:active{background:var(--track);}
   .chip-add{display:flex; gap:8px; margin-top:12px;}
   .chip-add input{flex:1; min-width:0;}
   .chip-add button{flex:none; appearance:none; cursor:pointer; font-family:inherit; font-weight:750; font-size:15px;
@@ -599,6 +612,19 @@
       </div>
       <p class="fineprint">Si apre l'anteprima; poi <b>«Stampa / Salva PDF»</b> → su iPhone «Salva in file».</p>
       </div>
+    </section>
+    <h2 class="menu-grid-title">Referti e documenti</h2>
+    <section class="card">
+      <p class="group-lbl" style="margin-top:0">Tipo di documento</p>
+      <div id="docCat" class="chips"></div>
+      <div class="chip-add">
+        <input type="text" id="docCatAdd" placeholder="Aggiungi un tipo…">
+        <button type="button" id="docCatAddBtn">＋</button>
+      </div>
+      <input id="docFileInput" type="file" accept="image/*,application/pdf,.pdf" multiple>
+      <button class="primary" id="docAttach" style="margin-top:15px">📎 Allega foto o PDF</button>
+      <div id="docList" style="margin-top:8px"></div>
+      <p class="fineprint">I documenti restano sul telefono, in questo browser. Tieni sempre gli <b>originali</b> al sicuro (email, cartella medica): questa è una copia comoda, non l'unico posto.</p>
     </section>
     <h2 class="menu-grid-title">Dati e backup</h2>
     <section class="card">
@@ -858,7 +884,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v28</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v29</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1819,6 +1845,82 @@
   document.getElementById("repGen").onclick=genReport;
   document.getElementById("repPrint").onclick=function(){ try{ window.print(); }catch(e){ toast("Usa Condividi → Stampa"); } };
   document.getElementById("repClose").onclick=function(){ document.getElementById("reportView").hidden=true; };
+
+  // ---- Referti e documenti (IndexedDB) ----
+  var DOC_CATS=["Rx","Analisi del sangue","RMN","Tac","Ecografia","Visita","Ricetta"];
+  var docCatsCustom=[]; try{ var _dc=JSON.parse(localStorage.getItem("salute-doc-cats")); if(Array.isArray(_dc)) docCatsCustom=_dc; }catch(e){}
+  var docCatSel="Rx";
+  function docCatsAll(){ return DOC_CATS.concat(docCatsCustom); }
+  function renderDocCats(){
+    var host=document.getElementById("docCat"); if(!host) return; host.innerHTML="";
+    docCatsAll().forEach(function(c){
+      var b=document.createElement("button"); b.type="button"; b.className="chip-sel"+(c===docCatSel?" on":""); b.textContent=c;
+      b.onclick=function(){ docCatSel=c; renderDocCats(); };
+      host.appendChild(b);
+    });
+  }
+  document.getElementById("docCatAddBtn").onclick=function(){
+    var inp=document.getElementById("docCatAdd"), v=(inp.value||"").trim();
+    if(!v) return; if(docCatsAll().indexOf(v)>=0){ toast("Già presente"); return; }
+    docCatsCustom.push(v); try{ localStorage.setItem("salute-doc-cats", JSON.stringify(docCatsCustom)); }catch(e){}
+    docCatSel=v; inp.value=""; renderDocCats();
+  };
+  document.getElementById("docCatAdd").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("docCatAddBtn").click(); } });
+  renderDocCats();
+
+  var docDB=null;
+  function docOpen(){ return new Promise(function(res,rej){ if(docDB){res(docDB);return;} try{ var r=indexedDB.open("diario-salute-docs",1);
+    r.onupgradeneeded=function(e){ var db=e.target.result; if(!db.objectStoreNames.contains("files")) db.createObjectStore("files",{keyPath:"id"}); };
+    r.onsuccess=function(e){ docDB=e.target.result; res(docDB); }; r.onerror=function(){ rej(r.error); }; }catch(e){ rej(e); } }); }
+  function docAll(){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var rq=db.transaction("files","readonly").objectStore("files").getAll(); rq.onsuccess=function(){ res(rq.result||[]); }; rq.onerror=function(){ rej(rq.error); }; }); }); }
+  function docPut(rec){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("files","readwrite"); tx.objectStore("files").put(rec); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
+  function docDelete(id){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("files","readwrite"); tx.objectStore("files").delete(id); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
+  function docGet(id){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var rq=db.transaction("files","readonly").objectStore("files").get(id); rq.onsuccess=function(){res(rq.result);}; rq.onerror=function(){rej(rq.error);}; }); }); }
+  function fmtSize(n){ if(n>=1048576) return String(Math.round(n/1048576*10)/10).replace(".",",")+" MB"; return Math.max(1,Math.round(n/1024))+" KB"; }
+  function renderDocList(){
+    var host=document.getElementById("docList"); if(!host) return; host.innerHTML='<div class="empty" style="padding:12px 0">…</div>';
+    docAll().then(function(list){
+      host.innerHTML="";
+      if(!list.length){ host.innerHTML='<div class="empty">Ancora nessun documento allegato.</div>'; return; }
+      list.sort(function(a,b){ return b.ts-a.ts; });
+      var byCat={}; list.forEach(function(f){ (byCat[f.cat]=byCat[f.cat]||[]).push(f); });
+      Object.keys(byCat).forEach(function(cat){
+        var h=document.createElement("div"); h.className="doc-cat-head"; h.textContent=cat+" ("+byCat[cat].length+")"; host.appendChild(h);
+        byCat[cat].forEach(function(f){
+          var d=new Date(f.ts), ic=(f.tipo&&f.tipo.indexOf("pdf")>=0)?"📄":"🖼️";
+          var row=document.createElement("div"); row.className="doc-row";
+          row.innerHTML='<span class="doc-ic">'+ic+'</span><span class="doc-meta"><div class="doc-name">'+esc(f.nome)+'</div><div class="doc-sub">'+pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()+' · '+fmtSize(f.size||0)+'</div></span>';
+          var open=document.createElement("button"); open.className="doc-open"; open.type="button"; open.textContent="Apri";
+          open.onclick=function(){ docView(f.id); };
+          var del=document.createElement("button"); del.className="del"; del.type="button"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
+          del.onclick=function(){ if(confirm("Eliminare «"+f.nome+"»?")){ docDelete(f.id).then(renderDocList); } };
+          row.appendChild(open); row.appendChild(del); host.appendChild(row);
+        });
+      });
+    }).catch(function(){ host.innerHTML='<div class="empty">I documenti non sono disponibili in questa modalità.</div>'; });
+  }
+  function docView(id){
+    docGet(id).then(function(f){ if(!f){ toast("File non trovato"); return; }
+      try{ var blob=new Blob([f.buf],{type:f.tipo||"application/octet-stream"}); var url=URL.createObjectURL(blob);
+        var w=window.open(url,"_blank"); if(!w){ toast("Consenti l'apertura per vedere il file"); }
+        setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} }, 60000);
+      }catch(e){ toast("Impossibile aprire il file"); }
+    }).catch(function(){ toast("Errore nell'apertura"); });
+  }
+  document.getElementById("docAttach").onclick=function(){ document.getElementById("docFileInput").click(); };
+  document.getElementById("docFileInput").onchange=function(ev){
+    var files=ev.target.files; if(!files||!files.length){ return; }
+    var arr=Array.prototype.slice.call(files), done=0, ok=0, cat=docCatSel;
+    arr.forEach(function(file){
+      var r=new FileReader();
+      r.onload=function(){ docPut({id:uid(), cat:cat, nome:file.name||"documento", tipo:file.type||"", size:file.size||0, ts:Date.now(), buf:r.result})
+        .then(function(){ ok++; }).catch(function(){}).then(function(){ done++; if(done===arr.length){ renderDocList(); toast(ok? (ok===1?"Documento allegato ✓":ok+" documenti allegati ✓") : "Impossibile salvare"); } }); };
+      r.onerror=function(){ done++; if(done===arr.length){ renderDocList(); toast(ok?"Allegati "+ok:"Impossibile leggere il file"); } };
+      r.readAsArrayBuffer(file);
+    });
+    ev.target.value="";
+  };
+  renderDocList();
 
   // ---- Menu (home) + navigazione ----
   function renderMenu(){
