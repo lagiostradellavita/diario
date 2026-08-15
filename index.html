@@ -46,7 +46,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 19; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 20; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -286,6 +286,35 @@
     box-shadow:0 2px 8px -2px color-mix(in srgb,var(--c) 60%,transparent);}
   .seg-4{grid-template-columns:1fr 1fr; --c:#E11D48;}
 
+  /* chip selezionabili (fastidi, cibi) */
+  .chips{display:flex; flex-wrap:wrap; gap:9px; margin-top:6px;}
+  .chip-sel{appearance:none; cursor:pointer; font-family:inherit; font-size:16px; font-weight:700;
+    padding:11px 16px; border-radius:999px; border:1.5px solid var(--line); background:var(--surface-2); color:var(--ink);
+    touch-action:manipulation; -webkit-tap-highlight-color:transparent; transition:transform .05s ease;}
+  .chip-sel:active{transform:scale(.95);}
+  .chip-sel.on{background:var(--c,var(--accent)); color:var(--on-c); border-color:transparent;
+    box-shadow:0 3px 10px -3px color-mix(in srgb,var(--c,var(--accent)) 55%,transparent);}
+  .group-lbl{font-size:15px; font-weight:750; color:var(--ink-soft); margin:16px 0 0;}
+  .chip-add{display:flex; gap:8px; margin-top:12px;}
+  .chip-add input{flex:1; min-width:0;}
+  .chip-add button{flex:none; appearance:none; cursor:pointer; font-family:inherit; font-weight:750; font-size:15px;
+    background:var(--surface-2); border:1.5px dashed color-mix(in srgb,var(--accent) 50%,var(--line)); color:var(--accent);
+    border-radius:12px; padding:0 16px; min-height:46px; touch-action:manipulation;}
+
+  /* evacuazioni: due pulsanti rapidi (stile fumo) */
+  .quick-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+
+  /* attività fisiche: avvio/termine cronometro */
+  .act-row{display:flex; align-items:center; gap:11px; padding:14px 2px; border-bottom:1px solid var(--line);}
+  .act-row:last-child{border-bottom:none;}
+  .act-name{flex:1; min-width:0; font-size:17.5px; font-weight:700;}
+  .act-timer{font-variant-numeric:tabular-nums; font-weight:800; font-size:17px; color:var(--accent); min-width:58px; text-align:right;}
+  .act-btn{flex:none; appearance:none; cursor:pointer; font-family:inherit; font-weight:800; font-size:15px; border:none;
+    border-radius:12px; padding:11px 17px; min-height:46px; touch-action:manipulation; color:#fff;}
+  .act-btn.start{background:var(--good);}
+  .act-btn.stop{background:var(--danger);}
+  .act-row.running{background:color-mix(in srgb,var(--good) 8%,transparent); border-radius:12px;}
+
   .stepper{display:flex; align-items:center; gap:0; background:var(--surface-2);
     border:1px solid var(--line); border-radius:13px; overflow:hidden;
     width:fit-content;}
@@ -335,7 +364,7 @@
   .rowitem:last-child{border-bottom:none;}
   .rowitem .time{font-size:14.5px; color:var(--muted); width:50px; flex:none;
     font-variant-numeric:tabular-nums;}
-  .rowitem .tname{flex:1; font-size:18px; font-weight:650; display:flex;
+  .rowitem .tname{flex:1; min-width:0; font-size:18px; font-weight:650; display:flex;
     align-items:center; gap:9px;}
   .rowitem .tdot{width:12px; height:12px; border-radius:50%; background:var(--c); flex:none;}
   .rowitem .q{font-size:16px; font-weight:800; color:var(--ink-soft);
@@ -571,24 +600,17 @@
       <div class="brandtext"><h1>Attività Fisiche</h1><p class="sub" id="eserDate"></p></div>
     </header>
     <section class="card">
-      <div class="row-between"><h2 class="section-title" style="margin:0">Oggi</h2><span id="eserSummary" class="stat-summary"></span></div>
-      <div id="eserToday" style="margin-top:12px"></div>
+      <div class="row-between"><h2 class="section-title" style="margin:0">Attività</h2><span id="eserSummary" class="stat-summary"></span></div>
+      <p class="fineprint" style="margin:2px 0 10px">Tocca <b>Avvia</b> quando inizi e <b>Termina</b> quando finisci: segno durata e ora.</p>
+      <div id="eserList"></div>
+      <div class="chip-add">
+        <input type="text" id="eserAddInput" placeholder="Aggiungi un'attività…">
+        <button type="button" id="eserAddBtn">＋</button>
+      </div>
     </section>
     <section class="card">
-      <h2 class="section-title">Le mie attività</h2>
-      <div id="eserList"></div>
-      <button class="link-btn" id="eserAddBtn">＋ Aggiungi attività</button>
-      <div class="detail" id="eserForm" hidden>
-        <div class="field"><label for="eserNome">Attività</label><input type="text" id="eserNome" placeholder="es. Cyclette 20 min"></div>
-        <div class="field"><label>Orari (quando farla)</label>
-          <div id="eserOrari" class="pil-orari"></div>
-          <button class="link-btn" id="eserAddOra" style="text-align:left;padding:8px 2px">＋ aggiungi orario</button>
-        </div>
-        <div class="panel-actions">
-          <button class="primary" id="eserSave">Salva attività</button>
-          <button class="link-btn" id="eserCancel">Annulla</button>
-        </div>
-      </div>
+      <h2 class="section-title">Oggi</h2>
+      <div id="eserLog"></div>
     </section>
   </section>
 
@@ -612,18 +634,21 @@
       <div class="water-track"><div class="water-fill" id="waterFill"></div></div>
     </section>
     <section class="card">
-      <h2 class="section-title">Pasti di oggi</h2>
-      <div class="meals">
-        <div class="field"><label for="mealCol">Colazione</label><textarea id="mealCol" class="meal-text" rows="2" placeholder="che cosa hai mangiato…"></textarea></div>
-        <div class="field"><label for="mealPra">Pranzo</label><textarea id="mealPra" class="meal-text" rows="2" placeholder="…"></textarea></div>
-        <div class="field"><label for="mealCen">Cena</label><textarea id="mealCen" class="meal-text" rows="2" placeholder="…"></textarea></div>
-        <div class="field"><label for="mealSpu">Spuntini</label><textarea id="mealSpu" class="meal-text" rows="2" placeholder="…"></textarea></div>
+      <h2 class="section-title">Cosa hai mangiato</h2>
+      <div id="ciboChips" class="chips"></div>
+      <div class="chip-add">
+        <input type="text" id="ciboAddInput" placeholder="Aggiungi un alimento…">
+        <button type="button" id="ciboAddBtn">＋</button>
       </div>
-      <p class="fineprint">Si salva da solo. Ogni giorno riparte pulito.</p>
+      <button class="primary" id="ciboSave" style="margin-top:15px">Registra pasto</button>
+    </section>
+    <section class="card">
+      <h2 class="section-title">Pasti di oggi</h2>
+      <div id="ciboLog"></div>
     </section>
   </section>
 
-  <!-- ===== SALUTE (misure) ===== -->
+  <!-- ===== SALUTE (fastidi) ===== -->
   <section id="mod-salute" class="screen" hidden>
     <header class="top">
       <button class="back-btn" type="button" data-back>‹ Menu</button>
@@ -631,18 +656,20 @@
       <div class="brandtext"><h1>Salute</h1><p class="sub" id="saluteDate"></p></div>
     </header>
     <section class="card">
-      <h2 class="section-title">Nuova misura</h2>
-      <div class="field"><label>Tipo</label>
-        <div class="seg seg-4" id="saluteTipo">
-          <button type="button" data-t="Peso" class="on">Peso</button>
-          <button type="button" data-t="Pressione">Pressione</button>
-          <button type="button" data-t="Temperatura">Temp.</button>
-          <button type="button" data-t="Glicemia">Glicemia</button>
-        </div>
+      <h2 class="section-title">Come ti senti adesso</h2>
+      <p class="group-lbl">Fastidi fisici</p>
+      <div id="fastidiChips" class="chips"></div>
+      <div class="chip-add">
+        <input type="text" id="fastidiAddInput" placeholder="Aggiungi un fastidio…">
+        <button type="button" id="fastidiAddBtn">＋</button>
       </div>
-      <div class="field"><label for="saluteVal">Valore</label><input type="text" id="saluteVal" placeholder="es. 82 kg · 120/80 · 36,7"></div>
-      <div class="field"><label for="saluteNota">Nota (facoltativa)</label><input type="text" id="saluteNota" placeholder=""></div>
-      <button class="primary" id="saluteSave">Salva misura</button>
+      <p class="group-lbl">Stato psicologico</p>
+      <div id="psicoChips" class="chips"></div>
+      <div class="chip-add">
+        <input type="text" id="psicoAddInput" placeholder="Aggiungi (es. tensione)…">
+        <button type="button" id="psicoAddBtn">＋</button>
+      </div>
+      <button class="primary" id="saluteReg" style="margin-top:17px">Registra adesso</button>
     </section>
     <section class="card">
       <h2 class="section-title">Storico</h2>
@@ -659,14 +686,23 @@
     </header>
     <section class="card">
       <div class="row-between"><h2 class="section-title" style="margin:0">Oggi</h2><span id="evacSummary" class="stat-summary"></span></div>
-      <button class="primary" id="evacAdd" style="margin-top:14px">＋ Registra adesso</button>
+      <div class="quick quick-2" style="margin-top:12px">
+        <button class="qbtn" type="button" id="qUrina" style="--c:#0EA5E9"><span style="font-size:28px;line-height:1">💧</span><span class="qlab">Urina</span><span class="qadd">＋1 adesso</span></button>
+        <button class="qbtn" type="button" id="qFeci" style="--c:#A16207"><span style="font-size:28px;line-height:1">💩</span><span class="qlab">Feci</span><span class="qadd">＋1 adesso</span></button>
+      </div>
       <button class="link-btn" id="evacAddWhen">＋ con data e ora</button>
       <div class="detail" id="evacForm" hidden>
+        <div class="field"><label>Tipo</label>
+          <div class="seg" id="evacTipo" style="--c:#0D9488; grid-template-columns:1fr 1fr">
+            <button type="button" data-t="urina" class="on">Urina</button>
+            <button type="button" data-t="feci">Feci</button>
+          </div>
+        </div>
         <div class="grid2">
           <div class="field"><label for="evacData">Data</label><input type="date" id="evacData"></div>
           <div class="field"><label for="evacOra">Ora</label><input type="time" id="evacOra"></div>
         </div>
-        <div class="field"><label for="evacNota">Nota (facoltativa)</label><input type="text" id="evacNota" placeholder="es. normale, morbida, dura…"></div>
+        <div class="field"><label for="evacNota">Nota (facoltativa)</label><input type="text" id="evacNota" placeholder="es. normale, dura…"></div>
         <div class="panel-actions"><button class="primary" id="evacSave">Salva</button><button class="link-btn" id="evacCancel">Annulla</button></div>
       </div>
     </section>
@@ -676,7 +712,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v19</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v20</p>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -1140,7 +1176,7 @@
 
   function oraMin(o){ return parseInt(o.slice(0,2),10)*60+parseInt(o.slice(3,5),10); }
 
-  // ---- Motore «cose da fare a un'ora» (condiviso da Pillole ed Esercizio) ----
+  // ---- Motore «cose da fare a un'ora» (usato da Pillole) ----
   function makeScheduler(cfg){
     var I=cfg.ids, L=cfg.labels;
     var defs=[]; try{ var _d=JSON.parse(localStorage.getItem(cfg.defsKey)); if(Array.isArray(_d)) defs=_d; }catch(e){}
@@ -1212,19 +1248,44 @@
     ids:{date:"pilDate", summary:"pilSummary", today:"pilToday", list:"pilList", addBtn:"pilAddBtn", form:"pilForm", nome:"pilNome", orari:"pilOrari", addOra:"pilAddOra", save:"pilSave", cancel:"pilCancel"},
     labels:{done:"prese", empty:"Nessuna medicina impostata.<br>Aggiungila qui sotto con i suoi orari.", needName:"Scrivi il nome della medicina", added:"Medicina aggiunta ✓"}
   });
-  var Esercizio=makeScheduler({
-    defsKey:"salute-eser-defs", takenKey:"salute-eser-taken", defaultOra:"09:00",
-    ids:{date:"eserDate", summary:"eserSummary", today:"eserToday", list:"eserList", addBtn:"eserAddBtn", form:"eserForm", nome:"eserNome", orari:"eserOrari", addOra:"eserAddOra", save:"eserSave", cancel:"eserCancel"},
-    labels:{done:"fatti", empty:"Nessuna attività impostata.<br>Aggiungila qui sotto con i suoi orari (es. «Giri in terrazza» 08:00 e 18:00).", needName:"Scrivi il nome dell'attività", added:"Attività aggiunta ✓"}
-  });
+  // ---- helper condivisi ----
+  var TRASH='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+  function pad2(n){ return ("0"+n).slice(-2); }
+  function hhmm(d){ return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
+  function ymd(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+  function fmtDur(ms){ var s=Math.max(0,Math.floor(ms/1000)), m=Math.floor(s/60); s=s%60; if(m>=60){ var h=Math.floor(m/60); m=m%60; return h+":"+pad2(m)+":"+pad2(s); } return m+":"+pad2(s); }
+  // chip multi-selezione con aggiunte personali che restano
+  function makeChipGroup(containerId, preset, customKey){
+    var custom=[]; try{ var _c=JSON.parse(localStorage.getItem(customKey)); if(Array.isArray(_c)) custom=_c; }catch(e){}
+    var sel={};
+    function opts(){ return preset.concat(custom); }
+    function render(){
+      var host=document.getElementById(containerId); if(!host) return; host.innerHTML="";
+      opts().forEach(function(lbl){
+        var b=document.createElement("button"); b.type="button"; b.className="chip-sel"+(sel[lbl]?" on":""); b.textContent=lbl;
+        b.onclick=function(){ if(sel[lbl]) delete sel[lbl]; else sel[lbl]=true; b.classList.toggle("on"); };
+        host.appendChild(b);
+      });
+    }
+    function add(lbl){ lbl=(lbl||"").trim(); if(!lbl) return false; if(opts().indexOf(lbl)>=0) return false; custom.push(lbl); try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} render(); return true; }
+    render();
+    return { selected:function(){ return Object.keys(sel); }, clear:function(){ sel={}; render(); }, add:add };
+  }
+  function wireAdd(inputId, btnId, group){
+    var inp=document.getElementById(inputId), btn=document.getElementById(btnId); if(!inp||!btn) return;
+    btn.onclick=function(){ var v=inp.value; if(group.add(v)){ inp.value=""; } else if((v||"").trim()){ toast("Già presente"); } };
+    inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); btn.click(); } });
+  }
 
-  // ---- Alimentazione (acqua + pasti) ----
+  // ---- Alimentazione: acqua + cibi cliccabili ----
   var WATER_GOAL=8, WATER_ML=250;
   var alimWater={}; try{ var _aw=JSON.parse(localStorage.getItem("salute-alim-water")); if(_aw && typeof _aw==="object") alimWater=_aw; }catch(e){}
-  var alimMeals={}; try{ var _am=JSON.parse(localStorage.getItem("salute-alim-meals")); if(_am && typeof _am==="object") alimMeals=_am; }catch(e){}
   function saveWater(){ try{ localStorage.setItem("salute-alim-water", JSON.stringify(alimWater)); }catch(e){} }
-  function saveMeals(){ try{ localStorage.setItem("salute-alim-meals", JSON.stringify(alimMeals)); }catch(e){} }
   function litersStr(g){ var l=Math.round(g*WATER_ML/1000*100)/100; return String(l).replace(".",",")+" L"; }
+  var CIBI=["Yogurt","Frutta","Frutta secca","Pasta","Riso","Pane","Legumi","Carne","Pesce","Verdure","Uova","Formaggio","Latte","Salumi","Dolci","Olio EVO"];
+  var ciboG=makeChipGroup("ciboChips", CIBI, "salute-cibo-opts");
+  var ciboLog=[]; try{ var _cl=JSON.parse(localStorage.getItem("salute-cibo-log")); if(Array.isArray(_cl)) ciboLog=_cl; }catch(e){}
+  function saveCiboLog(){ try{ localStorage.setItem("salute-cibo-log", JSON.stringify(ciboLog)); }catch(e){} }
   function renderAlim(){
     var now=new Date(), dK=dayKey(now);
     document.getElementById("alimDate").textContent=fmtDayLong(now);
@@ -1234,70 +1295,66 @@
     document.getElementById("waterFill").style.width=Math.min(100, Math.round(g/WATER_GOAL*100))+"%";
     var ws=document.getElementById("waterSummary");
     ws.textContent=g+"/"+WATER_GOAL+" bicchieri"; ws.style.color=(g>=WATER_GOAL)?"var(--lvl-low)":"var(--muted)";
-    var m=alimMeals[dK]||{};
-    document.getElementById("mealCol").value=m.col||"";
-    document.getElementById("mealPra").value=m.pra||"";
-    document.getElementById("mealCen").value=m.cen||"";
-    document.getElementById("mealSpu").value=m.spu||"";
-  }
-  function waterAdd(n){
-    var dK=dayKey(new Date()), g=(alimWater[dK]||0)+n;
-    if(g<0)g=0; if(g>30)g=30; alimWater[dK]=g; saveWater(); renderAlim();
-  }
-  function mealSave(){
-    var dK=dayKey(new Date());
-    alimMeals[dK]={ col:document.getElementById("mealCol").value, pra:document.getElementById("mealPra").value, cen:document.getElementById("mealCen").value, spu:document.getElementById("mealSpu").value };
-    saveMeals();
-  }
-  document.getElementById("waterPlus").onclick=function(){ waterAdd(1); };
-  document.getElementById("waterMinus").onclick=function(){ waterAdd(-1); };
-  ["mealCol","mealPra","mealCen","mealSpu"].forEach(function(id){ document.getElementById(id).addEventListener("input", mealSave); });
-
-  // ---- Salute (misure) + Evacuazioni ----
-  var TRASH='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
-  function pad2(n){ return ("0"+n).slice(-2); }
-  function hhmm(d){ return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
-  function ymd(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
-
-  // Salute: misure con tipo + valore + nota
-  var saluteTipo="Peso";
-  var misure=[]; try{ var _ms=JSON.parse(localStorage.getItem("salute-misure")); if(Array.isArray(_ms)) misure=_ms; }catch(e){}
-  function saveMisure(){ try{ localStorage.setItem("salute-misure", JSON.stringify(misure)); }catch(e){} }
-  function renderSalute(){
-    document.getElementById("saluteDate").textContent=fmtDayLong(new Date());
-    var host=document.getElementById("saluteList"); host.innerHTML="";
-    if(!misure.length){ host.innerHTML='<div class="empty">Ancora nessuna misura.<br>Salvane una qui sopra.</div>'; return; }
-    misure.slice().sort(function(a,b){ return b.ts-a.ts; }).forEach(function(x){
-      var d=new Date(x.ts);
+    var host=document.getElementById("ciboLog"); host.innerHTML="";
+    var today=ciboLog.filter(function(x){ return dayKey(new Date(x.ts))===dK; }).sort(function(a,b){ return b.ts-a.ts; });
+    if(!today.length){ host.innerHTML='<div class="empty">Nessun pasto segnato oggi.</div>'; }
+    else today.forEach(function(x){
       var row=document.createElement("div"); row.className="rowitem";
-      row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname" style="display:block"><b>'+esc(x.tipo)+'</b> '+esc(x.valore)+(x.nota?' <span style="color:var(--muted)">— '+esc(x.nota)+'</span>':'')+'</span>';
+      row.innerHTML='<span class="time">'+hhmm(new Date(x.ts))+'</span><span class="tname" style="display:block">'+esc((x.cibi||[]).join(", "))+'</span>';
       var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ misure=misure.filter(function(y){return y.id!==x.id;}); saveMisure(); renderSalute(); };
+      del.onclick=function(){ ciboLog=ciboLog.filter(function(y){return y.id!==x.id;}); saveCiboLog(); renderAlim(); };
       row.appendChild(del); host.appendChild(row);
     });
   }
-  Array.prototype.forEach.call(document.querySelectorAll("#saluteTipo button"), function(b){
-    b.onclick=function(){ Array.prototype.forEach.call(document.querySelectorAll("#saluteTipo button"), function(x){ x.classList.remove("on"); }); b.classList.add("on"); saluteTipo=b.dataset.t; };
-  });
-  document.getElementById("saluteSave").onclick=function(){
-    var val=(document.getElementById("saluteVal").value||"").trim();
-    if(!val){ toast("Scrivi il valore"); return; }
-    var nota=(document.getElementById("saluteNota").value||"").trim();
-    misure.push({id:uid(), ts:Date.now(), tipo:saluteTipo, valore:val, nota:nota}); saveMisure();
-    document.getElementById("saluteVal").value=""; document.getElementById("saluteNota").value="";
-    renderSalute(); toast("Misura salvata ✓");
+  function waterAdd(n){ var dK=dayKey(new Date()), g=(alimWater[dK]||0)+n; if(g<0)g=0; if(g>30)g=30; alimWater[dK]=g; saveWater(); renderAlim(); }
+  document.getElementById("waterPlus").onclick=function(){ waterAdd(1); };
+  document.getElementById("waterMinus").onclick=function(){ waterAdd(-1); };
+  wireAdd("ciboAddInput","ciboAddBtn", ciboG);
+  document.getElementById("ciboSave").onclick=function(){
+    var c=ciboG.selected(); if(!c.length){ toast("Tocca cosa hai mangiato"); return; }
+    ciboLog.push({id:uid(), ts:Date.now(), cibi:c}); saveCiboLog(); ciboG.clear(); renderAlim(); toast("Pasto registrato ✓");
   };
 
-  // Evacuazioni: registro eventi con ora + nota
+  // ---- Salute: fastidi fisici + stato psicologico ----
+  var FASTIDI=["Capogiri","Mal di testa","Nausea","Stanchezza","Fiato corto","Dolori muscolari","Tensione al collo","Fascicolazioni","Acufene","Nebbia mentale","Palpitazioni","Caviglie gonfie","Insonnia","Fastidio vescica"];
+  var PSICO=["Ansia","Stress","Attacco di panico","Umore basso","Agitazione","Pensieri ossessivi","Irritabilità"];
+  var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts");
+  var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts");
+  wireAdd("fastidiAddInput","fastidiAddBtn", fastidiG);
+  wireAdd("psicoAddInput","psicoAddBtn", psicoG);
+  var saluteLog=[]; try{ var _sl=JSON.parse(localStorage.getItem("salute-log")); if(Array.isArray(_sl)) saluteLog=_sl; }catch(e){}
+  function saveSaluteLog(){ try{ localStorage.setItem("salute-log", JSON.stringify(saluteLog)); }catch(e){} }
+  function renderSalute(){
+    document.getElementById("saluteDate").textContent=fmtDayLong(new Date());
+    var host=document.getElementById("saluteList"); host.innerHTML="";
+    if(!saluteLog.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Seleziona i fastidi e tocca «Registra adesso».</div>'; return; }
+    var sorted=saluteLog.slice().sort(function(a,b){ return b.ts-a.ts; }), lastDay=null;
+    sorted.forEach(function(x){
+      var d=new Date(x.ts), dk=dayKey(d);
+      if(dk!==lastDay){ lastDay=dk; var h=document.createElement("div"); h.className="day-head"; h.innerHTML='<span class="dname">'+fmtDayLong(d)+'</span>'; host.appendChild(h); }
+      var row=document.createElement("div"); row.className="rowitem";
+      row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname" style="display:block">'+esc((x.voci||[]).join(", "))+'</span>';
+      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
+      del.onclick=function(){ saluteLog=saluteLog.filter(function(y){return y.id!==x.id;}); saveSaluteLog(); renderSalute(); };
+      row.appendChild(del); host.appendChild(row);
+    });
+  }
+  document.getElementById("saluteReg").onclick=function(){
+    var v=fastidiG.selected().concat(psicoG.selected()); if(!v.length){ toast("Seleziona almeno un fastidio"); return; }
+    saluteLog.push({id:uid(), ts:Date.now(), voci:v}); saveSaluteLog(); fastidiG.clear(); psicoG.clear(); renderSalute(); toast("Registrato ✓");
+  };
+
+  // ---- Evacuazioni: Urina / Feci (stile fumo) ----
+  var EVAC_LBL={urina:"Urina", feci:"Feci"};
   var evac=[]; try{ var _ev=JSON.parse(localStorage.getItem("salute-evac")); if(Array.isArray(_ev)) evac=_ev; }catch(e){}
   function saveEvac(){ try{ localStorage.setItem("salute-evac", JSON.stringify(evac)); }catch(e){} }
-  function evacToday(){ var dK=dayKey(new Date()),n=0; evac.forEach(function(x){ if(dayKey(new Date(x.ts))===dK) n++; }); return n; }
+  function evacCounts(){ var dK=dayKey(new Date()), u=0,f=0; evac.forEach(function(x){ if(dayKey(new Date(x.ts))===dK){ if(x.tipo==="feci")f++; else u++; } }); return {u:u,f:f,tot:u+f}; }
   function renderEvac(){
     document.getElementById("evacDate").textContent=fmtDayLong(new Date());
-    var n=evacToday(), s=document.getElementById("evacSummary");
-    s.textContent=n+(n===1?" volta":" volte"); s.style.color=n?"var(--ink-soft)":"var(--muted)";
+    var c=evacCounts(), s=document.getElementById("evacSummary");
+    s.textContent=c.tot? (c.tot+(c.tot===1?" volta":" volte")+" · 💧"+c.u+" 💩"+c.f) : "0 volte"; s.style.color=c.tot?"var(--ink-soft)":"var(--muted)";
     var host=document.getElementById("evacList"); host.innerHTML="";
-    if(!evac.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Tocca «Registra adesso» quando serve.</div>'; return; }
+    if(!evac.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Tocca Urina o Feci quando serve.</div>'; return; }
     var sorted=evac.slice().sort(function(a,b){ return b.ts-a.ts; }), lastDay=null;
     sorted.forEach(function(x){
       var d=new Date(x.ts), dk=dayKey(d);
@@ -1308,14 +1365,20 @@
         host.appendChild(h);
       }
       var row=document.createElement("div"); row.className="rowitem";
-      row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname">'+(x.nota?esc(x.nota):"Evacuazione")+'</span>';
+      var lbl=(x.tipo==="feci"?"💩 Feci":"💧 Urina")+(x.nota?' · '+esc(x.nota):'');
+      row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname">'+lbl+'</span>';
       var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
       del.onclick=function(){ evac=evac.filter(function(y){return y.id!==x.id;}); saveEvac(); renderEvac(); };
       row.appendChild(del); host.appendChild(row);
     });
   }
-  function evacRecord(ts, nota){ evac.push({id:uid(), ts:ts, nota:nota||""}); saveEvac(); renderEvac(); toast("Registrato ✓"); }
-  document.getElementById("evacAdd").onclick=function(){ evacRecord(Date.now(), ""); };
+  function evacRecord(ts, tipo, nota){ evac.push({id:uid(), ts:ts, tipo:tipo, nota:nota||""}); saveEvac(); renderEvac(); toast(EVAC_LBL[tipo]+" registrata ✓"); }
+  document.getElementById("qUrina").onclick=function(){ evacRecord(Date.now(), "urina", ""); };
+  document.getElementById("qFeci").onclick=function(){ evacRecord(Date.now(), "feci", ""); };
+  var evacTipo="urina";
+  Array.prototype.forEach.call(document.querySelectorAll("#evacTipo button"), function(b){
+    b.onclick=function(){ Array.prototype.forEach.call(document.querySelectorAll("#evacTipo button"), function(x){ x.classList.remove("on"); }); b.classList.add("on"); evacTipo=b.dataset.t; };
+  });
   document.getElementById("evacAddWhen").onclick=function(){
     var f=document.getElementById("evacForm"); f.hidden=!f.hidden;
     if(!f.hidden){ var n=new Date(); document.getElementById("evacData").value=ymd(n); document.getElementById("evacOra").value=hhmm(n); }
@@ -1324,12 +1387,65 @@
   document.getElementById("evacSave").onclick=function(){
     var d=document.getElementById("evacData").value, t=document.getElementById("evacOra").value;
     if(!d||!t){ toast("Metti data e ora"); return; }
-    var ts=new Date(d+"T"+t).getTime();
-    if(isNaN(ts)){ toast("Data/ora non valida"); return; }
+    var ts=new Date(d+"T"+t).getTime(); if(isNaN(ts)){ toast("Data/ora non valida"); return; }
     var nota=(document.getElementById("evacNota").value||"").trim();
     document.getElementById("evacForm").hidden=true; document.getElementById("evacNota").value="";
-    evacRecord(ts, nota);
+    evacRecord(ts, evacTipo, nota);
   };
+
+  // ---- Attività Fisiche: avvio/termine con cronometro ----
+  var ATTIVITA=["Camminata","Giri in terrazza","Cyclette","Stretching","Esercizi collo/schiena","Squat e piegamenti","Respirazione"];
+  var attivCustom=[]; try{ var _ax=JSON.parse(localStorage.getItem("salute-attiv-opts")); if(Array.isArray(_ax)) attivCustom=_ax; }catch(e){}
+  function attivOpts(){ return ATTIVITA.concat(attivCustom); }
+  var attivLog=[]; try{ var _alg=JSON.parse(localStorage.getItem("salute-attiv-log")); if(Array.isArray(_alg)) attivLog=_alg; }catch(e){}
+  function saveAttivLog(){ try{ localStorage.setItem("salute-attiv-log", JSON.stringify(attivLog)); }catch(e){} }
+  var attivRunning=null; try{ var _ar=JSON.parse(localStorage.getItem("salute-attiv-run")); if(_ar && _ar.nome) attivRunning=_ar; }catch(e){}
+  function saveAttivRun(){ try{ if(attivRunning) localStorage.setItem("salute-attiv-run", JSON.stringify(attivRunning)); else localStorage.removeItem("salute-attiv-run"); }catch(e){} }
+  var attivInterval=null;
+  function renderAttiv(){
+    document.getElementById("eserDate").textContent=fmtDayLong(new Date());
+    var host=document.getElementById("eserList"); host.innerHTML="";
+    attivOpts().forEach(function(nome){
+      var run=attivRunning && attivRunning.nome===nome;
+      var row=document.createElement("div"); row.className="act-row"+(run?" running":"");
+      var nm=document.createElement("span"); nm.className="act-name"; nm.textContent=nome; row.appendChild(nm);
+      if(run){
+        var tm=document.createElement("span"); tm.className="act-timer"; tm.setAttribute("data-run","1"); tm.textContent=fmtDur(Date.now()-attivRunning.start); row.appendChild(tm);
+        var bs=document.createElement("button"); bs.className="act-btn stop"; bs.type="button"; bs.textContent="Termina"; bs.onclick=function(){ attivStop(); }; row.appendChild(bs);
+      } else {
+        var ba=document.createElement("button"); ba.className="act-btn start"; ba.type="button"; ba.textContent="Avvia";
+        if(attivRunning){ ba.disabled=true; ba.style.opacity=".4"; }
+        ba.onclick=function(){ if(!attivRunning) attivStart(nome); }; row.appendChild(ba);
+      }
+      host.appendChild(row);
+    });
+    var log=document.getElementById("eserLog"); log.innerHTML="";
+    var dK=dayKey(new Date());
+    var today=attivLog.filter(function(x){ return dayKey(new Date(x.tsEnd))===dK; }).sort(function(a,b){ return b.tsEnd-a.tsEnd; });
+    if(!today.length){ log.innerHTML='<div class="empty">Nessuna attività registrata oggi.</div>'; }
+    else today.forEach(function(x){
+      var row=document.createElement("div"); row.className="rowitem";
+      row.innerHTML='<span class="time">'+hhmm(new Date(x.tsEnd))+'</span><span class="tname" style="display:block">'+esc(x.nome)+' <span style="color:var(--muted);font-weight:700">· '+fmtDur(x.dur)+'</span></span>';
+      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
+      del.onclick=function(){ attivLog=attivLog.filter(function(y){return y.id!==x.id;}); saveAttivLog(); renderAttiv(); };
+      row.appendChild(del); log.appendChild(row);
+    });
+    var es=document.getElementById("eserSummary");
+    if(attivRunning){ es.textContent="in corso…"; es.style.color="var(--good)"; }
+    else if(today.length){ var tot=0; today.forEach(function(x){tot+=x.dur;}); es.textContent=today.length+" · "+fmtDur(tot); es.style.color="var(--ink-soft)"; }
+    else { es.textContent=""; }
+    if(attivInterval){ clearInterval(attivInterval); attivInterval=null; }
+    if(attivRunning){ attivInterval=setInterval(function(){ var el=document.querySelector('#eserList .act-timer[data-run]'); if(el && attivRunning){ el.textContent=fmtDur(Date.now()-attivRunning.start); } }, 1000); }
+  }
+  function attivStart(nome){ attivRunning={nome:nome, start:Date.now()}; saveAttivRun(); renderAttiv(); toast("Avviato: "+nome); }
+  function attivStop(){ if(!attivRunning) return; var dur=Date.now()-attivRunning.start, nome=attivRunning.nome; attivLog.push({id:uid(), nome:nome, tsEnd:Date.now(), dur:dur}); saveAttivLog(); attivRunning=null; saveAttivRun(); renderAttiv(); toast("Registrato: "+nome+" "+fmtDur(dur)); }
+  document.getElementById("eserAddBtn").onclick=function(){
+    var inp=document.getElementById("eserAddInput"), v=(inp.value||"").trim();
+    if(!v){ return; }
+    if(attivOpts().indexOf(v)>=0){ toast("Già presente"); return; }
+    attivCustom.push(v); try{ localStorage.setItem("salute-attiv-opts", JSON.stringify(attivCustom)); }catch(e){} inp.value=""; renderAttiv();
+  };
+  document.getElementById("eserAddInput").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("eserAddBtn").click(); } });
 
   // ---- Menu (home) + navigazione ----
   function renderMenu(){
@@ -1343,31 +1459,34 @@
       else { el.textContent="da impostare"; el.style.color="var(--muted)"; }
     }
     sched("st-pillole", Pillole);
-    sched("st-eserc", Esercizio);
+    var se=document.getElementById("st-eserc");
+    if(attivRunning){ se.textContent="in corso: "+attivRunning.nome; se.style.color="var(--good)"; }
+    else { var ta=attivLog.filter(function(x){return dayKey(new Date(x.tsEnd))===dK;}); if(ta.length){ var tt=0; ta.forEach(function(x){tt+=x.dur;}); se.textContent=ta.length+" oggi · "+fmtDur(tt); se.style.color="var(--ink-soft)"; } else { se.textContent="da iniziare"; se.style.color="var(--muted)"; } }
     var g=alimWater[dK]||0, sa=document.getElementById("st-alim");
     if(g>0){ sa.textContent=g+"/"+WATER_GOAL+" bicchieri"; sa.style.color=(g>=WATER_GOAL)?"var(--lvl-low)":"var(--muted)"; }
     else { sa.textContent="da iniziare"; sa.style.color="var(--muted)"; }
     var ss=document.getElementById("st-salute");
-    if(misure.length){ var last=misure.slice().sort(function(a,b){return b.ts-a.ts;})[0]; ss.textContent=last.tipo+" "+last.valore; ss.style.color="var(--ink-soft)"; }
-    else { ss.textContent="nessuna misura"; ss.style.color="var(--muted)"; }
-    var ne=evacToday(), se=document.getElementById("st-evac");
-    se.textContent=ne+" oggi"; se.style.color=ne?"var(--ink-soft)":"var(--muted)";
+    if(saluteLog.length){ var last=saluteLog.slice().sort(function(a,b){return b.ts-a.ts;})[0], vv=last.voci||[]; ss.textContent=vv.length>2?(vv.slice(0,2).join(", ")+"…"):vv.join(", "); ss.style.color="var(--ink-soft)"; }
+    else { ss.textContent="come ti senti?"; ss.style.color="var(--muted)"; }
+    var ec=evacCounts(), se2=document.getElementById("st-evac");
+    se2.textContent=ec.tot?("💧"+ec.u+" 💩"+ec.f):"0 oggi"; se2.style.color=ec.tot?"var(--ink-soft)":"var(--muted)";
     renderSuggestions();
   }
   function renderSuggestions(){
     var box=document.getElementById("suggestions"); if(!box) return;
     box.innerHTML="";
     var dK=dayKey(new Date());
-    var pt=Pillole.today(), et=Esercizio.today(), g=alimWater[dK]||0;
+    var pt=Pillole.today(), g=alimWater[dK]||0;
+    var attivToday=attivLog.filter(function(x){return dayKey(new Date(x.tsEnd))===dK;}).length;
     var items=[];
     if(pt.late>0) items.push({e:"💊", t:(pt.late===1?"Prendi la pillola in ritardo":"Prendi le "+pt.late+" pillole in ritardo"), m:"pillole", cls:"urgent"});
-    if(et.late>0) items.push({e:"🏃", t:(et.late===1?"Fai l'attività in ritardo":"Fai le "+et.late+" attività in ritardo"), m:"esercizio", cls:"urgent"});
+    if(attivRunning) items.push({e:"⏱️", t:"Termina: "+attivRunning.nome, m:"esercizio", cls:""});
     if(g<WATER_GOAL) items.push({e:"🥤", t:"Bevi un bicchiere d'acqua ("+g+"/"+WATER_GOAL+")", m:"alimentazione", cls:""});
     if(pt.total>0 && pt.taken<pt.total && pt.late===0) items.push({e:"💊", t:"Segna le pillole di oggi", m:"pillole", cls:""});
     if(pt.total===0) items.push({e:"💊", t:"Imposta le tue pillole", m:"pillole", cls:""});
-    if(et.total===0) items.push({e:"🏃", t:"Imposta un'attività", m:"esercizio", cls:""});
+    if(!attivRunning && attivToday===0) items.push({e:"🏃", t:"Avvia un'attività", m:"esercizio", cls:""});
     items.push({e:"🚬", t:"Registra una sigaretta", m:"fumo", cls:""});
-    items.push({e:"🍎", t:"Scrivi cosa hai mangiato", m:"alimentazione", cls:""});
+    items.push({e:"🩺", t:"Come ti senti?", m:"salute", cls:""});
     items.slice(0,3).forEach(function(s){
       var b=document.createElement("button"); b.type="button"; b.className="sugg"+(s.cls?(" "+s.cls):"");
       b.innerHTML='<span class="se">'+s.e+'</span><span class="stext">'+esc(s.t)+'</span><span class="schev">›</span>';
@@ -1376,12 +1495,13 @@
     });
   }
   function showMod(m){
+    if(attivInterval){ clearInterval(attivInterval); attivInterval=null; }
     ["fumo","pillole","esercizio","alimentazione","salute","evac"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
     document.getElementById("menu").hidden=(m!=="menu");
     try{ window.scrollTo(0,0); }catch(e){}
     if(m==="menu") renderMenu();
     else if(m==="pillole") Pillole.render();
-    else if(m==="esercizio") Esercizio.render();
+    else if(m==="esercizio") renderAttiv();
     else if(m==="alimentazione") renderAlim();
     else if(m==="salute") renderSalute();
     else if(m==="evac") renderEvac();
