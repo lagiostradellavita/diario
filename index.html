@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 32; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 33; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -313,12 +313,13 @@
   .link-btn{appearance:none; background:none; border:none; cursor:pointer;
     color:var(--accent); font-weight:750; font-size:15.5px; padding:14px 4px 2px;
     width:100%; text-align:center; font-family:inherit; touch-action:manipulation;}
-  #toggleDetail, #pilAddBtn, #eserAddBtn, #repToggle, #docToggle{ background:var(--surface-2);
+  #toggleDetail, #pilAddBtn, #eserAddBtn, #repToggle, #docToggle, #suggToggle{ background:var(--surface-2);
     border:1.6px dashed color-mix(in srgb, var(--accent) 55%, var(--line));
     border-radius:14px; padding:14px; margin-top:8px; min-height:52px; font-size:16px;}
-  #toggleDetail:active, #pilAddBtn:active, #eserAddBtn:active, #repToggle:active, #docToggle:active{ background:var(--track); }
+  #toggleDetail:active, #pilAddBtn:active, #eserAddBtn:active, #repToggle:active, #docToggle:active, #suggToggle:active{ background:var(--track); }
   #repOptions[hidden]{display:none;}
   #docPanel[hidden]{display:none;}
+  #suggPanel[hidden]{display:none;}
 
   /* ---- detail form ---- */
   .detail{display:flex; flex-direction:column; gap:14px; margin-top:6px;
@@ -526,8 +527,11 @@
       </div>
     </header>
     <section class="card sugg-card">
-      <h2 class="sugg-title">Cosa vuoi fare adesso?</h2>
-      <div id="suggestions" class="sugg-list"></div>
+      <button class="link-btn" id="suggToggle">💡 Cosa vuoi fare adesso?</button>
+      <div id="suggPanel" hidden>
+        <div id="suggestions" class="sugg-list"></div>
+        <button class="link-btn" id="suggClose" style="margin-top:6px">Chiudi</button>
+      </div>
     </section>
     <h2 class="menu-grid-title">Le tue funzioni</h2>
     <div class="menu-grid">
@@ -908,7 +912,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v32</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v33</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2004,30 +2008,38 @@
     else { ss.textContent="come ti senti?"; ss.style.color="var(--muted)"; }
     var ec=evacCounts(), se2=document.getElementById("st-evac");
     se2.textContent=ec.tot?("💧"+ec.u+" 💩"+ec.f):"0 oggi"; se2.style.color=ec.tot?"var(--ink-soft)":"var(--muted)";
-    renderSuggestions();
+    var _sp=document.getElementById("suggPanel"), _st=document.getElementById("suggToggle");
+    if(_sp) _sp.hidden=true; if(_st) _st.hidden=false;
   }
   function renderSuggestions(){
     var box=document.getElementById("suggestions"); if(!box) return;
     box.innerHTML="";
     var dK=dayKey(new Date());
     var pt=Pillole.today(), g=alimWater[dK]||0;
-    var attivToday=attivLog.filter(function(x){return dayKey(new Date(x.tsEnd))===dK;}).length;
     var items=[];
-    if(pt.late>0) items.push({e:"💊", t:(pt.late===1?"Prendi la pillola in ritardo":"Prendi le "+pt.late+" pillole in ritardo"), m:"pillole", cls:"urgent"});
-    if(attivRunning) items.push({e:"⏱️", t:"Termina: "+attivRunning.nome, m:"esercizio", cls:""});
-    if(g<WATER_GOAL) items.push({e:"🥤", t:"Bevi un bicchiere d'acqua ("+g+"/"+WATER_GOAL+")", m:"alimentazione", cls:""});
-    if(pt.total>0 && pt.taken<pt.total && pt.late===0) items.push({e:"💊", t:"Segna le pillole di oggi", m:"pillole", cls:""});
-    if(pt.total===0) items.push({e:"💊", t:"Imposta le tue pillole", m:"pillole", cls:""});
-    if(!attivRunning && attivToday===0) items.push({e:"🏃", t:"Avvia un'attività", m:"esercizio", cls:""});
-    items.push({e:"🚬", t:"Registra una sigaretta", m:"fumo", cls:""});
-    items.push({e:"🩺", t:"Come ti senti?", m:"salute", cls:""});
-    items.slice(0,3).forEach(function(s){
+    items.push({e:"🚬", t:"Registra una sigaretta", m:"fumo"});
+    items.push({e:"💊", t:(pt.total===0?"Imposta le tue pillole":(pt.late>0?(pt.late===1?"Prendi la pillola in ritardo":"Prendi le "+pt.late+" pillole in ritardo"):"Segna le pillole di oggi")), m:"pillole", cls:(pt.late>0?"urgent":"")});
+    items.push({e:(attivRunning?"⏱️":"🏃"), t:(attivRunning?"Termina: "+attivRunning.nome:"Avvia un'attività fisica"), m:"esercizio", cls:(attivRunning?"urgent":"")});
+    items.push({e:"🍎", t:(g<WATER_GOAL?"Bevi acqua ("+g+"/"+WATER_GOAL+") o segna un pasto":"Segna cosa hai mangiato"), m:"alimentazione"});
+    items.push({e:"🩺", t:"Segna come ti senti (fastidi)", m:"salute"});
+    items.push({e:"🚽", t:"Registra un'evacuazione", m:"evac"});
+    items.push({e:"📁", t:"Allega un referto o un documento", m:"__docs"});
+    items.sort(function(a,b){ return (b.cls==="urgent"?1:0)-(a.cls==="urgent"?1:0); });
+    items.forEach(function(s){
       var b=document.createElement("button"); b.type="button"; b.className="sugg"+(s.cls?(" "+s.cls):"");
       b.innerHTML='<span class="se">'+s.e+'</span><span class="stext">'+esc(s.t)+'</span><span class="schev">›</span>';
-      b.onclick=function(){ showMod(s.m); };
+      b.onclick=function(){
+        if(s.m==="__docs"){
+          var dt=document.getElementById("docToggle"), dp=document.getElementById("docPanel");
+          if(dt) dt.hidden=true; if(dp) dp.hidden=false; try{ renderDocList(); }catch(e){}
+          if(dp){ try{ dp.scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){} }
+        } else { showMod(s.m); }
+      };
       box.appendChild(b);
     });
   }
+  document.getElementById("suggToggle").onclick=function(){ document.getElementById("suggToggle").hidden=true; document.getElementById("suggPanel").hidden=false; renderSuggestions(); };
+  document.getElementById("suggClose").onclick=function(){ document.getElementById("suggPanel").hidden=true; document.getElementById("suggToggle").hidden=false; };
   function showMod(m){
     if(attivInterval){ clearInterval(attivInterval); attivInterval=null; }
     ["fumo","pillole","esercizio","alimentazione","salute","evac"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
