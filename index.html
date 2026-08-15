@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 56; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 57; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -173,7 +173,7 @@
   .back-btn:active{background:var(--track);}
   .menu-hdr{display:flex; align-items:center; gap:12px; padding:6px 2px 2px;}
   .mark-h{line-height:0; filter:drop-shadow(0 2px 6px rgba(5,150,105,.35));}
-  .menu-hdr h1{margin:0; font-size:33px; font-weight:860; letter-spacing:-.03em;}
+  .menu-hdr h1{margin:0; font-size:33px; font-weight:860; letter-spacing:-.03em; line-height:1.06;}
   .menu-hdr .sub{margin:3px 0 0; font-size:15px; color:var(--muted); text-transform:capitalize;}
   .menu-grid-title{margin:6px 2px 0; font-size:13.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted);}
   .menu-grid{display:flex; flex-direction:column; gap:12px;}
@@ -426,14 +426,20 @@
   .chip-sel.on{background:linear-gradient(140deg, var(--c,var(--accent)), color-mix(in srgb, var(--c,var(--accent)) 80%, #000)); color:var(--on-c); border-color:transparent;
     box-shadow:0 4px 12px -3px color-mix(in srgb,var(--c,var(--accent)) 52%,transparent), inset 0 1px 0 color-mix(in srgb,#fff 22%,transparent);}
   .group-lbl{font-size:15px; font-weight:750; color:var(--ink-soft); margin:16px 0 0;}
-  .pf-summary{display:flex; align-items:center; justify-content:space-between; gap:12px;}
-  .pf-summary[hidden]{display:none;}
-  .pf-sum-name{font-size:19px; font-weight:800; color:var(--ink); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .pf-edit-btn{appearance:none; flex:none; cursor:pointer; font-family:inherit; font-weight:750; font-size:15px;
-    background:var(--surface-2); border:1px solid var(--line); color:var(--accent); border-radius:999px; padding:11px 15px;
-    touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
-  .pf-edit-btn:active{background:var(--track);}
-  #pfForm[hidden]{display:none;}
+  .pf-avatar{margin-left:auto; flex:0 0 auto; width:46px; height:46px; border-radius:50%; padding:0; cursor:pointer;
+    overflow:hidden; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;
+    border:2px solid color-mix(in srgb, var(--accent) 45%, var(--line)); background:var(--surface-2); box-shadow:var(--shadow-lg);}
+  .pf-avatar:active{transform:scale(.96);}
+  .pf-avatar img{width:100%; height:100%; object-fit:cover; display:block;}
+  .pf-avatar-place{font-size:27px; line-height:1;}
+  #pfPanel[hidden]{display:none;}
+  .pf-photo-row{display:flex; align-items:center; gap:16px; margin:2px 0 14px;}
+  .pf-photo-prev{flex:0 0 auto; width:84px; height:84px; border-radius:50%; overflow:hidden; background:var(--surface-2);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;}
+  .pf-photo-prev img{width:100%; height:100%; object-fit:cover; display:block;}
+  .pf-photo-prev span{font-size:40px; line-height:1;}
+  .pf-photo-actions{display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-width:0;}
+  .pf-photo-title{font-size:15px; font-weight:800; color:var(--ink-soft);}
 
   /* ---- Referti e documenti ---- */
   #docFileInput{display:none;}
@@ -597,35 +603,25 @@
   <section id="menu" class="screen">
     <header class="menu-hdr">
       <span class="mark-h"><svg viewBox="0 0 24 24" width="36" height="36" fill="#059669" aria-hidden="true"><path d="M12 21.4S3.6 15.7 3.6 9.9A4.6 4.6 0 0 1 12 7.2a4.6 4.6 0 0 1 8.4 2.7c0 5.8-8.4 11.5-8.4 11.5z"/></svg></span>
-      <div>
+      <div style="min-width:0">
         <h1>Diario Salute</h1>
         <p class="sub" id="menuDate"></p>
       </div>
+      <button type="button" class="pf-avatar" id="pfAvatar" aria-label="Il mio profilo">
+        <img id="pfAvatarImg" alt="" hidden>
+        <span class="pf-avatar-place" id="pfAvatarPlace" aria-hidden="true">👤</span>
+      </button>
     </header>
-    <section class="card sugg-card">
-      <button class="link-btn" id="suggToggle">💡 Cosa vuoi fare adesso?</button>
-      <div id="suggPanel" hidden>
-        <div id="suggestions" class="sugg-list"></div>
-        <button class="link-btn" id="suggClose" style="margin-top:6px">Chiudi</button>
+    <section class="card pf-card" id="pfPanel" hidden>
+      <div class="pf-photo-row">
+        <div class="pf-photo-prev" id="pfPhotoPrev"><img id="pfPhotoImg" alt="" hidden><span id="pfPhotoPlace" aria-hidden="true">👤</span></div>
+        <div class="pf-photo-actions">
+          <div class="pf-photo-title">La tua foto</div>
+          <button type="button" class="link-btn" id="pfPhotoBtn" style="padding:6px 2px;text-align:left">📷 Aggiungi foto</button>
+          <button type="button" class="link-btn" id="pfPhotoDel" style="padding:6px 2px;text-align:left;display:none">Rimuovi foto</button>
+          <input type="file" id="pfPhotoInput" accept="image/*" style="display:none">
+        </div>
       </div>
-    </section>
-    <button class="menu-card" type="button" data-mod="programma" style="--mc:#6366F1"><span class="mc-emoji">📋</span><span class="mc-text"><span class="mc-name">Programma</span><span class="mc-st" id="st-prog">pianifica la giornata</span></span><span class="mc-chev">›</span></button>
-    <h2 class="menu-grid-title">Le tue funzioni</h2>
-    <div class="menu-grid">
-      <button class="menu-card" type="button" data-mod="fumo" style="--mc:#C2410C"><span class="mc-emoji">🚬</span><span class="mc-text"><span class="mc-name">Fumo</span><span class="mc-st" id="st-fumo"></span></span><span class="mc-chev">›</span></button>
-      <button class="menu-card" type="button" data-mod="pillole" style="--mc:#7C3AED"><span class="mc-emoji">💊</span><span class="mc-text"><span class="mc-name">Pillole</span><span class="mc-st" id="st-pillole"></span></span><span class="mc-chev">›</span></button>
-      <button class="menu-card" type="button" data-mod="esercizio" style="--mc:#2563EB"><span class="mc-emoji">🏃</span><span class="mc-text"><span class="mc-name">Attività Fisiche</span><span class="mc-st" id="st-eserc"></span></span><span class="mc-chev">›</span></button>
-      <button class="menu-card" type="button" data-mod="alimentazione" style="--mc:#16A34A"><span class="mc-emoji">🍎</span><span class="mc-text"><span class="mc-name">Alimentazione</span><span class="mc-st" id="st-alim"></span></span><span class="mc-chev">›</span></button>
-      <button class="menu-card" type="button" data-mod="salute" style="--mc:#E11D48"><span class="mc-emoji">🩺</span><span class="mc-text"><span class="mc-name">Salute</span><span class="mc-st" id="st-salute"></span></span><span class="mc-chev">›</span></button>
-      <button class="menu-card" type="button" data-mod="evac" style="--mc:#0D9488"><span class="mc-emoji">🚽</span><span class="mc-text"><span class="mc-name">Evacuazioni</span><span class="mc-st" id="st-evac"></span></span><span class="mc-chev">›</span></button>
-    </div>
-    <h2 class="menu-grid-title">Il mio profilo</h2>
-    <section class="card">
-      <div id="pfSummary" class="pf-summary" hidden>
-        <span class="pf-sum-name" id="pfSumName">👤 Profilo</span>
-        <button class="pf-edit-btn" id="pfEdit" type="button">Visualizza / Modifica</button>
-      </div>
-      <div id="pfForm">
       <div class="grid2">
         <div class="field" style="grid-column:1/-1"><label for="pfNome">Nome e cognome</label><input type="text" id="pfNome" data-pf="nome" placeholder="Nome e cognome"></div>
         <div class="field"><label for="pfNascita">Data di nascita</label><input type="date" id="pfNascita" data-pf="nascita"></div>
@@ -650,9 +646,25 @@
         <button class="primary" id="pfSave">Salva profilo</button>
         <button class="link-btn" id="pfCancel">Chiudi</button>
       </div>
-      <p class="fineprint">Si salva anche da solo mentre scrivi. Resta solo sul tuo telefono e finisce in cima ai tuoi report.</p>
+      <p class="fineprint">Si salva anche da solo mentre scrivi. Resta solo sul tuo telefono e finisce in cima ai tuoi report. La foto non lascia il telefono.</p>
+    </section>
+    <section class="card sugg-card">
+      <button class="link-btn" id="suggToggle">💡 Cosa vuoi fare adesso?</button>
+      <div id="suggPanel" hidden>
+        <div id="suggestions" class="sugg-list"></div>
+        <button class="link-btn" id="suggClose" style="margin-top:6px">Chiudi</button>
       </div>
     </section>
+    <button class="menu-card" type="button" data-mod="programma" style="--mc:#6366F1"><span class="mc-emoji">📋</span><span class="mc-text"><span class="mc-name">Programma</span><span class="mc-st" id="st-prog">pianifica la giornata</span></span><span class="mc-chev">›</span></button>
+    <h2 class="menu-grid-title">Le tue funzioni</h2>
+    <div class="menu-grid">
+      <button class="menu-card" type="button" data-mod="fumo" style="--mc:#C2410C"><span class="mc-emoji">🚬</span><span class="mc-text"><span class="mc-name">Fumo</span><span class="mc-st" id="st-fumo"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="pillole" style="--mc:#7C3AED"><span class="mc-emoji">💊</span><span class="mc-text"><span class="mc-name">Pillole</span><span class="mc-st" id="st-pillole"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="esercizio" style="--mc:#2563EB"><span class="mc-emoji">🏃</span><span class="mc-text"><span class="mc-name">Attività Fisiche</span><span class="mc-st" id="st-eserc"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="alimentazione" style="--mc:#16A34A"><span class="mc-emoji">🍎</span><span class="mc-text"><span class="mc-name">Alimentazione</span><span class="mc-st" id="st-alim"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="salute" style="--mc:#E11D48"><span class="mc-emoji">🩺</span><span class="mc-text"><span class="mc-name">Salute</span><span class="mc-st" id="st-salute"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="evac" style="--mc:#0D9488"><span class="mc-emoji">🚽</span><span class="mc-text"><span class="mc-name">Evacuazioni</span><span class="mc-st" id="st-evac"></span></span><span class="mc-chev">›</span></button>
+    </div>
     <datalist id="dlPatologie">
       <option>Ipertensione</option><option>Diabete tipo 2</option><option>Diabete tipo 1</option>
       <option>Colesterolo alto</option><option>Trigliceridi alti</option><option>Steatosi epatica (fegato grasso)</option>
@@ -1210,7 +1222,7 @@
     <p class="fineprint" style="text-align:center; margin:0">L'avviso è <b>in-app</b> (agenda + suggerimenti in Home): l'app non può far squillare una notifica. Per un promemoria che suona, usa una Sveglia/Promemoria iOS.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v56</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v57</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2593,15 +2605,49 @@
     b.onclick=function(){ Array.prototype.forEach.call(document.querySelectorAll("#pfSesso button"),function(x){x.classList.remove("on");}); b.classList.add("on"); profilo.sesso=b.dataset.s; saveProfilo(); };
   });
   function pfHasData(){ return !!(profilo.nome||profilo.nascita||profilo.sesso||profilo.altezza||profilo.peso||profilo.gruppo||profilo.medico||profilo.allergie||profilo.patologie||profilo.farmaci||profilo.emergenza||profilo.note); }
-  function pfCollapse(){ document.getElementById("pfSumName").textContent="👤 "+(profilo.nome||"Profilo compilato"); document.getElementById("pfSummary").hidden=false; document.getElementById("pfForm").hidden=true; }
-  function pfExpand(){ document.getElementById("pfSummary").hidden=true; document.getElementById("pfForm").hidden=false; }
-  document.getElementById("pfEdit").onclick=pfExpand;
-  document.getElementById("pfCancel").onclick=pfCollapse;
+  function pfOpen(){ document.getElementById("pfPanel").hidden=false; scrollToEl(document.getElementById("pfPanel")); }
+  function pfClose(){ document.getElementById("pfPanel").hidden=true; }
+  document.getElementById("pfAvatar").onclick=function(){ var p=document.getElementById("pfPanel"); if(p.hidden) pfOpen(); else pfClose(); };
+  document.getElementById("pfCancel").onclick=pfClose;
   document.getElementById("pfSave").onclick=function(){
     Array.prototype.forEach.call(document.querySelectorAll("[data-pf]"), function(inp){ profilo[inp.dataset.pf]=inp.value; });
-    saveProfilo(); toast("Profilo salvato ✓"); pfCollapse();
+    saveProfilo(); toast("Profilo salvato ✓"); pfClose();
   };
-  if(pfHasData()) pfCollapse(); else pfExpand();
+  // ---- Foto profilo (ritagliata quadrata, ridimensionata a 320px, salvata in locale) ----
+  function renderPfPhoto(){
+    var has=!!profilo.foto;
+    var ai=document.getElementById("pfAvatarImg"), ap=document.getElementById("pfAvatarPlace");
+    var pi=document.getElementById("pfPhotoImg"), pp=document.getElementById("pfPhotoPlace");
+    if(has){ ai.src=profilo.foto; ai.hidden=false; ap.style.display="none"; pi.src=profilo.foto; pi.hidden=false; pp.style.display="none"; }
+    else { ai.removeAttribute("src"); ai.hidden=true; ap.style.display=""; pi.removeAttribute("src"); pi.hidden=true; pp.style.display=""; }
+    document.getElementById("pfPhotoDel").style.display=has?"":"none";
+    document.getElementById("pfPhotoBtn").textContent=has?"📷 Cambia foto":"📷 Aggiungi foto";
+  }
+  document.getElementById("pfPhotoBtn").onclick=function(){ document.getElementById("pfPhotoInput").click(); };
+  document.getElementById("pfPhotoDel").onclick=function(){ delete profilo.foto; saveProfilo(); renderPfPhoto(); };
+  document.getElementById("pfPhotoInput").onchange=function(e){
+    var file=e.target.files&&e.target.files[0]; if(!file){ return; }
+    var r=new FileReader();
+    r.onload=function(){
+      var img=new Image();
+      img.onload=function(){
+        try{
+          var S=320, c=document.createElement("canvas"); c.width=S; c.height=S;
+          var g=c.getContext("2d");
+          var m=Math.min(img.width, img.height), sx=(img.width-m)/2, sy=(img.height-m)/2;
+          g.drawImage(img, sx, sy, m, m, 0, 0, S, S);
+          profilo.foto=c.toDataURL("image/jpeg", 0.85);
+          saveProfilo(); renderPfPhoto(); toast("Foto aggiunta ✓");
+        }catch(err){ toast("Foto non caricata"); }
+      };
+      img.onerror=function(){ toast("Foto non valida"); };
+      img.src=r.result;
+    };
+    r.onerror=function(){ toast("Foto non letta"); };
+    r.readAsDataURL(file);
+    e.target.value="";
+  };
+  renderPfPhoto();
 
   // ---- Report PDF ----
   var repPeriod="giorno";
