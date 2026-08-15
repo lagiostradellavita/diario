@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 36; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 37; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -329,6 +329,19 @@
   #linkBody .lk-note{font-size:14px; color:var(--muted); margin:2px 0 0;}
   #linkBody .empty{padding:14px 6px;}
   .mini-photo{appearance:none; border:none; background:var(--track); border-radius:8px; padding:2px 8px; font-size:15px; line-height:1.2; cursor:pointer; margin-left:4px; vertical-align:baseline; touch-action:manipulation;}
+  .water-times{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+  .water-times .wt{display:inline-flex; align-items:center; gap:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:4px 6px 4px 11px; font-size:14px; font-weight:700; color:var(--ink-soft);}
+  .water-times .wt button{appearance:none; border:none; background:none; color:var(--muted); font-size:16px; line-height:1; cursor:pointer; padding:0 3px;}
+  .food-cat{border:1px solid var(--line); border-radius:14px; margin-top:10px; overflow:hidden; background:var(--surface-2);}
+  .food-cat > .fc-head{display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; appearance:none; border:none; background:none; cursor:pointer; padding:14px; font-family:inherit; font-size:16.5px; font-weight:800; color:var(--ink); text-align:left; touch-action:manipulation;}
+  .food-cat > .fc-head .fc-arrow{color:var(--muted); font-weight:700; flex:0 0 auto;}
+  .food-cat > .fc-body{padding:2px 14px 14px;}
+  .food-cat > .fc-body[hidden]{display:none;}
+  .pasto-builder:not(:empty){margin-top:16px; border-top:2px solid var(--line); padding-top:6px;}
+  .pasto-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:11px 0; border-bottom:1px solid var(--line);}
+  .pasto-row .pr-nome{font-weight:800; font-size:15.5px; color:var(--ink); flex:0 0 auto;}
+  .pasto-row input{flex:1 1 90px; min-width:0; padding:9px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15px;}
+  .pasto-row .pr-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:9px; width:34px; height:34px; font-size:18px; cursor:pointer; touch-action:manipulation;}
 
   /* ---- detail form ---- */
   .detail{display:flex; flex-direction:column; gap:14px; margin-top:6px;
@@ -861,15 +874,19 @@
         <div class="water-info"><span id="waterLiters">0 L</span><span class="water-goal">obiettivo 2 L · 8 bicchieri</span></div>
       </div>
       <div class="water-track"><div class="water-fill" id="waterFill"></div></div>
+      <button class="link-btn" id="waterTimeBtn" style="margin-top:10px">🕐 Aggiungi con orario</button>
+      <div class="detail" id="waterTimeForm" hidden>
+        <div class="field"><label for="waterTimeInput">A che ora l'hai bevuto</label><input type="time" id="waterTimeInput"></div>
+        <div class="panel-actions"><button class="primary" id="waterTimeSave">Aggiungi bicchiere</button><button class="link-btn" id="waterTimeCancel">Annulla</button></div>
+      </div>
+      <div id="waterTimes" class="water-times"></div>
     </section>
     <section class="card">
       <h2 class="section-title">Cosa hai mangiato</h2>
-      <div id="ciboChips" class="chips"></div>
-      <div class="chip-add">
-        <input type="text" id="ciboAddInput" placeholder="Aggiungi un alimento…">
-        <button type="button" id="ciboAddBtn">＋</button>
-      </div>
-      <button class="primary" id="ciboSave" style="margin-top:15px">Registra pasto</button>
+      <p class="fineprint" style="margin:2px 0 12px">Apri una categoria e tocca gli alimenti: finiscono nel <b>pasto</b> qui sotto, dove scrivi tipo e quantità. In ogni categoria puoi aggiungerne a mano.</p>
+      <div id="foodCats"></div>
+      <div id="pastoBuilder" class="pasto-builder"></div>
+      <button class="primary" id="ciboSave" style="margin-top:16px">Registra pasto</button>
     </section>
     <section class="card">
       <h2 class="section-title">Pasti di oggi</h2>
@@ -963,7 +980,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v36</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v37</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1560,15 +1577,77 @@
     inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); btn.click(); } });
   }
 
-  // ---- Alimentazione: acqua + cibi cliccabili ----
+  // ---- Alimentazione: acqua (con orari) + cibi per categorie a scomparsa ----
   var WATER_GOAL=8, WATER_ML=250;
   var alimWater={}; try{ var _aw=JSON.parse(localStorage.getItem("salute-alim-water")); if(_aw && typeof _aw==="object") alimWater=_aw; }catch(e){}
   function saveWater(){ try{ localStorage.setItem("salute-alim-water", JSON.stringify(alimWater)); }catch(e){} }
+  var alimWaterLog={}; try{ var _awl=JSON.parse(localStorage.getItem("salute-alim-water-log")); if(_awl && typeof _awl==="object") alimWaterLog=_awl; }catch(e){}
+  function saveWaterLog(){ try{ localStorage.setItem("salute-alim-water-log", JSON.stringify(alimWaterLog)); }catch(e){} }
   function litersStr(g){ var l=Math.round(g*WATER_ML/1000*100)/100; return String(l).replace(".",",")+" L"; }
-  var CIBI=["Yogurt","Frutta","Frutta secca","Pasta","Riso","Pane","Legumi","Carne","Pesce","Verdure","Uova","Formaggio","Latte","Salumi","Dolci","Olio EVO"];
-  var ciboG=makeChipGroup("ciboChips", CIBI, "salute-cibo-opts");
+  // categorie a scomparsa; alcuni cibi chiedono il "tipo"; aggiunta manuale che resta in ogni categoria
+  var FOOD_CATS=[
+    {key:"liquidi", label:"🥤 Liquidi", foods:["Acqua","Acqua gasata","Tè","Caffè","Latte","Vino","Birra","Superalcolico","Coca cola","Aranciata","Succo di frutta","Spremuta"], typed:[]},
+    {key:"carbo", label:"🍝 Carboidrati", foods:["Pasta","Pane","Riso","Cereali","Patate","Pizza","Couscous"], typed:["Pasta","Pane","Cereali"]},
+    {key:"proteine", label:"🍗 Proteine", foods:["Carne","Pesce","Uova","Legumi","Formaggio","Salumi","Yogurt"], typed:["Carne","Pesce","Legumi","Formaggio","Salumi"]},
+    {key:"grassi", label:"🥑 Grassi", foods:["Olio EVO","Burro","Frutta secca","Avocado","Olive","Margarina"], typed:[]},
+    {key:"fruttaverdura", label:"🥗 Frutta e verdura", foods:["Frutta","Verdura","Insalata","Minestrone"], typed:["Frutta","Verdura"]},
+    {key:"condimenti", label:"🧂 Condimenti", foods:["Sale","Zucchero","Sugo/salsa","Spezie","Aceto","Maionese","Senape"], typed:[]},
+    {key:"dolci", label:"🍰 Dolci e snack", foods:["Dolci","Biscotti","Cioccolato","Gelato","Snack salati","Merendine"], typed:[]}
+  ];
+  var foodCustom={}; FOOD_CATS.forEach(function(c){ try{ var _f=JSON.parse(localStorage.getItem("salute-cibo-"+c.key)); foodCustom[c.key]=Array.isArray(_f)?_f:[]; }catch(e){ foodCustom[c.key]=[]; } });
+  function foodsFor(c){ return c.foods.concat(foodCustom[c.key]||[]); }
+  function isTyped(nome){ for(var i=0;i<FOOD_CATS.length;i++){ if(FOOD_CATS[i].typed.indexOf(nome)>=0) return true; } return false; }
+  var catOpen={}, pasto=[];
+  function renderFoodCats(){
+    var host=document.getElementById("foodCats"); if(!host) return; host.innerHTML="";
+    FOOD_CATS.forEach(function(c){
+      var wrap=document.createElement("div"); wrap.className="food-cat"+(catOpen[c.key]?" open":"");
+      var head=document.createElement("button"); head.type="button"; head.className="fc-head";
+      head.innerHTML='<span>'+esc(c.label)+'</span><span class="fc-arrow">›</span>';
+      head.onclick=function(){ catOpen[c.key]=!catOpen[c.key]; renderFoodCats(); };
+      wrap.appendChild(head);
+      var body=document.createElement("div"); body.className="fc-body"; if(!catOpen[c.key]) body.hidden=true;
+      var chips=document.createElement("div"); chips.className="chips";
+      foodsFor(c).forEach(function(f){
+        var b=document.createElement("button"); b.type="button"; b.className="chip-sel"; b.textContent=f;
+        b.onclick=function(){ pasto.push({nome:f, typed:isTyped(f), tipo:"", qta:""}); renderPasto(); toast(f+" aggiunto al pasto"); };
+        chips.appendChild(b);
+      });
+      body.appendChild(chips);
+      var add=document.createElement("div"); add.className="chip-add";
+      var inp=document.createElement("input"); inp.type="text"; inp.placeholder="Aggiungi un alimento…";
+      var addBtn=document.createElement("button"); addBtn.type="button"; addBtn.textContent="＋";
+      function doAdd(){ var v=(inp.value||"").trim(); if(!v) return; if(foodsFor(c).indexOf(v)>=0){ toast("Già presente"); return; } (foodCustom[c.key]=foodCustom[c.key]||[]).push(v); try{ localStorage.setItem("salute-cibo-"+c.key, JSON.stringify(foodCustom[c.key])); }catch(e){} inp.value=""; renderFoodCats(); }
+      addBtn.onclick=doAdd; inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); doAdd(); } });
+      add.appendChild(inp); add.appendChild(addBtn); body.appendChild(add);
+      wrap.appendChild(body); host.appendChild(wrap);
+    });
+  }
+  function renderPasto(){
+    var host=document.getElementById("pastoBuilder"); if(!host) return; host.innerHTML="";
+    pasto.forEach(function(it, idx){
+      var row=document.createElement("div"); row.className="pasto-row";
+      var nm=document.createElement("span"); nm.className="pr-nome"; nm.textContent=it.nome; row.appendChild(nm);
+      if(it.typed){ var ti=document.createElement("input"); ti.type="text"; ti.placeholder="tipo (es. spaghetti)"; ti.value=it.tipo; ti.oninput=function(){ it.tipo=ti.value; }; row.appendChild(ti); }
+      var qi=document.createElement("input"); qi.type="text"; qi.placeholder="quantità (es. 100 g)"; qi.value=it.qta; qi.oninput=function(){ it.qta=qi.value; }; row.appendChild(qi);
+      var del=document.createElement("button"); del.type="button"; del.className="pr-del"; del.textContent="×"; del.setAttribute("aria-label","Togli"); del.onclick=function(){ pasto.splice(idx,1); renderPasto(); }; row.appendChild(del);
+      host.appendChild(row);
+    });
+  }
+  function foodItemText(it){ return it.nome+(it.tipo?" "+it.tipo:"")+(it.qta?" ("+it.qta+")":""); }
+  function cibiText(x){ if(x.items&&x.items.length) return x.items.map(foodItemText).join(", "); return (x.cibi||[]).join(", "); }
   var ciboLog=[]; try{ var _cl=JSON.parse(localStorage.getItem("salute-cibo-log")); if(Array.isArray(_cl)) ciboLog=_cl; }catch(e){}
   function saveCiboLog(){ try{ localStorage.setItem("salute-cibo-log", JSON.stringify(ciboLog)); }catch(e){} }
+  function renderWaterTimes(dK){
+    var host=document.getElementById("waterTimes"); if(!host) return; host.innerHTML="";
+    var times=(alimWaterLog[dK]||[]).slice().sort(function(a,b){return a-b;});
+    times.forEach(function(ts){
+      var el=document.createElement("span"); el.className="wt"; el.appendChild(document.createTextNode("💧 "+hhmm(new Date(ts))));
+      var x=document.createElement("button"); x.type="button"; x.textContent="×"; x.setAttribute("aria-label","Togli");
+      x.onclick=function(){ var arr=alimWaterLog[dK]||[]; var i=arr.indexOf(ts); if(i>=0){ arr.splice(i,1); saveWaterLog(); } var g=(alimWater[dK]||0)-1; alimWater[dK]=g<0?0:g; saveWater(); renderAlim(); };
+      el.appendChild(x); host.appendChild(el);
+    });
+  }
   function renderAlim(){
     var now=new Date(), dK=dayKey(now);
     document.getElementById("alimDate").textContent=fmtDayLong(now);
@@ -1578,25 +1657,40 @@
     document.getElementById("waterFill").style.width=Math.min(100, Math.round(g/WATER_GOAL*100))+"%";
     var ws=document.getElementById("waterSummary");
     ws.textContent=g+"/"+WATER_GOAL+" bicchieri"; ws.style.color=(g>=WATER_GOAL)?"var(--lvl-low)":"var(--muted)";
+    renderWaterTimes(dK);
     var host=document.getElementById("ciboLog"); host.innerHTML="";
     var today=ciboLog.filter(function(x){ return dayKey(new Date(x.ts))===dK; }).sort(function(a,b){ return b.ts-a.ts; });
     if(!today.length){ host.innerHTML='<div class="empty">Nessun pasto segnato oggi.</div>'; }
     else today.forEach(function(x){
       var row=document.createElement("div"); row.className="rowitem";
-      row.innerHTML='<span class="time">'+hhmm(new Date(x.ts))+'</span><span class="tname" style="display:block">'+esc((x.cibi||[]).join(", "))+'</span>';
+      row.innerHTML='<span class="time">'+hhmm(new Date(x.ts))+'</span><span class="tname" style="display:block">'+esc(cibiText(x))+'</span>';
       var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
       del.onclick=function(){ ciboLog=ciboLog.filter(function(y){return y.id!==x.id;}); saveCiboLog(); renderAlim(); };
       row.appendChild(del); host.appendChild(row);
     });
   }
-  function waterAdd(n){ var dK=dayKey(new Date()), g=(alimWater[dK]||0)+n; if(g<0)g=0; if(g>30)g=30; alimWater[dK]=g; saveWater(); renderAlim(); }
+  function waterAdd(n, atTs){
+    var dK=dayKey(new Date()), g=(alimWater[dK]||0)+n; if(g<0)g=0; if(g>30)g=30; alimWater[dK]=g; saveWater();
+    if(n>0){ (alimWaterLog[dK]=alimWaterLog[dK]||[]).push(atTs||Date.now()); saveWaterLog(); }
+    else if(n<0){ var arr=alimWaterLog[dK]||[]; if(arr.length){ arr.pop(); saveWaterLog(); } }
+    renderAlim();
+  }
   document.getElementById("waterPlus").onclick=function(){ waterAdd(1); };
   document.getElementById("waterMinus").onclick=function(){ waterAdd(-1); };
-  wireAdd("ciboAddInput","ciboAddBtn", ciboG);
-  document.getElementById("ciboSave").onclick=function(){
-    var c=ciboG.selected(); if(!c.length){ toast("Tocca cosa hai mangiato"); return; }
-    ciboLog.push({id:uid(), ts:Date.now(), cibi:c}); saveCiboLog(); ciboG.clear(); renderAlim(); toast("Pasto registrato ✓");
+  document.getElementById("waterTimeBtn").onclick=function(){ var f=document.getElementById("waterTimeForm"); f.hidden=!f.hidden; if(!f.hidden){ document.getElementById("waterTimeInput").value=hhmm(new Date()); } };
+  document.getElementById("waterTimeCancel").onclick=function(){ document.getElementById("waterTimeForm").hidden=true; };
+  document.getElementById("waterTimeSave").onclick=function(){
+    var t=document.getElementById("waterTimeInput").value; if(!t){ toast("Metti l'ora"); return; }
+    var now=new Date(), parts=t.split(":"), d=new Date(now.getFullYear(),now.getMonth(),now.getDate(),parseInt(parts[0],10)||0,parseInt(parts[1],10)||0);
+    waterAdd(1, d.getTime()); document.getElementById("waterTimeForm").hidden=true;
   };
+  document.getElementById("ciboSave").onclick=function(){
+    if(!pasto.length){ toast("Apri una categoria e tocca cosa hai mangiato"); return; }
+    var items=pasto.map(function(it){ return {nome:it.nome, tipo:(it.tipo||"").trim(), qta:(it.qta||"").trim()}; });
+    ciboLog.push({id:uid(), ts:Date.now(), items:items}); saveCiboLog();
+    pasto=[]; renderPasto(); renderAlim(); toast("Pasto registrato ✓");
+  };
+  renderFoodCats(); renderPasto();
 
   // ---- Salute: fastidi fisici + stato psicologico ----
   var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Nausea","Vomito","Stanchezza","Fiato corto","Tosse","Bruciore di stomaco","Dolori addominali","Dolori muscolari","Spasmi muscolari","Mal di schiena","Dolori articolari","Tensione al collo","Fascicolazioni","Acufene","Nebbia mentale","Palpitazioni","Caviglie gonfie","Sudorazione notturna","Insonnia","Fastidio vescica"];
@@ -1922,7 +2016,7 @@
       h+=svgBars(bucketSeries(wdays.map(function(k){return {ts:new Date(k+"T00:00:00").getTime(), g:alimWater[k]};}),function(x){return x.ts;},function(x){return x.g;},(e-s)>45*86400000),"#16A34A"); }
     if(meals.length){
       h+='<table><tr><th>Quando</th><th>Alimenti</th></tr>';
-      meals.forEach(function(m){ h+='<tr><td>'+dmt(m.ts)+'</td><td>'+e2((m.cibi||[]).join(", "))+'</td></tr>'; });
+      meals.forEach(function(m){ h+='<tr><td>'+dmt(m.ts)+'</td><td>'+e2(cibiText(m))+'</td></tr>'; });
       h+='</table>';
     }
     return h;
