@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 26; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 27; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -334,6 +334,14 @@
   .chip-sel.on{background:var(--c,var(--accent)); color:var(--on-c); border-color:transparent;
     box-shadow:0 3px 10px -3px color-mix(in srgb,var(--c,var(--accent)) 55%,transparent);}
   .group-lbl{font-size:15px; font-weight:750; color:var(--ink-soft); margin:16px 0 0;}
+  .pf-summary{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .pf-summary[hidden]{display:none;}
+  .pf-sum-name{font-size:19px; font-weight:800; color:var(--ink); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .pf-edit-btn{appearance:none; flex:none; cursor:pointer; font-family:inherit; font-weight:750; font-size:15px;
+    background:var(--surface-2); border:1px solid var(--line); color:var(--accent); border-radius:999px; padding:11px 15px;
+    touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
+  .pf-edit-btn:active{background:var(--track);}
+  #pfForm[hidden]{display:none;}
   .chip-add{display:flex; gap:8px; margin-top:12px;}
   .chip-add input{flex:1; min-width:0;}
   .chip-add button{flex:none; appearance:none; cursor:pointer; font-family:inherit; font-weight:750; font-size:15px;
@@ -500,6 +508,11 @@
     </div>
     <h2 class="menu-grid-title">Il mio profilo</h2>
     <section class="card">
+      <div id="pfSummary" class="pf-summary" hidden>
+        <span class="pf-sum-name" id="pfSumName">👤 Profilo</span>
+        <button class="pf-edit-btn" id="pfEdit" type="button">Visualizza / Modifica</button>
+      </div>
+      <div id="pfForm">
       <div class="grid2">
         <div class="field" style="grid-column:1/-1"><label for="pfNome">Nome e cognome</label><input type="text" id="pfNome" data-pf="nome" placeholder="Nome e cognome"></div>
         <div class="field"><label for="pfNascita">Data di nascita</label><input type="date" id="pfNascita" data-pf="nascita"></div>
@@ -520,8 +533,12 @@
         <div class="field" style="grid-column:1/-1"><label for="pfEmerg">Contatto d'emergenza</label><input type="text" id="pfEmerg" data-pf="emergenza"></div>
         <div class="field" style="grid-column:1/-1"><label for="pfNote">Note</label><input type="text" id="pfNote" data-pf="note"></div>
       </div>
-      <button class="primary" id="pfSave" style="margin-top:16px">Salva profilo</button>
-      <p class="fineprint">Tocca <b>«Salva profilo»</b> per confermare (si salva comunque da solo mentre scrivi). Resta solo sul tuo telefono e finisce in cima ai tuoi report.</p>
+      <div class="panel-actions" style="margin-top:16px">
+        <button class="primary" id="pfSave">Salva profilo</button>
+        <button class="link-btn" id="pfCancel">Chiudi</button>
+      </div>
+      <p class="fineprint">Si salva anche da solo mentre scrivi. Resta solo sul tuo telefono e finisce in cima ai tuoi report.</p>
+      </div>
     </section>
     <h2 class="menu-grid-title">Report PDF</h2>
     <section class="card">
@@ -804,7 +821,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v26</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v27</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1574,10 +1591,16 @@
     if(b.dataset.s===profilo.sesso) b.classList.add("on");
     b.onclick=function(){ Array.prototype.forEach.call(document.querySelectorAll("#pfSesso button"),function(x){x.classList.remove("on");}); b.classList.add("on"); profilo.sesso=b.dataset.s; saveProfilo(); };
   });
+  function pfHasData(){ return !!(profilo.nome||profilo.nascita||profilo.sesso||profilo.altezza||profilo.peso||profilo.gruppo||profilo.medico||profilo.allergie||profilo.patologie||profilo.farmaci||profilo.emergenza||profilo.note); }
+  function pfCollapse(){ document.getElementById("pfSumName").textContent="👤 "+(profilo.nome||"Profilo compilato"); document.getElementById("pfSummary").hidden=false; document.getElementById("pfForm").hidden=true; }
+  function pfExpand(){ document.getElementById("pfSummary").hidden=true; document.getElementById("pfForm").hidden=false; }
+  document.getElementById("pfEdit").onclick=pfExpand;
+  document.getElementById("pfCancel").onclick=pfCollapse;
   document.getElementById("pfSave").onclick=function(){
     Array.prototype.forEach.call(document.querySelectorAll("[data-pf]"), function(inp){ profilo[inp.dataset.pf]=inp.value; });
-    saveProfilo(); toast("Profilo salvato ✓");
+    saveProfilo(); toast("Profilo salvato ✓"); pfCollapse();
   };
+  if(pfHasData()) pfCollapse(); else pfExpand();
 
   // ---- Report PDF ----
   var repPeriod="giorno";
