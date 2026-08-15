@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 34; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 35; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -313,13 +313,22 @@
   .link-btn{appearance:none; background:none; border:none; cursor:pointer;
     color:var(--accent); font-weight:750; font-size:15.5px; padding:14px 4px 2px;
     width:100%; text-align:center; font-family:inherit; touch-action:manipulation;}
-  #toggleDetail, #pilAddBtn, #eserAddBtn, #repToggle, #docToggle, #suggToggle{ background:var(--surface-2);
+  #toggleDetail, #pilAddBtn, #eserAddBtn, #repToggle, #docToggle, #suggToggle, #linkToggle{ background:var(--surface-2);
     border:1.6px dashed color-mix(in srgb, var(--accent) 55%, var(--line));
     border-radius:14px; padding:14px; margin-top:8px; min-height:52px; font-size:16px;}
-  #toggleDetail:active, #pilAddBtn:active, #eserAddBtn:active, #repToggle:active, #docToggle:active, #suggToggle:active{ background:var(--track); }
+  #toggleDetail:active, #pilAddBtn:active, #eserAddBtn:active, #repToggle:active, #docToggle:active, #suggToggle:active, #linkToggle:active{ background:var(--track); }
   #repOptions[hidden]{display:none;}
   #docPanel[hidden]{display:none;}
   #suggPanel[hidden]{display:none;}
+  #linkPanel[hidden]{display:none;}
+  #linkBody .lk-card{background:var(--surface-2); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-top:10px;}
+  #linkBody .lk-h{font-size:17px; font-weight:850; margin:0 0 2px; letter-spacing:-.01em;}
+  #linkBody .lk-h .lk-n{color:var(--muted); font-weight:650; font-size:13.5px;}
+  #linkBody .lk-line{font-size:14.5px; line-height:1.6; color:var(--ink-soft); margin:2px 0 0;}
+  #linkBody .lk-line b{color:var(--ink); font-weight:800;}
+  #linkBody .lk-note{font-size:14px; color:var(--muted); margin:2px 0 0;}
+  #linkBody .empty{padding:14px 6px;}
+  .mini-photo{appearance:none; border:none; background:var(--track); border-radius:8px; padding:2px 8px; font-size:15px; line-height:1.2; cursor:pointer; margin-left:4px; vertical-align:baseline; touch-action:manipulation;}
 
   /* ---- detail form ---- */
   .detail{display:flex; flex-direction:column; gap:14px; margin-top:6px;
@@ -635,6 +644,15 @@
       <p class="fineprint">Si apre l'anteprima; poi <b>«Stampa / Salva PDF»</b> → su iPhone «Salva in file».</p>
       </div>
     </section>
+    <h2 class="menu-grid-title">Collegamenti</h2>
+    <section class="card">
+      <button class="link-btn" id="linkToggle">🔗 Collegamenti (entro 48 h)</button>
+      <div id="linkPanel" hidden>
+        <p class="fineprint" style="margin-top:8px">Mostra cosa c'era nelle <b>48 ore prima</b> di ogni fastidio che hai segnato in «Salute». Sono <b>coincidenze, non cause</b>, e servono <b>settimane</b> di dati perché dicano qualcosa. <b>Non è un consiglio medico</b> — semmai uno spunto per il tuo medico.</p>
+        <div id="linkBody" style="margin-top:10px"></div>
+        <button class="link-btn" id="linkClose" style="margin-top:6px">Chiudi</button>
+      </div>
+    </section>
     <h2 class="menu-grid-title">Referti e documenti</h2>
     <section class="card">
       <button class="link-btn" id="docToggle">📁 Referti e documenti</button>
@@ -807,6 +825,17 @@
         <input type="text" id="eserAddInput" placeholder="Aggiungi un'attività…">
         <button type="button" id="eserAddBtn">＋</button>
       </div>
+      <button class="link-btn" id="attivFotoBtn" style="margin-top:10px">📷 Aggiungi da foto / screenshot</button>
+      <div class="detail" id="attivFotoForm" hidden>
+        <p class="fineprint" style="margin:0 0 8px">Fai lo screenshot dei passi (o dei minuti) dall'app Salute e scrivi qui il numero: lo registro come attività. Puoi anche allegare lo screenshot.</p>
+        <div class="field"><label for="attivFotoNome">Attività</label><input type="text" id="attivFotoNome" list="dlAttivita" value="Camminata" autocomplete="off"><datalist id="dlAttivita"></datalist></div>
+        <div class="field"><label for="attivFotoVal">Quanto (passi o minuti)</label><input type="text" id="attivFotoVal" placeholder="es. 1389 passi · 30 min" autocomplete="off"></div>
+        <div class="field"><label for="attivFotoFile">Screenshot (facoltativo)</label><input type="file" id="attivFotoFile" accept="image/*"></div>
+        <div class="panel-actions">
+          <button class="primary" id="attivFotoSave">Registra attività</button>
+          <button class="link-btn" id="attivFotoCancel">Annulla</button>
+        </div>
+      </div>
     </section>
     <section class="card">
       <h2 class="section-title">Oggi</h2>
@@ -912,7 +941,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v34</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v35</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1649,7 +1678,10 @@
     if(!today.length){ log.innerHTML='<div class="empty">Nessuna attività registrata oggi.</div>'; }
     else today.forEach(function(x){
       var row=document.createElement("div"); row.className="rowitem";
-      row.innerHTML='<span class="time">'+hhmm(new Date(x.tsEnd))+'</span><span class="tname" style="display:block">'+esc(x.nome)+' <span style="color:var(--muted);font-weight:700">· '+fmtDur(x.dur)+'</span></span>';
+      var detail = x.nota ? esc(x.nota) : fmtDur(x.dur);
+      var fotoBtn = x.foto ? ' <button type="button" class="mini-photo" aria-label="Vedi screenshot">📷</button>' : '';
+      row.innerHTML='<span class="time">'+hhmm(new Date(x.tsEnd))+'</span><span class="tname" style="display:block">'+esc(x.nome)+' <span style="color:var(--muted);font-weight:700">· '+detail+'</span>'+fotoBtn+'</span>';
+      var pB=row.querySelector(".mini-photo"); if(pB){ pB.onclick=function(){ docView(x.foto); }; }
       var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
       del.onclick=function(){ attivLog=attivLog.filter(function(y){return y.id!==x.id;}); saveAttivLog(); renderAttiv(); };
       row.appendChild(del); log.appendChild(row);
@@ -1670,6 +1702,24 @@
     attivCustom.push(v); try{ localStorage.setItem("salute-attiv-opts", JSON.stringify(attivCustom)); }catch(e){} inp.value=""; renderAttiv();
   };
   document.getElementById("eserAddInput").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("eserAddBtn").click(); } });
+  // Attività da foto/screenshot: registrazione assistita (tu leggi il numero, io lo salvo)
+  (function(){
+    var btn=document.getElementById("attivFotoBtn"), form=document.getElementById("attivFotoForm");
+    if(!btn||!form) return;
+    var nomeI=document.getElementById("attivFotoNome"), valI=document.getElementById("attivFotoVal"), fileI=document.getElementById("attivFotoFile"), dl=document.getElementById("dlAttivita");
+    function fillDl(){ if(!dl) return; dl.innerHTML=""; attivOpts().forEach(function(n){ var o=document.createElement("option"); o.value=n; dl.appendChild(o); }); }
+    function resetForm(){ valI.value=""; if(fileI) fileI.value=""; nomeI.value="Camminata"; }
+    btn.onclick=function(){ fillDl(); form.hidden=false; btn.hidden=true; try{ valI.focus(); }catch(e){} };
+    document.getElementById("attivFotoCancel").onclick=function(){ form.hidden=true; btn.hidden=false; resetForm(); };
+    document.getElementById("attivFotoSave").onclick=function(){
+      var nome=(nomeI.value||"").trim()||"Camminata", val=(valI.value||"").trim();
+      if(!val){ toast("Scrivi quanti passi o minuti"); try{ valI.focus(); }catch(e){} return; }
+      var file=fileI && fileI.files && fileI.files[0];
+      function finish(fotoId){ attivLog.push({id:uid(), nome:nome, tsEnd:Date.now(), dur:0, nota:val, foto:fotoId||null}); saveAttivLog(); form.hidden=true; btn.hidden=false; resetForm(); renderAttiv(); toast("Registrato: "+nome+" · "+val); }
+      if(file){ var r=new FileReader(); r.onload=function(){ var id=uid(); docPut({id:id, cat:"Attività Fisiche", modulo:"esercizio", nome:file.name||"screenshot", tipo:file.type||"", size:file.size||0, ts:Date.now(), buf:r.result}).then(function(){ finish(id); }).catch(function(){ finish(null); }); }; r.onerror=function(){ finish(null); }; r.readAsArrayBuffer(file); }
+      else { finish(null); }
+    };
+  })();
 
   // ---- Profilo personale ----
   var profilo={}; try{ var _pf=JSON.parse(localStorage.getItem("salute-profilo")); if(_pf && typeof _pf==="object") profilo=_pf; }catch(e){}
@@ -2040,6 +2090,35 @@
   }
   document.getElementById("suggToggle").onclick=function(){ document.getElementById("suggToggle").hidden=true; document.getElementById("suggPanel").hidden=false; renderSuggestions(); };
   document.getElementById("suggClose").onclick=function(){ document.getElementById("suggPanel").hidden=true; document.getElementById("suggToggle").hidden=false; };
+
+  /* ---- Collegamenti: cosa c'era nelle 48 h prima di ogni fastidio ---- */
+  var LINK_W=48*3600*1000;
+  function renderCollegamenti(){
+    var host=document.getElementById("linkBody"); if(!host) return;
+    var fumoEv=entries.map(function(x){ return {ts:+new Date(x.ts), q:Math.max(1,x.q|0)}; }).filter(function(e){ return e.ts===e.ts; });
+    var attivEv=attivLog.map(function(x){ return {ts:x.tsEnd}; }).filter(function(e){ return typeof e.ts==="number"; });
+    var pastiEv=ciboLog.map(function(x){ return {ts:x.ts}; }).filter(function(e){ return typeof e.ts==="number"; });
+    var evacEv=evac.map(function(x){ return {ts:x.ts}; }).filter(function(e){ return typeof e.ts==="number"; });
+    var pilEv=[]; try{ var pd=Pillole.data(), tk=(pd&&pd.taken)||{}; Object.keys(tk).forEach(function(k){ var tv=tk[k]; if(typeof tv==="number") pilEv.push({ts:tv}); }); }catch(e){}
+    function cnt(arr,end,f){ var s=end-LINK_W,n=0,sum=0; arr.forEach(function(e){ if(e.ts>=s && e.ts<end){ n++; if(f) sum+=e[f]||0; } }); return f?sum:n; }
+    var byVoce={};
+    saluteLog.forEach(function(ep){ if(!ep||typeof ep.ts!=="number") return; (ep.voci||[]).forEach(function(v){ var g=byVoce[v]=byVoce[v]||{n:0,sig:0,att:0,pasti:0,pil:0,ev:0}; g.n++; g.sig+=cnt(fumoEv,ep.ts,"q"); g.att+=cnt(attivEv,ep.ts); g.pasti+=cnt(pastiEv,ep.ts); g.pil+=cnt(pilEv,ep.ts); g.ev+=cnt(evacEv,ep.ts); }); });
+    var voci=Object.keys(byVoce).sort(function(a,b){ return byVoce[b].n-byVoce[a].n; });
+    host.innerHTML="";
+    if(!voci.length){ host.innerHTML='<div class="empty lk-note">Ancora nessun fastidio registrato. Usa «Salute» per segnare come ti senti: qui vedrai cosa lo ha preceduto nelle 48 ore.</div>'; return; }
+    var totEp=saluteLog.length;
+    if(totEp<4){ host.insertAdjacentHTML("beforeend", '<div class="empty lk-note">Hai '+totEp+(totEp===1?' registrazione':' registrazioni')+' in «Salute». Servono più episodi e qualche <b>settimana</b> di dati perché i collegamenti dicano qualcosa. Intanto, ecco cosa risulta finora:</div>'); }
+    function avg(x,n){ return (Math.round((x/n)*10)/10).toLocaleString("it-IT",{minimumFractionDigits:0,maximumFractionDigits:1}); }
+    voci.forEach(function(v){
+      var g=byVoce[v];
+      var h='<div class="lk-card"><p class="lk-h">'+esc(v)+' <span class="lk-n">'+g.n+(g.n===1?' episodio':' episodi')+'</span></p>';
+      h+='<p class="lk-line">Nelle <b>48 h</b> prima, in media: 🚬 <b>'+avg(g.sig,g.n)+'</b> sig · 🏃 <b>'+avg(g.att,g.n)+'</b> attività · 🍽️ <b>'+avg(g.pasti,g.n)+'</b> pasti · 💊 <b>'+avg(g.pil,g.n)+'</b> pillole · 🚽 <b>'+avg(g.ev,g.n)+'</b></p>';
+      h+='</div>';
+      host.insertAdjacentHTML("beforeend", h);
+    });
+  }
+  document.getElementById("linkToggle").onclick=function(){ document.getElementById("linkToggle").hidden=true; document.getElementById("linkPanel").hidden=false; renderCollegamenti(); };
+  document.getElementById("linkClose").onclick=function(){ document.getElementById("linkPanel").hidden=true; document.getElementById("linkToggle").hidden=false; };
   function showMod(m){
     if(attivInterval){ clearInterval(attivInterval); attivInterval=null; }
     ["fumo","pillole","esercizio","alimentazione","salute","evac"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
