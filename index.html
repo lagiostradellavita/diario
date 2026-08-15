@@ -117,15 +117,33 @@
   .mark-h{line-height:0; filter:drop-shadow(0 2px 6px rgba(5,150,105,.35));}
   .menu-hdr h1{margin:0; font-size:26px; font-weight:850; letter-spacing:-.02em;}
   .menu-hdr .sub{margin:2px 0 0; font-size:13.5px; color:var(--muted); text-transform:capitalize;}
-  .menu-grid{display:grid; grid-template-columns:1fr 1fr; gap:13px;}
+  .menu-grid-title{margin:6px 2px 0; font-size:13.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted);}
+  .menu-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
   .menu-card{appearance:none; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
-    display:flex; flex-direction:column; align-items:flex-start; gap:7px; text-align:left;
-    background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--mc);
-    border-radius:16px; padding:17px 15px; min-height:112px; box-shadow:var(--shadow); transition:transform .06s ease;}
+    display:flex; flex-direction:column; align-items:flex-start; gap:11px; text-align:left;
+    background:color-mix(in srgb, var(--mc) 8%, var(--surface));
+    border:1px solid color-mix(in srgb, var(--mc) 26%, var(--line)); border-left:7px solid var(--mc);
+    border-radius:18px; padding:18px 16px 16px; min-height:134px; box-shadow:var(--shadow); transition:transform .06s ease;}
   .menu-card:active{transform:scale(.97);}
-  .menu-card .mc-emoji{font-size:31px; line-height:1;}
-  .menu-card .mc-name{font-size:17.5px; font-weight:800; color:var(--ink);}
-  .menu-card .mc-st{font-size:13px; font-weight:750; color:var(--muted); font-variant-numeric:tabular-nums; margin-top:auto;}
+  .menu-card .mc-emoji{display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px;
+    border-radius:16px; font-size:32px; line-height:1; background:color-mix(in srgb, var(--mc) 18%, var(--surface));}
+  .menu-card .mc-name{font-size:22px; font-weight:850; color:var(--ink); letter-spacing:-.01em;}
+  .menu-card .mc-st{font-size:15px; font-weight:750; color:var(--muted); font-variant-numeric:tabular-nums; margin-top:auto;}
+
+  /* suggerimenti "cosa vuoi fare adesso" */
+  .sugg-title{margin:0 0 14px; font-size:19px; font-weight:850; letter-spacing:-.01em; color:var(--ink);}
+  .sugg-list{display:flex; flex-direction:column; gap:10px;}
+  .sugg{appearance:none; cursor:pointer; font-family:inherit; text-align:left; width:100%;
+    display:flex; align-items:center; gap:14px; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:14px; padding:15px 14px; min-height:62px;
+    transition:transform .06s ease;}
+  .sugg:active{transform:scale(.98); background:var(--track);}
+  .sugg .se{font-size:28px; line-height:1; flex:none;}
+  .sugg .stext{flex:1; font-size:18px; font-weight:750; color:var(--ink); line-height:1.25;}
+  .sugg .schev{color:var(--muted); font-size:25px; font-weight:700; flex:none; line-height:1;}
+  .sugg.urgent{background:color-mix(in srgb, var(--lvl-high) 11%, var(--surface)); border-color:color-mix(in srgb, var(--lvl-high) 34%, var(--line));}
+  .sugg.urgent .stext{color:var(--lvl-high);}
+  .sugg.urgent .schev{color:var(--lvl-high);}
   .soon{font-size:15.5px; line-height:1.6; color:var(--ink-soft);}
   .pil-orari{display:flex; flex-wrap:wrap; gap:8px;}
   .pil-ora-row{display:flex; align-items:center; gap:6px;}
@@ -357,6 +375,11 @@
         <p class="sub" id="menuDate"></p>
       </div>
     </header>
+    <section class="card sugg-card">
+      <h2 class="sugg-title">Cosa vuoi fare adesso?</h2>
+      <div id="suggestions" class="sugg-list"></div>
+    </section>
+    <h2 class="menu-grid-title">Le tue funzioni</h2>
     <div class="menu-grid">
       <button class="menu-card" type="button" data-mod="fumo" style="--mc:#C2410C"><span class="mc-emoji">🚬</span><span class="mc-name">Fumo</span><span class="mc-st" id="st-fumo"></span></button>
       <button class="menu-card" type="button" data-mod="pillole" style="--mc:#7C3AED"><span class="mc-emoji">💊</span><span class="mc-name">Pillole</span><span class="mc-st" id="st-pillole"></span></button>
@@ -545,7 +568,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v14</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v15</p>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -1120,6 +1143,28 @@
     var g=alimWater[dK]||0, sa=document.getElementById("st-alim");
     if(g>0){ sa.textContent=g+"/"+WATER_GOAL+" bicchieri"; sa.style.color=(g>=WATER_GOAL)?"var(--lvl-low)":"var(--muted)"; }
     else { sa.textContent="da iniziare"; sa.style.color="var(--muted)"; }
+    renderSuggestions();
+  }
+  function renderSuggestions(){
+    var box=document.getElementById("suggestions"); if(!box) return;
+    box.innerHTML="";
+    var dK=dayKey(new Date());
+    var pt=Pillole.today(), et=Esercizio.today(), g=alimWater[dK]||0;
+    var items=[];
+    if(pt.late>0) items.push({e:"💊", t:(pt.late===1?"Prendi la pillola in ritardo":"Prendi le "+pt.late+" pillole in ritardo"), m:"pillole", cls:"urgent"});
+    if(et.late>0) items.push({e:"🏃", t:(et.late===1?"Fai l'attività in ritardo":"Fai le "+et.late+" attività in ritardo"), m:"esercizio", cls:"urgent"});
+    if(g<WATER_GOAL) items.push({e:"🥤", t:"Bevi un bicchiere d'acqua ("+g+"/"+WATER_GOAL+")", m:"alimentazione", cls:""});
+    if(pt.total>0 && pt.taken<pt.total && pt.late===0) items.push({e:"💊", t:"Segna le pillole di oggi", m:"pillole", cls:""});
+    if(pt.total===0) items.push({e:"💊", t:"Imposta le tue pillole", m:"pillole", cls:""});
+    if(et.total===0) items.push({e:"🏃", t:"Imposta un'attività", m:"esercizio", cls:""});
+    items.push({e:"🚬", t:"Registra una sigaretta", m:"fumo", cls:""});
+    items.push({e:"🍎", t:"Scrivi cosa hai mangiato", m:"alimentazione", cls:""});
+    items.slice(0,4).forEach(function(s){
+      var b=document.createElement("button"); b.type="button"; b.className="sugg"+(s.cls?(" "+s.cls):"");
+      b.innerHTML='<span class="se">'+s.e+'</span><span class="stext">'+esc(s.t)+'</span><span class="schev">›</span>';
+      b.onclick=function(){ showMod(s.m); };
+      box.appendChild(b);
+    });
   }
   function showMod(m){
     ["fumo","pillole","esercizio","alimentazione"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
