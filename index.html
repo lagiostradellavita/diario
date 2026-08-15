@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 48; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 49; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -870,6 +870,11 @@
         <div class="field"><label for="attivFotoVal">Quanto (passi o minuti)</label><input type="text" id="attivFotoVal" placeholder="es. 1389 passi · 30 min" autocomplete="off"></div>
         <div class="field"><label for="attivFotoFile">Screenshot (facoltativo)</label><input type="file" id="attivFotoFile" accept="image/*"></div>
         <div class="field"><label for="attivFotoNota">Nota (facoltativa)</label><input type="text" id="attivFotoNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
+        <button class="link-btn" id="attivWhenToggle" style="text-align:left;padding:4px 2px">＋ cambia data e ora (invece di adesso)</button>
+        <div class="grid2" id="attivWhen" hidden>
+          <div class="field"><label for="attivData">Data</label><input type="date" id="attivData"></div>
+          <div class="field"><label for="attivOra">Ora</label><input type="time" id="attivOra"></div>
+        </div>
         <div class="panel-actions">
           <button class="primary" id="attivFotoSave">Registra attività</button>
           <button class="link-btn" id="attivFotoCancel">Annulla</button>
@@ -908,6 +913,11 @@
       <div id="foodCats"></div>
       <div id="pastoBuilder" class="pasto-builder"></div>
       <div class="field" style="margin-top:14px"><label for="ciboNota">Nota (facoltativa)</label><input type="text" id="ciboNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
+      <button class="link-btn" id="ciboWhenToggle" style="margin-top:8px">＋ cambia data e ora (invece di adesso)</button>
+      <div class="grid2" id="ciboWhen" hidden>
+        <div class="field"><label for="ciboData">Data</label><input type="date" id="ciboData"></div>
+        <div class="field"><label for="ciboOra">Ora</label><input type="time" id="ciboOra"></div>
+      </div>
       <button class="primary" id="ciboSave" style="margin-top:14px">Registra pasto</button>
     </section>
     <section class="card">
@@ -949,6 +959,11 @@
         </div>
       </div>
       <div class="field" style="margin-top:14px"><label for="saluteNota">Nota (facoltativa)</label><input type="text" id="saluteNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
+      <button class="link-btn" id="saluteWhenToggle" style="margin-top:8px">＋ cambia data e ora (invece di adesso)</button>
+      <div class="grid2" id="saluteWhen" hidden>
+        <div class="field"><label for="saluteData">Data</label><input type="date" id="saluteData"></div>
+        <div class="field"><label for="saluteOra">Ora</label><input type="time" id="saluteOra"></div>
+      </div>
       <button class="primary" id="saluteReg" style="margin-top:14px">Registra adesso</button>
     </section>
     <section class="card" id="parametriCard">
@@ -1099,7 +1114,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v48</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v49</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1686,6 +1701,11 @@
   var PENCIL='<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
   function editBtn(fn){ var b=document.createElement("button"); b.type="button"; b.className="edit"; b.setAttribute("aria-label","Modifica"); b.innerHTML=PENCIL; b.onclick=fn; return b; }
   function scrollToEl(el){ try{ el.scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){} }
+  // «adesso o orario a mano»: helper condivisi per il selettore data/ora facoltativo
+  function whenToggle(wrapId, dataId, oraId){ var w=document.getElementById(wrapId); if(!w) return; w.hidden=!w.hidden; if(!w.hidden){ var n=new Date(); document.getElementById(dataId).value=ymd(n); document.getElementById(oraId).value=hhmm(n); } }
+  function whenTs(wrapId, dataId, oraId){ var w=document.getElementById(wrapId); if(w && !w.hidden){ var d=document.getElementById(dataId).value, t=document.getElementById(oraId).value; if(d&&t){ var ts=new Date(d+"T"+t).getTime(); if(!isNaN(ts)) return ts; } } return Date.now(); }
+  function whenShow(wrapId, dataId, oraId, ts){ var w=document.getElementById(wrapId); if(!w) return; w.hidden=false; var d=new Date(ts); document.getElementById(dataId).value=ymd(d); document.getElementById(oraId).value=hhmm(d); }
+  function whenHide(wrapId){ var w=document.getElementById(wrapId); if(w) w.hidden=true; }
   function pad2(n){ return ("0"+n).slice(-2); }
   function hhmm(d){ return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
   function ymd(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
@@ -1876,21 +1896,24 @@
     try{ renderDieta(); }catch(e){}
   }
   var editingMealId=null;
-  function cancelEditMeal(){ editingMealId=null; var b=document.getElementById("ciboSave"); if(b) b.textContent="Registra pasto"; }
+  function cancelEditMeal(){ editingMealId=null; var b=document.getElementById("ciboSave"); if(b) b.textContent="Registra pasto"; whenHide("ciboWhen"); }
   function startEditMeal(x){
     editingMealId=x.id;
     pasto=(x.items||[]).map(function(it){ return {nome:it.nome, typed:isTyped(it.nome), tipo:it.tipo||"", qta:it.qta||"", kcal:(it.kcal||it.kcal===0)?it.kcal:"", kcalManual:false}; });
     document.getElementById("ciboNota").value=x.nota||"";
+    whenShow("ciboWhen","ciboData","ciboOra", x.ts);
     renderPasto(); document.getElementById("ciboSave").textContent="Salva modifiche";
     scrollToEl(document.getElementById("ciboSave"));
   }
+  document.getElementById("ciboWhenToggle").onclick=function(){ whenToggle("ciboWhen","ciboData","ciboOra"); };
   document.getElementById("ciboSave").onclick=function(){
     var nota=(document.getElementById("ciboNota").value||"").trim();
     if(!pasto.length && !nota){ toast("Tocca cosa hai mangiato o scrivi una nota"); return; }
     var items=pasto.map(function(it){ return {nome:it.nome, tipo:(it.tipo||"").trim(), qta:(it.qta||"").trim(), kcal:itemKcal(it)}; });
-    if(editingMealId){ var it2=null; ciboLog.forEach(function(y){ if(y.id===editingMealId) it2=y; }); if(it2){ it2.items=items; it2.nota=nota; } cancelEditMeal(); toast("Modifica salvata ✓"); }
-    else { ciboLog.push({id:uid(), ts:Date.now(), items:items, nota:nota}); toast("Pasto registrato ✓"); }
-    saveCiboLog(); pasto=[]; renderPasto(); document.getElementById("ciboNota").value=""; renderAlim();
+    var ts=whenTs("ciboWhen","ciboData","ciboOra");
+    if(editingMealId){ var it2=null; ciboLog.forEach(function(y){ if(y.id===editingMealId) it2=y; }); if(it2){ it2.items=items; it2.nota=nota; it2.ts=ts; } cancelEditMeal(); toast("Modifica salvata ✓"); }
+    else { ciboLog.push({id:uid(), ts:ts, items:items, nota:nota}); toast("Pasto registrato ✓"); }
+    saveCiboLog(); whenHide("ciboWhen"); pasto=[]; renderPasto(); document.getElementById("ciboNota").value=""; renderAlim();
   };
   renderFoodCats(); renderPasto();
 
@@ -2202,18 +2225,21 @@
     document.getElementById("saluteNota").value=x.nota||"";
     document.getElementById("bodyFastidi").hidden=false; document.getElementById("collapFastidi").classList.add("open");
     document.getElementById("bodyPsico").hidden=false; document.getElementById("collapPsico").classList.add("open");
+    whenShow("saluteWhen","saluteData","saluteOra", x.ts);
     updateSaluteCount();
     document.getElementById("saluteReg").textContent="Salva modifiche";
     scrollToEl(document.getElementById("saluteReg").parentNode);
   }
-  function cancelEditSalute(){ editingSaluteId=null; var b=document.getElementById("saluteReg"); if(b) b.textContent="Registra adesso"; }
+  function cancelEditSalute(){ editingSaluteId=null; var b=document.getElementById("saluteReg"); if(b) b.textContent="Registra adesso"; whenHide("saluteWhen"); }
+  document.getElementById("saluteWhenToggle").onclick=function(){ whenToggle("saluteWhen","saluteData","saluteOra"); };
   document.getElementById("saluteReg").onclick=function(){
     var v=fastidiG.selected().concat(psicoG.selected());
     var nota=(document.getElementById("saluteNota").value||"").trim();
     if(!v.length && !nota){ toast("Seleziona un fastidio o scrivi una nota"); return; }
-    if(editingSaluteId){ var it=null; saluteLog.forEach(function(y){ if(y.id===editingSaluteId) it=y; }); if(it){ it.voci=v; it.nota=nota; } cancelEditSalute(); toast("Modifica salvata ✓"); }
-    else { saluteLog.push({id:uid(), ts:Date.now(), voci:v, nota:nota}); toast("Registrato ✓"); }
-    saveSaluteLog(); fastidiG.clear(); psicoG.clear(); document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
+    var ts=whenTs("saluteWhen","saluteData","saluteOra");
+    if(editingSaluteId){ var it=null; saluteLog.forEach(function(y){ if(y.id===editingSaluteId) it=y; }); if(it){ it.voci=v; it.nota=nota; it.ts=ts; } cancelEditSalute(); toast("Modifica salvata ✓"); }
+    else { saluteLog.push({id:uid(), ts:ts, voci:v, nota:nota}); toast("Registrato ✓"); }
+    saveSaluteLog(); whenHide("saluteWhen"); fastidiG.clear(); psicoG.clear(); document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
   };
 
   // ---- Parametri: pressione arteriosa, saturazione, battiti cardiaci ----
@@ -2412,7 +2438,7 @@
   };
   document.getElementById("eserAddInput").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("eserAddBtn").click(); } });
   var editingAttivId=null;
-  function cancelEditAttiv(){ editingAttivId=null; var b=document.getElementById("attivFotoSave"); if(b) b.textContent="Registra attività"; }
+  function cancelEditAttiv(){ editingAttivId=null; var b=document.getElementById("attivFotoSave"); if(b) b.textContent="Registra attività"; whenHide("attivWhen"); }
   function startEditAttiv(x){
     editingAttivId=x.id;
     var dl=document.getElementById("dlAttivita"); if(dl){ dl.innerHTML=""; attivOpts().forEach(function(n){ var o=document.createElement("option"); o.value=n; dl.appendChild(o); }); }
@@ -2420,6 +2446,7 @@
     document.getElementById("attivFotoVal").value=x.valore||"";
     document.getElementById("attivFotoNota").value=x.nota||"";
     var fi=document.getElementById("attivFotoFile"); if(fi) fi.value="";
+    whenShow("attivWhen","attivData","attivOra", x.tsEnd);
     document.getElementById("attivFotoForm").hidden=false; document.getElementById("attivFotoBtn").hidden=true;
     document.getElementById("attivFotoSave").textContent="Salva modifiche";
     scrollToEl(document.getElementById("attivFotoForm"));
@@ -2430,16 +2457,17 @@
     if(!btn||!form) return;
     var nomeI=document.getElementById("attivFotoNome"), valI=document.getElementById("attivFotoVal"), fileI=document.getElementById("attivFotoFile"), notaI=document.getElementById("attivFotoNota"), dl=document.getElementById("dlAttivita");
     function fillDl(){ if(!dl) return; dl.innerHTML=""; attivOpts().forEach(function(n){ var o=document.createElement("option"); o.value=n; dl.appendChild(o); }); }
-    function resetForm(){ valI.value=""; if(fileI) fileI.value=""; if(notaI) notaI.value=""; nomeI.value="Camminata"; }
-    btn.onclick=function(){ fillDl(); form.hidden=false; btn.hidden=true; try{ valI.focus(); }catch(e){} };
+    function resetForm(){ valI.value=""; if(fileI) fileI.value=""; if(notaI) notaI.value=""; nomeI.value="Camminata"; whenHide("attivWhen"); }
+    btn.onclick=function(){ fillDl(); whenHide("attivWhen"); form.hidden=false; btn.hidden=true; try{ valI.focus(); }catch(e){} };
     document.getElementById("attivFotoCancel").onclick=function(){ form.hidden=true; btn.hidden=false; resetForm(); cancelEditAttiv(); };
+    document.getElementById("attivWhenToggle").onclick=function(){ whenToggle("attivWhen","attivData","attivOra"); };
     document.getElementById("attivFotoSave").onclick=function(){
       var nome=(nomeI.value||"").trim()||"Camminata", val=(valI.value||"").trim(), nota=notaI?(notaI.value||"").trim():"";
       if(!editingAttivId && !val){ toast("Scrivi quanti passi o minuti"); try{ valI.focus(); }catch(e){} return; }
-      var file=fileI && fileI.files && fileI.files[0];
+      var file=fileI && fileI.files && fileI.files[0], ts=whenTs("attivWhen","attivData","attivOra");
       function finish(fotoId){
-        if(editingAttivId){ var it=null; attivLog.forEach(function(y){ if(y.id===editingAttivId) it=y; }); if(it){ it.nome=nome; it.valore=val; it.nota=nota; if(fotoId) it.foto=fotoId; } cancelEditAttiv(); toast("Modifica salvata ✓"); }
-        else { attivLog.push({id:uid(), nome:nome, tsEnd:Date.now(), dur:0, valore:val, nota:nota, foto:fotoId||null}); toast("Registrato: "+nome+(val?" · "+val:"")); }
+        if(editingAttivId){ var it=null; attivLog.forEach(function(y){ if(y.id===editingAttivId) it=y; }); if(it){ it.nome=nome; it.valore=val; it.nota=nota; it.tsEnd=ts; if(fotoId) it.foto=fotoId; } cancelEditAttiv(); toast("Modifica salvata ✓"); }
+        else { attivLog.push({id:uid(), nome:nome, tsEnd:ts, dur:0, valore:val, nota:nota, foto:fotoId||null}); toast("Registrato: "+nome+(val?" · "+val:"")); }
         saveAttivLog(); form.hidden=true; btn.hidden=false; resetForm(); renderAttiv();
       }
       if(file){ var r=new FileReader(); r.onload=function(){ var id=uid(); docPut({id:id, cat:"Attività Fisiche", modulo:"esercizio", nome:file.name||"screenshot", tipo:file.type||"", size:file.size||0, ts:Date.now(), buf:r.result}).then(function(){ finish(id); }).catch(function(){ finish(null); }); }; r.onerror=function(){ finish(null); }; r.readAsArrayBuffer(file); }
