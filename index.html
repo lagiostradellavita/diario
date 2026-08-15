@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 57; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 58; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1199,13 +1199,14 @@
             <div class="field"><label for="progFumoOre">Min. ore tra una e l'altra</label><input type="text" id="progFumoOre" inputmode="decimal" placeholder="facolt., es. 1,5" autocomplete="off"></div>
           </div>
         </div>
-        <div class="field" id="progRipetiWrap"><label>Ripeti</label>
+        <div class="field" id="progRipetiWrap"><label>Quando</label>
           <div class="seg" id="progRipetiSeg" style="grid-template-columns:1fr 1fr; --c:#6366F1">
             <button type="button" data-r="ogni" class="on">Ogni giorno</button>
             <button type="button" data-r="sett">Settimana</button>
             <button type="button" data-r="mese">Mese</button>
-            <button type="button" data-r="data">Una data</button>
+            <button type="button" data-r="data">Un giorno solo</button>
           </div>
+          <p class="fineprint" style="margin:6px 2px 0">«Ogni giorno» ricompare tutti i giorni. Per un solo giorno (es. domani) scegli <b>«Un giorno solo»</b> e indica la data.</p>
         </div>
         <div class="field" id="progGiorniWrap" hidden><label>Giorni della settimana</label><div id="progGiorni" class="chips"></div></div>
         <div class="field" id="progGiornoMeseWrap" hidden><label for="progGiornoMese">Giorno del mese</label><input type="text" id="progGiornoMese" inputmode="numeric" placeholder="es. 15" autocomplete="off"></div>
@@ -1222,7 +1223,7 @@
     <p class="fineprint" style="text-align:center; margin:0">L'avviso è <b>in-app</b> (agenda + suggerimenti in Home): l'app non può far squillare una notifica. Per un promemoria che suona, usa una Sveglia/Promemoria iOS.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v57</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v58</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3163,7 +3164,7 @@
   var _pea=document.getElementById("progEserAdd"); if(_pea) _pea.onclick=function(){ progEserItems.push({nome:"",durataMin:""}); renderProgFormItems(); };
   var GIORNI=[{n:1,l:"Lun"},{n:2,l:"Mar"},{n:3,l:"Mer"},{n:4,l:"Gio"},{n:5,l:"Ven"},{n:6,l:"Sab"},{n:0,l:"Dom"}];
   function renderProgGiorni(){ var host=document.getElementById("progGiorni"); if(!host) return; host.innerHTML=""; GIORNI.forEach(function(g){ var b=document.createElement("button"); b.type="button"; b.className="chip-sel"+(progGiorniSel[g.n]?" on":""); b.textContent=g.l; b.onclick=function(){ if(progGiorniSel[g.n]) delete progGiorniSel[g.n]; else progGiorniSel[g.n]=true; b.classList.toggle("on"); }; host.appendChild(b); }); }
-  function progShowRipeti(r){ progRipeti=r; Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.className=(b.dataset.r===r)?"on":""; }); document.getElementById("progGiorniWrap").hidden=(r!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(r!=="mese"); document.getElementById("progDataWrap").hidden=(r!=="data"); if(r==="sett") renderProgGiorni(); }
+  function progShowRipeti(r){ progRipeti=r; Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.className=(b.dataset.r===r)?"on":""; }); document.getElementById("progGiorniWrap").hidden=(r!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(r!=="mese"); document.getElementById("progDataWrap").hidden=(r!=="data"); if(r==="data"){ var di=document.getElementById("progGiornoData"); if(!di.value){ var t=new Date(); t.setDate(t.getDate()+1); di.value=dayKey(t); } } if(r==="sett") renderProgGiorni(); }
   Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.onclick=function(){ progShowRipeti(b.dataset.r); }; });
   function progShowTipo(t){ progTipo=t; Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.className=(b.dataset.t===t)?"on":""; }); document.getElementById("progPasto").hidden=(t!=="pasto"); document.getElementById("progEser").hidden=(t!=="eser"); document.getElementById("progFumo").hidden=(t!=="fumo"); document.getElementById("progRipetiWrap").hidden=(t==="fumo"); if(t==="fumo"){ document.getElementById("progGiorniWrap").hidden=true; document.getElementById("progGiornoMeseWrap").hidden=true; document.getElementById("progDataWrap").hidden=true; } else { document.getElementById("progGiorniWrap").hidden=(progRipeti!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(progRipeti!=="mese"); document.getElementById("progDataWrap").hidden=(progRipeti!=="data"); } }
   Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.onclick=function(){ progShowTipo(b.dataset.t); }; });
