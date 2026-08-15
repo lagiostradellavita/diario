@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 31; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 32; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -73,6 +73,22 @@
     }
     if(document.readyState!=="loading") check();
     else window.addEventListener("DOMContentLoaded", check);
+  })();
+</script>
+<script>
+  /* Se aperta come file locale (la copia di riserva su Dropbox) avvisa che non ha i tuoi dati. */
+  (function(){
+    if(location.protocol!=="file:") return;
+    function bar(){
+      if(document.getElementById("reserveBar")) return;
+      var b=document.createElement("div"); b.id="reserveBar";
+      b.style.cssText="position:fixed;left:0;right:0;top:0;z-index:9998;background:#B45309;color:#fff;"+
+        "font-family:-apple-system,system-ui,sans-serif;font-weight:700;font-size:14px;line-height:1.4;"+
+        "padding:calc(10px + env(safe-area-inset-top,0px)) 14px 12px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.25);";
+      b.innerHTML="📁 Copia di riserva del programma, <b>senza i tuoi dati</b>. Per usare l'app coi tuoi dati aprila dall'icona sulla Home.";
+      (document.body||document.documentElement).appendChild(b);
+    }
+    if(document.readyState!=="loading") bar(); else window.addEventListener("DOMContentLoaded", bar);
   })();
 </script>
 <style>
@@ -892,7 +908,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v31</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v32</p>
 </div>
 
 <div id="reportView" hidden>
