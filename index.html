@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 44; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 45; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1052,7 +1052,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v44</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v45</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1595,10 +1595,10 @@
     }
     document.getElementById(I.addBtn).onclick=function(){
       var f=document.getElementById(I.form); f.hidden=false;
-      document.getElementById(I.nome).value=""; document.getElementById(I.orari).innerHTML=""; oraRow(cfg.defaultOra||"08:00");
+      document.getElementById(I.nome).value=""; document.getElementById(I.orari).innerHTML=""; oraRow(hhmm(new Date()));
       document.getElementById(I.nome).focus();
     };
-    document.getElementById(I.addOra).onclick=function(){ oraRow(""); };
+    document.getElementById(I.addOra).onclick=function(){ oraRow(hhmm(new Date())); };
     document.getElementById(I.cancel).onclick=function(){ document.getElementById(I.form).hidden=true; };
     document.getElementById(I.save).onclick=function(){
       var nome=(document.getElementById(I.nome).value||"").trim();
