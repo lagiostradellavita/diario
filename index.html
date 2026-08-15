@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 25; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 26; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -520,7 +520,8 @@
         <div class="field" style="grid-column:1/-1"><label for="pfEmerg">Contatto d'emergenza</label><input type="text" id="pfEmerg" data-pf="emergenza"></div>
         <div class="field" style="grid-column:1/-1"><label for="pfNote">Note</label><input type="text" id="pfNote" data-pf="note"></div>
       </div>
-      <p class="fineprint">Si compila una volta e finisce in cima ai tuoi report. Resta solo sul tuo telefono.</p>
+      <button class="primary" id="pfSave" style="margin-top:16px">Salva profilo</button>
+      <p class="fineprint">Tocca <b>«Salva profilo»</b> per confermare (si salva comunque da solo mentre scrivi). Resta solo sul tuo telefono e finisce in cima ai tuoi report.</p>
     </section>
     <h2 class="menu-grid-title">Report PDF</h2>
     <section class="card">
@@ -803,7 +804,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v25</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v26</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1573,6 +1574,10 @@
     if(b.dataset.s===profilo.sesso) b.classList.add("on");
     b.onclick=function(){ Array.prototype.forEach.call(document.querySelectorAll("#pfSesso button"),function(x){x.classList.remove("on");}); b.classList.add("on"); profilo.sesso=b.dataset.s; saveProfilo(); };
   });
+  document.getElementById("pfSave").onclick=function(){
+    Array.prototype.forEach.call(document.querySelectorAll("[data-pf]"), function(inp){ profilo[inp.dataset.pf]=inp.value; });
+    saveProfilo(); toast("Profilo salvato ✓");
+  };
 
   // ---- Report PDF ----
   var repPeriod="giorno";
