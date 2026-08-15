@@ -46,7 +46,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 18; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 19; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -153,17 +153,17 @@
   .menu-grid-title{margin:6px 2px 0; font-size:13.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted);}
   .menu-grid{display:flex; flex-direction:column; gap:12px;}
   .menu-card{appearance:none; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
-    display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-rows:auto auto;
-    column-gap:15px; row-gap:2px; align-items:center; text-align:left; width:100%;
-    background:var(--surface); border:1px solid var(--line); border-left:8px solid var(--mc);
-    border-radius:18px; padding:17px 18px; box-shadow:var(--shadow); transition:transform .06s ease;}
+    display:flex; align-items:center; gap:14px; text-align:left; width:100%;
+    background:color-mix(in srgb, var(--mc) 10%, var(--surface));
+    border:1px solid color-mix(in srgb, var(--mc) 26%, var(--line)); border-left:8px solid var(--mc);
+    border-radius:20px; padding:15px 16px; box-shadow:var(--shadow); transition:transform .06s ease;}
   .menu-card:active{transform:scale(.98);}
-  .menu-card .mc-emoji{grid-column:1; grid-row:1 / 3; align-self:center;
-    display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px;
-    border-radius:15px; font-size:29px; line-height:1; background:color-mix(in srgb, var(--mc) 16%, var(--surface));}
-  .menu-card .mc-name{grid-column:2; grid-row:1; align-self:end; min-width:0; white-space:nowrap;
-    font-size:23px; font-weight:850; color:var(--mc); letter-spacing:-.015em;}
-  .menu-card .mc-st{grid-column:2; grid-row:2; align-self:start; min-width:0; font-size:16px; font-weight:750; color:var(--ink-soft); font-variant-numeric:tabular-nums;}
+  .menu-card .mc-emoji{flex:none; display:inline-flex; align-items:center; justify-content:center; width:54px; height:54px;
+    border-radius:16px; font-size:29px; line-height:1; background:color-mix(in srgb, var(--mc) 22%, var(--surface));}
+  .menu-card .mc-text{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+  .menu-card .mc-name{font-size:20px; font-weight:850; color:var(--mc); letter-spacing:-.01em; line-height:1.12;}
+  .menu-card .mc-st{font-size:17px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; line-height:1.1;}
+  .menu-card .mc-chev{flex:none; color:color-mix(in srgb, var(--mc) 55%, var(--muted)); font-size:27px; font-weight:700; line-height:1;}
 
   /* suggerimenti "cosa vuoi fare adesso" */
   .sugg-title{margin:0 0 14px; font-size:19px; font-weight:850; letter-spacing:-.01em; color:var(--ink);}
@@ -284,6 +284,7 @@
     transition:background .15s, color .15s;}
   .seg button.on{background:var(--c); color:var(--on-c);
     box-shadow:0 2px 8px -2px color-mix(in srgb,var(--c) 60%,transparent);}
+  .seg-4{grid-template-columns:1fr 1fr; --c:#E11D48;}
 
   .stepper{display:flex; align-items:center; gap:0; background:var(--surface-2);
     border:1px solid var(--line); border-radius:13px; overflow:hidden;
@@ -422,10 +423,12 @@
     </section>
     <h2 class="menu-grid-title">Le tue funzioni</h2>
     <div class="menu-grid">
-      <button class="menu-card" type="button" data-mod="fumo" style="--mc:#C2410C"><span class="mc-emoji">🚬</span><span class="mc-name">Fumo</span><span class="mc-st" id="st-fumo"></span></button>
-      <button class="menu-card" type="button" data-mod="pillole" style="--mc:#7C3AED"><span class="mc-emoji">💊</span><span class="mc-name">Pillole</span><span class="mc-st" id="st-pillole"></span></button>
-      <button class="menu-card" type="button" data-mod="esercizio" style="--mc:#2563EB"><span class="mc-emoji">🏃</span><span class="mc-name">Esercizio</span><span class="mc-st" id="st-eserc"></span></button>
-      <button class="menu-card" type="button" data-mod="alimentazione" style="--mc:#16A34A"><span class="mc-emoji">🍎</span><span class="mc-name">Alimentazione</span><span class="mc-st" id="st-alim"></span></button>
+      <button class="menu-card" type="button" data-mod="fumo" style="--mc:#C2410C"><span class="mc-emoji">🚬</span><span class="mc-text"><span class="mc-name">Fumo</span><span class="mc-st" id="st-fumo"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="pillole" style="--mc:#7C3AED"><span class="mc-emoji">💊</span><span class="mc-text"><span class="mc-name">Pillole</span><span class="mc-st" id="st-pillole"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="esercizio" style="--mc:#2563EB"><span class="mc-emoji">🏃</span><span class="mc-text"><span class="mc-name">Attività Fisiche</span><span class="mc-st" id="st-eserc"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="alimentazione" style="--mc:#16A34A"><span class="mc-emoji">🍎</span><span class="mc-text"><span class="mc-name">Alimentazione</span><span class="mc-st" id="st-alim"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="salute" style="--mc:#E11D48"><span class="mc-emoji">🩺</span><span class="mc-text"><span class="mc-name">Salute</span><span class="mc-st" id="st-salute"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="evac" style="--mc:#0D9488"><span class="mc-emoji">🚽</span><span class="mc-text"><span class="mc-name">Evacuazioni</span><span class="mc-st" id="st-evac"></span></span><span class="mc-chev">›</span></button>
     </div>
   </section>
 
@@ -565,7 +568,7 @@
     <header class="top">
       <button class="back-btn" type="button" data-back>‹ Menu</button>
       <span class="mark">🏃</span>
-      <div class="brandtext"><h1>Esercizio</h1><p class="sub" id="eserDate"></p></div>
+      <div class="brandtext"><h1>Attività Fisiche</h1><p class="sub" id="eserDate"></p></div>
     </header>
     <section class="card">
       <div class="row-between"><h2 class="section-title" style="margin:0">Oggi</h2><span id="eserSummary" class="stat-summary"></span></div>
@@ -620,7 +623,60 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v18</p>
+  <!-- ===== SALUTE (misure) ===== -->
+  <section id="mod-salute" class="screen" hidden>
+    <header class="top">
+      <button class="back-btn" type="button" data-back>‹ Menu</button>
+      <span class="mark">🩺</span>
+      <div class="brandtext"><h1>Salute</h1><p class="sub" id="saluteDate"></p></div>
+    </header>
+    <section class="card">
+      <h2 class="section-title">Nuova misura</h2>
+      <div class="field"><label>Tipo</label>
+        <div class="seg seg-4" id="saluteTipo">
+          <button type="button" data-t="Peso" class="on">Peso</button>
+          <button type="button" data-t="Pressione">Pressione</button>
+          <button type="button" data-t="Temperatura">Temp.</button>
+          <button type="button" data-t="Glicemia">Glicemia</button>
+        </div>
+      </div>
+      <div class="field"><label for="saluteVal">Valore</label><input type="text" id="saluteVal" placeholder="es. 82 kg · 120/80 · 36,7"></div>
+      <div class="field"><label for="saluteNota">Nota (facoltativa)</label><input type="text" id="saluteNota" placeholder=""></div>
+      <button class="primary" id="saluteSave">Salva misura</button>
+    </section>
+    <section class="card">
+      <h2 class="section-title">Storico</h2>
+      <div id="saluteList"></div>
+    </section>
+  </section>
+
+  <!-- ===== EVACUAZIONI ===== -->
+  <section id="mod-evac" class="screen" hidden>
+    <header class="top">
+      <button class="back-btn" type="button" data-back>‹ Menu</button>
+      <span class="mark">🚽</span>
+      <div class="brandtext"><h1>Evacuazioni</h1><p class="sub" id="evacDate"></p></div>
+    </header>
+    <section class="card">
+      <div class="row-between"><h2 class="section-title" style="margin:0">Oggi</h2><span id="evacSummary" class="stat-summary"></span></div>
+      <button class="primary" id="evacAdd" style="margin-top:14px">＋ Registra adesso</button>
+      <button class="link-btn" id="evacAddWhen">＋ con data e ora</button>
+      <div class="detail" id="evacForm" hidden>
+        <div class="grid2">
+          <div class="field"><label for="evacData">Data</label><input type="date" id="evacData"></div>
+          <div class="field"><label for="evacOra">Ora</label><input type="time" id="evacOra"></div>
+        </div>
+        <div class="field"><label for="evacNota">Nota (facoltativa)</label><input type="text" id="evacNota" placeholder="es. normale, morbida, dura…"></div>
+        <div class="panel-actions"><button class="primary" id="evacSave">Salva</button><button class="link-btn" id="evacCancel">Annulla</button></div>
+      </div>
+    </section>
+    <section class="card">
+      <h2 class="section-title">Storico</h2>
+      <div id="evacList"></div>
+    </section>
+  </section>
+
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v19</p>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -1197,6 +1253,84 @@
   document.getElementById("waterMinus").onclick=function(){ waterAdd(-1); };
   ["mealCol","mealPra","mealCen","mealSpu"].forEach(function(id){ document.getElementById(id).addEventListener("input", mealSave); });
 
+  // ---- Salute (misure) + Evacuazioni ----
+  var TRASH='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+  function pad2(n){ return ("0"+n).slice(-2); }
+  function hhmm(d){ return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
+  function ymd(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+
+  // Salute: misure con tipo + valore + nota
+  var saluteTipo="Peso";
+  var misure=[]; try{ var _ms=JSON.parse(localStorage.getItem("salute-misure")); if(Array.isArray(_ms)) misure=_ms; }catch(e){}
+  function saveMisure(){ try{ localStorage.setItem("salute-misure", JSON.stringify(misure)); }catch(e){} }
+  function renderSalute(){
+    document.getElementById("saluteDate").textContent=fmtDayLong(new Date());
+    var host=document.getElementById("saluteList"); host.innerHTML="";
+    if(!misure.length){ host.innerHTML='<div class="empty">Ancora nessuna misura.<br>Salvane una qui sopra.</div>'; return; }
+    misure.slice().sort(function(a,b){ return b.ts-a.ts; }).forEach(function(x){
+      var d=new Date(x.ts);
+      var row=document.createElement("div"); row.className="rowitem";
+      row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname" style="display:block"><b>'+esc(x.tipo)+'</b> '+esc(x.valore)+(x.nota?' <span style="color:var(--muted)">— '+esc(x.nota)+'</span>':'')+'</span>';
+      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
+      del.onclick=function(){ misure=misure.filter(function(y){return y.id!==x.id;}); saveMisure(); renderSalute(); };
+      row.appendChild(del); host.appendChild(row);
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("#saluteTipo button"), function(b){
+    b.onclick=function(){ Array.prototype.forEach.call(document.querySelectorAll("#saluteTipo button"), function(x){ x.classList.remove("on"); }); b.classList.add("on"); saluteTipo=b.dataset.t; };
+  });
+  document.getElementById("saluteSave").onclick=function(){
+    var val=(document.getElementById("saluteVal").value||"").trim();
+    if(!val){ toast("Scrivi il valore"); return; }
+    var nota=(document.getElementById("saluteNota").value||"").trim();
+    misure.push({id:uid(), ts:Date.now(), tipo:saluteTipo, valore:val, nota:nota}); saveMisure();
+    document.getElementById("saluteVal").value=""; document.getElementById("saluteNota").value="";
+    renderSalute(); toast("Misura salvata ✓");
+  };
+
+  // Evacuazioni: registro eventi con ora + nota
+  var evac=[]; try{ var _ev=JSON.parse(localStorage.getItem("salute-evac")); if(Array.isArray(_ev)) evac=_ev; }catch(e){}
+  function saveEvac(){ try{ localStorage.setItem("salute-evac", JSON.stringify(evac)); }catch(e){} }
+  function evacToday(){ var dK=dayKey(new Date()),n=0; evac.forEach(function(x){ if(dayKey(new Date(x.ts))===dK) n++; }); return n; }
+  function renderEvac(){
+    document.getElementById("evacDate").textContent=fmtDayLong(new Date());
+    var n=evacToday(), s=document.getElementById("evacSummary");
+    s.textContent=n+(n===1?" volta":" volte"); s.style.color=n?"var(--ink-soft)":"var(--muted)";
+    var host=document.getElementById("evacList"); host.innerHTML="";
+    if(!evac.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Tocca «Registra adesso» quando serve.</div>'; return; }
+    var sorted=evac.slice().sort(function(a,b){ return b.ts-a.ts; }), lastDay=null;
+    sorted.forEach(function(x){
+      var d=new Date(x.ts), dk=dayKey(d);
+      if(dk!==lastDay){ lastDay=dk;
+        var cnt=sorted.filter(function(y){ return dayKey(new Date(y.ts))===dk; }).length;
+        var h=document.createElement("div"); h.className="day-head";
+        h.innerHTML='<span class="dname">'+fmtDayLong(d)+'</span><span class="dtot">'+cnt+(cnt===1?" volta":" volte")+'</span>';
+        host.appendChild(h);
+      }
+      var row=document.createElement("div"); row.className="rowitem";
+      row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname">'+(x.nota?esc(x.nota):"Evacuazione")+'</span>';
+      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
+      del.onclick=function(){ evac=evac.filter(function(y){return y.id!==x.id;}); saveEvac(); renderEvac(); };
+      row.appendChild(del); host.appendChild(row);
+    });
+  }
+  function evacRecord(ts, nota){ evac.push({id:uid(), ts:ts, nota:nota||""}); saveEvac(); renderEvac(); toast("Registrato ✓"); }
+  document.getElementById("evacAdd").onclick=function(){ evacRecord(Date.now(), ""); };
+  document.getElementById("evacAddWhen").onclick=function(){
+    var f=document.getElementById("evacForm"); f.hidden=!f.hidden;
+    if(!f.hidden){ var n=new Date(); document.getElementById("evacData").value=ymd(n); document.getElementById("evacOra").value=hhmm(n); }
+  };
+  document.getElementById("evacCancel").onclick=function(){ document.getElementById("evacForm").hidden=true; };
+  document.getElementById("evacSave").onclick=function(){
+    var d=document.getElementById("evacData").value, t=document.getElementById("evacOra").value;
+    if(!d||!t){ toast("Metti data e ora"); return; }
+    var ts=new Date(d+"T"+t).getTime();
+    if(isNaN(ts)){ toast("Data/ora non valida"); return; }
+    var nota=(document.getElementById("evacNota").value||"").trim();
+    document.getElementById("evacForm").hidden=true; document.getElementById("evacNota").value="";
+    evacRecord(ts, nota);
+  };
+
   // ---- Menu (home) + navigazione ----
   function renderMenu(){
     var now=new Date(), dK=dayKey(now);
@@ -1213,6 +1347,11 @@
     var g=alimWater[dK]||0, sa=document.getElementById("st-alim");
     if(g>0){ sa.textContent=g+"/"+WATER_GOAL+" bicchieri"; sa.style.color=(g>=WATER_GOAL)?"var(--lvl-low)":"var(--muted)"; }
     else { sa.textContent="da iniziare"; sa.style.color="var(--muted)"; }
+    var ss=document.getElementById("st-salute");
+    if(misure.length){ var last=misure.slice().sort(function(a,b){return b.ts-a.ts;})[0]; ss.textContent=last.tipo+" "+last.valore; ss.style.color="var(--ink-soft)"; }
+    else { ss.textContent="nessuna misura"; ss.style.color="var(--muted)"; }
+    var ne=evacToday(), se=document.getElementById("st-evac");
+    se.textContent=ne+" oggi"; se.style.color=ne?"var(--ink-soft)":"var(--muted)";
     renderSuggestions();
   }
   function renderSuggestions(){
@@ -1237,13 +1376,15 @@
     });
   }
   function showMod(m){
-    ["fumo","pillole","esercizio","alimentazione"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
+    ["fumo","pillole","esercizio","alimentazione","salute","evac"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
     document.getElementById("menu").hidden=(m!=="menu");
     try{ window.scrollTo(0,0); }catch(e){}
     if(m==="menu") renderMenu();
     else if(m==="pillole") Pillole.render();
     else if(m==="esercizio") Esercizio.render();
     else if(m==="alimentazione") renderAlim();
+    else if(m==="salute") renderSalute();
+    else if(m==="evac") renderEvac();
     else if(m==="fumo") render();
   }
   Array.prototype.forEach.call(document.querySelectorAll(".menu-card"), function(c){ c.onclick=function(){ showMod(c.dataset.mod); }; });
