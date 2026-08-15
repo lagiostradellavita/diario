@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 39; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 40; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -898,17 +898,25 @@
     </header>
     <section class="card">
       <h2 class="section-title">Come ti senti adesso</h2>
-      <p class="group-lbl">Fastidi fisici</p>
-      <div id="fastidiChips" class="chips"></div>
-      <div class="chip-add">
-        <input type="text" id="fastidiAddInput" placeholder="Aggiungi un fastidio…">
-        <button type="button" id="fastidiAddBtn">＋</button>
+      <div class="food-cat" id="collapFastidi">
+        <button type="button" class="fc-head" id="headFastidi"><span id="lblFastidi">🤕 Fastidi fisici</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyFastidi" hidden>
+          <div id="fastidiChips" class="chips"></div>
+          <div class="chip-add">
+            <input type="text" id="fastidiAddInput" placeholder="Aggiungi un fastidio…">
+            <button type="button" id="fastidiAddBtn">＋</button>
+          </div>
+        </div>
       </div>
-      <p class="group-lbl">Stato psicologico</p>
-      <div id="psicoChips" class="chips"></div>
-      <div class="chip-add">
-        <input type="text" id="psicoAddInput" placeholder="Aggiungi (es. tensione)…">
-        <button type="button" id="psicoAddBtn">＋</button>
+      <div class="food-cat" id="collapPsico">
+        <button type="button" class="fc-head" id="headPsico"><span id="lblPsico">🧠 Stato psicologico</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyPsico" hidden>
+          <div id="psicoChips" class="chips"></div>
+          <div class="chip-add">
+            <input type="text" id="psicoAddInput" placeholder="Aggiungi (es. tensione)…">
+            <button type="button" id="psicoAddBtn">＋</button>
+          </div>
+        </div>
       </div>
       <button class="primary" id="saluteReg" style="margin-top:17px">Registra adesso</button>
     </section>
@@ -997,7 +1005,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v39</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v40</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1811,6 +1819,21 @@
   var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts");
   wireAdd("fastidiAddInput","fastidiAddBtn", fastidiG);
   wireAdd("psicoAddInput","psicoAddBtn", psicoG);
+  // pulsanti a scomparsa: Fastidi fisici / Stato psicologico, con conteggio dei selezionati
+  function saluteCollapWire(headId, bodyId, catId){
+    var head=document.getElementById(headId); if(!head) return;
+    head.onclick=function(){ var body=document.getElementById(bodyId), cat=document.getElementById(catId), show=body.hidden; body.hidden=!show; cat.classList.toggle("open", show); };
+  }
+  saluteCollapWire("headFastidi","bodyFastidi","collapFastidi");
+  saluteCollapWire("headPsico","bodyPsico","collapPsico");
+  function updateSaluteCount(){
+    var nf=fastidiG.selected().length, np=psicoG.selected().length;
+    var lf=document.getElementById("lblFastidi"), lp=document.getElementById("lblPsico");
+    if(lf) lf.textContent="🤕 Fastidi fisici"+(nf?" · "+nf+(nf===1?" scelto":" scelti"):"");
+    if(lp) lp.textContent="🧠 Stato psicologico"+(np?" · "+np+(np===1?" scelto":" scelti"):"");
+  }
+  var _fc=document.getElementById("fastidiChips"); if(_fc) _fc.addEventListener("click", updateSaluteCount);
+  var _pc=document.getElementById("psicoChips"); if(_pc) _pc.addEventListener("click", updateSaluteCount);
   var saluteLog=[]; try{ var _sl=JSON.parse(localStorage.getItem("salute-log")); if(Array.isArray(_sl)) saluteLog=_sl; }catch(e){}
   function saveSaluteLog(){ try{ localStorage.setItem("salute-log", JSON.stringify(saluteLog)); }catch(e){} }
   function renderSalute(){
@@ -1831,7 +1854,7 @@
   }
   document.getElementById("saluteReg").onclick=function(){
     var v=fastidiG.selected().concat(psicoG.selected()); if(!v.length){ toast("Seleziona almeno un fastidio"); return; }
-    saluteLog.push({id:uid(), ts:Date.now(), voci:v}); saveSaluteLog(); fastidiG.clear(); psicoG.clear(); renderSalute(); toast("Registrato ✓");
+    saluteLog.push({id:uid(), ts:Date.now(), voci:v}); saveSaluteLog(); fastidiG.clear(); psicoG.clear(); updateSaluteCount(); renderSalute(); toast("Registrato ✓");
   };
 
   // ---- Evacuazioni: Urina / Feci con colore, quantità, morbidezza/fastidi ----
