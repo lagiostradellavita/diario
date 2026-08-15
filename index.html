@@ -41,6 +41,38 @@
     meta("apple-mobile-web-app-title","Diario Salute");
   })();
 </script>
+<script>
+  /* Controllo aggiornamenti: scarica la versione piu fresca dal sito e, se e piu
+     nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
+     bloccati su una versione vecchia tenuta in cache da Safari. */
+  (function(){
+    var RUNNING = 18; // numero di versione di QUESTO file (allineato al pie di pagina)
+    function banner(v, base){
+      if(document.getElementById("updBar")) return;
+      var b=document.createElement("div"); b.id="updBar";
+      b.style.cssText="position:fixed;left:0;right:0;top:0;z-index:9999;background:#2563EB;color:#fff;"+
+        "font-family:-apple-system,system-ui,sans-serif;font-weight:750;font-size:16px;"+
+        "padding:calc(10px + env(safe-area-inset-top,0px)) 16px 12px;text-align:center;cursor:pointer;"+
+        "box-shadow:0 2px 12px rgba(0,0,0,.25);-webkit-tap-highlight-color:transparent;";
+      b.textContent="Nuova versione (v"+v+") - tocca per aggiornare";
+      b.onclick=function(){ location.replace(base + "?v=" + v); };
+      (document.body||document.documentElement).appendChild(b);
+    }
+    function check(){
+      try{
+        var base = location.href.split("#")[0].split("?")[0];
+        fetch(base + "?_ck=" + (new Date().getTime()), {cache:"no-store"})
+          .then(function(r){ return r.ok ? r.text() : Promise.reject(); })
+          .then(function(t){
+            var m = t.match(/Diario Salute . v(\d+)/);
+            if(m && parseInt(m[1],10) > RUNNING){ banner(parseInt(m[1],10), base); }
+          }).catch(function(){});
+      }catch(e){}
+    }
+    if(document.readyState!=="loading") check();
+    else window.addEventListener("DOMContentLoaded", check);
+  })();
+</script>
 <style>
   /* ---- Palette: "carta & brace" -------------------------------------- */
   :root{
@@ -94,9 +126,10 @@
   .top{display:flex; align-items:center; gap:12px; padding:4px 2px 2px;}
   .mark{font-size:34px; line-height:1;
     filter:drop-shadow(0 2px 5px rgba(194,65,12,.35));}
-  .top h1{margin:0; font-size:24px; font-weight:850; letter-spacing:-.02em;}
-  .top .sub{margin:2px 0 0; font-size:13.5px; color:var(--muted);
+  .top h1{margin:0; font-size:26px; font-weight:860; letter-spacing:-.025em;}
+  .top .sub{margin:2px 0 0; font-size:15px; color:var(--muted);
     text-transform:capitalize;}
+  .brandtext{min-width:0;}
   .brandtext{min-width:0;}
   .undo-btn{margin-left:auto; flex:none; appearance:none; cursor:pointer; font-family:inherit;
     display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
@@ -115,8 +148,8 @@
   .back-btn:active{background:var(--track);}
   .menu-hdr{display:flex; align-items:center; gap:12px; padding:6px 2px 2px;}
   .mark-h{line-height:0; filter:drop-shadow(0 2px 6px rgba(5,150,105,.35));}
-  .menu-hdr h1{margin:0; font-size:26px; font-weight:850; letter-spacing:-.02em;}
-  .menu-hdr .sub{margin:2px 0 0; font-size:13.5px; color:var(--muted); text-transform:capitalize;}
+  .menu-hdr h1{margin:0; font-size:33px; font-weight:860; letter-spacing:-.03em;}
+  .menu-hdr .sub{margin:3px 0 0; font-size:15px; color:var(--muted); text-transform:capitalize;}
   .menu-grid-title{margin:6px 2px 0; font-size:13.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted);}
   .menu-grid{display:flex; flex-direction:column; gap:12px;}
   .menu-card{appearance:none; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
@@ -129,7 +162,7 @@
     display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px;
     border-radius:15px; font-size:29px; line-height:1; background:color-mix(in srgb, var(--mc) 16%, var(--surface));}
   .menu-card .mc-name{grid-column:2; grid-row:1; align-self:end; min-width:0; white-space:nowrap;
-    font-size:22px; font-weight:850; color:var(--ink); letter-spacing:-.01em;}
+    font-size:23px; font-weight:850; color:var(--mc); letter-spacing:-.015em;}
   .menu-card .mc-st{grid-column:2; grid-row:2; align-self:start; min-width:0; font-size:16px; font-weight:750; color:var(--ink-soft); font-variant-numeric:tabular-nums;}
 
   /* suggerimenti "cosa vuoi fare adesso" */
@@ -161,7 +194,7 @@
   .dose .dcheck{width:32px; height:32px; flex:none; border-radius:50%; border:2px solid var(--line); background:var(--surface-2);
     display:flex; align-items:center; justify-content:center; cursor:pointer; color:transparent; font-size:19px; touch-action:manipulation;}
   .dose.done .dcheck{background:var(--lvl-low); border-color:var(--lvl-low); color:#fff;}
-  .dose .dname{flex:1; font-size:16.5px; font-weight:650;}
+  .dose .dname{flex:1; font-size:18px; font-weight:650;}
   .dose.done .dname{text-decoration:line-through; color:var(--muted);}
   .dose .dtime{font-size:14.5px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink-soft);}
   .dose.late:not(.done) .dtime, .dose.late:not(.done) .dname{color:var(--lvl-high);}
@@ -181,8 +214,8 @@
   .card{background:var(--surface); border:1px solid var(--line);
     border-radius:18px; padding:16px; box-shadow:var(--shadow);}
 
-  .section-title{margin:0 0 13px; font-size:13px; font-weight:800;
-    letter-spacing:.07em; text-transform:uppercase; color:var(--muted);}
+  .section-title{margin:0 0 13px; font-size:23px; font-weight:830;
+    letter-spacing:-.015em; color:var(--ink);}
   .row-between{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
   .muted-sm{font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums;}
 
@@ -301,7 +334,7 @@
   .rowitem:last-child{border-bottom:none;}
   .rowitem .time{font-size:14.5px; color:var(--muted); width:50px; flex:none;
     font-variant-numeric:tabular-nums;}
-  .rowitem .tname{flex:1; font-size:16.5px; font-weight:650; display:flex;
+  .rowitem .tname{flex:1; font-size:18px; font-weight:650; display:flex;
     align-items:center; gap:9px;}
   .rowitem .tdot{width:12px; height:12px; border-radius:50%; background:var(--c); flex:none;}
   .rowitem .q{font-size:16px; font-weight:800; color:var(--ink-soft);
@@ -339,7 +372,7 @@
   .fineprint{font-size:13px; color:var(--muted); margin:12px 2px 0; line-height:1.5;}
   .stat-seg{grid-template-columns:repeat(5,1fr);}
   .stat-seg button{ --c:var(--accent); font-size:13px; padding:9px 3px; }
-  .stat-summary{font-size:15px; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .stat-summary{font-size:17px; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap;}
   .stat-legend{display:flex; flex-wrap:wrap; gap:5px 14px; align-items:center; font-size:12px; color:var(--muted); font-weight:600; margin:12px 2px 0;}
   .stat-legend .lg{margin-right:3px;}
   .lg-low{color:var(--lvl-low);} .lg-mid{color:var(--lvl-mid);} .lg-high{color:var(--lvl-high);}
@@ -587,7 +620,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v17</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v18</p>
 </div>
 
 <div class="toast" id="toast" hidden></div>
