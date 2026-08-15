@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 45; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 46; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -351,7 +351,8 @@
   .ciclo-prev.late b{color:#E11D48;}
   .ciclo-chart-box{background:#fff; border-radius:12px; padding:8px 4px 4px; margin-top:4px;}
   .ciclo-chart-box .cc-cap{font-size:13px; font-weight:700; color:#555; padding:2px 8px 0;}
-  .ciclo-row{position:relative; padding:11px 34px 11px 0; border-top:1px solid var(--line);}
+  .ciclo-row{position:relative; padding:11px 64px 11px 0; border-top:1px solid var(--line);}
+  .ciclo-row .cr-edit{position:absolute; top:9px; right:32px; appearance:none; border:none; background:none; color:var(--muted); cursor:pointer; padding:2px; touch-action:manipulation;}
   .ciclo-row .cr-main{font-weight:800; color:var(--ink); font-size:15.5px;}
   .ciclo-row .cr-sub{color:var(--muted); font-size:14px; margin-top:2px; line-height:1.45;}
   .ciclo-row .cr-early{color:#059669; font-weight:800;}
@@ -478,7 +479,7 @@
   .day-head .dname{font-size:16px; font-weight:800; text-transform:capitalize;}
   .day-head .dtot{font-size:13.5px; color:var(--muted); font-weight:700;
     font-variant-numeric:tabular-nums;}
-  .rowitem{display:flex; align-items:center; gap:12px; padding:12px 2px;
+  .rowitem{display:flex; align-items:center; gap:8px; padding:12px 2px;
     border-bottom:1px solid var(--line);}
   .rowitem:last-child{border-bottom:none;}
   .rowitem .time{font-size:14.5px; color:var(--muted); width:50px; flex:none;
@@ -489,10 +490,11 @@
   .rowitem .q{font-size:16px; font-weight:800; color:var(--ink-soft);
     font-variant-numeric:tabular-nums;}
   .rowitem .q::before{content:"×"; color:var(--muted); font-weight:500; margin-right:1px;}
-  .del{appearance:none; border:none; background:transparent; cursor:pointer;
-    color:var(--muted); padding:9px; border-radius:10px; line-height:0;
-    touch-action:manipulation;}
+  .del,.edit{appearance:none; border:none; background:transparent; cursor:pointer;
+    color:var(--muted); padding:7px; border-radius:10px; line-height:0;
+    touch-action:manipulation; flex:none;}
   .del:active{background:var(--track); color:var(--danger);}
+  .edit:active{background:var(--track); color:var(--accent);}
   .empty{color:var(--muted); font-size:15px; text-align:center; padding:24px 0;}
 
   /* ---- data section ---- */
@@ -961,6 +963,17 @@
         <p class="group-lbl">Note</p>
         <textarea id="cicloNote" rows="2" placeholder="Note su questo ciclo (dolori, sintomi…)"></textarea>
       </div>
+      <div id="cicloEditPanel" hidden style="margin-top:10px; border-top:2px solid var(--line); padding-top:10px">
+        <p class="group-lbl" style="margin-top:0">✏️ Modifica questo ciclo</p>
+        <div class="grid2">
+          <div class="field"><label for="cicloEditInizio">Inizio</label><input type="date" id="cicloEditInizio"></div>
+          <div class="field"><label for="cicloEditFine">Fine (vuoto = in corso)</label><input type="date" id="cicloEditFine"></div>
+        </div>
+        <div class="field"><label for="cicloEditFlusso">Flusso</label><input type="text" id="cicloEditFlusso" list="dlFlusso" autocomplete="off"></div>
+        <div class="field"><label for="cicloEditAntic">Anticoncezionale</label><input type="text" id="cicloEditAntic" list="dlAntic" autocomplete="off"></div>
+        <div class="field"><label for="cicloEditNote">Note</label><input type="text" id="cicloEditNote" autocomplete="off"></div>
+        <div class="panel-actions" style="margin-top:10px"><button class="primary" id="cicloEditSave">Salva modifiche</button><button class="link-btn" id="cicloEditCancel">Annulla</button></div>
+      </div>
       <div id="cicloGrafico" style="margin-top:12px"></div>
       <div id="cicloStorico" style="margin-top:4px"></div>
     </section>
@@ -1052,7 +1065,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v45</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v46</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1327,6 +1340,7 @@
         var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina");
         del.innerHTML='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
         del.onclick=function(){ deleteEntry(e.id); };
+        row.appendChild(editBtn(function(){ startEditFumo(e); }));
         row.appendChild(del);
         wrap.appendChild(row);
       });
@@ -1391,14 +1405,30 @@
     } else { d.hidden=true; btn.textContent="＋ Aggiungi con data e ora"; }
   };
 
+  function setDetailTipo(t){ detailTipo=t; var seg=document.getElementById("fTipoSeg"); Array.prototype.forEach.call(seg.children, function(c){ c.className=(c.dataset.tipo===t)?"on":""; }); }
+  var editingFumoId=null;
+  function cancelEditFumo(){ editingFumoId=null; var b=document.getElementById("saveDetail"); if(b) b.textContent="Salva"; }
+  function startEditFumo(e){
+    editingFumoId=e.id; var d=new Date(e.ts);
+    document.getElementById("fData").value=dayKey(d); document.getElementById("fOra").value=fmtTime(d);
+    setDetailTipo(e.tipo); setQ(e.q||1);
+    var fn=document.getElementById("fNota"); if(fn) fn.value=e.nota||"";
+    document.getElementById("detail").hidden=false; document.getElementById("toggleDetail").textContent="− Nascondi";
+    document.getElementById("saveDetail").textContent="Salva modifiche";
+    scrollToEl(document.getElementById("detail"));
+  }
   document.getElementById("saveDetail").onclick=function(){
     var dv=document.getElementById("fData").value;
     var tv=document.getElementById("fOra").value;
     var when;
     if(dv){ when=new Date(dv+"T"+(tv||"12:00")); if(isNaN(when.getTime())) when=new Date(); }
     else when=new Date();
-    var fn=document.getElementById("fNota");
-    addEntry(detailTipo, detailQ, when, fn?(fn.value||"").trim():"");
+    var fn=document.getElementById("fNota"), nota=fn?(fn.value||"").trim():"";
+    if(editingFumoId){
+      var it=null; entries.forEach(function(y){ if(y.id===editingFumoId) it=y; });
+      if(it){ it.ts=when.toISOString(); it.tipo=detailTipo; it.q=Math.max(1,detailQ|0); it.nota=nota; }
+      save(); render(); cancelEditFumo(); toast("Modifica salvata ✓");
+    } else { addEntry(detailTipo, detailQ, when, nota); }
     if(fn) fn.value="";
     setQ(1);
     document.getElementById("detail").hidden=true;
@@ -1619,6 +1649,9 @@
   });
   // ---- helper condivisi ----
   var TRASH='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+  var PENCIL='<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
+  function editBtn(fn){ var b=document.createElement("button"); b.type="button"; b.className="edit"; b.setAttribute("aria-label","Modifica"); b.innerHTML=PENCIL; b.onclick=fn; return b; }
+  function scrollToEl(el){ try{ el.scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){} }
   function pad2(n){ return ("0"+n).slice(-2); }
   function hhmm(d){ return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
   function ymd(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
@@ -1646,7 +1679,8 @@
     }
     function add(lbl){ lbl=(lbl||"").trim(); if(!lbl) return false; if(opts().indexOf(lbl)>=0) return false; custom.push(lbl); try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} render(); return true; }
     render();
-    return { selected:function(){ return Object.keys(sel); }, value:function(){ var k=Object.keys(sel); return k.length?k[0]:""; }, clear:function(){ sel={}; render(); }, add:add };
+    function set(arr){ sel={}; (arr||[]).forEach(function(v){ if(v==null||v==="") return; if(opts().indexOf(v)<0){ custom.push(v); try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} } sel[v]=true; }); render(); }
+    return { selected:function(){ return Object.keys(sel); }, value:function(){ var k=Object.keys(sel); return k.length?k[0]:""; }, clear:function(){ sel={}; render(); }, add:add, set:set, opts:opts };
   }
   function wireAdd(inputId, btnId, group){
     var inp=document.getElementById(inputId), btn=document.getElementById(btnId); if(!inp||!btn) return;
@@ -1795,18 +1829,29 @@
       var mtxt=cibiText(x); if(x.nota){ mtxt += (mtxt?' — ':'') + x.nota; }
       var mk=mealKcal(x);
       row.innerHTML='<span class="time">'+hhmm(new Date(x.ts))+'</span><span class="tname" style="display:block">'+esc(mtxt)+(mk>0?' <span style="color:var(--muted);font-weight:700">· '+mk+' kcal</span>':'')+'</span>';
+      row.appendChild(editBtn(function(){ startEditMeal(x); }));
       var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ ciboLog=ciboLog.filter(function(y){return y.id!==x.id;}); saveCiboLog(); renderAlim(); };
+      del.onclick=function(){ ciboLog=ciboLog.filter(function(y){return y.id!==x.id;}); if(editingMealId===x.id) cancelEditMeal(); saveCiboLog(); renderAlim(); };
       row.appendChild(del); host.appendChild(row);
     });
     try{ renderDieta(); }catch(e){}
+  }
+  var editingMealId=null;
+  function cancelEditMeal(){ editingMealId=null; var b=document.getElementById("ciboSave"); if(b) b.textContent="Registra pasto"; }
+  function startEditMeal(x){
+    editingMealId=x.id;
+    pasto=(x.items||[]).map(function(it){ return {nome:it.nome, typed:isTyped(it.nome), tipo:it.tipo||"", qta:it.qta||"", kcal:(it.kcal||it.kcal===0)?it.kcal:"", kcalManual:false}; });
+    document.getElementById("ciboNota").value=x.nota||"";
+    renderPasto(); document.getElementById("ciboSave").textContent="Salva modifiche";
+    scrollToEl(document.getElementById("ciboSave"));
   }
   document.getElementById("ciboSave").onclick=function(){
     var nota=(document.getElementById("ciboNota").value||"").trim();
     if(!pasto.length && !nota){ toast("Tocca cosa hai mangiato o scrivi una nota"); return; }
     var items=pasto.map(function(it){ return {nome:it.nome, tipo:(it.tipo||"").trim(), qta:(it.qta||"").trim(), kcal:itemKcal(it)}; });
-    ciboLog.push({id:uid(), ts:Date.now(), items:items, nota:nota}); saveCiboLog();
-    pasto=[]; renderPasto(); document.getElementById("ciboNota").value=""; renderAlim(); toast("Pasto registrato ✓");
+    if(editingMealId){ var it2=null; ciboLog.forEach(function(y){ if(y.id===editingMealId) it2=y; }); if(it2){ it2.items=items; it2.nota=nota; } cancelEditMeal(); toast("Modifica salvata ✓"); }
+    else { ciboLog.push({id:uid(), ts:Date.now(), items:items, nota:nota}); toast("Pasto registrato ✓"); }
+    saveCiboLog(); pasto=[]; renderPasto(); document.getElementById("ciboNota").value=""; renderAlim();
   };
   renderFoodCats(); renderPasto();
 
@@ -1914,8 +1959,10 @@
       if(c.antic) sub.push('anticoncezionale: '+esc(c.antic));
       if(c.note) sub.push(esc(c.note));
       row.innerHTML='<div class="cr-main">'+main+'</div>'+(sub.length?'<div class="cr-sub">'+sub.join(' · ')+'</div>':'');
+      var edb=document.createElement("button"); edb.className="cr-edit"; edb.type="button"; edb.setAttribute("aria-label","Modifica"); edb.innerHTML=PENCIL; edb.onclick=function(){ startEditCiclo(c); };
+      row.appendChild(edb);
       var del=document.createElement("button"); del.className="cr-del"; del.type="button"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ cicli=cicli.filter(function(y){return y.id!==c.id;}); saveCicli(); renderCiclo(); };
+      del.onclick=function(){ cicli=cicli.filter(function(y){return y.id!==c.id;}); if(editingCicloId===c.id){ editingCicloId=null; document.getElementById("cicloEditPanel").hidden=true; } saveCicli(); renderCiclo(); };
       row.appendChild(del); host.appendChild(row);
     });
   }
@@ -1934,6 +1981,28 @@
   document.getElementById("cicloFlussoBtn").onclick=function(){ cicloAddOpt(cicloFlussoCustom,"salute-ciclo-flusso-opts",CICLO_FLUSSO,"cicloFlussoInput"); };
   document.getElementById("cicloAnticBtn").onclick=function(){ cicloAddOpt(cicloAnticCustom,"salute-ciclo-antic-opts",CICLO_ANTIC,"cicloAnticInput"); };
   document.getElementById("cicloNote").oninput=function(){ var c=cicloCurrent(); if(c){ c.note=document.getElementById("cicloNote").value; saveCicli(); } };
+  var editingCicloId=null;
+  function startEditCiclo(c){
+    editingCicloId=c.id;
+    document.getElementById("cicloEditInizio").value=c.inizio?ymd(new Date(c.inizio)):"";
+    document.getElementById("cicloEditFine").value=c.fine?ymd(new Date(c.fine)):"";
+    document.getElementById("cicloEditFlusso").value=c.flusso||"";
+    document.getElementById("cicloEditAntic").value=c.antic||"";
+    document.getElementById("cicloEditNote").value=c.note||"";
+    document.getElementById("cicloEditPanel").hidden=false;
+    scrollToEl(document.getElementById("cicloEditPanel"));
+  }
+  document.getElementById("cicloEditCancel").onclick=function(){ editingCicloId=null; document.getElementById("cicloEditPanel").hidden=true; };
+  document.getElementById("cicloEditSave").onclick=function(){
+    if(!editingCicloId){ document.getElementById("cicloEditPanel").hidden=true; return; }
+    var c=null; cicli.forEach(function(y){ if(y.id===editingCicloId) c=y; }); if(!c){ return; }
+    var iv=document.getElementById("cicloEditInizio").value, fv=document.getElementById("cicloEditFine").value;
+    if(!iv){ toast("Metti la data di inizio"); return; }
+    var inizio=new Date(iv+"T12:00:00").getTime(); if(isNaN(inizio)){ toast("Data inizio non valida"); return; }
+    var fine=null; if(fv){ fine=new Date(fv+"T12:00:00").getTime(); if(isNaN(fine)){ toast("Data fine non valida"); return; } if(fine<inizio){ toast("La fine non può essere prima dell'inizio"); return; } }
+    c.inizio=inizio; c.fine=fine; c.flusso=(document.getElementById("cicloEditFlusso").value||"").trim(); c.antic=(document.getElementById("cicloEditAntic").value||"").trim(); c.note=(document.getElementById("cicloEditNote").value||"").trim();
+    editingCicloId=null; document.getElementById("cicloEditPanel").hidden=true; saveCicli(); renderCiclo(); toast("Modifica salvata ✓");
+  };
   renderCiclo();
 
   // ---- Sonno: ore dormite (a mano + screenshot allegato) ----
@@ -1961,10 +2030,22 @@
       var fotoBtn = s.foto ? ' <button type="button" class="mini-photo" aria-label="Vedi screenshot">📷</button>':'';
       row.innerHTML='<span class="time">'+pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'</span><span class="tname" style="display:block">'+esc(parts.join(" · "))+'</span>'+fotoBtn;
       var pB=row.querySelector(".mini-photo"); if(pB){ pB.onclick=function(){ docView(s.foto); }; }
+      row.appendChild(editBtn(function(){ startEditSonno(s); }));
       var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ sonno=sonno.filter(function(y){return y.id!==s.id;}); saveSonno(); renderSonno(); };
+      del.onclick=function(){ sonno=sonno.filter(function(y){return y.id!==s.id;}); if(editingSonnoId===s.id) cancelEditSonno(); saveSonno(); renderSonno(); };
       row.appendChild(del); host.appendChild(row);
     });
+  }
+  var editingSonnoId=null;
+  function cancelEditSonno(){ editingSonnoId=null; var b=document.getElementById("sonnoSave"); if(b) b.textContent="Registra sonno"; }
+  function startEditSonno(s){
+    editingSonnoId=s.id; var d=new Date(s.ts);
+    document.getElementById("sonnoData").value=ymd(d);
+    document.getElementById("sonnoOre").value=String(Math.round((s.ore||0)*10)/10).replace(".",",");
+    sonnoQ.set(s.qualita?[s.qualita]:[]);
+    document.getElementById("sonnoNota").value=s.nota||"";
+    document.getElementById("sonnoSave").textContent="Salva modifiche";
+    scrollToEl(document.getElementById("sonnoCard"));
   }
   document.getElementById("sonnoSave").onclick=function(){
     var dv=document.getElementById("sonnoData").value, ov=document.getElementById("sonnoOre").value;
@@ -1973,8 +2054,11 @@
     var ts = dv ? new Date(dv+"T12:00:00").getTime() : Date.now(); if(isNaN(ts)) ts=Date.now();
     var qualita=sonnoQ.value(), nota=(document.getElementById("sonnoNota").value||"").trim();
     var fileI=document.getElementById("sonnoFile"), file=fileI&&fileI.files&&fileI.files[0];
-    function finish(fotoId){ sonno.push({id:uid(), ts:ts, ore:ore, qualita:qualita, nota:nota, foto:fotoId||null}); saveSonno();
-      document.getElementById("sonnoOre").value=""; document.getElementById("sonnoNota").value=""; if(fileI) fileI.value=""; sonnoQ.clear(); renderSonno(); toast("Sonno registrato ✓"); }
+    function finish(fotoId){
+      if(editingSonnoId){ var it=null; sonno.forEach(function(y){ if(y.id===editingSonnoId) it=y; }); if(it){ it.ts=ts; it.ore=ore; it.qualita=qualita; it.nota=nota; if(fotoId) it.foto=fotoId; } cancelEditSonno(); toast("Modifica salvata ✓"); }
+      else { sonno.push({id:uid(), ts:ts, ore:ore, qualita:qualita, nota:nota, foto:fotoId||null}); toast("Sonno registrato ✓"); }
+      saveSonno(); document.getElementById("sonnoOre").value=""; document.getElementById("sonnoNota").value=""; if(fileI) fileI.value=""; sonnoQ.clear(); renderSonno();
+    }
     if(file){ var r=new FileReader(); r.onload=function(){ var id=uid(); docPut({id:id, cat:"Salute", modulo:"salute", nome:file.name||"sonno", tipo:file.type||"", size:file.size||0, ts:Date.now(), buf:r.result}).then(function(){ finish(id); }).catch(function(){ finish(null); }); }; r.onerror=function(){ finish(null); }; r.readAsArrayBuffer(file); }
     else { finish(null); }
   };
@@ -2042,17 +2126,33 @@
       var row=document.createElement("div"); row.className="rowitem";
       var stxt=(x.voci||[]).join(", "); if(x.nota){ stxt += (stxt?' — ':'') + x.nota; }
       row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname" style="display:block">'+esc(stxt)+'</span>';
+      row.appendChild(editBtn(function(){ startEditSalute(x); }));
       var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ saluteLog=saluteLog.filter(function(y){return y.id!==x.id;}); saveSaluteLog(); renderSalute(); };
+      del.onclick=function(){ saluteLog=saluteLog.filter(function(y){return y.id!==x.id;}); if(editingSaluteId===x.id) cancelEditSalute(); saveSaluteLog(); renderSalute(); };
       row.appendChild(del); host.appendChild(row);
     });
   }
+  var editingSaluteId=null;
+  function startEditSalute(x){
+    editingSaluteId=x.id;
+    var fo=fastidiG.opts();
+    fastidiG.set((x.voci||[]).filter(function(v){ return fo.indexOf(v)>=0; }));
+    psicoG.set((x.voci||[]).filter(function(v){ return fo.indexOf(v)<0; }));
+    document.getElementById("saluteNota").value=x.nota||"";
+    document.getElementById("bodyFastidi").hidden=false; document.getElementById("collapFastidi").classList.add("open");
+    document.getElementById("bodyPsico").hidden=false; document.getElementById("collapPsico").classList.add("open");
+    updateSaluteCount();
+    document.getElementById("saluteReg").textContent="Salva modifiche";
+    scrollToEl(document.getElementById("saluteReg").parentNode);
+  }
+  function cancelEditSalute(){ editingSaluteId=null; var b=document.getElementById("saluteReg"); if(b) b.textContent="Registra adesso"; }
   document.getElementById("saluteReg").onclick=function(){
     var v=fastidiG.selected().concat(psicoG.selected());
     var nota=(document.getElementById("saluteNota").value||"").trim();
     if(!v.length && !nota){ toast("Seleziona un fastidio o scrivi una nota"); return; }
-    saluteLog.push({id:uid(), ts:Date.now(), voci:v, nota:nota}); saveSaluteLog();
-    fastidiG.clear(); psicoG.clear(); document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute(); toast("Registrato ✓");
+    if(editingSaluteId){ var it=null; saluteLog.forEach(function(y){ if(y.id===editingSaluteId) it=y; }); if(it){ it.voci=v; it.nota=nota; } cancelEditSalute(); toast("Modifica salvata ✓"); }
+    else { saluteLog.push({id:uid(), ts:Date.now(), voci:v, nota:nota}); toast("Registrato ✓"); }
+    saveSaluteLog(); fastidiG.clear(); psicoG.clear(); document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
   };
 
   // ---- Evacuazioni: Urina / Feci con colore, quantità, morbidezza/fastidi ----
@@ -2093,8 +2193,9 @@
       }
       var row=document.createElement("div"); row.className="rowitem";
       row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname">'+esc(evacLabel(x))+'</span>';
+      row.appendChild(editBtn(function(){ startEditEvac(x); }));
       var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ evac=evac.filter(function(y){return y.id!==x.id;}); saveEvac(); renderEvac(); };
+      del.onclick=function(){ evac=evac.filter(function(y){return y.id!==x.id;}); if(editingEvacId===x.id) cancelEditEvac(); saveEvac(); renderEvac(); };
       row.appendChild(del); host.appendChild(row);
     });
   }
@@ -2108,15 +2209,36 @@
   function evacWhenTs(dataId,oraId,whenId){ var w=document.getElementById(whenId); if(w && !w.hidden){ var d=document.getElementById(dataId).value, t=document.getElementById(oraId).value; if(d&&t){ var ts=new Date(d+"T"+t).getTime(); if(!isNaN(ts)) return ts; } } return Date.now(); }
   document.getElementById("urinaCancel").onclick=function(){ document.getElementById("urinaCard").hidden=true; };
   document.getElementById("feciCancel").onclick=function(){ document.getElementById("feciCard").hidden=true; };
+  var editingEvacId=null;
+  function evacFindEdit(){ var it=null; evac.forEach(function(y){ if(y.id===editingEvacId) it=y; }); return it; }
+  function cancelEditEvac(){ editingEvacId=null; document.getElementById("urinaSave").textContent="Registra"; document.getElementById("feciSave").textContent="Registra"; }
+  function startEditEvac(x){
+    editingEvacId=x.id; var d=new Date(x.ts);
+    if(x.tipo==="feci"){
+      document.getElementById("urinaCard").hidden=true;
+      fColore.set(x.colore?[x.colore]:[]); fQta.set(x.quantita?[x.quantita]:[]); fMorb.set(x.morbidezza?[x.morbidezza]:[]);
+      document.getElementById("feciNota").value=x.nota||"";
+      document.getElementById("feciWhen").hidden=false; document.getElementById("feciData").value=ymd(d); document.getElementById("feciOra").value=hhmm(d);
+      document.getElementById("feciSave").textContent="Salva modifiche"; evacScrollTo("feciCard");
+    } else {
+      document.getElementById("feciCard").hidden=true;
+      uColore.set(x.colore?[x.colore]:[]); uQta.set(x.quantita?[x.quantita]:[]); uFastidi.set(x.fastidi||[]);
+      document.getElementById("urinaNota").value=x.nota||"";
+      document.getElementById("urinaWhen").hidden=false; document.getElementById("urinaData").value=ymd(d); document.getElementById("urinaOra").value=hhmm(d);
+      document.getElementById("urinaSave").textContent="Salva modifiche"; evacScrollTo("urinaCard");
+    }
+  }
   document.getElementById("urinaSave").onclick=function(){
     var ts=evacWhenTs("urinaData","urinaOra","urinaWhen"), nEl=document.getElementById("urinaNota");
-    evacPush({id:uid(), ts:ts, tipo:"urina", colore:uColore.value(), quantita:uQta.value(), fastidi:uFastidi.selected(), nota:(nEl.value||"").trim()});
+    if(editingEvacId){ var it=evacFindEdit(); if(it){ it.ts=ts; it.tipo="urina"; it.colore=uColore.value(); it.quantita=uQta.value(); it.fastidi=uFastidi.selected(); it.nota=(nEl.value||"").trim(); delete it.morbidezza; } cancelEditEvac(); saveEvac(); renderEvac(); toast("Modifica salvata ✓"); }
+    else { evacPush({id:uid(), ts:ts, tipo:"urina", colore:uColore.value(), quantita:uQta.value(), fastidi:uFastidi.selected(), nota:(nEl.value||"").trim()}); }
     uColore.clear(); uQta.clear(); uFastidi.clear(); nEl.value="";
     document.getElementById("urinaWhen").hidden=true; document.getElementById("urinaCard").hidden=true;
   };
   document.getElementById("feciSave").onclick=function(){
     var ts=evacWhenTs("feciData","feciOra","feciWhen"), nEl=document.getElementById("feciNota");
-    evacPush({id:uid(), ts:ts, tipo:"feci", colore:fColore.value(), quantita:fQta.value(), morbidezza:fMorb.value(), nota:(nEl.value||"").trim()});
+    if(editingEvacId){ var it=evacFindEdit(); if(it){ it.ts=ts; it.tipo="feci"; it.colore=fColore.value(); it.quantita=fQta.value(); it.morbidezza=fMorb.value(); it.nota=(nEl.value||"").trim(); delete it.fastidi; } cancelEditEvac(); saveEvac(); renderEvac(); toast("Modifica salvata ✓"); }
+    else { evacPush({id:uid(), ts:ts, tipo:"feci", colore:fColore.value(), quantita:fQta.value(), morbidezza:fMorb.value(), nota:(nEl.value||"").trim()}); }
     fColore.clear(); fQta.clear(); fMorb.clear(); nEl.value="";
     document.getElementById("feciWhen").hidden=true; document.getElementById("feciCard").hidden=true;
   };
@@ -2158,8 +2280,9 @@
       var fotoBtn = x.foto ? ' <button type="button" class="mini-photo" aria-label="Vedi screenshot">📷</button>' : '';
       row.innerHTML='<span class="time">'+hhmm(new Date(x.tsEnd))+'</span><span class="tname" style="display:block">'+esc(x.nome)+' <span style="color:var(--muted);font-weight:700">· '+detail+'</span>'+fotoBtn+'</span>';
       var pB=row.querySelector(".mini-photo"); if(pB){ pB.onclick=function(){ docView(x.foto); }; }
+      row.appendChild(editBtn(function(){ startEditAttiv(x); }));
       var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ attivLog=attivLog.filter(function(y){return y.id!==x.id;}); saveAttivLog(); renderAttiv(); };
+      del.onclick=function(){ attivLog=attivLog.filter(function(y){return y.id!==x.id;}); if(editingAttivId===x.id) cancelEditAttiv(); saveAttivLog(); renderAttiv(); };
       row.appendChild(del); log.appendChild(row);
     });
     var es=document.getElementById("eserSummary");
@@ -2178,6 +2301,19 @@
     attivCustom.push(v); try{ localStorage.setItem("salute-attiv-opts", JSON.stringify(attivCustom)); }catch(e){} inp.value=""; renderAttiv();
   };
   document.getElementById("eserAddInput").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("eserAddBtn").click(); } });
+  var editingAttivId=null;
+  function cancelEditAttiv(){ editingAttivId=null; var b=document.getElementById("attivFotoSave"); if(b) b.textContent="Registra attività"; }
+  function startEditAttiv(x){
+    editingAttivId=x.id;
+    var dl=document.getElementById("dlAttivita"); if(dl){ dl.innerHTML=""; attivOpts().forEach(function(n){ var o=document.createElement("option"); o.value=n; dl.appendChild(o); }); }
+    document.getElementById("attivFotoNome").value=x.nome||"";
+    document.getElementById("attivFotoVal").value=x.valore||"";
+    document.getElementById("attivFotoNota").value=x.nota||"";
+    var fi=document.getElementById("attivFotoFile"); if(fi) fi.value="";
+    document.getElementById("attivFotoForm").hidden=false; document.getElementById("attivFotoBtn").hidden=true;
+    document.getElementById("attivFotoSave").textContent="Salva modifiche";
+    scrollToEl(document.getElementById("attivFotoForm"));
+  }
   // Attività da foto/screenshot: registrazione assistita (tu leggi il numero, io lo salvo)
   (function(){
     var btn=document.getElementById("attivFotoBtn"), form=document.getElementById("attivFotoForm");
@@ -2186,12 +2322,16 @@
     function fillDl(){ if(!dl) return; dl.innerHTML=""; attivOpts().forEach(function(n){ var o=document.createElement("option"); o.value=n; dl.appendChild(o); }); }
     function resetForm(){ valI.value=""; if(fileI) fileI.value=""; if(notaI) notaI.value=""; nomeI.value="Camminata"; }
     btn.onclick=function(){ fillDl(); form.hidden=false; btn.hidden=true; try{ valI.focus(); }catch(e){} };
-    document.getElementById("attivFotoCancel").onclick=function(){ form.hidden=true; btn.hidden=false; resetForm(); };
+    document.getElementById("attivFotoCancel").onclick=function(){ form.hidden=true; btn.hidden=false; resetForm(); cancelEditAttiv(); };
     document.getElementById("attivFotoSave").onclick=function(){
       var nome=(nomeI.value||"").trim()||"Camminata", val=(valI.value||"").trim(), nota=notaI?(notaI.value||"").trim():"";
-      if(!val){ toast("Scrivi quanti passi o minuti"); try{ valI.focus(); }catch(e){} return; }
+      if(!editingAttivId && !val){ toast("Scrivi quanti passi o minuti"); try{ valI.focus(); }catch(e){} return; }
       var file=fileI && fileI.files && fileI.files[0];
-      function finish(fotoId){ attivLog.push({id:uid(), nome:nome, tsEnd:Date.now(), dur:0, valore:val, nota:nota, foto:fotoId||null}); saveAttivLog(); form.hidden=true; btn.hidden=false; resetForm(); renderAttiv(); toast("Registrato: "+nome+" · "+val); }
+      function finish(fotoId){
+        if(editingAttivId){ var it=null; attivLog.forEach(function(y){ if(y.id===editingAttivId) it=y; }); if(it){ it.nome=nome; it.valore=val; it.nota=nota; if(fotoId) it.foto=fotoId; } cancelEditAttiv(); toast("Modifica salvata ✓"); }
+        else { attivLog.push({id:uid(), nome:nome, tsEnd:Date.now(), dur:0, valore:val, nota:nota, foto:fotoId||null}); toast("Registrato: "+nome+(val?" · "+val:"")); }
+        saveAttivLog(); form.hidden=true; btn.hidden=false; resetForm(); renderAttiv();
+      }
       if(file){ var r=new FileReader(); r.onload=function(){ var id=uid(); docPut({id:id, cat:"Attività Fisiche", modulo:"esercizio", nome:file.name||"screenshot", tipo:file.type||"", size:file.size||0, ts:Date.now(), buf:r.result}).then(function(){ finish(id); }).catch(function(){ finish(null); }); }; r.onerror=function(){ finish(null); }; r.readAsArrayBuffer(file); }
       else { finish(null); }
     };
