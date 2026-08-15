@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>Diario del fumo</title>
+<title>Diario Salute</title>
 <script>
   /* Assicura la resa a misura di telefono (device-width) e le zone sicure del notch,
      anche quando la pagina viene aperta come file locale senza viewport meta. */
@@ -17,29 +17,28 @@
       try{
         var S=180, c=document.createElement("canvas"); c.width=S; c.height=S;
         var x=c.getContext("2d");
-        var g=x.createLinearGradient(0,0,S,S); g.addColorStop(0,"#FF6A24"); g.addColorStop(1,"#C41E0A");
+        var g=x.createLinearGradient(0,0,S,S); g.addColorStop(0,"#34D399"); g.addColorStop(1,"#059669");
         x.fillStyle=g; x.fillRect(0,0,S,S);
-        var cy=S*0.60, h=S*0.185, x0=S*0.12, x1=S*0.86, w=x1-x0, r=h*0.30;
-        x.fillStyle="#FFFFFF"; rr(x,x0,cy-h/2,w,h,r); x.fill();
-        var fw=w*0.27; x.fillStyle="#E7A24E"; rr(x,x1-fw,cy-h/2,fw,h,r); x.fill();
-        x.fillStyle="rgba(0,0,0,.16)"; x.fillRect(x1-fw,cy-h/2,Math.max(2,S*0.014),h);
-        x.save(); rr(x,x0,cy-h/2,w,h,r); x.clip();
-        var eg=x.createLinearGradient(x0,cy,x0+w*0.18,cy);
-        eg.addColorStop(0,"#FFD23F"); eg.addColorStop(.5,"#FF6A00"); eg.addColorStop(1,"rgba(255,90,0,0)");
-        x.fillStyle=eg; x.fillRect(x0,cy-h/2,w*0.2,h); x.restore();
-        var er=h*0.9, rg=x.createRadialGradient(x0,cy,1,x0,cy,er);
-        rg.addColorStop(0,"#FFF0B0"); rg.addColorStop(.4,"rgba(255,140,0,.65)"); rg.addColorStop(1,"rgba(255,90,0,0)");
-        x.fillStyle=rg; x.beginPath(); x.arc(x0,cy,er,0,7); x.fill();
-        x.strokeStyle="rgba(255,255,255,.92)"; x.lineWidth=S*0.038; x.lineCap="round";
-        var sy=cy-h/2-2; x.beginPath(); x.moveTo(x0+w*0.02,sy);
-        x.bezierCurveTo(x0-18,sy-32,x0+26,sy-52,x0-6,sy-86); x.stroke();
+        var cx=S*0.5, cy=S*0.47, s=S*0.33;
+        x.fillStyle="#FFFFFF"; x.beginPath();
+        x.moveTo(cx, cy+s*0.64);
+        x.bezierCurveTo(cx-s*1.0, cy-s*0.04, cx-s*0.6, cy-s*0.9, cx, cy-s*0.36);
+        x.bezierCurveTo(cx+s*0.6, cy-s*0.9, cx+s*1.0, cy-s*0.04, cx, cy+s*0.64);
+        x.closePath(); x.fill();
+        x.strokeStyle="#059669"; x.lineWidth=S*0.05; x.lineCap="round"; x.lineJoin="round";
+        var py=cy+s*0.04;
+        x.beginPath();
+        x.moveTo(cx-s*0.6, py); x.lineTo(cx-s*0.28, py);
+        x.lineTo(cx-s*0.13, py-s*0.44); x.lineTo(cx+s*0.03, py+s*0.5);
+        x.lineTo(cx+s*0.18, py-s*0.14); x.lineTo(cx+s*0.3, py); x.lineTo(cx+s*0.6, py);
+        x.stroke();
         return c.toDataURL("image/png");
       }catch(e){ return null; }
     }
     function meta(n,v){ var m=document.createElement("meta"); m.name=n; m.content=v; (document.head||document.documentElement).appendChild(m); }
     var d=drawIcon();
     if(d){ var l=document.createElement("link"); l.rel="apple-touch-icon"; l.setAttribute("sizes","180x180"); l.href=d; (document.head||document.documentElement).appendChild(l); }
-    meta("apple-mobile-web-app-title","Diario fumo");
+    meta("apple-mobile-web-app-title","Diario Salute");
   })();
 </script>
 <style>
@@ -107,6 +106,47 @@
   .undo-btn:active{background:var(--track); transform:scale(.97);}
   .undo-btn[hidden]{display:none;}
 
+  /* ---- multi-modulo (menu + sezioni) ---- */
+  .screen{display:flex; flex-direction:column; gap:13px;}
+  .screen[hidden]{display:none;}
+  .back-btn{appearance:none; background:var(--surface); border:1px solid var(--line); color:var(--accent);
+    font-family:inherit; font-weight:750; font-size:14px; padding:7px 14px 7px 11px; border-radius:999px;
+    cursor:pointer; touch-action:manipulation; flex:none; box-shadow:var(--shadow); -webkit-tap-highlight-color:transparent;}
+  .back-btn:active{background:var(--track);}
+  .menu-hdr{display:flex; align-items:center; gap:12px; padding:6px 2px 2px;}
+  .mark-h{line-height:0; filter:drop-shadow(0 2px 6px rgba(5,150,105,.35));}
+  .menu-hdr h1{margin:0; font-size:26px; font-weight:850; letter-spacing:-.02em;}
+  .menu-hdr .sub{margin:2px 0 0; font-size:13.5px; color:var(--muted); text-transform:capitalize;}
+  .menu-grid{display:grid; grid-template-columns:1fr 1fr; gap:13px;}
+  .menu-card{appearance:none; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+    display:flex; flex-direction:column; align-items:flex-start; gap:7px; text-align:left;
+    background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--mc);
+    border-radius:16px; padding:17px 15px; min-height:112px; box-shadow:var(--shadow); transition:transform .06s ease;}
+  .menu-card:active{transform:scale(.97);}
+  .menu-card .mc-emoji{font-size:31px; line-height:1;}
+  .menu-card .mc-name{font-size:17.5px; font-weight:800; color:var(--ink);}
+  .menu-card .mc-st{font-size:13px; font-weight:750; color:var(--muted); font-variant-numeric:tabular-nums; margin-top:auto;}
+  .soon{font-size:15.5px; line-height:1.6; color:var(--ink-soft);}
+  .pil-orari{display:flex; flex-wrap:wrap; gap:8px;}
+  .pil-ora-row{display:flex; align-items:center; gap:6px;}
+  .pil-ora-row input[type=time]{width:auto; min-width:112px;}
+  .pil-ora-row button{appearance:none; border:none; background:var(--track); color:var(--danger); cursor:pointer;
+    width:34px; height:34px; border-radius:9px; font-size:20px; font-family:inherit; line-height:1; flex:none;}
+  .pilrow{display:flex; align-items:center; gap:11px; padding:11px 2px; border-bottom:1px solid var(--line);}
+  .pilrow:last-child{border-bottom:none;}
+  .pilrow .pn{flex:1; font-size:16px; font-weight:650;}
+  .pilrow .po{font-size:13.5px; color:var(--muted); font-variant-numeric:tabular-nums; margin-right:4px;}
+  .dose{display:flex; align-items:center; gap:12px; padding:13px 2px; border-bottom:1px solid var(--line);}
+  .dose:last-child{border-bottom:none;}
+  .dose .dcheck{width:32px; height:32px; flex:none; border-radius:50%; border:2px solid var(--line); background:var(--surface-2);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:transparent; font-size:19px; touch-action:manipulation;}
+  .dose.done .dcheck{background:var(--lvl-low); border-color:var(--lvl-low); color:#fff;}
+  .dose .dname{flex:1; font-size:16.5px; font-weight:650;}
+  .dose.done .dname{text-decoration:line-through; color:var(--muted);}
+  .dose .dtime{font-size:14.5px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink-soft);}
+  .dose.late:not(.done) .dtime, .dose.late:not(.done) .dname{color:var(--lvl-high);}
+  .badge-late{font-size:11px; font-weight:800; color:#fff; background:var(--lvl-high); padding:2px 8px; border-radius:999px;}
+
   .card{background:var(--surface); border:1px solid var(--line);
     border-radius:18px; padding:16px; box-shadow:var(--shadow);}
 
@@ -154,6 +194,10 @@
   .link-btn{appearance:none; background:none; border:none; cursor:pointer;
     color:var(--accent); font-weight:750; font-size:15.5px; padding:14px 4px 2px;
     width:100%; text-align:center; font-family:inherit; touch-action:manipulation;}
+  #toggleDetail, #pilAddBtn{ background:var(--surface-2);
+    border:1.6px dashed color-mix(in srgb, var(--accent) 55%, var(--line));
+    border-radius:14px; padding:14px; margin-top:8px; min-height:52px; font-size:16px;}
+  #toggleDetail:active, #pilAddBtn:active{ background:var(--track); }
 
   /* ---- detail form ---- */
   .detail{display:flex; flex-direction:column; gap:14px; margin-top:6px;
@@ -163,7 +207,7 @@
   .field > label{font-size:14px; font-weight:700; color:var(--ink-soft);
     letter-spacing:.01em;}
   .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-  input[type=date],input[type=time]{font-family:inherit; font-size:16px;
+  input[type=date],input[type=time],input[type=text]{font-family:inherit; font-size:16px;
     color:var(--ink); background:var(--surface-2); border:1px solid var(--line);
     border-radius:12px; padding:11px 12px; width:100%; min-height:46px;}
 
@@ -293,10 +337,30 @@
 </style>
 
 <div class="wrap">
+  <!-- ===== MENU (home) ===== -->
+  <section id="menu" class="screen">
+    <header class="menu-hdr">
+      <span class="mark-h"><svg viewBox="0 0 24 24" width="36" height="36" fill="#059669" aria-hidden="true"><path d="M12 21.4S3.6 15.7 3.6 9.9A4.6 4.6 0 0 1 12 7.2a4.6 4.6 0 0 1 8.4 2.7c0 5.8-8.4 11.5-8.4 11.5z"/></svg></span>
+      <div>
+        <h1>Diario Salute</h1>
+        <p class="sub" id="menuDate"></p>
+      </div>
+    </header>
+    <div class="menu-grid">
+      <button class="menu-card" type="button" data-mod="fumo" style="--mc:#C2410C"><span class="mc-emoji">🚬</span><span class="mc-name">Fumo</span><span class="mc-st" id="st-fumo"></span></button>
+      <button class="menu-card" type="button" data-mod="pillole" style="--mc:#7C3AED"><span class="mc-emoji">💊</span><span class="mc-name">Pillole</span><span class="mc-st" id="st-pillole"></span></button>
+      <button class="menu-card" type="button" data-mod="esercizio" style="--mc:#2563EB"><span class="mc-emoji">🏃</span><span class="mc-name">Esercizio</span><span class="mc-st" id="st-eserc"></span></button>
+      <button class="menu-card" type="button" data-mod="alimentazione" style="--mc:#16A34A"><span class="mc-emoji">🍎</span><span class="mc-name">Alimentazione</span><span class="mc-st" id="st-alim"></span></button>
+    </div>
+  </section>
+
+  <!-- ===== FUMO ===== -->
+  <section id="mod-fumo" class="screen" hidden>
   <header class="top">
+    <button class="back-btn" type="button" data-back>‹ Menu</button>
     <span class="mark">🚬</span>
     <div class="brandtext">
-      <h1>Diario del fumo</h1>
+      <h1>Fumo</h1>
       <p class="sub" id="todayDate"></p>
     </div>
     <button class="undo-btn" id="btnUndo" type="button" hidden aria-label="Annulla l'ultima azione">
@@ -379,8 +443,58 @@
     <p class="fineprint">I dati restano salvati solo su questo telefono, in questo browser.
       Esporta o salva un backup ogni tanto per non perderli.</p>
   </section>
+  </section><!-- /mod-fumo -->
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario del fumo · v12</p>
+  <!-- ===== PILLOLE ===== -->
+  <section id="mod-pillole" class="screen" hidden>
+    <header class="top">
+      <button class="back-btn" type="button" data-back>‹ Menu</button>
+      <span class="mark">💊</span>
+      <div class="brandtext"><h1>Pillole</h1><p class="sub" id="pilDate"></p></div>
+    </header>
+    <section class="card">
+      <div class="row-between"><h2 class="section-title" style="margin:0">Oggi</h2><span id="pilSummary" class="stat-summary"></span></div>
+      <div id="pilToday" style="margin-top:12px"></div>
+    </section>
+    <section class="card">
+      <h2 class="section-title">Le mie medicine</h2>
+      <div id="pilList"></div>
+      <button class="link-btn" id="pilAddBtn">＋ Aggiungi medicina</button>
+      <div class="detail" id="pilForm" hidden>
+        <div class="field"><label for="pilNome">Nome</label><input type="text" id="pilNome" placeholder="es. Xanax 0,25"></div>
+        <div class="field"><label>Orari (quando prenderla)</label>
+          <div id="pilOrari" class="pil-orari"></div>
+          <button class="link-btn" id="pilAddOra" style="text-align:left;padding:8px 2px">＋ aggiungi orario</button>
+        </div>
+        <div class="panel-actions">
+          <button class="primary" id="pilSave">Salva medicina</button>
+          <button class="link-btn" id="pilCancel">Annulla</button>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ===== ESERCIZIO (Tappa 2) ===== -->
+  <section id="mod-esercizio" class="screen" hidden>
+    <header class="top">
+      <button class="back-btn" type="button" data-back>‹ Menu</button>
+      <span class="mark">🏃</span>
+      <div class="brandtext"><h1>Esercizio</h1><p class="sub">in arrivo</p></div>
+    </header>
+    <section class="card"><p class="soon">🚧 In arrivo nella <b>Tappa 2</b>: giri in terrazza (mattino/sera), minuti di cyclette, blocchi esercizi A/B/C/D, con la progressione a 4 settimane.</p></section>
+  </section>
+
+  <!-- ===== ALIMENTAZIONE (Tappa 2) ===== -->
+  <section id="mod-alimentazione" class="screen" hidden>
+    <header class="top">
+      <button class="back-btn" type="button" data-back>‹ Menu</button>
+      <span class="mark">🍎</span>
+      <div class="brandtext"><h1>Alimentazione</h1><p class="sub">in arrivo</p></div>
+    </header>
+    <section class="card"><p class="soon">🚧 In arrivo nella <b>Tappa 2</b>: acqua (obiettivo 2 L), pasti dello schema settimanale, olio EVO e spunta dei cibi da evitare.</p></section>
+  </section>
+
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v13</p>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -821,6 +935,96 @@
     }
   };
 
+  // ============ multi-modulo (Diario Salute) ============
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+  // ---- Pillole ----
+  var pilDefs=[]; try{ var _pd=JSON.parse(localStorage.getItem("salute-pil-defs")); if(Array.isArray(_pd)) pilDefs=_pd; }catch(e){}
+  var pilTaken={}; try{ var _pt=JSON.parse(localStorage.getItem("salute-pil-taken")); if(_pt && typeof _pt==="object") pilTaken=_pt; }catch(e){}
+  function savePilDefs(){ try{ localStorage.setItem("salute-pil-defs", JSON.stringify(pilDefs)); }catch(e){} }
+  function savePilTaken(){ try{ localStorage.setItem("salute-pil-taken", JSON.stringify(pilTaken)); }catch(e){} }
+  function pilKey(dK,id,ora){ return dK+"|"+id+"|"+ora; }
+  function oraMin(o){ return parseInt(o.slice(0,2),10)*60+parseInt(o.slice(3,5),10); }
+  function pilToday(){
+    var now=new Date(), dK=dayKey(now), nowMin=now.getHours()*60+now.getMinutes(), doses=[];
+    pilDefs.forEach(function(p){ (p.orari||[]).forEach(function(o){
+      var k=pilKey(dK,p.id,o), tk=!!pilTaken[k];
+      doses.push({id:p.id, nome:p.nome, ora:o, key:k, taken:tk, late:(!tk && nowMin>oraMin(o))});
+    }); });
+    doses.sort(function(a,b){ return a.ora<b.ora?-1:(a.ora>b.ora?1:0); });
+    var taken=0,late=0; doses.forEach(function(d){ if(d.taken)taken++; if(d.late)late++; });
+    return {doses:doses, taken:taken, late:late, total:doses.length};
+  }
+  function renderPillole(){
+    document.getElementById("pilDate").textContent=fmtDayLong(new Date());
+    var t=pilToday(), host=document.getElementById("pilToday"); host.innerHTML="";
+    if(!t.total){ host.innerHTML='<div class="empty">Nessuna medicina impostata.<br>Aggiungila qui sotto con i suoi orari.</div>'; }
+    t.doses.forEach(function(d){
+      var row=document.createElement("div"); row.className="dose"+(d.taken?" done":"")+(d.late?" late":"");
+      row.innerHTML='<span class="dcheck">✓</span><span class="dname">'+esc(d.nome)+(d.late?' <span class="badge-late">in ritardo</span>':'')+'</span><span class="dtime">'+d.ora+'</span>';
+      row.querySelector(".dcheck").onclick=function(){ if(pilTaken[d.key]) delete pilTaken[d.key]; else pilTaken[d.key]=true; savePilTaken(); renderPillole(); };
+      host.appendChild(row);
+    });
+    var s=document.getElementById("pilSummary");
+    if(t.total){ s.textContent=t.taken+"/"+t.total+" prese"; s.style.color=t.late?"var(--lvl-high)":(t.taken===t.total?"var(--lvl-low)":"var(--lvl-mid)"); }
+    else s.textContent="";
+    var list=document.getElementById("pilList"); list.innerHTML="";
+    pilDefs.forEach(function(p){
+      var r=document.createElement("div"); r.className="pilrow";
+      r.innerHTML='<span class="pn">'+esc(p.nome)+'</span><span class="po">'+(p.orari||[]).join(" · ")+'</span>';
+      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina");
+      del.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+      del.onclick=function(){ if(confirm("Eliminare «"+p.nome+"»?")){ pilDefs=pilDefs.filter(function(x){return x.id!==p.id;}); savePilDefs(); renderPillole(); } };
+      r.appendChild(del); list.appendChild(r);
+    });
+  }
+  function pilOraRow(val){
+    var wrap=document.getElementById("pilOrari");
+    var row=document.createElement("div"); row.className="pil-ora-row";
+    var inp=document.createElement("input"); inp.type="time"; if(val) inp.value=val;
+    var rm=document.createElement("button"); rm.type="button"; rm.textContent="−"; rm.setAttribute("aria-label","Togli orario");
+    rm.onclick=function(){ if(row.parentNode) row.parentNode.removeChild(row); };
+    row.appendChild(inp); row.appendChild(rm); wrap.appendChild(row);
+  }
+  document.getElementById("pilAddBtn").onclick=function(){
+    var f=document.getElementById("pilForm"); f.hidden=false;
+    document.getElementById("pilNome").value=""; document.getElementById("pilOrari").innerHTML=""; pilOraRow("08:00");
+    document.getElementById("pilNome").focus();
+  };
+  document.getElementById("pilAddOra").onclick=function(){ pilOraRow(""); };
+  document.getElementById("pilCancel").onclick=function(){ document.getElementById("pilForm").hidden=true; };
+  document.getElementById("pilSave").onclick=function(){
+    var nome=(document.getElementById("pilNome").value||"").trim();
+    if(!nome){ toast("Scrivi il nome della medicina"); return; }
+    var orari=Array.prototype.map.call(document.querySelectorAll("#pilOrari input[type=time]"), function(i){ return i.value; }).filter(Boolean);
+    orari.sort();
+    if(!orari.length){ toast("Aggiungi almeno un orario"); return; }
+    pilDefs.push({id:uid(), nome:nome, orari:orari}); savePilDefs();
+    document.getElementById("pilForm").hidden=true; renderPillole(); toast("Medicina aggiunta ✓");
+  };
+
+  // ---- Menu (home) + navigazione ----
+  function renderMenu(){
+    var now=new Date(), dK=dayKey(now);
+    document.getElementById("menuDate").textContent=fmtDayLong(now);
+    var fumoT=0; entries.forEach(function(e){ if(dayKey(new Date(e.ts))===dK) fumoT+=e.q; });
+    var sf=document.getElementById("st-fumo"); sf.textContent="oggi "+num(fumoT); sf.style.color="var("+lvlVar(levelOf(fumoT))+")";
+    var t=pilToday(), sp=document.getElementById("st-pillole");
+    if(t.total){ sp.textContent=t.taken+"/"+t.total+(t.late?" · "+t.late+" in ritardo":""); sp.style.color=t.late?"var(--lvl-high)":(t.taken===t.total?"var(--lvl-low)":"var(--muted)"); }
+    else { sp.textContent="da impostare"; sp.style.color="var(--muted)"; }
+    document.getElementById("st-eserc").textContent="Tappa 2";
+    document.getElementById("st-alim").textContent="Tappa 2";
+  }
+  function showMod(m){
+    ["fumo","pillole","esercizio","alimentazione"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
+    document.getElementById("menu").hidden=(m!=="menu");
+    try{ window.scrollTo(0,0); }catch(e){}
+    if(m==="menu") renderMenu(); else if(m==="pillole") renderPillole(); else if(m==="fumo") render();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".menu-card"), function(c){ c.onclick=function(){ showMod(c.dataset.mod); }; });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-back]"), function(b){ b.onclick=function(){ showMod("menu"); }; });
+
   render();
+  showMod("menu");
 })();
 </script>
