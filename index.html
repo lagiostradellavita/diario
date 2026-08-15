@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 53; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 55; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -372,7 +372,13 @@
   .prog-plan-row .pp-name{flex:1; font-size:15.5px; font-weight:650; min-width:0; overflow-wrap:anywhere;}
   .prog-kcal{padding:10px 12px; border-radius:12px; margin-bottom:8px; background:color-mix(in srgb, var(--accent) 9%, var(--surface)); border:1px solid color-mix(in srgb, var(--accent) 22%, var(--line)); font-size:15px; font-weight:750; color:var(--ink-soft);}
   .prog-kcal b{color:var(--ink); font-weight:850;}
+  .ver-row{display:flex; align-items:center; gap:10px; padding:9px 2px;}
+  .ver-row .ver-day{flex:0 0 auto; font-size:14px; font-weight:750; color:var(--ink-soft); width:74px; font-variant-numeric:tabular-nums;}
+  .ver-row .ver-bar{flex:1; min-width:0; height:12px; border-radius:999px; background:var(--track); overflow:hidden;}
+  .ver-row .ver-fill{height:100%; border-radius:999px; background:linear-gradient(90deg, var(--lvl-mid), var(--lvl-low));}
+  .ver-row .ver-num{flex:0 0 auto; font-size:13.5px; font-weight:800; color:var(--muted); font-variant-numeric:tabular-nums; width:44px; text-align:right;}
   .pasto-row .pr-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:9px; width:34px; height:34px; font-size:18px; cursor:pointer; touch-action:manipulation;}
+  .prog-flabel{display:block; font-size:14px; font-weight:800; color:var(--ink-soft); margin:2px 0 4px;}
   #cicloNote, #notaGiornata, #dietaPiano{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
   .ciclo-prev{margin:10px 0 2px; padding:12px 14px; border-radius:14px; background:var(--surface-2); border:1px solid var(--line); font-size:15.5px; font-weight:700; color:var(--ink-soft); line-height:1.45;}
   .ciclo-prev b{color:var(--ink); font-weight:850;}
@@ -405,7 +411,7 @@
     border-radius:13px; padding:4px;}
   .seg button{appearance:none; border:none; cursor:pointer; font-family:inherit;
     background:transparent; color:var(--ink-soft); font-weight:700; font-size:15px;
-    padding:12px 4px; border-radius:10px; touch-action:manipulation;
+    padding:12px 4px; border-radius:10px; touch-action:manipulation; min-width:0;
     transition:background .15s, color .15s;}
   .seg button.on{background:var(--c); color:var(--on-c);
     box-shadow:0 2px 8px -2px color-mix(in srgb,var(--c) 60%,transparent);}
@@ -1164,18 +1170,16 @@
           </div>
         </div>
         <div id="progPasto">
-          <div class="field"><label for="progPastoNome">Alimento</label><input type="text" id="progPastoNome" list="dlProgFood" autocomplete="off" placeholder="es. Riso"></div>
-          <div class="grid2">
-            <div class="field"><label for="progPastoQta">Quantità</label><input type="text" id="progPastoQta" placeholder="es. 100 g" autocomplete="off"></div>
-            <div class="field"><label for="progPastoOra">Ora</label><input type="time" id="progPastoOra"></div>
-          </div>
+          <label class="prog-flabel">Alimenti (uno o più: es. Yogurt, Frutta)</label>
+          <div id="progPastoItems"></div>
+          <button type="button" class="link-btn" id="progPastoAdd" style="text-align:left;padding:6px 2px;margin-top:2px">＋ aggiungi alimento</button>
+          <div class="field" style="margin-top:6px"><label for="progPastoOra">Ora (facoltativa)</label><input type="time" id="progPastoOra"></div>
         </div>
         <div id="progEser" hidden>
-          <div class="field"><label for="progEserNome">Attività</label><input type="text" id="progEserNome" list="dlSugAttivita" autocomplete="off" placeholder="es. Camminata"></div>
-          <div class="grid2">
-            <div class="field"><label for="progEserDur">Durata (min, facolt.)</label><input type="text" id="progEserDur" inputmode="numeric" placeholder="es. 30" autocomplete="off"></div>
-            <div class="field"><label for="progEserOra">Ora</label><input type="time" id="progEserOra"></div>
-          </div>
+          <label class="prog-flabel">Esercizi (uno o più: es. Collo, Camminata, Respirazione)</label>
+          <div id="progEserItems"></div>
+          <button type="button" class="link-btn" id="progEserAdd" style="text-align:left;padding:6px 2px;margin-top:2px">＋ aggiungi esercizio</button>
+          <div class="field" style="margin-top:6px"><label for="progEserOra">Ora (facoltativa)</label><input type="time" id="progEserOra"></div>
         </div>
         <div id="progFumo" hidden>
           <div class="grid2">
@@ -1196,10 +1200,15 @@
       </div>
       <div id="progList" style="margin-top:10px"></div>
     </section>
+    <section class="card" id="verificaCard">
+      <div class="row-between" style="flex-wrap:wrap; gap:2px 10px"><h2 class="section-title" style="margin:0">📊 Verifica</h2><span id="verificaSum" class="stat-summary"></span></div>
+      <p class="fineprint" style="margin:2px 0 6px">Quanto hai rispettato il programma negli ultimi 7 giorni (calcolato sul programma di adesso).</p>
+      <div id="verificaBody"></div>
+    </section>
     <p class="fineprint" style="text-align:center; margin:0">L'avviso è <b>in-app</b> (agenda + suggerimenti in Home): l'app non può far squillare una notifica. Per un promemoria che suona, usa una Sveglia/Promemoria iOS.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v53</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v55</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2987,28 +2996,49 @@
   var progFatti={}; try{ var _pf=JSON.parse(localStorage.getItem("salute-programma-fatti")); if(_pf&&typeof _pf==="object") progFatti=_pf; }catch(e){}
   function saveProgFatti(){ try{ localStorage.setItem("salute-programma-fatti", JSON.stringify(progFatti)); }catch(e){} }
   (function(){ var all=[]; try{ Object.keys(FOOD_CAT_SUGGEST).forEach(function(k){ FOOD_CAT_SUGGEST[k].forEach(function(f){ if(all.indexOf(f)<0) all.push(f); }); }); }catch(e){} all.sort(function(a,b){return a.localeCompare(b,"it");}); mkDatalist("dlProgFood", all); })();
-  function progPastoKcal(it){ var e=estimateKcal({nome:it.nome, tipo:"", qta:it.qta}); return (e==null)?null:e; }
+  function progItems(it){ if(it.items && it.items.length) return it.items; if(it.nome) return [{nome:it.nome, qta:it.qta||"", durataMin:it.durataMin||""}]; return []; }
+  function progPastoKcal(it){ var s=0, any=false; progItems(it).forEach(function(x){ var e=estimateKcal({nome:x.nome, tipo:"", qta:x.qta}); if(e!=null){ s+=e; any=true; } }); return any?s:null; }
   function progItemLabel(it){
-    if(it.tipo==="pasto"){ var kc=progPastoKcal(it); return "🍽️ "+it.nome+(it.qta?" "+it.qta:"")+(kc!=null?" · "+kc+" kcal":""); }
-    if(it.tipo==="eser") return "🏃 "+it.nome+(it.durataMin?" "+it.durataMin+" min":"");
+    if(it.tipo==="pasto"){ var kc=progPastoKcal(it); var names=progItems(it).map(function(x){ return x.nome+(x.qta?" "+x.qta:""); }).join(", "); return "🍽️ "+names+(kc!=null&&kc>0?" · "+kc+" kcal":""); }
+    if(it.tipo==="eser"){ return "🏃 "+progItems(it).map(function(x){ return x.nome+(x.durataMin?" "+x.durataMin+" min":""); }).join(", "); }
     if(it.tipo==="fumo") return "🚬 Max "+it.maxGiorno+"/giorno"+(it.oreMin?" · ≥"+String(it.oreMin).replace(".",",")+" h tra una e l'altra":"");
     return "";
   }
   var GIORNI_MAP={1:"Lun",2:"Mar",3:"Mer",4:"Gio",5:"Ven",6:"Sab",0:"Dom"};
   function progRipetiLabel(it){ var r=it.ripeti||"ogni"; if(r==="ogni") return "ogni giorno"; if(r==="sett"){ var g=(it.giorni||[]).slice().sort(function(a,b){ return ((a+6)%7)-((b+6)%7); }); return g.length? g.map(function(d){return GIORNI_MAP[d];}).join(", ") : "nessun giorno"; } if(r==="mese") return "il "+it.giornoMese+" del mese"; return ""; }
-  function itemAppliesToday(it){ var r=it.ripeti||"ogni"; if(r==="ogni") return true; var now=new Date(); if(r==="sett") return (it.giorni||[]).indexOf(now.getDay())>=0; if(r==="mese") return now.getDate()===(parseInt(it.giornoMese,10)||0); return true; }
+  function itemAppliesToDate(it, d){ var r=it.ripeti||"ogni"; if(r==="ogni") return true; if(r==="sett") return (it.giorni||[]).indexOf(d.getDay())>=0; if(r==="mese") return d.getDate()===(parseInt(it.giornoMese,10)||0); return true; }
+  function itemAppliesToday(it){ return itemAppliesToDate(it, new Date()); }
+  function progPlannedForDate(d){ var n=0; programma.forEach(function(it){ if(it.tipo==="fumo") return; if(itemAppliesToDate(it,d)) n++; }); try{ var pd=Pillole.data(); (pd.defs||[]).forEach(function(p){ n+=(p.orari||[]).length; }); }catch(e){} return n; }
+  function progDoneForDate(d){ var dK=dayKey(d), n=0; if(progFatti[dK]) n+=Object.keys(progFatti[dK]).length; try{ var pd=Pillole.data(), tk=pd.taken||{}; Object.keys(tk).forEach(function(k){ if(k.indexOf(dK+"|")===0) n++; }); }catch(e){} return n; }
+  function renderVerifica(){
+    var host=document.getElementById("verificaBody"); if(!host) return; host.innerHTML="";
+    var totP=0, totD=0, days=[];
+    for(var i=6;i>=0;i--){ var d=new Date(); d.setDate(d.getDate()-i); var p=progPlannedForDate(d), done=progDoneForDate(d); if(done>p) done=p; totP+=p; totD+=done; days.push({d:d, p:p, done:done}); }
+    var sum=document.getElementById("verificaSum");
+    if(totP){ var pctT=Math.round(totD/totP*100); sum.textContent=pctT+"% rispettato"; sum.style.color=(pctT>=70?"var(--lvl-low)":(pctT>=40?"var(--lvl-mid)":"var(--lvl-high)")); }
+    else { sum.textContent=""; }
+    if(!totP){ host.innerHTML='<div class="empty">Nessun programma da verificare.</div>'; return; }
+    var WD=["Dom","Lun","Mar","Mer","Gio","Ven","Sab"];
+    days.forEach(function(x){
+      var row=document.createElement("div"); row.className="ver-row";
+      var pct=x.p?Math.round(x.done/x.p*100):0;
+      row.innerHTML='<span class="ver-day">'+WD[x.d.getDay()]+' '+pad2(x.d.getDate())+'/'+pad2(x.d.getMonth()+1)+'</span><span class="ver-bar"><span class="ver-fill" style="width:'+pct+'%"></span></span><span class="ver-num">'+x.done+'/'+x.p+'</span>';
+      host.appendChild(row);
+    });
+  }
   function todayFattoRec(itemId){ var dK=dayKey(new Date()); return (progFatti[dK] && progFatti[dK][itemId])||null; }
   function progDoItem(it){
-    var dK=dayKey(new Date()), now=Date.now(), logId=uid(), modulo="";
-    if(it.tipo==="pasto"){ var kc=estimateKcal({nome:it.nome, tipo:"", qta:it.qta}); ciboLog.push({id:logId, ts:now, items:[{nome:it.nome, tipo:"", qta:it.qta||"", kcal:(kc==null?0:kc)}], nota:"da programma"}); saveCiboLog(); modulo="cibo"; }
-    else if(it.tipo==="eser"){ var dur=(parseInt(it.durataMin,10)||0)*60000; attivLog.push({id:logId, nome:it.nome, tsEnd:now, dur:dur, valore:"", nota:"da programma"}); saveAttivLog(); modulo="attiv"; }
+    var dK=dayKey(new Date()), now=Date.now(), logIds=[], modulo="";
+    if(it.tipo==="pasto"){ var items=progItems(it).map(function(x){ var kc=estimateKcal({nome:x.nome, tipo:"", qta:x.qta}); return {nome:x.nome, tipo:"", qta:x.qta||"", kcal:(kc==null?0:kc)}; }); var lid=uid(); ciboLog.push({id:lid, ts:now, items:items, nota:"da programma"}); saveCiboLog(); logIds=[lid]; modulo="cibo"; }
+    else if(it.tipo==="eser"){ progItems(it).forEach(function(x){ var lid=uid(); var dur=(parseInt(x.durataMin,10)||0)*60000; attivLog.push({id:lid, nome:x.nome, tsEnd:now, dur:dur, valore:"", nota:"da programma"}); logIds.push(lid); }); saveAttivLog(); modulo="attiv"; }
     else return;
-    progFatti[dK]=progFatti[dK]||{}; progFatti[dK][it.id]={ts:now, logId:logId, modulo:modulo}; saveProgFatti(); renderProgramma(); toast("Fatto ✓ — registrato");
+    progFatti[dK]=progFatti[dK]||{}; progFatti[dK][it.id]={ts:now, logIds:logIds, modulo:modulo}; saveProgFatti(); renderProgramma(); toast("Fatto ✓ — registrato");
   }
   function progUndoItem(it){
     var dK=dayKey(new Date()), rec=todayFattoRec(it.id); if(!rec) return;
-    if(rec.modulo==="cibo"){ ciboLog=ciboLog.filter(function(y){return y.id!==rec.logId;}); saveCiboLog(); }
-    else if(rec.modulo==="attiv"){ attivLog=attivLog.filter(function(y){return y.id!==rec.logId;}); saveAttivLog(); }
+    var ids=rec.logIds||(rec.logId?[rec.logId]:[]);
+    if(rec.modulo==="cibo"){ ciboLog=ciboLog.filter(function(y){return ids.indexOf(y.id)<0;}); saveCiboLog(); }
+    else if(rec.modulo==="attiv"){ attivLog=attivLog.filter(function(y){return ids.indexOf(y.id)<0;}); saveAttivLog(); }
     delete progFatti[dK][it.id]; saveProgFatti(); renderProgramma();
   }
   function progFumoRule(){ var r=null; programma.forEach(function(it){ if(it.tipo==="fumo") r=it; }); return r; }
@@ -3048,6 +3078,7 @@
       row.appendChild(chk); row.appendChild(nm); row.appendChild(tm); host.appendChild(row);
     });
     document.getElementById("progOggiSum").textContent = ent.length? (doneN+"/"+ent.length+" fatte") : "";
+    renderVerifica();
     var plist=document.getElementById("progList"); plist.innerHTML="";
     if(!programma.length){ plist.innerHTML='<div class="empty">Nessuna voce. Tocca «＋ Aggiungi al programma».</div>'; return; }
     programma.slice().sort(function(a,b){ return (a.ora?hhmmToMin(a.ora):9999)-(b.ora?hhmmToMin(b.ora):9999); }).forEach(function(it){
@@ -3061,29 +3092,50 @@
     });
   }
   var editingProgId=null, progTipo="pasto", progRipeti="ogni", progGiorniSel={};
+  var progPastoItems=[{nome:"",qta:""}], progEserItems=[{nome:"",durataMin:""}];
+  function renderProgFormItems(){
+    var ph=document.getElementById("progPastoItems");
+    if(ph){ ph.innerHTML=""; progPastoItems.forEach(function(itm, i){
+      var row=document.createElement("div"); row.className="pasto-row";
+      var n=document.createElement("input"); n.type="text"; n.placeholder="alimento"; n.value=itm.nome||""; n.setAttribute("list","dlProgFood"); n.setAttribute("autocomplete","off"); n.oninput=function(){ itm.nome=n.value; };
+      var q=document.createElement("input"); q.type="text"; q.className="pr-kcal"; q.placeholder="quantità"; q.value=itm.qta||""; q.setAttribute("autocomplete","off"); q.oninput=function(){ itm.qta=q.value; };
+      var x=document.createElement("button"); x.type="button"; x.className="pr-del"; x.textContent="×"; x.setAttribute("aria-label","Togli"); x.onclick=function(){ progPastoItems.splice(i,1); if(!progPastoItems.length) progPastoItems=[{nome:"",qta:""}]; renderProgFormItems(); };
+      row.appendChild(n); row.appendChild(q); row.appendChild(x); ph.appendChild(row);
+    }); }
+    var eh=document.getElementById("progEserItems");
+    if(eh){ eh.innerHTML=""; progEserItems.forEach(function(itm, i){
+      var row=document.createElement("div"); row.className="pasto-row";
+      var n=document.createElement("input"); n.type="text"; n.placeholder="esercizio"; n.value=itm.nome||""; n.setAttribute("list","dlSugAttivita"); n.setAttribute("autocomplete","off"); n.oninput=function(){ itm.nome=n.value; };
+      var d=document.createElement("input"); d.type="text"; d.className="pr-kcal"; d.placeholder="min"; d.setAttribute("inputmode","numeric"); d.value=itm.durataMin||""; d.oninput=function(){ itm.durataMin=d.value; };
+      var x=document.createElement("button"); x.type="button"; x.className="pr-del"; x.textContent="×"; x.setAttribute("aria-label","Togli"); x.onclick=function(){ progEserItems.splice(i,1); if(!progEserItems.length) progEserItems=[{nome:"",durataMin:""}]; renderProgFormItems(); };
+      row.appendChild(n); row.appendChild(d); row.appendChild(x); eh.appendChild(row);
+    }); }
+  }
+  var _ppa=document.getElementById("progPastoAdd"); if(_ppa) _ppa.onclick=function(){ progPastoItems.push({nome:"",qta:""}); renderProgFormItems(); };
+  var _pea=document.getElementById("progEserAdd"); if(_pea) _pea.onclick=function(){ progEserItems.push({nome:"",durataMin:""}); renderProgFormItems(); };
   var GIORNI=[{n:1,l:"Lun"},{n:2,l:"Mar"},{n:3,l:"Mer"},{n:4,l:"Gio"},{n:5,l:"Ven"},{n:6,l:"Sab"},{n:0,l:"Dom"}];
   function renderProgGiorni(){ var host=document.getElementById("progGiorni"); if(!host) return; host.innerHTML=""; GIORNI.forEach(function(g){ var b=document.createElement("button"); b.type="button"; b.className="chip-sel"+(progGiorniSel[g.n]?" on":""); b.textContent=g.l; b.onclick=function(){ if(progGiorniSel[g.n]) delete progGiorniSel[g.n]; else progGiorniSel[g.n]=true; b.classList.toggle("on"); }; host.appendChild(b); }); }
   function progShowRipeti(r){ progRipeti=r; Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.className=(b.dataset.r===r)?"on":""; }); document.getElementById("progGiorniWrap").hidden=(r!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(r!=="mese"); if(r==="sett") renderProgGiorni(); }
   Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.onclick=function(){ progShowRipeti(b.dataset.r); }; });
   function progShowTipo(t){ progTipo=t; Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.className=(b.dataset.t===t)?"on":""; }); document.getElementById("progPasto").hidden=(t!=="pasto"); document.getElementById("progEser").hidden=(t!=="eser"); document.getElementById("progFumo").hidden=(t!=="fumo"); document.getElementById("progRipetiWrap").hidden=(t==="fumo"); if(t==="fumo"){ document.getElementById("progGiorniWrap").hidden=true; document.getElementById("progGiornoMeseWrap").hidden=true; } else { document.getElementById("progGiorniWrap").hidden=(progRipeti!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(progRipeti!=="mese"); } }
   Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.onclick=function(){ progShowTipo(b.dataset.t); }; });
-  function progResetForm(){ progGiorniSel={}; progShowTipo("pasto"); progShowRipeti("ogni"); ["progPastoNome","progPastoQta","progPastoOra","progEserNome","progEserDur","progEserOra","progFumoMax","progFumoOre","progGiornoMese"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); document.getElementById("progSave").textContent="Aggiungi"; }
+  function progResetForm(){ progGiorniSel={}; progShowTipo("pasto"); progShowRipeti("ogni"); ["progPastoOra","progEserOra","progFumoMax","progFumoOre","progGiornoMese"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); progPastoItems=[{nome:"",qta:""}]; progEserItems=[{nome:"",durataMin:""}]; renderProgFormItems(); document.getElementById("progSave").textContent="Aggiungi"; }
   function cancelEditProg(){ editingProgId=null; document.getElementById("progSave").textContent="Aggiungi"; }
   document.getElementById("progAddBtn").onclick=function(){ var f=document.getElementById("progForm"); if(f.hidden){ editingProgId=null; progResetForm(); f.hidden=false; } else { f.hidden=true; cancelEditProg(); } };
   document.getElementById("progCancel").onclick=function(){ document.getElementById("progForm").hidden=true; cancelEditProg(); };
   function startEditProg(it){
     editingProgId=it.id; progGiorniSel={}; (it.giorni||[]).forEach(function(d){ progGiorniSel[d]=true; });
     progShowTipo(it.tipo); progShowRipeti(it.ripeti||"ogni"); document.getElementById("progGiornoMese").value=it.giornoMese||"";
-    if(it.tipo==="pasto"){ document.getElementById("progPastoNome").value=it.nome||""; document.getElementById("progPastoQta").value=it.qta||""; document.getElementById("progPastoOra").value=it.ora||""; }
-    else if(it.tipo==="eser"){ document.getElementById("progEserNome").value=it.nome||""; document.getElementById("progEserDur").value=it.durataMin||""; document.getElementById("progEserOra").value=it.ora||""; }
+    if(it.tipo==="pasto"){ progPastoItems=progItems(it).map(function(x){ return {nome:x.nome||"", qta:x.qta||""}; }); if(!progPastoItems.length) progPastoItems=[{nome:"",qta:""}]; document.getElementById("progPastoOra").value=it.ora||""; renderProgFormItems(); }
+    else if(it.tipo==="eser"){ progEserItems=progItems(it).map(function(x){ return {nome:x.nome||"", durataMin:x.durataMin||""}; }); if(!progEserItems.length) progEserItems=[{nome:"",durataMin:""}]; document.getElementById("progEserOra").value=it.ora||""; renderProgFormItems(); }
     else { document.getElementById("progFumoMax").value=it.maxGiorno||""; document.getElementById("progFumoOre").value=it.oreMin||""; }
     document.getElementById("progSave").textContent="Salva modifiche";
     document.getElementById("progForm").hidden=false; scrollToEl(document.getElementById("progForm"));
   }
   document.getElementById("progSave").onclick=function(){
     var rec;
-    if(progTipo==="pasto"){ var nome=(document.getElementById("progPastoNome").value||"").trim(); if(!nome){ toast("Scrivi l'alimento"); return; } rec={tipo:"pasto", nome:nome, qta:(document.getElementById("progPastoQta").value||"").trim(), ora:document.getElementById("progPastoOra").value||""}; }
-    else if(progTipo==="eser"){ var nm=(document.getElementById("progEserNome").value||"").trim(); if(!nm){ toast("Scrivi l'attività"); return; } rec={tipo:"eser", nome:nm, durataMin:(document.getElementById("progEserDur").value||"").replace(/[^\d]/g,""), ora:document.getElementById("progEserOra").value||""}; }
+    if(progTipo==="pasto"){ var pit=progPastoItems.map(function(x){ return {nome:(x.nome||"").trim(), qta:(x.qta||"").trim()}; }).filter(function(x){ return x.nome; }); if(!pit.length){ toast("Aggiungi almeno un alimento"); return; } rec={tipo:"pasto", items:pit, ora:document.getElementById("progPastoOra").value||""}; }
+    else if(progTipo==="eser"){ var eit=progEserItems.map(function(x){ return {nome:(x.nome||"").trim(), durataMin:(x.durataMin||"").replace(/[^\d]/g,"")}; }).filter(function(x){ return x.nome; }); if(!eit.length){ toast("Aggiungi almeno un esercizio"); return; } rec={tipo:"eser", items:eit, ora:document.getElementById("progEserOra").value||""}; }
     else { var mx=(document.getElementById("progFumoMax").value||"").replace(/[^\d]/g,""); if(!mx){ toast("Scrivi il massimo di sigarette"); return; } rec={tipo:"fumo", maxGiorno:parseInt(mx,10), oreMin:(document.getElementById("progFumoOre").value||"").replace(",",".").replace(/[^\d.]/g,"")}; }
     if(progTipo!=="fumo"){ rec.ripeti=progRipeti; if(progRipeti==="sett"){ rec.giorni=Object.keys(progGiorniSel).map(function(k){return parseInt(k,10);}); if(!rec.giorni.length){ toast("Scegli almeno un giorno"); return; } } if(progRipeti==="mese"){ rec.giornoMese=(document.getElementById("progGiornoMese").value||"").replace(/[^\d]/g,""); if(!rec.giornoMese){ toast("Scrivi il giorno del mese"); return; } } }
     if(editingProgId){ rec.id=editingProgId; programma=programma.map(function(y){ return y.id===editingProgId?rec:y; }); cancelEditProg(); toast("Modifica salvata ✓"); }
