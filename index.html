@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 38; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 39; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -877,24 +877,6 @@
       <div class="brandtext"><h1>Alimentazione</h1><p class="sub" id="alimDate"></p></div>
     </header>
     <section class="card">
-      <div class="row-between"><h2 class="section-title" style="margin:0">Acqua</h2><span id="waterSummary" class="stat-summary"></span></div>
-      <div class="water">
-        <div class="stepper">
-          <button type="button" id="waterMinus" aria-label="Togli un bicchiere">−</button>
-          <span class="val" id="waterVal">0</span>
-          <button type="button" id="waterPlus" aria-label="Aggiungi un bicchiere">＋</button>
-        </div>
-        <div class="water-info"><span id="waterLiters">0 L</span><span class="water-goal">obiettivo 2 L · 8 bicchieri</span></div>
-      </div>
-      <div class="water-track"><div class="water-fill" id="waterFill"></div></div>
-      <button class="link-btn" id="waterTimeBtn" style="margin-top:10px">🕐 Aggiungi con orario</button>
-      <div class="detail" id="waterTimeForm" hidden>
-        <div class="field"><label for="waterTimeInput">A che ora l'hai bevuto</label><input type="time" id="waterTimeInput"></div>
-        <div class="panel-actions"><button class="primary" id="waterTimeSave">Aggiungi bicchiere</button><button class="link-btn" id="waterTimeCancel">Annulla</button></div>
-      </div>
-      <div id="waterTimes" class="water-times"></div>
-    </section>
-    <section class="card">
       <h2 class="section-title">Cosa hai mangiato</h2>
       <p class="fineprint" style="margin:2px 0 12px">Apri una categoria e tocca gli alimenti: finiscono nel <b>pasto</b> qui sotto, dove scrivi tipo e quantità. In ogni categoria puoi aggiungerne a mano.</p>
       <div id="foodCats"></div>
@@ -1015,7 +997,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v38</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v39</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1612,13 +1594,56 @@
     inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); btn.click(); } });
   }
 
-  // ---- Alimentazione: acqua (con orari) + cibi per categorie a scomparsa ----
-  var WATER_GOAL=8, WATER_ML=250;
-  var alimWater={}; try{ var _aw=JSON.parse(localStorage.getItem("salute-alim-water")); if(_aw && typeof _aw==="object") alimWater=_aw; }catch(e){}
-  function saveWater(){ try{ localStorage.setItem("salute-alim-water", JSON.stringify(alimWater)); }catch(e){} }
-  var alimWaterLog={}; try{ var _awl=JSON.parse(localStorage.getItem("salute-alim-water-log")); if(_awl && typeof _awl==="object") alimWaterLog=_awl; }catch(e){}
-  function saveWaterLog(){ try{ localStorage.setItem("salute-alim-water-log", JSON.stringify(alimWaterLog)); }catch(e){} }
-  function litersStr(g){ var l=Math.round(g*WATER_ML/1000*100)/100; return String(l).replace(".",",")+" L"; }
+  // ---- Suggerimenti mentre scrivi (datalist nativi, attinenti a funzione/categoria) ----
+  var FOOD_TYPES={
+    "Pasta":["Spaghetti","Penne","Fusilli","Rigatoni","Farfalle","Tagliatelle","Lasagne","Gnocchi","Ravioli","Tortellini","Linguine","Bucatini","Orecchiette","Pasta integrale"],
+    "Pane":["Bianco","Integrale","Ciabatta","Focaccia","Baguette","Ai cereali","Di segale","Panino","Toast","Grissini","Cracker"],
+    "Cereali":["Corn flakes","Avena","Muesli","Farro","Orzo","Fette biscottate"],
+    "Carne":["Pollo","Manzo","Maiale","Tacchino","Vitello","Agnello","Coniglio","Salsiccia","Hamburger","Bistecca"],
+    "Pesce":["Salmone","Tonno","Merluzzo","Orata","Branzino","Gamberi","Calamari","Sgombro","Alici","Platessa","Nasello","Cozze"],
+    "Legumi":["Ceci","Lenticchie","Fagioli","Piselli","Fave","Cannellini","Borlotti","Soia"],
+    "Formaggio":["Parmigiano","Mozzarella","Ricotta","Grana","Pecorino","Gorgonzola","Stracchino","Scamorza","Provola","Feta","Emmental"],
+    "Salumi":["Prosciutto crudo","Prosciutto cotto","Salame","Mortadella","Bresaola","Speck","Pancetta","Coppa"],
+    "Frutta":["Mela","Banana","Arancia","Pera","Kiwi","Uva","Fragole","Pesca","Melone","Anguria","Ananas","Mandarino","Albicocca","Ciliegie","Prugne"],
+    "Verdura":["Insalata","Pomodori","Zucchine","Melanzane","Spinaci","Broccoli","Carote","Zucca","Finocchi","Peperoni","Cavolfiore","Fagiolini","Patate","Cetrioli"]
+  };
+  var FOOD_CAT_SUGGEST={
+    liquidi:["Acqua","Acqua gasata","Tè","Tè verde","Camomilla","Caffè","Cappuccino","Latte","Latte di soia","Vino rosso","Vino bianco","Birra","Superalcolico","Amaro","Coca cola","Fanta","Aranciata","Succo di frutta","Spremuta","Tisana"],
+    carbo:["Pasta","Spaghetti","Penne","Riso","Risotto","Pane","Pane integrale","Focaccia","Pizza","Piadina","Patate","Patatine","Cereali","Corn flakes","Avena","Orzo","Farro","Couscous","Gnocchi","Polenta","Crackers","Fette biscottate"],
+    proteine:["Carne","Pollo","Manzo","Maiale","Tacchino","Pesce","Salmone","Tonno","Merluzzo","Gamberi","Uova","Legumi","Ceci","Lenticchie","Fagioli","Formaggio","Mozzarella","Parmigiano","Ricotta","Salumi","Prosciutto","Salame","Yogurt","Yogurt greco"],
+    grassi:["Olio EVO","Olio di semi","Burro","Frutta secca","Noci","Mandorle","Nocciole","Arachidi","Avocado","Olive","Margarina","Semi"],
+    fruttaverdura:["Frutta","Mela","Banana","Arancia","Pera","Kiwi","Uva","Fragole","Verdura","Insalata","Pomodori","Zucchine","Spinaci","Broccoli","Carote","Melanzane","Peperoni","Minestrone","Zuppa"],
+    condimenti:["Sale","Zucchero","Sugo","Salsa di pomodoro","Pesto","Maionese","Ketchup","Senape","Aceto","Aceto balsamico","Spezie","Pepe","Peperoncino","Origano","Basilico"],
+    dolci:["Dolci","Torta","Biscotti","Cioccolato","Cioccolata","Gelato","Merendine","Caramelle","Marmellata","Miele","Nutella","Croissant","Cornetto","Snack salati","Patatine"]
+  };
+  var SUG_FASTIDI=["Febbre","Brividi","Capogiri","Vertigini","Mal di testa","Emicrania","Nausea","Vomito","Stanchezza","Spossatezza","Fiato corto","Affanno","Tosse","Raffreddore","Mal di gola","Bruciore di stomaco","Acidità","Dolori addominali","Crampi addominali","Diarrea","Stitichezza","Gonfiore addominale","Dolori muscolari","Spasmi muscolari","Crampi","Mal di schiena","Dolori articolari","Dolore al petto","Tensione al collo","Cervicale","Formicolii","Fascicolazioni","Acufene","Nebbia mentale","Palpitazioni","Tachicardia","Caviglie gonfie","Gambe gonfie","Sudorazione notturna","Sudorazione","Insonnia","Sonnolenza","Prurito","Fastidio vescica","Vista offuscata"];
+  var SUG_PSICO=["Ansia","Stress","Attacco di panico","Angoscia","Tristezza","Umore basso","Depressione","Agitazione","Nervosismo","Irritabilità","Pensieri ossessivi","Preoccupazione","Paura","Apatia","Demotivazione","Confusione","Difficoltà di concentrazione","Rabbia","Senso di colpa","Euforia","Calma","Serenità"];
+  var SUG_URINA_COLORE=["Trasparente","Giallo paglierino","Giallo chiaro","Giallo","Giallo scuro","Ambrato","Arancione","Rosato","Rossastro","Marrone","Torbido","Schiumoso"];
+  var SUG_QTA=["Poca","Scarsa","Normale","Media","Molta","Abbondante"];
+  var SUG_URINA_FASTIDI=["Bruciore","Urgenza","Difficoltà a urinare","Dolore","Gocciolamento","Cattivo odore","Sangue","Minzione frequente"];
+  var SUG_FECI_COLORE=["Marrone","Marrone scuro","Marrone chiaro","Giallo","Verde","Nero","Chiaro/pallido","Rossastro","Arancione"];
+  var SUG_FECI_MORB=["Dure a palline","Dure e grumose","Screpolate","Morbide e lisce","Morbide a pezzi","Poltacee","Liquide","Acquose"];
+  var SUG_FLUSSO=["Scarso","Leggero","Regolare","Normale","Abbondante","Molto abbondante","Con coaguli"];
+  var SUG_ANTIC=["Nessuno","Pillola","Cerotto","Anello","Spirale/IUD","Spirale ormonale","Iniezione","Impianto","Preservativo"];
+  var SUG_ATTIVITA=["Camminata","Corsa","Giri in terrazza","Cyclette","Bicicletta","Nuoto","Palestra","Stretching","Yoga","Pilates","Esercizi collo/schiena","Squat e piegamenti","Addominali","Respirazione","Ballo","Passeggiata col cane"];
+  function mkDatalist(id, opts){ if(document.getElementById(id)) return; var dl=document.createElement("datalist"); dl.id=id; opts.forEach(function(o){ var op=document.createElement("option"); op.value=o; dl.appendChild(op); }); document.body.appendChild(dl); }
+  function typeListId(nome){ return "dlt_"+String(nome).replace(/[^a-zA-Z]/g,""); }
+  (function(){
+    Object.keys(FOOD_TYPES).forEach(function(k){ mkDatalist(typeListId(k), FOOD_TYPES[k]); });
+    Object.keys(FOOD_CAT_SUGGEST).forEach(function(k){ mkDatalist("dlcat_"+k, FOOD_CAT_SUGGEST[k]); });
+    mkDatalist("dlSugFastidi", SUG_FASTIDI); mkDatalist("dlSugPsico", SUG_PSICO);
+    mkDatalist("dlUrinaColore", SUG_URINA_COLORE); mkDatalist("dlQta", SUG_QTA); mkDatalist("dlUrinaFastidi", SUG_URINA_FASTIDI);
+    mkDatalist("dlFeciColore", SUG_FECI_COLORE); mkDatalist("dlFeciMorb", SUG_FECI_MORB);
+    mkDatalist("dlFlusso", SUG_FLUSSO); mkDatalist("dlAntic", SUG_ANTIC); mkDatalist("dlSugAttivita", SUG_ATTIVITA);
+    function attach(id, dl){ var el=document.getElementById(id); if(el){ el.setAttribute("list", dl); el.setAttribute("autocomplete","off"); } }
+    attach("fastidiAddInput","dlSugFastidi"); attach("psicoAddInput","dlSugPsico");
+    attach("urinaColoreInput","dlUrinaColore"); attach("urinaQtaInput","dlQta"); attach("urinaFastidiInput","dlUrinaFastidi");
+    attach("feciColoreInput","dlFeciColore"); attach("feciQtaInput","dlQta"); attach("feciMorbInput","dlFeciMorb");
+    attach("cicloFlussoInput","dlFlusso"); attach("cicloAnticInput","dlAntic");
+    attach("eserAddInput","dlSugAttivita"); attach("pilNome","dlFarmaci");
+  })();
+
+  // ---- Alimentazione: cibi per categorie a scomparsa (acqua = voce in Liquidi) ----
   // categorie a scomparsa; alcuni cibi chiedono il "tipo"; aggiunta manuale che resta in ogni categoria
   var FOOD_CATS=[
     {key:"liquidi", label:"🥤 Liquidi", foods:["Acqua","Acqua gasata","Tè","Caffè","Latte","Vino","Birra","Superalcolico","Coca cola","Aranciata","Succo di frutta","Spremuta"], typed:[]},
@@ -1650,7 +1675,7 @@
       });
       body.appendChild(chips);
       var add=document.createElement("div"); add.className="chip-add";
-      var inp=document.createElement("input"); inp.type="text"; inp.placeholder="Aggiungi un alimento…";
+      var inp=document.createElement("input"); inp.type="text"; inp.placeholder="Aggiungi un alimento…"; inp.setAttribute("list","dlcat_"+c.key); inp.setAttribute("autocomplete","off");
       var addBtn=document.createElement("button"); addBtn.type="button"; addBtn.textContent="＋";
       function doAdd(){ var v=(inp.value||"").trim(); if(!v) return; if(foodsFor(c).indexOf(v)>=0){ toast("Già presente"); return; } (foodCustom[c.key]=foodCustom[c.key]||[]).push(v); try{ localStorage.setItem("salute-cibo-"+c.key, JSON.stringify(foodCustom[c.key])); }catch(e){} inp.value=""; renderFoodCats(); }
       addBtn.onclick=doAdd; inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); doAdd(); } });
@@ -1663,7 +1688,7 @@
     pasto.forEach(function(it, idx){
       var row=document.createElement("div"); row.className="pasto-row";
       var nm=document.createElement("span"); nm.className="pr-nome"; nm.textContent=it.nome; row.appendChild(nm);
-      if(it.typed){ var ti=document.createElement("input"); ti.type="text"; ti.placeholder="tipo (es. spaghetti)"; ti.value=it.tipo; ti.oninput=function(){ it.tipo=ti.value; }; row.appendChild(ti); }
+      if(it.typed){ var ti=document.createElement("input"); ti.type="text"; ti.placeholder="tipo (es. spaghetti)"; ti.value=it.tipo; if(FOOD_TYPES[it.nome]){ ti.setAttribute("list", typeListId(it.nome)); ti.setAttribute("autocomplete","off"); } ti.oninput=function(){ it.tipo=ti.value; }; row.appendChild(ti); }
       var qi=document.createElement("input"); qi.type="text"; qi.placeholder="quantità (es. 100 g)"; qi.value=it.qta; qi.oninput=function(){ it.qta=qi.value; }; row.appendChild(qi);
       var del=document.createElement("button"); del.type="button"; del.className="pr-del"; del.textContent="×"; del.setAttribute("aria-label","Togli"); del.onclick=function(){ pasto.splice(idx,1); renderPasto(); }; row.appendChild(del);
       host.appendChild(row);
@@ -1673,26 +1698,9 @@
   function cibiText(x){ if(x.items&&x.items.length) return x.items.map(foodItemText).join(", "); return (x.cibi||[]).join(", "); }
   var ciboLog=[]; try{ var _cl=JSON.parse(localStorage.getItem("salute-cibo-log")); if(Array.isArray(_cl)) ciboLog=_cl; }catch(e){}
   function saveCiboLog(){ try{ localStorage.setItem("salute-cibo-log", JSON.stringify(ciboLog)); }catch(e){} }
-  function renderWaterTimes(dK){
-    var host=document.getElementById("waterTimes"); if(!host) return; host.innerHTML="";
-    var times=(alimWaterLog[dK]||[]).slice().sort(function(a,b){return a-b;});
-    times.forEach(function(ts){
-      var el=document.createElement("span"); el.className="wt"; el.appendChild(document.createTextNode("💧 "+hhmm(new Date(ts))));
-      var x=document.createElement("button"); x.type="button"; x.textContent="×"; x.setAttribute("aria-label","Togli");
-      x.onclick=function(){ var arr=alimWaterLog[dK]||[]; var i=arr.indexOf(ts); if(i>=0){ arr.splice(i,1); saveWaterLog(); } var g=(alimWater[dK]||0)-1; alimWater[dK]=g<0?0:g; saveWater(); renderAlim(); };
-      el.appendChild(x); host.appendChild(el);
-    });
-  }
   function renderAlim(){
     var now=new Date(), dK=dayKey(now);
     document.getElementById("alimDate").textContent=fmtDayLong(now);
-    var g=alimWater[dK]||0;
-    document.getElementById("waterVal").textContent=g;
-    document.getElementById("waterLiters").textContent=litersStr(g);
-    document.getElementById("waterFill").style.width=Math.min(100, Math.round(g/WATER_GOAL*100))+"%";
-    var ws=document.getElementById("waterSummary");
-    ws.textContent=g+"/"+WATER_GOAL+" bicchieri"; ws.style.color=(g>=WATER_GOAL)?"var(--lvl-low)":"var(--muted)";
-    renderWaterTimes(dK);
     var host=document.getElementById("ciboLog"); host.innerHTML="";
     var today=ciboLog.filter(function(x){ return dayKey(new Date(x.ts))===dK; }).sort(function(a,b){ return b.ts-a.ts; });
     if(!today.length){ host.innerHTML='<div class="empty">Nessun pasto segnato oggi.</div>'; }
@@ -1704,21 +1712,6 @@
       row.appendChild(del); host.appendChild(row);
     });
   }
-  function waterAdd(n, atTs){
-    var dK=dayKey(new Date()), g=(alimWater[dK]||0)+n; if(g<0)g=0; if(g>30)g=30; alimWater[dK]=g; saveWater();
-    if(n>0){ (alimWaterLog[dK]=alimWaterLog[dK]||[]).push(atTs||Date.now()); saveWaterLog(); }
-    else if(n<0){ var arr=alimWaterLog[dK]||[]; if(arr.length){ arr.pop(); saveWaterLog(); } }
-    renderAlim();
-  }
-  document.getElementById("waterPlus").onclick=function(){ waterAdd(1); };
-  document.getElementById("waterMinus").onclick=function(){ waterAdd(-1); };
-  document.getElementById("waterTimeBtn").onclick=function(){ var f=document.getElementById("waterTimeForm"); f.hidden=!f.hidden; if(!f.hidden){ document.getElementById("waterTimeInput").value=hhmm(new Date()); } };
-  document.getElementById("waterTimeCancel").onclick=function(){ document.getElementById("waterTimeForm").hidden=true; };
-  document.getElementById("waterTimeSave").onclick=function(){
-    var t=document.getElementById("waterTimeInput").value; if(!t){ toast("Metti l'ora"); return; }
-    var now=new Date(), parts=t.split(":"), d=new Date(now.getFullYear(),now.getMonth(),now.getDate(),parseInt(parts[0],10)||0,parseInt(parts[1],10)||0);
-    waterAdd(1, d.getTime()); document.getElementById("waterTimeForm").hidden=true;
-  };
   document.getElementById("ciboSave").onclick=function(){
     if(!pasto.length){ toast("Apri una categoria e tocca cosa hai mangiato"); return; }
     var items=pasto.map(function(it){ return {nome:it.nome, tipo:(it.tipo||"").trim(), qta:(it.qta||"").trim()}; });
@@ -2128,17 +2121,12 @@
   }
   function repAlim(s,e){
     var h='<h2>🍎 Alimentazione</h2>';
-    var wdays=Object.keys(alimWater).filter(function(k){ var t=new Date(k+"T00:00:00").getTime(); return t>=s&&t<=e; }).sort();
     var meals=ciboLog.filter(function(x){return x.ts>=s&&x.ts<=e;}).sort(function(a,b){return a.ts-b.ts;});
-    if(!wdays.length && !meals.length) return h+'<p class="rep-empty">Nessun dato nel periodo.</p>';
-    if(wdays.length){ var tw=0; wdays.forEach(function(k){ tw+=alimWater[k]; });
-      h+='<p class="rep-sum">Acqua: media <b>'+String(Math.round(tw/wdays.length*10)/10).replace(".",",")+'</b> bicchieri/giorno ('+wdays.length+' giorni)</p>';
-      h+=svgBars(bucketSeries(wdays.map(function(k){return {ts:new Date(k+"T00:00:00").getTime(), g:alimWater[k]};}),function(x){return x.ts;},function(x){return x.g;},(e-s)>45*86400000),"#16A34A"); }
-    if(meals.length){
-      h+='<table><tr><th>Quando</th><th>Alimenti</th></tr>';
-      meals.forEach(function(m){ h+='<tr><td>'+dmt(m.ts)+'</td><td>'+e2(cibiText(m))+'</td></tr>'; });
-      h+='</table>';
-    }
+    if(!meals.length) return h+'<p class="rep-empty">Nessun pasto nel periodo.</p>';
+    h+='<p class="rep-sum">Pasti registrati: <b>'+meals.length+'</b></p>';
+    h+='<table><tr><th>Quando</th><th>Alimenti</th></tr>';
+    meals.forEach(function(m){ h+='<tr><td>'+dmt(m.ts)+'</td><td>'+e2(cibiText(m))+'</td></tr>'; });
+    h+='</table>';
     return h;
   }
   function repSalute(s,e){
@@ -2316,8 +2304,8 @@
     var se=document.getElementById("st-eserc");
     if(attivRunning){ se.textContent="in corso: "+attivRunning.nome; se.style.color="var(--good)"; }
     else { var ta=attivLog.filter(function(x){return dayKey(new Date(x.tsEnd))===dK;}); if(ta.length){ var tt=0; ta.forEach(function(x){tt+=x.dur;}); se.textContent=ta.length+" oggi · "+fmtDur(tt); se.style.color="var(--ink-soft)"; } else { se.textContent="da iniziare"; se.style.color="var(--muted)"; } }
-    var g=alimWater[dK]||0, sa=document.getElementById("st-alim");
-    if(g>0){ sa.textContent=g+"/"+WATER_GOAL+" bicchieri"; sa.style.color=(g>=WATER_GOAL)?"var(--lvl-low)":"var(--muted)"; }
+    var mealsToday=ciboLog.filter(function(x){return dayKey(new Date(x.ts))===dK;}).length, sa=document.getElementById("st-alim");
+    if(mealsToday>0){ sa.textContent=mealsToday+(mealsToday===1?" pasto":" pasti")+" oggi"; sa.style.color="var(--ink-soft)"; }
     else { sa.textContent="da iniziare"; sa.style.color="var(--muted)"; }
     var ss=document.getElementById("st-salute");
     if(saluteLog.length){ var last=saluteLog.slice().sort(function(a,b){return b.ts-a.ts;})[0], vv=last.voci||[]; ss.textContent=vv.length>2?(vv.slice(0,2).join(", ")+"…"):vv.join(", "); ss.style.color="var(--ink-soft)"; }
@@ -2331,12 +2319,12 @@
     var box=document.getElementById("suggestions"); if(!box) return;
     box.innerHTML="";
     var dK=dayKey(new Date());
-    var pt=Pillole.today(), g=alimWater[dK]||0;
+    var pt=Pillole.today();
     var items=[];
     items.push({e:"🚬", t:"Registra una sigaretta", m:"fumo"});
     items.push({e:"💊", t:(pt.total===0?"Imposta le tue pillole":(pt.late>0?(pt.late===1?"Prendi la pillola in ritardo":"Prendi le "+pt.late+" pillole in ritardo"):"Segna le pillole di oggi")), m:"pillole", cls:(pt.late>0?"urgent":"")});
     items.push({e:(attivRunning?"⏱️":"🏃"), t:(attivRunning?"Termina: "+attivRunning.nome:"Avvia un'attività fisica"), m:"esercizio", cls:(attivRunning?"urgent":"")});
-    items.push({e:"🍎", t:(g<WATER_GOAL?"Bevi acqua ("+g+"/"+WATER_GOAL+") o segna un pasto":"Segna cosa hai mangiato"), m:"alimentazione"});
+    items.push({e:"🍎", t:"Segna cosa hai mangiato", m:"alimentazione"});
     items.push({e:"🩺", t:"Segna come ti senti (fastidi)", m:"salute"});
     items.push({e:"🚽", t:"Registra un'evacuazione", m:"evac"});
     items.push({e:"📁", t:"Allega un referto o un documento", m:"__docs"});
