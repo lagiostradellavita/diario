@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 59; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 60; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1230,7 +1230,7 @@
     <p class="fineprint" style="text-align:center; margin:0">L'avviso è <b>in-app</b> (agenda + suggerimenti in Home): l'app non può far squillare una notifica. Per un promemoria che suona, usa una Sveglia/Promemoria iOS.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v59</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v60</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3200,7 +3200,9 @@
   };
   renderProgramma();
 
+  var currentMod="menu", lastDay="";
   function showMod(m){
+    currentMod=m; lastDay=dayKey(new Date());
     if(attivInterval){ clearInterval(attivInterval); attivInterval=null; }
     ["fumo","pillole","esercizio","alimentazione","salute","evac","programma"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
     document.getElementById("menu").hidden=(m!=="menu");
@@ -3217,6 +3219,14 @@
   }
   Array.prototype.forEach.call(document.querySelectorAll(".menu-card"), function(c){ c.onclick=function(){ showMod(c.dataset.mod); }; });
   Array.prototype.forEach.call(document.querySelectorAll("[data-back]"), function(b){ b.onclick=function(){ showMod("menu"); }; });
+
+  // Cambio giorno: quando scatta la mezzanotte (app aperta o riaperta), l'agenda passa al nuovo
+  // giorno con le caselle vuote. I dati già registrati (spunte→ciboLog/attivLog, progFatti per
+  // giorno) NON si toccano: restano per lo storico e i report.
+  function checkDayRollover(){ try{ var d=dayKey(new Date()); if(lastDay && d!==lastDay){ lastDay=d; showMod(currentMod); } }catch(e){} }
+  try{ document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="visible") checkDayRollover(); }); }catch(e){}
+  try{ window.addEventListener("focus", checkDayRollover); }catch(e){}
+  try{ setInterval(checkDayRollover, 60000); }catch(e){}
 
   render();
   showMod("menu");
