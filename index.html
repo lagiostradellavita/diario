@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 52; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 53; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -370,6 +370,8 @@
   .prog-plan-row{display:flex; align-items:center; gap:8px; padding:11px 2px; border-bottom:1px solid var(--line); position:relative;}
   .prog-plan-row:last-child{border-bottom:none;}
   .prog-plan-row .pp-name{flex:1; font-size:15.5px; font-weight:650; min-width:0; overflow-wrap:anywhere;}
+  .prog-kcal{padding:10px 12px; border-radius:12px; margin-bottom:8px; background:color-mix(in srgb, var(--accent) 9%, var(--surface)); border:1px solid color-mix(in srgb, var(--accent) 22%, var(--line)); font-size:15px; font-weight:750; color:var(--ink-soft);}
+  .prog-kcal b{color:var(--ink); font-weight:850;}
   .pasto-row .pr-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:9px; width:34px; height:34px; font-size:18px; cursor:pointer; touch-action:manipulation;}
   #cicloNote, #notaGiornata, #dietaPiano{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
   .ciclo-prev{margin:10px 0 2px; padding:12px 14px; border-radius:14px; background:var(--surface-2); border:1px solid var(--line); font-size:15.5px; font-weight:700; color:var(--ink-soft); line-height:1.45;}
@@ -1181,6 +1183,15 @@
             <div class="field"><label for="progFumoOre">Min. ore tra una e l'altra</label><input type="text" id="progFumoOre" inputmode="decimal" placeholder="facolt., es. 1,5" autocomplete="off"></div>
           </div>
         </div>
+        <div class="field" id="progRipetiWrap"><label>Ripeti</label>
+          <div class="seg" id="progRipetiSeg" style="grid-template-columns:1fr 1fr 1fr; --c:#6366F1">
+            <button type="button" data-r="ogni" class="on">Ogni giorno</button>
+            <button type="button" data-r="sett">Settimana</button>
+            <button type="button" data-r="mese">Mese</button>
+          </div>
+        </div>
+        <div class="field" id="progGiorniWrap" hidden><label>Giorni della settimana</label><div id="progGiorni" class="chips"></div></div>
+        <div class="field" id="progGiornoMeseWrap" hidden><label for="progGiornoMese">Giorno del mese</label><input type="text" id="progGiornoMese" inputmode="numeric" placeholder="es. 15" autocomplete="off"></div>
         <div class="panel-actions"><button class="primary" id="progSave">Aggiungi</button><button class="link-btn" id="progCancel">Annulla</button></div>
       </div>
       <div id="progList" style="margin-top:10px"></div>
@@ -1188,7 +1199,7 @@
     <p class="fineprint" style="text-align:center; margin:0">L'avviso è <b>in-app</b> (agenda + suggerimenti in Home): l'app non può far squillare una notifica. Per un promemoria che suona, usa una Sveglia/Promemoria iOS.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v52</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v53</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1774,7 +1785,9 @@
   // ---- helper condivisi ----
   var TRASH='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
   var PENCIL='<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
+  var COPY='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
   function editBtn(fn){ var b=document.createElement("button"); b.type="button"; b.className="edit"; b.setAttribute("aria-label","Modifica"); b.innerHTML=PENCIL; b.onclick=fn; return b; }
+  function cloneBtn(fn){ var b=document.createElement("button"); b.type="button"; b.className="edit"; b.setAttribute("aria-label","Clona"); b.innerHTML=COPY; b.onclick=fn; return b; }
   function scrollToEl(el){ try{ el.scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){} }
   // «adesso o orario a mano»: helper condivisi per il selettore data/ora facoltativo
   function whenToggle(wrapId, dataId, oraId){ var w=document.getElementById(wrapId); if(!w) return; w.hidden=!w.hidden; if(!w.hidden){ var n=new Date(); document.getElementById(dataId).value=ymd(n); document.getElementById(oraId).value=hhmm(n); } }
@@ -2909,6 +2922,7 @@
       var nowMin2=new Date().getHours()*60+new Date().getMinutes();
       programma.forEach(function(it){
         if(it.tipo==="fumo"){ var cnt=fumoTodayCount(), max=parseInt(it.maxGiorno,10)||0; if(max>0 && cnt>=max) items.push({e:"🚬", t:(cnt>max?"Limite sigarette superato ("+cnt+"/"+max+")":"Limite sigarette raggiunto ("+cnt+"/"+max+")"), m:"programma", cls:"urgent"}); return; }
+        if(!itemAppliesToday(it)) return;
         if(todayFattoRec(it.id)) return;
         if(it.ora && nowMin2>=hhmmToMin(it.ora)-10){ var lbl=(it.nome||"")+(it.qta?" "+it.qta:"")+(it.durataMin?" "+it.durataMin+" min":""); items.push({e:(it.tipo==="pasto"?"🍽️":"🏃"), t:"Programma: "+lbl+(it.ora?" ("+it.ora+")":""), m:"programma", cls:(nowMin2>hhmmToMin(it.ora)?"urgent":"")}); }
       });
@@ -2973,12 +2987,16 @@
   var progFatti={}; try{ var _pf=JSON.parse(localStorage.getItem("salute-programma-fatti")); if(_pf&&typeof _pf==="object") progFatti=_pf; }catch(e){}
   function saveProgFatti(){ try{ localStorage.setItem("salute-programma-fatti", JSON.stringify(progFatti)); }catch(e){} }
   (function(){ var all=[]; try{ Object.keys(FOOD_CAT_SUGGEST).forEach(function(k){ FOOD_CAT_SUGGEST[k].forEach(function(f){ if(all.indexOf(f)<0) all.push(f); }); }); }catch(e){} all.sort(function(a,b){return a.localeCompare(b,"it");}); mkDatalist("dlProgFood", all); })();
+  function progPastoKcal(it){ var e=estimateKcal({nome:it.nome, tipo:"", qta:it.qta}); return (e==null)?null:e; }
   function progItemLabel(it){
-    if(it.tipo==="pasto") return "🍽️ "+it.nome+(it.qta?" "+it.qta:"")+(it.ora?" · "+it.ora:"");
-    if(it.tipo==="eser") return "🏃 "+it.nome+(it.durataMin?" "+it.durataMin+" min":"")+(it.ora?" · "+it.ora:"");
+    if(it.tipo==="pasto"){ var kc=progPastoKcal(it); return "🍽️ "+it.nome+(it.qta?" "+it.qta:"")+(kc!=null?" · "+kc+" kcal":""); }
+    if(it.tipo==="eser") return "🏃 "+it.nome+(it.durataMin?" "+it.durataMin+" min":"");
     if(it.tipo==="fumo") return "🚬 Max "+it.maxGiorno+"/giorno"+(it.oreMin?" · ≥"+String(it.oreMin).replace(".",",")+" h tra una e l'altra":"");
     return "";
   }
+  var GIORNI_MAP={1:"Lun",2:"Mar",3:"Mer",4:"Gio",5:"Ven",6:"Sab",0:"Dom"};
+  function progRipetiLabel(it){ var r=it.ripeti||"ogni"; if(r==="ogni") return "ogni giorno"; if(r==="sett"){ var g=(it.giorni||[]).slice().sort(function(a,b){ return ((a+6)%7)-((b+6)%7); }); return g.length? g.map(function(d){return GIORNI_MAP[d];}).join(", ") : "nessun giorno"; } if(r==="mese") return "il "+it.giornoMese+" del mese"; return ""; }
+  function itemAppliesToday(it){ var r=it.ripeti||"ogni"; if(r==="ogni") return true; var now=new Date(); if(r==="sett") return (it.giorni||[]).indexOf(now.getDay())>=0; if(r==="mese") return now.getDate()===(parseInt(it.giornoMese,10)||0); return true; }
   function todayFattoRec(itemId){ var dK=dayKey(new Date()); return (progFatti[dK] && progFatti[dK][itemId])||null; }
   function progDoItem(it){
     var dK=dayKey(new Date()), now=Date.now(), logId=uid(), modulo="";
@@ -2994,7 +3012,7 @@
     delete progFatti[dK][it.id]; saveProgFatti(); renderProgramma();
   }
   function progFumoRule(){ var r=null; programma.forEach(function(it){ if(it.tipo==="fumo") r=it; }); return r; }
-  function progTodayStatus(){ var tot=0, done=0; programma.forEach(function(it){ if(it.tipo==="fumo") return; tot++; if(todayFattoRec(it.id)) done++; }); try{ Pillole.today().doses.forEach(function(d){ tot++; if(d.taken) done++; }); }catch(e){} return {total:tot, done:done}; }
+  function progTodayStatus(){ var tot=0, done=0; programma.forEach(function(it){ if(it.tipo==="fumo") return; if(!itemAppliesToday(it)) return; tot++; if(todayFattoRec(it.id)) done++; }); try{ Pillole.today().doses.forEach(function(d){ tot++; if(d.taken) done++; }); }catch(e){} return {total:tot, done:done}; }
   function fumoTodayCount(){ var dK=dayKey(new Date()), n=0; entries.forEach(function(e){ if(dayKey(new Date(e.ts))===dK) n+=Math.max(1,e.q|0); }); return n; }
   function fumoLastTs(){ var dK=dayKey(new Date()), last=0; entries.forEach(function(e){ var t=+new Date(e.ts); if(dayKey(new Date(t))===dK && t>last) last=t; }); return last; }
   function renderProgramma(){
@@ -3010,19 +3028,22 @@
       if(fr.oreMin){ var last=fumoLastTs(); if(last){ var nextOk=last+parseFloat(String(fr.oreMin).replace(",","."))*3600000, diff=Math.round((nextOk-Date.now())/60000); msg+=diff>0?(" · prossima tra ~"+diff+" min"):" · puoi fumare"; } }
       fb.innerHTML=msg; host.appendChild(fb);
     }
+    // calorie previste oggi (dai pasti programmati)
+    var plannedKcal=0; programma.forEach(function(it){ if(it.tipo==="pasto" && itemAppliesToday(it)){ var k=progPastoKcal(it); if(k) plannedKcal+=k; } });
+    if(plannedKcal>0){ var kl=document.createElement("div"); kl.className="prog-kcal"; var tg=(typeof dieta!=="undefined"&&dieta)?(parseInt(dieta.target,10)||0):0; kl.innerHTML="🍽️ Calorie previste oggi: <b>"+plannedKcal+"</b> kcal"+(tg?" / obiettivo <b>"+tg+"</b>":""); host.appendChild(kl); }
     var ent=[];
-    programma.forEach(function(it){ if(it.tipo==="fumo") return; var rec=todayFattoRec(it.id); ent.push({oraMin: it.ora?hhmmToMin(it.ora):9999, ora:it.ora||"", item:it, done:!!rec, late:(!rec && it.ora && nowMin>hhmmToMin(it.ora)), kind:"prog"}); });
+    programma.forEach(function(it){ if(it.tipo==="fumo") return; if(!itemAppliesToday(it)) return; var rec=todayFattoRec(it.id); ent.push({oraMin: it.ora?hhmmToMin(it.ora):9999, ora:it.ora||"", item:it, done:!!rec, late:(!rec && it.ora && nowMin>hhmmToMin(it.ora)), kind:"prog"}); });
     try{ Pillole.today().doses.forEach(function(d){ ent.push({oraMin:hhmmToMin(d.ora), ora:d.ora, pill:d, done:d.taken, late:d.late, kind:"pill"}); }); }catch(e){}
     ent.sort(function(a,b){ return a.oraMin-b.oraMin; });
     var doneN=0;
-    if(!ent.length){ if(!fr) host.innerHTML+='<div class="empty">Niente in programma per oggi.<br>Aggiungilo qui sotto.</div>'; }
+    if(!ent.length && !plannedKcal){ if(!fr) host.innerHTML+='<div class="empty">Niente in programma per oggi.<br>Aggiungilo qui sotto.</div>'; }
     ent.forEach(function(e){
       var row=document.createElement("div"); row.className="prog-row"+(e.done?" done":"")+(e.late&&!e.done?" late":"");
       var chk=document.createElement("span"); chk.className="pcheck"; chk.textContent="✓";
       var nm=document.createElement("span"); nm.className="pname";
       var tm=document.createElement("span"); tm.className="ptime"; tm.textContent=e.ora||"";
       if(e.kind==="pill"){ nm.textContent="💊 "+e.pill.nome; chk.onclick=function(){ Pillole.check(e.pill.key); renderProgramma(); }; }
-      else { nm.textContent=progItemLabel(e.item).replace(/ · \d\d:\d\d$/,""); chk.onclick=function(){ if(e.done) progUndoItem(e.item); else progDoItem(e.item); }; }
+      else { nm.textContent=progItemLabel(e.item); chk.onclick=function(){ if(e.done) progUndoItem(e.item); else progDoItem(e.item); }; }
       if(e.done) doneN++;
       row.appendChild(chk); row.appendChild(nm); row.appendChild(tm); host.appendChild(row);
     });
@@ -3031,22 +3052,28 @@
     if(!programma.length){ plist.innerHTML='<div class="empty">Nessuna voce. Tocca «＋ Aggiungi al programma».</div>'; return; }
     programma.slice().sort(function(a,b){ return (a.ora?hhmmToMin(a.ora):9999)-(b.ora?hhmmToMin(b.ora):9999); }).forEach(function(it){
       var row=document.createElement("div"); row.className="prog-plan-row";
-      var nm=document.createElement("span"); nm.className="pp-name"; nm.textContent=progItemLabel(it); row.appendChild(nm);
+      var nm=document.createElement("span"); nm.className="pp-name"; var lbl=progItemLabel(it); if(it.tipo!=="fumo") lbl+=(it.ora?" · "+it.ora:"")+" · "+progRipetiLabel(it); nm.textContent=lbl; row.appendChild(nm);
+      row.appendChild(cloneBtn(function(){ var copy=JSON.parse(JSON.stringify(it)); copy.id=uid(); programma.push(copy); saveProgramma(); renderProgramma(); startEditProg(copy); toast("Clonata — modificala e salva"); }));
       row.appendChild(editBtn(function(){ startEditProg(it); }));
       var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
       del.onclick=function(){ programma=programma.filter(function(y){return y.id!==it.id;}); if(editingProgId===it.id) cancelEditProg(); saveProgramma(); renderProgramma(); };
       row.appendChild(del); plist.appendChild(row);
     });
   }
-  var editingProgId=null, progTipo="pasto";
-  function progShowTipo(t){ progTipo=t; Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.className=(b.dataset.t===t)?"on":""; }); document.getElementById("progPasto").hidden=(t!=="pasto"); document.getElementById("progEser").hidden=(t!=="eser"); document.getElementById("progFumo").hidden=(t!=="fumo"); }
+  var editingProgId=null, progTipo="pasto", progRipeti="ogni", progGiorniSel={};
+  var GIORNI=[{n:1,l:"Lun"},{n:2,l:"Mar"},{n:3,l:"Mer"},{n:4,l:"Gio"},{n:5,l:"Ven"},{n:6,l:"Sab"},{n:0,l:"Dom"}];
+  function renderProgGiorni(){ var host=document.getElementById("progGiorni"); if(!host) return; host.innerHTML=""; GIORNI.forEach(function(g){ var b=document.createElement("button"); b.type="button"; b.className="chip-sel"+(progGiorniSel[g.n]?" on":""); b.textContent=g.l; b.onclick=function(){ if(progGiorniSel[g.n]) delete progGiorniSel[g.n]; else progGiorniSel[g.n]=true; b.classList.toggle("on"); }; host.appendChild(b); }); }
+  function progShowRipeti(r){ progRipeti=r; Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.className=(b.dataset.r===r)?"on":""; }); document.getElementById("progGiorniWrap").hidden=(r!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(r!=="mese"); if(r==="sett") renderProgGiorni(); }
+  Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.onclick=function(){ progShowRipeti(b.dataset.r); }; });
+  function progShowTipo(t){ progTipo=t; Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.className=(b.dataset.t===t)?"on":""; }); document.getElementById("progPasto").hidden=(t!=="pasto"); document.getElementById("progEser").hidden=(t!=="eser"); document.getElementById("progFumo").hidden=(t!=="fumo"); document.getElementById("progRipetiWrap").hidden=(t==="fumo"); if(t==="fumo"){ document.getElementById("progGiorniWrap").hidden=true; document.getElementById("progGiornoMeseWrap").hidden=true; } else { document.getElementById("progGiorniWrap").hidden=(progRipeti!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(progRipeti!=="mese"); } }
   Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.onclick=function(){ progShowTipo(b.dataset.t); }; });
-  function progResetForm(){ progShowTipo("pasto"); ["progPastoNome","progPastoQta","progPastoOra","progEserNome","progEserDur","progEserOra","progFumoMax","progFumoOre"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); document.getElementById("progSave").textContent="Aggiungi"; }
+  function progResetForm(){ progGiorniSel={}; progShowTipo("pasto"); progShowRipeti("ogni"); ["progPastoNome","progPastoQta","progPastoOra","progEserNome","progEserDur","progEserOra","progFumoMax","progFumoOre","progGiornoMese"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); document.getElementById("progSave").textContent="Aggiungi"; }
   function cancelEditProg(){ editingProgId=null; document.getElementById("progSave").textContent="Aggiungi"; }
   document.getElementById("progAddBtn").onclick=function(){ var f=document.getElementById("progForm"); if(f.hidden){ editingProgId=null; progResetForm(); f.hidden=false; } else { f.hidden=true; cancelEditProg(); } };
   document.getElementById("progCancel").onclick=function(){ document.getElementById("progForm").hidden=true; cancelEditProg(); };
   function startEditProg(it){
-    editingProgId=it.id; progShowTipo(it.tipo);
+    editingProgId=it.id; progGiorniSel={}; (it.giorni||[]).forEach(function(d){ progGiorniSel[d]=true; });
+    progShowTipo(it.tipo); progShowRipeti(it.ripeti||"ogni"); document.getElementById("progGiornoMese").value=it.giornoMese||"";
     if(it.tipo==="pasto"){ document.getElementById("progPastoNome").value=it.nome||""; document.getElementById("progPastoQta").value=it.qta||""; document.getElementById("progPastoOra").value=it.ora||""; }
     else if(it.tipo==="eser"){ document.getElementById("progEserNome").value=it.nome||""; document.getElementById("progEserDur").value=it.durataMin||""; document.getElementById("progEserOra").value=it.ora||""; }
     else { document.getElementById("progFumoMax").value=it.maxGiorno||""; document.getElementById("progFumoOre").value=it.oreMin||""; }
@@ -3058,6 +3085,7 @@
     if(progTipo==="pasto"){ var nome=(document.getElementById("progPastoNome").value||"").trim(); if(!nome){ toast("Scrivi l'alimento"); return; } rec={tipo:"pasto", nome:nome, qta:(document.getElementById("progPastoQta").value||"").trim(), ora:document.getElementById("progPastoOra").value||""}; }
     else if(progTipo==="eser"){ var nm=(document.getElementById("progEserNome").value||"").trim(); if(!nm){ toast("Scrivi l'attività"); return; } rec={tipo:"eser", nome:nm, durataMin:(document.getElementById("progEserDur").value||"").replace(/[^\d]/g,""), ora:document.getElementById("progEserOra").value||""}; }
     else { var mx=(document.getElementById("progFumoMax").value||"").replace(/[^\d]/g,""); if(!mx){ toast("Scrivi il massimo di sigarette"); return; } rec={tipo:"fumo", maxGiorno:parseInt(mx,10), oreMin:(document.getElementById("progFumoOre").value||"").replace(",",".").replace(/[^\d.]/g,"")}; }
+    if(progTipo!=="fumo"){ rec.ripeti=progRipeti; if(progRipeti==="sett"){ rec.giorni=Object.keys(progGiorniSel).map(function(k){return parseInt(k,10);}); if(!rec.giorni.length){ toast("Scegli almeno un giorno"); return; } } if(progRipeti==="mese"){ rec.giornoMese=(document.getElementById("progGiornoMese").value||"").replace(/[^\d]/g,""); if(!rec.giornoMese){ toast("Scrivi il giorno del mese"); return; } } }
     if(editingProgId){ rec.id=editingProgId; programma=programma.map(function(y){ return y.id===editingProgId?rec:y; }); cancelEditProg(); toast("Modifica salvata ✓"); }
     else { rec.id=uid(); programma.push(rec); toast("Aggiunto al programma ✓"); }
     saveProgramma(); document.getElementById("progForm").hidden=true; renderProgramma();
