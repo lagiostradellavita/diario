@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 42; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 43; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -343,7 +343,7 @@
   .pasto-row .pr-nome{font-weight:800; font-size:15.5px; color:var(--ink); flex:0 0 auto;}
   .pasto-row input{flex:1 1 90px; min-width:0; padding:9px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15px;}
   .pasto-row .pr-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:9px; width:34px; height:34px; font-size:18px; cursor:pointer; touch-action:manipulation;}
-  #cicloNote{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
+  #cicloNote, #notaGiornata{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
   .ciclo-prev{margin:10px 0 2px; padding:12px 14px; border-radius:14px; background:var(--surface-2); border:1px solid var(--line); font-size:15.5px; font-weight:700; color:var(--ink-soft); line-height:1.45;}
   .ciclo-prev b{color:var(--ink); font-weight:850;}
   .ciclo-prev.late{background:color-mix(in srgb, #E11D48 12%, var(--surface)); border-color:color-mix(in srgb,#E11D48 40%, var(--line)); color:#E11D48;}
@@ -950,6 +950,29 @@
       <div id="cicloGrafico" style="margin-top:12px"></div>
       <div id="cicloStorico" style="margin-top:4px"></div>
     </section>
+    <section class="card" id="sonnoCard">
+      <div class="row-between"><h2 class="section-title" style="margin:0">😴 Sonno</h2><span id="sonnoSummary" class="stat-summary"></span></div>
+      <div class="grid2" style="margin-top:10px">
+        <div class="field"><label for="sonnoData">Notte del</label><input type="date" id="sonnoData"></div>
+        <div class="field"><label for="sonnoOre">Ore dormite</label><input type="text" id="sonnoOre" placeholder="es. 7,5" inputmode="decimal" autocomplete="off"></div>
+      </div>
+      <p class="group-lbl">Com'è stato</p>
+      <div id="sonnoQualita" class="chips"></div>
+      <div class="chip-add"><input type="text" id="sonnoQualitaInput" placeholder="Altro…"><button type="button" id="sonnoQualitaBtn">＋</button></div>
+      <div class="field" style="margin-top:12px"><label for="sonnoNota">Nota (facoltativa)</label><input type="text" id="sonnoNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
+      <div class="field"><label for="sonnoFile">Screenshot (facoltativo)</label><input type="file" id="sonnoFile" accept="image/*"></div>
+      <p class="fineprint" style="margin:2px 0 0">Le ore vanno scritte a mano: l'import automatico dall'app Salute/Apple Watch non è possibile da web. Lo screenshot resta allegato come promemoria.</p>
+      <button class="primary" id="sonnoSave" style="margin-top:12px">Registra sonno</button>
+      <div id="sonnoGrafico" style="margin-top:12px"></div>
+      <div id="sonnoStorico" style="margin-top:4px"></div>
+    </section>
+    <section class="card" id="noteGiornataCard">
+      <h2 class="section-title">📝 Nota di fine giornata</h2>
+      <p class="fineprint" style="margin:2px 0 8px">Un riassunto libero della giornata. Se ne salvi una nuova nello stesso giorno, aggiorna quella.</p>
+      <textarea id="notaGiornata" rows="3" placeholder="Com'è andata oggi…"></textarea>
+      <button class="primary" id="notaGiornataSave" style="margin-top:10px">Salva nota di oggi</button>
+      <div id="notaGiornataStorico" style="margin-top:10px"></div>
+    </section>
     <section class="card">
       <h2 class="section-title">Storico</h2>
       <div id="saluteList"></div>
@@ -1015,7 +1038,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v42</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v43</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1829,6 +1852,74 @@
   document.getElementById("cicloNote").oninput=function(){ var c=cicloCurrent(); if(c){ c.note=document.getElementById("cicloNote").value; saveCicli(); } };
   renderCiclo();
 
+  // ---- Sonno: ore dormite (a mano + screenshot allegato) ----
+  var sonno=[]; try{ var _sn=JSON.parse(localStorage.getItem("salute-sonno")); if(Array.isArray(_sn)) sonno=_sn; }catch(e){}
+  function saveSonno(){ try{ localStorage.setItem("salute-sonno", JSON.stringify(sonno)); }catch(e){} }
+  var sonnoQ=makeChipGroup("sonnoQualita", ["Ottima","Buona","Così così","Scarsa","Insonnia","Frammentato"], "salute-sonno-qualita-opts", true);
+  wireAdd("sonnoQualitaInput","sonnoQualitaBtn", sonnoQ);
+  mkDatalist("dlSonnoQ",["Ottima","Buona","Così così","Scarsa","Insonnia","Frammentato","Con risvegli","Riposante","Agitato","Profondo"]);
+  (function(){ var el=document.getElementById("sonnoQualitaInput"); if(el){ el.setAttribute("list","dlSonnoQ"); el.setAttribute("autocomplete","off"); } })();
+  function oreStr(o){ return (Math.round(o*10)/10).toLocaleString("it-IT",{minimumFractionDigits:0,maximumFractionDigits:1})+" h"; }
+  function renderSonno(){
+    if(!document.getElementById("sonnoCard")) return;
+    var sorted=sonno.slice().sort(function(a,b){return a.ts-b.ts;});
+    var sum=document.getElementById("sonnoSummary");
+    if(sorted.length){ var last7=sorted.slice(-7), avg=last7.reduce(function(a,b){return a+(b.ore||0);},0)/last7.length; sum.textContent="media "+oreStr(avg); sum.style.color="var(--ink-soft)"; }
+    else { sum.textContent=""; }
+    var gbox=document.getElementById("sonnoGrafico");
+    if(sorted.length){ var series=sorted.slice(-14).map(function(s){ var d=new Date(s.ts); return {lbl:pad2(d.getDate())+"/"+pad2(d.getMonth()+1), val:Math.round((s.ore||0)*10)/10}; }); gbox.innerHTML='<div class="ciclo-chart-box"><div class="cc-cap">Ore di sonno per notte</div>'+svgBars(series,"#6366F1")+'</div>'; }
+    else { gbox.innerHTML=""; }
+    var host=document.getElementById("sonnoStorico"); host.innerHTML="";
+    if(!sorted.length){ host.innerHTML='<div class="empty">Nessuna notte registrata.</div>'; return; }
+    sorted.slice().reverse().forEach(function(s){
+      var d=new Date(s.ts), row=document.createElement("div"); row.className="rowitem";
+      var parts=[oreStr(s.ore||0)]; if(s.qualita)parts.push(s.qualita); if(s.nota)parts.push(s.nota);
+      var fotoBtn = s.foto ? ' <button type="button" class="mini-photo" aria-label="Vedi screenshot">📷</button>':'';
+      row.innerHTML='<span class="time">'+pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'</span><span class="tname" style="display:block">'+esc(parts.join(" · "))+'</span>'+fotoBtn;
+      var pB=row.querySelector(".mini-photo"); if(pB){ pB.onclick=function(){ docView(s.foto); }; }
+      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
+      del.onclick=function(){ sonno=sonno.filter(function(y){return y.id!==s.id;}); saveSonno(); renderSonno(); };
+      row.appendChild(del); host.appendChild(row);
+    });
+  }
+  document.getElementById("sonnoSave").onclick=function(){
+    var dv=document.getElementById("sonnoData").value, ov=document.getElementById("sonnoOre").value;
+    var ore=parseFloat(String(ov).replace(",",".")); if(!ov || isNaN(ore) || ore<=0){ toast("Scrivi quante ore hai dormito"); return; }
+    if(ore>24) ore=24;
+    var ts = dv ? new Date(dv+"T12:00:00").getTime() : Date.now(); if(isNaN(ts)) ts=Date.now();
+    var qualita=sonnoQ.value(), nota=(document.getElementById("sonnoNota").value||"").trim();
+    var fileI=document.getElementById("sonnoFile"), file=fileI&&fileI.files&&fileI.files[0];
+    function finish(fotoId){ sonno.push({id:uid(), ts:ts, ore:ore, qualita:qualita, nota:nota, foto:fotoId||null}); saveSonno();
+      document.getElementById("sonnoOre").value=""; document.getElementById("sonnoNota").value=""; if(fileI) fileI.value=""; sonnoQ.clear(); renderSonno(); toast("Sonno registrato ✓"); }
+    if(file){ var r=new FileReader(); r.onload=function(){ var id=uid(); docPut({id:id, cat:"Salute", modulo:"salute", nome:file.name||"sonno", tipo:file.type||"", size:file.size||0, ts:Date.now(), buf:r.result}).then(function(){ finish(id); }).catch(function(){ finish(null); }); }; r.onerror=function(){ finish(null); }; r.readAsArrayBuffer(file); }
+    else { finish(null); }
+  };
+
+  // ---- Nota di fine giornata (una per giorno) ----
+  var noteGiornata={}; try{ var _ng=JSON.parse(localStorage.getItem("salute-note-giornata")); if(_ng && typeof _ng==="object") noteGiornata=_ng; }catch(e){}
+  function saveNoteG(){ try{ localStorage.setItem("salute-note-giornata", JSON.stringify(noteGiornata)); }catch(e){} }
+  function renderNoteG(){
+    if(!document.getElementById("noteGiornataCard")) return;
+    var dK=dayKey(new Date()), ta=document.getElementById("notaGiornata");
+    if(document.activeElement!==ta) ta.value=noteGiornata[dK]||"";
+    var host=document.getElementById("notaGiornataStorico"); host.innerHTML="";
+    var keys=Object.keys(noteGiornata).filter(function(k){return (noteGiornata[k]||"").trim();}).sort().reverse();
+    keys.forEach(function(k){
+      var row=document.createElement("div"); row.className="rowitem";
+      var parts=k.split("-"), dd=parts[2]+"/"+parts[1];
+      row.innerHTML='<span class="time">'+dd+'</span><span class="tname" style="display:block">'+esc(noteGiornata[k])+'</span>';
+      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
+      del.onclick=function(){ delete noteGiornata[k]; saveNoteG(); renderNoteG(); };
+      row.appendChild(del); host.appendChild(row);
+    });
+  }
+  document.getElementById("notaGiornataSave").onclick=function(){
+    var dK=dayKey(new Date()), v=(document.getElementById("notaGiornata").value||"").trim();
+    if(!v){ toast("Scrivi la nota"); return; }
+    noteGiornata[dK]=v; saveNoteG(); renderNoteG(); toast("Nota salvata ✓");
+  };
+  renderSonno(); renderNoteG();
+
   // ---- Salute: fastidi fisici + stato psicologico ----
   var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Nausea","Vomito","Stanchezza","Fiato corto","Tosse","Bruciore di stomaco","Dolori addominali","Dolori muscolari","Spasmi muscolari","Mal di schiena","Dolori articolari","Tensione al collo","Fascicolazioni","Acufene","Nebbia mentale","Palpitazioni","Caviglie gonfie","Sudorazione notturna","Insonnia","Fastidio vescica"];
   var PSICO=["Ansia","Stress","Attacco di panico","Tristezza","Umore basso","Depressione","Agitazione","Pensieri ossessivi","Irritabilità"];
@@ -1856,6 +1947,8 @@
   function renderSalute(){
     document.getElementById("saluteDate").textContent=fmtDayLong(new Date());
     try{ renderCiclo(); }catch(e){}
+    try{ renderSonno(); }catch(e){}
+    try{ renderNoteG(); }catch(e){}
     var host=document.getElementById("saluteList"); host.innerHTML="";
     if(!saluteLog.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Seleziona i fastidi e tocca «Registra adesso».</div>'; return; }
     var sorted=saluteLog.slice().sort(function(a,b){ return b.ts-a.ts; }), lastDay=null;
