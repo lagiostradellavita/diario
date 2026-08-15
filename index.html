@@ -51,6 +51,7 @@
     --accent:#C2410C; --on-accent:#FFFFFF; --on-c:#FFFFFF;
     --t-risc:#0F766E; --t-trin:#A16207; --t-norm:#C2410C;
     --good:#15803D; --danger:#B91C1C;
+    --lvl-low:#15803D; --lvl-mid:#EA580C; --lvl-high:#B91C1C;
     --shadow:0 1px 2px rgba(33,30,28,.05), 0 6px 20px -10px rgba(33,30,28,.18);
   }
   @media (prefers-color-scheme: dark){
@@ -61,6 +62,7 @@
       --accent:#F97316; --on-accent:#211307;
       --t-risc:#2DD4BF; --t-trin:#E0A82E; --t-norm:#FB7A3C;
       --good:#4ADE80; --danger:#F87171;
+      --lvl-low:#4ADE80; --lvl-mid:#FB923C; --lvl-high:#F87171;
       --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
     }
   }
@@ -71,6 +73,7 @@
     --accent:#F97316; --on-accent:#211307; --on-c:#1A1512;
     --t-risc:#2DD4BF; --t-trin:#E0A82E; --t-norm:#FB7A3C;
     --good:#4ADE80; --danger:#F87171;
+    --lvl-low:#4ADE80; --lvl-mid:#FB923C; --lvl-high:#F87171;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
   }
 
@@ -247,6 +250,13 @@
   .data-panel .primary{width:auto; flex:1;}
   .data-panel .link-btn{width:auto; padding:12px;}
   .fineprint{font-size:13px; color:var(--muted); margin:12px 2px 0; line-height:1.5;}
+  .stat-seg{grid-template-columns:repeat(5,1fr);}
+  .stat-seg button{ --c:var(--accent); font-size:13px; padding:9px 3px; }
+  .stat-summary{font-size:15px; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .stat-legend{display:flex; flex-wrap:wrap; gap:5px 14px; align-items:center; font-size:12px; color:var(--muted); font-weight:600; margin:12px 2px 0;}
+  .stat-legend .lg{margin-right:3px;}
+  .lg-low{color:var(--lvl-low);} .lg-mid{color:var(--lvl-mid);} .lg-high{color:var(--lvl-high);}
+  .stat-legend-note{font-weight:500;}
 
   /* ---- toast ---- */
   .toast{position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom,0px));
@@ -323,8 +333,24 @@
 
   <!-- 7 GIORNI -->
   <section class="card">
-    <h2 class="section-title">Ultimi 7 giorni</h2>
-    <div class="chart" id="chart"></div>
+    <div class="row-between">
+      <h2 class="section-title" style="margin:0">Statistiche</h2>
+      <span id="statSummary" class="stat-summary"></span>
+    </div>
+    <div class="seg stat-seg" id="statSeg" style="margin-top:12px">
+      <button type="button" data-v="ora">Ora</button>
+      <button type="button" data-v="giorno" class="on">Giorno</button>
+      <button type="button" data-v="settimana">Sett.</button>
+      <button type="button" data-v="mese">Mese</button>
+      <button type="button" data-v="anno">Anno</button>
+    </div>
+    <div class="chart" id="chart" style="margin-top:12px"></div>
+    <p class="stat-legend">
+      <span class="lg lg-low">●</span>≤10
+      <span class="lg lg-mid">●</span>11–19
+      <span class="lg lg-high">●</span>≥20
+      <span class="stat-legend-note">· al giorno</span>
+    </p>
   </section>
 
   <!-- STORICO -->
@@ -348,7 +374,7 @@
       Esporta o salva un backup ogni tanto per non perderli.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario del fumo · v10</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario del fumo · v11</p>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -472,7 +498,9 @@
     });
     var todayTot = todayByType.riscaldate+todayByType.trinciate+todayByType.normali;
 
-    document.getElementById("todayTotal").textContent = num(todayTot);
+    var bigEl=document.getElementById("todayTotal");
+    bigEl.textContent = num(todayTot);
+    bigEl.style.color = todayTot>0 ? "var("+lvlVar(levelOf(todayTot))+")" : "";
 
     // breakdown chips
     var bd = document.getElementById("todayBreakdown"); bd.innerHTML="";
@@ -494,46 +522,83 @@
       + " &nbsp;·&nbsp; Media 7 gg <b>"+media.toLocaleString("it-IT",{minimumFractionDigits:1,maximumFractionDigits:1})+"</b>"
       + " &nbsp;·&nbsp; Totale 7 gg <b>"+num(last7)+"</b>";
 
-    renderChart(now, byDay, todayK);
+    renderStats();
     renderHistory();
     updateUndoBtn();
   }
 
-  function renderChart(now, byDay, todayK){
-    var days=[]; var i;
-    for(i=6;i>=0;i--){ var d=new Date(); d.setDate(now.getDate()-i); days.push(d); }
-    // per-type per-day
-    var perDay = {};
-    days.forEach(function(d){ perDay[dayKey(d)]={riscaldate:0,trinciate:0,normali:0}; });
-    entries.forEach(function(e){ var k=dayKey(new Date(e.ts)); if(perDay[k]) perDay[k][e.tipo]+=e.q; });
-    var max=1;
-    days.forEach(function(d){ var t=byDay[dayKey(d)]||0; if(t>max) max=t; });
+  // soglie colore sui CONSUMI GIORNALIERI: ≤10 verde, 11–19 arancione, ≥20 rosso
+  function levelOf(n){ if(n>=20) return "high"; if(n>=11) return "mid"; return "low"; }
+  function lvlVar(k){ return k==="high"?"--lvl-high":(k==="mid"?"--lvl-mid":"--lvl-low"); }
+  function dayFloor(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function weekStart(d){ var x=dayFloor(d); var wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); return x; }
+  function elapsedDays(start,end){ var t=dayFloor(new Date()), s=dayFloor(start), e=dayFloor(end); var lim=(e<t)?e:t; if(lim<s) return 1; return Math.round((lim-s)/86400000)+1; }
+  function avgFmt(x){ return (x||0).toLocaleString("it-IT",{minimumFractionDigits:1,maximumFractionDigits:1}); }
+  var MESI=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+  var statView="giorno";
 
+  function renderStats(){
     var chart=document.getElementById("chart"); chart.innerHTML="";
-    days.forEach(function(d){
-      var k=dayKey(d); var tot=byDay[k]||0;
-      var col=document.createElement("div"); col.className="col"+(k===todayK?" today-col":"");
+    var now=new Date();
+    var byDay={}; entries.forEach(function(e){ var k=dayKey(new Date(e.ts)); byDay[k]=(byDay[k]||0)+e.q; });
+    var todayK=dayKey(now), todayTot=byDay[todayK]||0;
+    var bars=[], sumText="", sumLvl="low", i, k, d, t, avg, start, end;
 
-      var numEl=document.createElement("div"); numEl.className="num"+(tot===0?" z":"");
-      numEl.textContent=num(tot); col.appendChild(numEl);
+    if(statView==="ora"){
+      var hrs=[]; for(i=0;i<24;i++) hrs[i]=0;
+      entries.forEach(function(e){ hrs[new Date(e.ts).getHours()]+=e.q; });
+      for(i=0;i<24;i++) bars.push({v:hrs[i], label:(i%6===0?(""+i):""), lvl:null, num:false});
+      sumText="Oggi "+num(todayTot); sumLvl=levelOf(todayTot);
+    } else if(statView==="giorno"){
+      for(i=13;i>=0;i--){ d=new Date(); d.setDate(now.getDate()-i); k=dayKey(d); t=byDay[k]||0;
+        bars.push({v:t, label:fmtWeekday(d).charAt(0).toUpperCase(), lvl:levelOf(t), num:true, today:k===todayK}); }
+      sumText="Oggi "+num(todayTot); sumLvl=levelOf(todayTot);
+    } else if(statView==="settimana"){
+      var cur=weekStart(now);
+      for(i=7;i>=0;i--){
+        var ws=new Date(cur); ws.setDate(cur.getDate()-i*7);
+        var wend=new Date(ws); wend.setDate(ws.getDate()+6);
+        var nextWs=new Date(ws); nextWs.setDate(ws.getDate()+7);
+        t=0; entries.forEach(function(e){ var x=new Date(e.ts); if(x>=ws && x<nextWs) t+=e.q; });
+        avg=t/elapsedDays(ws,wend);
+        bars.push({v:t, label:pad(ws.getDate())+"/"+pad(ws.getMonth()+1), lvl:levelOf(avg), num:true, today:i===0, avg:avg});
+      }
+      avg=bars[bars.length-1].avg; sumText="Media/gg "+avgFmt(avg); sumLvl=levelOf(avg);
+    } else if(statView==="mese"){
+      var byMonth={}; entries.forEach(function(e){ var x=new Date(e.ts); var mk=x.getFullYear()+"-"+pad(x.getMonth()+1); byMonth[mk]=(byMonth[mk]||0)+e.q; });
+      for(i=11;i>=0;i--){
+        d=new Date(now.getFullYear(), now.getMonth()-i, 1);
+        k=d.getFullYear()+"-"+pad(d.getMonth()+1); t=byMonth[k]||0;
+        start=new Date(d.getFullYear(),d.getMonth(),1); end=new Date(d.getFullYear(),d.getMonth()+1,0);
+        avg=t/elapsedDays(start,end);
+        bars.push({v:t, label:MESI[d.getMonth()], lvl:levelOf(avg), num:true, today:i===0, avg:avg});
+      }
+      avg=bars[bars.length-1].avg; sumText="Media/gg "+avgFmt(avg); sumLvl=levelOf(avg);
+    } else {
+      var byYear={}, minY=now.getFullYear();
+      entries.forEach(function(e){ var y=new Date(e.ts).getFullYear(); byYear[y]=(byYear[y]||0)+e.q; if(y<minY) minY=y; });
+      for(var yy=minY; yy<=now.getFullYear(); yy++){
+        t=byYear[yy]||0; start=new Date(yy,0,1); end=new Date(yy,11,31);
+        avg=t/elapsedDays(start,end);
+        bars.push({v:t, label:""+yy, lvl:levelOf(avg), num:true, today:yy===now.getFullYear(), avg:avg});
+      }
+      avg=bars.length?bars[bars.length-1].avg:0; sumText="Media/gg "+avgFmt(avg); sumLvl=levelOf(avg);
+    }
 
+    var max=1; bars.forEach(function(b){ if(b.v>max) max=b.v; });
+    bars.forEach(function(b){
+      var col=document.createElement("div"); col.className="col"+(b.today?" today-col":"");
+      if(b.num){ var nn=document.createElement("div"); nn.className="num"+(b.v===0?" z":""); if(b.lvl && b.v>0) nn.style.color="var("+lvlVar(b.lvl)+")"; nn.textContent=num(b.v); col.appendChild(nn); }
       var wrap=document.createElement("div"); wrap.className="barwrap";
       var bar=document.createElement("div"); bar.className="bar";
-      var h = tot===0 ? 3 : Math.round((tot/max)*78);
-      bar.style.height = h+"px";
-      ORDER.forEach(function(t){
-        var v=perDay[k][t]; if(v<=0) return;
-        var seg=document.createElement("div"); seg.className="seg";
-        seg.style.height=(v/tot*100)+"%";
-        seg.style.background="var("+TIPI[t].cvar+")";
-        bar.appendChild(seg);
-      });
-      wrap.appendChild(bar); col.appendChild(wrap);
-
-      var wd=document.createElement("div"); wd.className="wd"; wd.textContent=fmtWeekday(d);
-      col.appendChild(wd);
+      bar.style.height=(b.v===0?3:Math.round((b.v/max)*92))+"px";
+      var seg=document.createElement("div"); seg.className="seg"; seg.style.height="100%";
+      seg.style.background = b.lvl ? "var("+lvlVar(b.lvl)+")" : "var(--accent)";
+      bar.appendChild(seg); wrap.appendChild(bar); col.appendChild(wrap);
+      var wd=document.createElement("div"); wd.className="wd"; wd.textContent=b.label; col.appendChild(wd);
       chart.appendChild(col);
     });
+    var s=document.getElementById("statSummary"); s.textContent=sumText; s.style.color="var("+lvlVar(sumLvl)+")";
   }
 
   function renderHistory(){
@@ -558,7 +623,7 @@
       var tot=groups[k].reduce(function(s,e){ return s+e.q; },0);
       var head=document.createElement("div"); head.className="day-head";
       head.innerHTML='<span class="dname">'+relName(k)+'</span>'
-        +'<span class="dtot">'+num(tot)+(tot===1?" sigaretta":" sigarette")+'</span>';
+        +'<span class="dtot" style="color:var('+lvlVar(levelOf(tot))+');font-weight:800">'+num(tot)+(tot===1?" sigaretta":" sigarette")+'</span>';
       wrap.appendChild(head);
       groups[k].forEach(function(e){
         var d=new Date(e.ts);
@@ -607,6 +672,17 @@
         });
       };
       seg.appendChild(b);
+    });
+  })();
+
+  (function buildStatSeg(){
+    var seg=document.getElementById("statSeg");
+    Array.prototype.forEach.call(seg.children, function(b){
+      b.onclick=function(){
+        statView=b.dataset.v;
+        Array.prototype.forEach.call(seg.children, function(c){ c.className=(c===b)?"on":""; });
+        renderStats();
+      };
     });
   })();
 
