@@ -46,7 +46,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 20; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 21; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -77,7 +77,7 @@
   /* ---- Palette: "carta & brace" -------------------------------------- */
   :root{
     --bg:#F4F3F0; --surface:#FFFFFF; --surface-2:#FBFAF8;
-    --ink:#211E1C; --ink-soft:#57514C; --muted:#8A827C; --line:#E7E3DE;
+    --ink:#14100C; --ink-soft:#3A332C; --muted:#655C54; --line:#E7E3DE;
     --track:#ECE8E2;
     --accent:#C2410C; --on-accent:#FFFFFF; --on-c:#FFFFFF;
     --t-risc:#0F766E; --t-trin:#A16207; --t-norm:#C2410C;
@@ -88,7 +88,7 @@
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --bg:#141312; --surface:#1E1C1A; --surface-2:#26231F;
-      --ink:#F3EFE9; --ink-soft:#C6BEB4; --muted:#978D85; --line:#322E29;
+      --ink:#F3EFE9; --ink-soft:#D8D0C6; --muted:#B4AAA0; --line:#322E29;
       --track:#2A2622;
       --accent:#F97316; --on-accent:#211307;
       --t-risc:#2DD4BF; --t-trin:#E0A82E; --t-norm:#FB7A3C;
@@ -99,7 +99,7 @@
   }
   :root[data-theme="dark"]{
     --bg:#141312; --surface:#1E1C1A; --surface-2:#26231F;
-    --ink:#F3EFE9; --ink-soft:#C6BEB4; --muted:#978D85; --line:#322E29;
+    --ink:#F3EFE9; --ink-soft:#D8D0C6; --muted:#B4AAA0; --line:#322E29;
     --track:#2A2622;
     --accent:#F97316; --on-accent:#211307; --on-c:#1A1512;
     --t-risc:#2DD4BF; --t-trin:#E0A82E; --t-norm:#FB7A3C;
@@ -113,11 +113,13 @@
   body{
     background:var(--bg); color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    text-rendering:optimizeLegibility; font-weight:450;
     -webkit-text-size-adjust:100%; line-height:1.45;
     min-height:100vh; min-height:100svh;
     overscroll-behavior-y:contain;
   }
-  .wrap{max-width:900px; margin:0 auto; zoom:1.35;
+  .wrap{max-width:900px; margin:0 auto; zoom:1.5;
     padding:max(16px,env(safe-area-inset-top)) max(15px,env(safe-area-inset-right))
             max(34px,env(safe-area-inset-bottom)) max(15px,env(safe-area-inset-left));
     display:flex; flex-direction:column; gap:13px;}
@@ -393,7 +395,7 @@
   .data-panel{margin-top:11px; display:flex; flex-direction:column; gap:9px;}
   .data-panel[hidden]{display:none;}
   .data-text{width:100%; min-height:100px; resize:vertical; box-sizing:border-box;
-    font-family:ui-monospace,Menlo,monospace; font-size:12.5px; line-height:1.45;
+    font-family:inherit; font-size:13.5px; line-height:1.5;
     color:var(--ink); background:var(--surface-2); border:1px solid var(--line);
     border-radius:12px; padding:11px 12px;}
   .panel-actions{display:flex; gap:10px; align-items:center;}
@@ -712,7 +714,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v20</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v21</p>
 </div>
 
 <div class="toast" id="toast" hidden></div>
