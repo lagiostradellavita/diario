@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 46; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 47; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -924,9 +924,12 @@
       <div class="food-cat" id="collapFastidi">
         <button type="button" class="fc-head" id="headFastidi"><span id="lblFastidi">🤕 Fastidi fisici</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodyFastidi" hidden>
-          <div id="fastidiChips" class="chips"></div>
-          <div class="chip-add">
-            <input type="text" id="fastidiAddInput" placeholder="Aggiungi un fastidio…">
+          <input type="text" id="fastidiSearch" list="dlFastidiAll" placeholder="Cerca un fastidio…" autocomplete="off">
+          <div id="fastidiSelected" class="chips" style="margin-top:8px"></div>
+          <button type="button" class="link-btn" id="fastidiListToggle" style="margin-top:6px;text-align:left;padding:8px 2px">▸ Sfoglia tutti i fastidi</button>
+          <div id="fastidiChips" class="chips" hidden style="margin-top:4px"></div>
+          <div class="chip-add" style="margin-top:10px">
+            <input type="text" id="fastidiAddInput" placeholder="Aggiungi un nuovo fastidio…">
             <button type="button" id="fastidiAddBtn">＋</button>
           </div>
         </div>
@@ -1065,7 +1068,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v46</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v47</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1657,10 +1660,13 @@
   function ymd(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
   function fmtDur(ms){ var s=Math.max(0,Math.floor(ms/1000)), m=Math.floor(s/60); s=s%60; if(m>=60){ var h=Math.floor(m/60); m=m%60; return h+":"+pad2(m)+":"+pad2(s); } return m+":"+pad2(s); }
   // chip multi-selezione con aggiunte personali che restano
-  function makeChipGroup(containerId, preset, customKey, single){
+  function makeChipGroup(containerId, preset, customKey, single, opt){
+    opt=opt||{};
     var custom=[]; try{ var _c=JSON.parse(localStorage.getItem(customKey)); if(Array.isArray(_c)) custom=_c; }catch(e){}
     var sel={};
-    function opts(){ return preset.concat(custom); }
+    function all(){ return preset.concat(custom); }
+    function opts(){ var a=all(); if(opt.sortAlpha) a=a.slice().sort(function(x,y){ return String(x).localeCompare(String(y),"it"); }); return a; }
+    function fire(){ if(opt.onChange){ try{ opt.onChange(); }catch(e){} } }
     function render(){
       var host=document.getElementById(containerId); if(!host) return; host.innerHTML="";
       opts().forEach(function(lbl){
@@ -1673,14 +1679,16 @@
           } else {
             if(sel[lbl]) delete sel[lbl]; else sel[lbl]=true; b.classList.toggle("on");
           }
+          fire();
         };
         host.appendChild(b);
       });
     }
-    function add(lbl){ lbl=(lbl||"").trim(); if(!lbl) return false; if(opts().indexOf(lbl)>=0) return false; custom.push(lbl); try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} render(); return true; }
+    function add(lbl){ lbl=(lbl||"").trim(); if(!lbl) return false; if(all().indexOf(lbl)>=0) return false; custom.push(lbl); try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} render(); fire(); return true; }
+    function set(arr){ sel={}; (arr||[]).forEach(function(v){ if(v==null||v==="") return; if(all().indexOf(v)<0){ custom.push(v); try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} } sel[v]=true; }); render(); fire(); }
+    function selectOne(v){ v=(v||"").trim(); if(!v) return false; if(all().indexOf(v)<0){ custom.push(v); try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} } if(single) sel={}; sel[v]=true; render(); fire(); return true; }
     render();
-    function set(arr){ sel={}; (arr||[]).forEach(function(v){ if(v==null||v==="") return; if(opts().indexOf(v)<0){ custom.push(v); try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} } sel[v]=true; }); render(); }
-    return { selected:function(){ return Object.keys(sel); }, value:function(){ var k=Object.keys(sel); return k.length?k[0]:""; }, clear:function(){ sel={}; render(); }, add:add, set:set, opts:opts };
+    return { selected:function(){ return Object.keys(sel); }, value:function(){ var k=Object.keys(sel); return k.length?k[0]:""; }, clear:function(){ sel={}; render(); fire(); }, add:add, set:set, selectOne:selectOne, opts:opts };
   }
   function wireAdd(inputId, btnId, group){
     var inp=document.getElementById(inputId), btn=document.getElementById(btnId); if(!inp||!btn) return;
@@ -2091,10 +2099,32 @@
   // ---- Salute: fastidi fisici + stato psicologico ----
   var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Nausea","Vomito","Stanchezza","Fiato corto","Tosse","Bruciore di stomaco","Dolori addominali","Dolori muscolari","Spasmi muscolari","Mal di schiena","Dolori articolari","Tensione al collo","Fascicolazioni","Acufene","Nebbia mentale","Palpitazioni","Caviglie gonfie","Sudorazione notturna","Insonnia","Fastidio vescica"];
   var PSICO=["Ansia","Stress","Attacco di panico","Tristezza","Umore basso","Depressione","Agitazione","Pensieri ossessivi","Irritabilità"];
-  var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts");
+  var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts", false, {sortAlpha:true, onChange:onFastidiChange});
   var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts");
   wireAdd("fastidiAddInput","fastidiAddBtn", fastidiG);
   wireAdd("psicoAddInput","psicoAddBtn", psicoG);
+  // Fastidi fisici: ricerca con suggerimenti + elenco a scomparsa alfabetico + pillole dei selezionati
+  function updateFastidiDatalist(){
+    var dl=document.getElementById("dlFastidiAll"); if(!dl){ dl=document.createElement("datalist"); dl.id="dlFastidiAll"; document.body.appendChild(dl); }
+    dl.innerHTML=""; fastidiG.opts().forEach(function(o){ var op=document.createElement("option"); op.value=o; dl.appendChild(op); });
+  }
+  function renderFastidiSel(){
+    var host=document.getElementById("fastidiSelected"); if(!host) return; host.innerHTML="";
+    fastidiG.selected().forEach(function(v){
+      var b=document.createElement("button"); b.type="button"; b.className="chip-sel on"; b.innerHTML=esc(v)+' <span style="opacity:.65">×</span>';
+      b.onclick=function(){ fastidiG.set(fastidiG.selected().filter(function(x){return x!==v;})); };
+      host.appendChild(b);
+    });
+  }
+  function onFastidiChange(){ renderFastidiSel(); updateFastidiDatalist(); if(typeof updateSaluteCount==="function") updateSaluteCount(); }
+  (function(){
+    var s=document.getElementById("fastidiSearch");
+    function pick(){ var v=(s.value||"").trim(); if(!v) return; var opt=null; fastidiG.opts().forEach(function(o){ if(o.toLowerCase()===v.toLowerCase()) opt=o; }); if(opt){ fastidiG.selectOne(opt); s.value=""; } }
+    if(s){ s.addEventListener("change", pick); s.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); pick(); } }); }
+    var lt=document.getElementById("fastidiListToggle");
+    if(lt){ lt.onclick=function(){ var c=document.getElementById("fastidiChips"); c.hidden=!c.hidden; lt.textContent=(c.hidden?"▸":"▾")+" Sfoglia tutti i fastidi"; }; }
+  })();
+  updateFastidiDatalist();
   // pulsanti a scomparsa: Fastidi fisici / Stato psicologico, con conteggio dei selezionati
   function saluteCollapWire(headId, bodyId, catId){
     var head=document.getElementById(headId); if(!head) return;
@@ -2108,7 +2138,6 @@
     if(lf) lf.textContent="🤕 Fastidi fisici"+(nf?" · "+nf+(nf===1?" scelto":" scelti"):"");
     if(lp) lp.textContent="🧠 Stato psicologico"+(np?" · "+np+(np===1?" scelto":" scelti"):"");
   }
-  var _fc=document.getElementById("fastidiChips"); if(_fc) _fc.addEventListener("click", updateSaluteCount);
   var _pc=document.getElementById("psicoChips"); if(_pc) _pc.addEventListener("click", updateSaluteCount);
   var saluteLog=[]; try{ var _sl=JSON.parse(localStorage.getItem("salute-log")); if(Array.isArray(_sl)) saluteLog=_sl; }catch(e){}
   function saveSaluteLog(){ try{ localStorage.setItem("salute-log", JSON.stringify(saluteLog)); }catch(e){} }
