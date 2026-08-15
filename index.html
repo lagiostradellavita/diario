@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 30; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 31; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -297,11 +297,12 @@
   .link-btn{appearance:none; background:none; border:none; cursor:pointer;
     color:var(--accent); font-weight:750; font-size:15.5px; padding:14px 4px 2px;
     width:100%; text-align:center; font-family:inherit; touch-action:manipulation;}
-  #toggleDetail, #pilAddBtn, #eserAddBtn, #repToggle{ background:var(--surface-2);
+  #toggleDetail, #pilAddBtn, #eserAddBtn, #repToggle, #docToggle{ background:var(--surface-2);
     border:1.6px dashed color-mix(in srgb, var(--accent) 55%, var(--line));
     border-radius:14px; padding:14px; margin-top:8px; min-height:52px; font-size:16px;}
-  #toggleDetail:active, #pilAddBtn:active, #eserAddBtn:active, #repToggle:active{ background:var(--track); }
+  #toggleDetail:active, #pilAddBtn:active, #eserAddBtn:active, #repToggle:active, #docToggle:active{ background:var(--track); }
   #repOptions[hidden]{display:none;}
+  #docPanel[hidden]{display:none;}
 
   /* ---- detail form ---- */
   .detail{display:flex; flex-direction:column; gap:14px; margin-top:6px;
@@ -616,16 +617,22 @@
     </section>
     <h2 class="menu-grid-title">Referti e documenti</h2>
     <section class="card">
-      <p class="group-lbl" style="margin-top:0">Tipo di documento</p>
+      <button class="link-btn" id="docToggle">📁 Referti e documenti</button>
+      <div id="docPanel" hidden>
+      <p class="group-lbl" style="margin-top:6px">Tipo di documento</p>
       <div id="docCat" class="chips"></div>
       <div class="chip-add">
         <input type="text" id="docCatAdd" placeholder="Aggiungi un tipo…">
         <button type="button" id="docCatAddBtn">＋</button>
       </div>
       <input id="docFileInput" type="file" accept="image/*,application/pdf,.pdf" multiple>
-      <button class="primary" id="docAttach" style="margin-top:15px">📎 Allega foto o PDF</button>
-      <div id="docList" style="margin-top:8px"></div>
+      <div class="panel-actions" style="margin-top:15px">
+        <button class="primary" id="docAttach">📎 Allega foto o PDF</button>
+        <button class="link-btn" id="docPanelClose">Chiudi</button>
+      </div>
+      <div id="docList" style="margin-top:10px"></div>
       <p class="fineprint">I documenti restano sul telefono, in questo browser. Tieni sempre gli <b>originali</b> al sicuro (email, cartella medica): questa è una copia comoda, non l'unico posto.</p>
+      </div>
     </section>
     <h2 class="menu-grid-title">Dati e backup</h2>
     <section class="card">
@@ -885,7 +892,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v30</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v31</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1868,6 +1875,8 @@
   };
   document.getElementById("docCatAdd").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("docCatAddBtn").click(); } });
   renderDocCats();
+  document.getElementById("docToggle").onclick=function(){ document.getElementById("docToggle").hidden=true; document.getElementById("docPanel").hidden=false; renderDocList(); };
+  document.getElementById("docPanelClose").onclick=function(){ document.getElementById("docPanel").hidden=true; document.getElementById("docToggle").hidden=false; };
 
   var docDB=null;
   function docOpen(){ return new Promise(function(res,rej){ if(docDB){res(docDB);return;} try{ var r=indexedDB.open("diario-salute-docs",1);
@@ -1889,6 +1898,7 @@
   function renderDocList(){
     var host=document.getElementById("docList"); if(!host) return; host.innerHTML='<div class="empty" style="padding:12px 0">…</div>';
     docAll().then(function(list){
+      var tg=document.getElementById("docToggle"); if(tg) tg.textContent="📁 Referti e documenti"+(list.length?" ("+list.length+")":"");
       host.innerHTML="";
       if(!list.length){ host.innerHTML='<div class="empty">Ancora nessun documento allegato.</div>'; return; }
       list.sort(function(a,b){ return b.ts-a.ts; });
