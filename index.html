@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 58; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 59; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1205,12 +1205,19 @@
             <button type="button" data-r="sett">Settimana</button>
             <button type="button" data-r="mese">Mese</button>
             <button type="button" data-r="data">Un giorno solo</button>
+            <button type="button" data-r="range" style="grid-column:1/-1">Più giorni (un periodo)</button>
           </div>
-          <p class="fineprint" style="margin:6px 2px 0">«Ogni giorno» ricompare tutti i giorni. Per un solo giorno (es. domani) scegli <b>«Un giorno solo»</b> e indica la data.</p>
+          <p class="fineprint" style="margin:6px 2px 0"><b>«Un giorno solo»</b> = una data (es. domani). <b>«Più giorni»</b> = un periodo (da… a…). <b>«Settimana»</b> = certi giorni ogni settimana.</p>
         </div>
         <div class="field" id="progGiorniWrap" hidden><label>Giorni della settimana</label><div id="progGiorni" class="chips"></div></div>
         <div class="field" id="progGiornoMeseWrap" hidden><label for="progGiornoMese">Giorno del mese</label><input type="text" id="progGiornoMese" inputmode="numeric" placeholder="es. 15" autocomplete="off"></div>
         <div class="field" id="progDataWrap" hidden><label for="progGiornoData">Data</label><input type="date" id="progGiornoData"></div>
+        <div class="field" id="progRangeWrap" hidden><label>Più giorni: da… a…</label>
+          <div class="grid2">
+            <div class="field"><label for="progGiornoDa" style="font-size:13px">Dal giorno</label><input type="date" id="progGiornoDa"></div>
+            <div class="field"><label for="progGiornoA" style="font-size:13px">Al giorno</label><input type="date" id="progGiornoA"></div>
+          </div>
+        </div>
         <div class="panel-actions"><button class="primary" id="progSave">Aggiungi</button><button class="link-btn" id="progCancel">Annulla</button></div>
       </div>
       <div id="progList" style="margin-top:10px"></div>
@@ -1223,7 +1230,7 @@
     <p class="fineprint" style="text-align:center; margin:0">L'avviso è <b>in-app</b> (agenda + suggerimenti in Home): l'app non può far squillare una notifica. Per un promemoria che suona, usa una Sveglia/Promemoria iOS.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v58</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v59</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3054,8 +3061,8 @@
     return "";
   }
   var GIORNI_MAP={1:"Lun",2:"Mar",3:"Mer",4:"Gio",5:"Ven",6:"Sab",0:"Dom"};
-  function progRipetiLabel(it){ var r=it.ripeti||"ogni"; if(r==="ogni") return "ogni giorno"; if(r==="sett"){ var g=(it.giorni||[]).slice().sort(function(a,b){ return ((a+6)%7)-((b+6)%7); }); return g.length? g.map(function(d){return GIORNI_MAP[d];}).join(", ") : "nessun giorno"; } if(r==="mese") return "il "+it.giornoMese+" del mese"; if(r==="data"){ if(!it.data) return "una data"; var p=String(it.data).split("-"); return "il "+p[2]+"/"+p[1]+"/"+p[0]; } return ""; }
-  function itemAppliesToDate(it, d){ var r=it.ripeti||"ogni"; if(r==="ogni") return true; if(r==="sett") return (it.giorni||[]).indexOf(d.getDay())>=0; if(r==="mese") return d.getDate()===(parseInt(it.giornoMese,10)||0); if(r==="data") return dayKey(d)===it.data; return true; }
+  function progRipetiLabel(it){ var r=it.ripeti||"ogni"; if(r==="ogni") return "ogni giorno"; if(r==="sett"){ var g=(it.giorni||[]).slice().sort(function(a,b){ return ((a+6)%7)-((b+6)%7); }); return g.length? g.map(function(d){return GIORNI_MAP[d];}).join(", ") : "nessun giorno"; } if(r==="mese") return "il "+it.giornoMese+" del mese"; if(r==="data"){ if(!it.data) return "una data"; var p=String(it.data).split("-"); return "il "+p[2]+"/"+p[1]+"/"+p[0]; } if(r==="range"){ var a=String(it.dataDa||"").split("-"), b=String(it.dataA||"").split("-"); return "dal "+(a[2]||"?")+"/"+(a[1]||"")+" al "+(b[2]||"?")+"/"+(b[1]||""); } return ""; }
+  function itemAppliesToDate(it, d){ var r=it.ripeti||"ogni"; if(r==="ogni") return true; if(r==="sett") return (it.giorni||[]).indexOf(d.getDay())>=0; if(r==="mese") return d.getDate()===(parseInt(it.giornoMese,10)||0); if(r==="data") return dayKey(d)===it.data; if(r==="range"){ var k=dayKey(d); return !!(it.dataDa && it.dataA && k>=it.dataDa && k<=it.dataA); } return true; }
   function itemAppliesToday(it){ return itemAppliesToDate(it, new Date()); }
   function progPlannedForDate(d){ var n=0; programma.forEach(function(it){ if(it.tipo==="fumo") return; if(itemAppliesToDate(it,d)) n++; }); try{ var pd=Pillole.data(); (pd.defs||[]).forEach(function(p){ n+=(p.orari||[]).length; }); }catch(e){} return n; }
   function progDoneForDate(d){ var dK=dayKey(d), n=0; if(progFatti[dK]) n+=Object.keys(progFatti[dK]).length; try{ var pd=Pillole.data(), tk=pd.taken||{}; Object.keys(tk).forEach(function(k){ if(k.indexOf(dK+"|")===0) n++; }); }catch(e){} return n; }
@@ -3164,17 +3171,17 @@
   var _pea=document.getElementById("progEserAdd"); if(_pea) _pea.onclick=function(){ progEserItems.push({nome:"",durataMin:""}); renderProgFormItems(); };
   var GIORNI=[{n:1,l:"Lun"},{n:2,l:"Mar"},{n:3,l:"Mer"},{n:4,l:"Gio"},{n:5,l:"Ven"},{n:6,l:"Sab"},{n:0,l:"Dom"}];
   function renderProgGiorni(){ var host=document.getElementById("progGiorni"); if(!host) return; host.innerHTML=""; GIORNI.forEach(function(g){ var b=document.createElement("button"); b.type="button"; b.className="chip-sel"+(progGiorniSel[g.n]?" on":""); b.textContent=g.l; b.onclick=function(){ if(progGiorniSel[g.n]) delete progGiorniSel[g.n]; else progGiorniSel[g.n]=true; b.classList.toggle("on"); }; host.appendChild(b); }); }
-  function progShowRipeti(r){ progRipeti=r; Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.className=(b.dataset.r===r)?"on":""; }); document.getElementById("progGiorniWrap").hidden=(r!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(r!=="mese"); document.getElementById("progDataWrap").hidden=(r!=="data"); if(r==="data"){ var di=document.getElementById("progGiornoData"); if(!di.value){ var t=new Date(); t.setDate(t.getDate()+1); di.value=dayKey(t); } } if(r==="sett") renderProgGiorni(); }
+  function progShowRipeti(r){ progRipeti=r; Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.className=(b.dataset.r===r)?"on":""; }); document.getElementById("progGiorniWrap").hidden=(r!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(r!=="mese"); document.getElementById("progDataWrap").hidden=(r!=="data"); document.getElementById("progRangeWrap").hidden=(r!=="range"); if(r==="data"){ var di=document.getElementById("progGiornoData"); if(!di.value){ var t=new Date(); t.setDate(t.getDate()+1); di.value=dayKey(t); } } if(r==="range"){ var dda=document.getElementById("progGiornoDa"), daa=document.getElementById("progGiornoA"); if(!dda.value){ var t1=new Date(); t1.setDate(t1.getDate()+1); dda.value=dayKey(t1); } if(!daa.value){ var t2=new Date(); t2.setDate(t2.getDate()+7); daa.value=dayKey(t2); } } if(r==="sett") renderProgGiorni(); }
   Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.onclick=function(){ progShowRipeti(b.dataset.r); }; });
-  function progShowTipo(t){ progTipo=t; Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.className=(b.dataset.t===t)?"on":""; }); document.getElementById("progPasto").hidden=(t!=="pasto"); document.getElementById("progEser").hidden=(t!=="eser"); document.getElementById("progFumo").hidden=(t!=="fumo"); document.getElementById("progRipetiWrap").hidden=(t==="fumo"); if(t==="fumo"){ document.getElementById("progGiorniWrap").hidden=true; document.getElementById("progGiornoMeseWrap").hidden=true; document.getElementById("progDataWrap").hidden=true; } else { document.getElementById("progGiorniWrap").hidden=(progRipeti!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(progRipeti!=="mese"); document.getElementById("progDataWrap").hidden=(progRipeti!=="data"); } }
+  function progShowTipo(t){ progTipo=t; Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.className=(b.dataset.t===t)?"on":""; }); document.getElementById("progPasto").hidden=(t!=="pasto"); document.getElementById("progEser").hidden=(t!=="eser"); document.getElementById("progFumo").hidden=(t!=="fumo"); document.getElementById("progRipetiWrap").hidden=(t==="fumo"); if(t==="fumo"){ document.getElementById("progGiorniWrap").hidden=true; document.getElementById("progGiornoMeseWrap").hidden=true; document.getElementById("progDataWrap").hidden=true; document.getElementById("progRangeWrap").hidden=true; } else { document.getElementById("progGiorniWrap").hidden=(progRipeti!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(progRipeti!=="mese"); document.getElementById("progDataWrap").hidden=(progRipeti!=="data"); document.getElementById("progRangeWrap").hidden=(progRipeti!=="range"); } }
   Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.onclick=function(){ progShowTipo(b.dataset.t); }; });
-  function progResetForm(){ progGiorniSel={}; progShowTipo("pasto"); progShowRipeti("ogni"); ["progPastoOra","progEserOra","progFumoMax","progFumoOre","progGiornoMese","progGiornoData"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); progPastoItems=[{nome:"",qta:""}]; progEserItems=[{nome:"",durataMin:""}]; renderProgFormItems(); document.getElementById("progSave").textContent="Aggiungi"; }
+  function progResetForm(){ progGiorniSel={}; progShowTipo("pasto"); progShowRipeti("ogni"); ["progPastoOra","progEserOra","progFumoMax","progFumoOre","progGiornoMese","progGiornoData","progGiornoDa","progGiornoA"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); progPastoItems=[{nome:"",qta:""}]; progEserItems=[{nome:"",durataMin:""}]; renderProgFormItems(); document.getElementById("progSave").textContent="Aggiungi"; }
   function cancelEditProg(){ editingProgId=null; document.getElementById("progSave").textContent="Aggiungi"; }
   document.getElementById("progAddBtn").onclick=function(){ var f=document.getElementById("progForm"); if(f.hidden){ editingProgId=null; progResetForm(); f.hidden=false; } else { f.hidden=true; cancelEditProg(); } };
   document.getElementById("progCancel").onclick=function(){ document.getElementById("progForm").hidden=true; cancelEditProg(); };
   function startEditProg(it){
     editingProgId=it.id; progGiorniSel={}; (it.giorni||[]).forEach(function(d){ progGiorniSel[d]=true; });
-    progShowTipo(it.tipo); progShowRipeti(it.ripeti||"ogni"); document.getElementById("progGiornoMese").value=it.giornoMese||""; document.getElementById("progGiornoData").value=it.data||"";
+    progShowTipo(it.tipo); progShowRipeti(it.ripeti||"ogni"); document.getElementById("progGiornoMese").value=it.giornoMese||""; document.getElementById("progGiornoData").value=it.data||""; document.getElementById("progGiornoDa").value=it.dataDa||""; document.getElementById("progGiornoA").value=it.dataA||"";
     if(it.tipo==="pasto"){ progPastoItems=progItems(it).map(function(x){ return {nome:x.nome||"", qta:x.qta||""}; }); if(!progPastoItems.length) progPastoItems=[{nome:"",qta:""}]; document.getElementById("progPastoOra").value=it.ora||""; renderProgFormItems(); }
     else if(it.tipo==="eser"){ progEserItems=progItems(it).map(function(x){ return {nome:x.nome||"", durataMin:x.durataMin||""}; }); if(!progEserItems.length) progEserItems=[{nome:"",durataMin:""}]; document.getElementById("progEserOra").value=it.ora||""; renderProgFormItems(); }
     else { document.getElementById("progFumoMax").value=it.maxGiorno||""; document.getElementById("progFumoOre").value=it.oreMin||""; }
@@ -3186,7 +3193,7 @@
     if(progTipo==="pasto"){ var pit=progPastoItems.map(function(x){ return {nome:(x.nome||"").trim(), qta:(x.qta||"").trim()}; }).filter(function(x){ return x.nome; }); if(!pit.length){ toast("Aggiungi almeno un alimento"); return; } rec={tipo:"pasto", items:pit, ora:document.getElementById("progPastoOra").value||""}; }
     else if(progTipo==="eser"){ var eit=progEserItems.map(function(x){ return {nome:(x.nome||"").trim(), durataMin:(x.durataMin||"").replace(/[^\d]/g,"")}; }).filter(function(x){ return x.nome; }); if(!eit.length){ toast("Aggiungi almeno un esercizio"); return; } rec={tipo:"eser", items:eit, ora:document.getElementById("progEserOra").value||""}; }
     else { var mx=(document.getElementById("progFumoMax").value||"").replace(/[^\d]/g,""); if(!mx){ toast("Scrivi il massimo di sigarette"); return; } rec={tipo:"fumo", maxGiorno:parseInt(mx,10), oreMin:(document.getElementById("progFumoOre").value||"").replace(",",".").replace(/[^\d.]/g,"")}; }
-    if(progTipo!=="fumo"){ rec.ripeti=progRipeti; if(progRipeti==="sett"){ rec.giorni=Object.keys(progGiorniSel).map(function(k){return parseInt(k,10);}); if(!rec.giorni.length){ toast("Scegli almeno un giorno"); return; } } if(progRipeti==="mese"){ rec.giornoMese=(document.getElementById("progGiornoMese").value||"").replace(/[^\d]/g,""); if(!rec.giornoMese){ toast("Scrivi il giorno del mese"); return; } } if(progRipeti==="data"){ rec.data=document.getElementById("progGiornoData").value||""; if(!rec.data){ toast("Scegli una data"); return; } } }
+    if(progTipo!=="fumo"){ rec.ripeti=progRipeti; if(progRipeti==="sett"){ rec.giorni=Object.keys(progGiorniSel).map(function(k){return parseInt(k,10);}); if(!rec.giorni.length){ toast("Scegli almeno un giorno"); return; } } if(progRipeti==="mese"){ rec.giornoMese=(document.getElementById("progGiornoMese").value||"").replace(/[^\d]/g,""); if(!rec.giornoMese){ toast("Scrivi il giorno del mese"); return; } } if(progRipeti==="data"){ rec.data=document.getElementById("progGiornoData").value||""; if(!rec.data){ toast("Scegli una data"); return; } } if(progRipeti==="range"){ rec.dataDa=document.getElementById("progGiornoDa").value||""; rec.dataA=document.getElementById("progGiornoA").value||""; if(!rec.dataDa||!rec.dataA){ toast("Scegli le due date (da… a…)"); return; } if(rec.dataA<rec.dataDa){ toast("«Al giorno» è prima di «Dal giorno»"); return; } } }
     if(editingProgId){ rec.id=editingProgId; programma=programma.map(function(y){ return y.id===editingProgId?rec:y; }); cancelEditProg(); toast("Modifica salvata ✓"); }
     else { rec.id=uid(); programma.push(rec); toast("Aggiunto al programma ✓"); }
     saveProgramma(); document.getElementById("progForm").hidden=true; renderProgramma();
