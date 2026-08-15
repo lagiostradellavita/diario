@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 23; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 24; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -204,6 +204,36 @@
   .dose.late:not(.done) .dtime, .dose.late:not(.done) .dname{color:var(--lvl-high);}
   .badge-late{font-size:11px; font-weight:800; color:#fff; background:var(--lvl-high); padding:2px 8px; border-radius:999px;}
   .taken-at{font-size:12.5px; font-weight:800; color:var(--lvl-low); white-space:nowrap;}
+
+  /* ---- Report PDF ---- */
+  .rep-seg{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;}
+  .rep-seg .chip-sel{font-size:15px; padding:9px 14px; --c:var(--accent);}
+  #reportView{position:fixed; inset:0; z-index:300; background:#fff; color:#111; overflow:auto;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif; -webkit-text-size-adjust:100%;}
+  #reportView[hidden]{display:none;}
+  .rep-toolbar{position:sticky; top:0; z-index:2; display:flex; gap:10px; align-items:center;
+    padding:12px 16px; background:#fff; border-bottom:1px solid #e2e2e2;}
+  .rep-toolbar .primary{width:auto; flex:1;}
+  .rep-toolbar .link-btn{width:auto; padding:14px 12px; color:#555;}
+  #reportBody{max-width:760px; margin:0 auto; padding:20px 22px 60px;}
+  #reportBody h1{font-size:26px; margin:0 0 3px; letter-spacing:-.02em;}
+  #reportBody .rep-meta{color:#555; font-size:14px; margin:0 0 22px;}
+  #reportBody h2{font-size:20px; margin:26px 0 8px; padding-bottom:6px; border-bottom:2px solid #eee;}
+  #reportBody .rep-sum{font-size:15.5px; line-height:1.5; margin:0 0 10px;}
+  #reportBody .rep-empty{color:#888; font-size:14px; font-style:italic; margin:0 0 6px;}
+  #reportBody table{width:100%; border-collapse:collapse; font-size:14px; margin:6px 0 4px;}
+  #reportBody th,#reportBody td{text-align:left; padding:7px 8px; border-bottom:1px solid #ececec; vertical-align:top;}
+  #reportBody th{background:#f5f5f5; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.03em; color:#444;}
+  #reportBody td.num,#reportBody th.num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  @media print{
+    .wrap{display:none !important;}
+    .rep-toolbar{display:none !important;}
+    #reportView{position:static; overflow:visible;}
+    #reportBody{max-width:100%; padding:0;}
+    #reportBody h2{break-after:avoid;}
+    #reportBody table,#reportBody .rep-sum{break-inside:avoid;}
+    @page{size:A4; margin:14mm;}
+  }
 
   /* ---- Alimentazione (acqua + pasti) ---- */
   .water{display:flex; align-items:center; gap:16px; margin-top:12px;}
@@ -464,6 +494,29 @@
       <button class="menu-card" type="button" data-mod="salute" style="--mc:#E11D48"><span class="mc-emoji">🩺</span><span class="mc-text"><span class="mc-name">Salute</span><span class="mc-st" id="st-salute"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="evac" style="--mc:#0D9488"><span class="mc-emoji">🚽</span><span class="mc-text"><span class="mc-name">Evacuazioni</span><span class="mc-st" id="st-evac"></span></span><span class="mc-chev">›</span></button>
     </div>
+    <h2 class="menu-grid-title">Report PDF</h2>
+    <section class="card">
+      <div class="field"><label>Periodo</label>
+        <div id="repPeriod" class="rep-seg">
+          <button type="button" class="chip-sel on" data-p="giorno">Giorno</button>
+          <button type="button" class="chip-sel" data-p="settimana">Settimana</button>
+          <button type="button" class="chip-sel" data-p="mese">Mese</button>
+          <button type="button" class="chip-sel" data-p="semestre">Semestre</button>
+          <button type="button" class="chip-sel" data-p="anno">Anno</button>
+        </div>
+      </div>
+      <p class="group-lbl">Cosa includere</p>
+      <div id="repModules" class="rep-seg">
+        <button type="button" class="chip-sel on" data-m="fumo">Fumo</button>
+        <button type="button" class="chip-sel on" data-m="pillole">Pillole</button>
+        <button type="button" class="chip-sel on" data-m="esercizio">Attività</button>
+        <button type="button" class="chip-sel on" data-m="alimentazione">Alimentazione</button>
+        <button type="button" class="chip-sel on" data-m="salute">Salute</button>
+        <button type="button" class="chip-sel on" data-m="evac">Evacuazioni</button>
+      </div>
+      <button class="primary" id="repGen" style="margin-top:15px">Genera report PDF</button>
+      <p class="fineprint">Si apre l'anteprima; poi <b>«Stampa / Salva PDF»</b> → su iPhone scegli «Salva in file» (o Condividi → Salva su File).</p>
+    </section>
     <h2 class="menu-grid-title">Dati e backup</h2>
     <section class="card">
       <div class="data-actions">
@@ -722,7 +775,15 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v23</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v24</p>
+</div>
+
+<div id="reportView" hidden>
+  <div class="rep-toolbar">
+    <button class="primary" type="button" id="repPrint">🖨️ Stampa / Salva PDF</button>
+    <button class="link-btn" type="button" id="repClose">Chiudi</button>
+  </div>
+  <div id="reportBody"></div>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -1266,7 +1327,7 @@
       defs.push({id:uid(), nome:nome, orari:orari}); saveDefs();
       document.getElementById(I.form).hidden=true; render(); toast(L.added);
     };
-    return {render:render, today:today};
+    return {render:render, today:today, data:function(){ return {defs:defs, taken:taken}; }};
   }
 
   var Pillole=makeScheduler({
@@ -1472,6 +1533,132 @@
     attivCustom.push(v); try{ localStorage.setItem("salute-attiv-opts", JSON.stringify(attivCustom)); }catch(e){} inp.value=""; renderAttiv();
   };
   document.getElementById("eserAddInput").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("eserAddBtn").click(); } });
+
+  // ---- Report PDF ----
+  var repPeriod="giorno";
+  Array.prototype.forEach.call(document.querySelectorAll("#repPeriod .chip-sel"), function(b){
+    b.onclick=function(){ Array.prototype.forEach.call(document.querySelectorAll("#repPeriod .chip-sel"), function(x){ x.classList.remove("on"); }); b.classList.add("on"); repPeriod=b.dataset.p; };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#repModules .chip-sel"), function(b){
+    b.onclick=function(){ b.classList.toggle("on"); };
+  });
+  function repRange(p){
+    var end=new Date(); end.setHours(23,59,59,999);
+    var s=new Date(); s.setHours(0,0,0,0);
+    if(p==="settimana") s.setDate(s.getDate()-6);
+    else if(p==="mese") s.setDate(s.getDate()-29);
+    else if(p==="semestre") s.setMonth(s.getMonth()-6);
+    else if(p==="anno") s.setFullYear(s.getFullYear()-1);
+    var lbl={giorno:"Giornaliero",settimana:"Settimanale",mese:"Mensile",semestre:"Semestrale",anno:"Annuale"}[p]||p;
+    return {s:s.getTime(), e:end.getTime(), lbl:lbl, sd:s, ed:end};
+  }
+  function dmy(d){ return pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear(); }
+  function dkDisp(k){ var p=k.split("-"); return p[2]+"/"+p[1]+"/"+p[0]; }
+  function dmt(ts){ var d=new Date(ts); return pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+" "+hhmm(d); }
+  function e2(s){ return esc(String(s==null?"":s)); }
+  function repFumo(s,e){
+    var h='<h2>🚬 Fumo</h2>';
+    var rows=entries.filter(function(x){ var t=+new Date(x.ts); return t>=s&&t<=e; });
+    if(!rows.length) return h+'<p class="rep-empty">Nessuna sigaretta nel periodo.</p>';
+    var tot=0, byType={}, byDay={};
+    rows.forEach(function(x){ tot+=x.q; byType[x.tipo]=(byType[x.tipo]||0)+x.q; var k=dayKey(new Date(x.ts)); byDay[k]=(byDay[k]||0)+x.q; });
+    var days=Object.keys(byDay).sort();
+    var media=Math.round(tot/days.length*10)/10;
+    var bt=ORDER.filter(function(t){return byType[t];}).map(function(t){return TIPI[t].label+': '+byType[t];});
+    h+='<p class="rep-sum">Totale <b>'+tot+'</b> sigarette · '+days.length+' giorni · media '+String(media).replace(".",",")+'/giorno'+(bt.length?'<br>'+bt.join(' · '):'')+'</p>';
+    if(days.length>45){
+      var byM={}; days.forEach(function(k){ var m=k.slice(0,7); byM[m]=(byM[m]||0)+byDay[k]; });
+      h+='<table><tr><th>Mese</th><th class="num">Sigarette</th></tr>';
+      Object.keys(byM).sort().forEach(function(m){ var p=m.split("-"); h+='<tr><td>'+MESI[+p[1]-1]+' '+p[0]+'</td><td class="num">'+byM[m]+'</td></tr>'; });
+      h+='</table>';
+    } else {
+      h+='<table><tr><th>Giorno</th><th class="num">Sigarette</th></tr>';
+      days.forEach(function(k){ h+='<tr><td>'+dkDisp(k)+'</td><td class="num">'+byDay[k]+'</td></tr>'; });
+      h+='</table>';
+    }
+    return h;
+  }
+  function repPillole(s,e){
+    var h='<h2>💊 Pillole</h2>';
+    var pd=Pillole.data(), taken=pd.taken||{}, defs=pd.defs||[], nameById={};
+    defs.forEach(function(p){ nameById[p.id]=p.nome; });
+    var rows=[];
+    Object.keys(taken).forEach(function(k){
+      var parts=k.split("|"); var dts=new Date(parts[0]+"T00:00:00").getTime();
+      if(dts>=s && dts<=e){ var tv=taken[k]; rows.push({dk:parts[0], nome:nameById[parts[1]]||"—", ora:parts[2], ts:(typeof tv==="number")?tv:null}); }
+    });
+    if(!rows.length) return h+'<p class="rep-empty">Nessuna assunzione registrata nel periodo.</p>';
+    rows.sort(function(a,b){ return a.dk<b.dk?-1:(a.dk>b.dk?1:(a.ora<b.ora?-1:1)); });
+    h+='<p class="rep-sum">Assunzioni registrate: <b>'+rows.length+'</b></p>';
+    h+='<table><tr><th>Giorno</th><th>Medicina</th><th>Orario</th><th>Presa</th></tr>';
+    rows.forEach(function(r){ h+='<tr><td>'+dkDisp(r.dk)+'</td><td>'+e2(r.nome)+'</td><td>'+r.ora+'</td><td>'+(r.ts?hhmm(new Date(r.ts)):'✓')+'</td></tr>'; });
+    h+='</table>';
+    return h;
+  }
+  function repEser(s,e){
+    var h='<h2>🏃 Attività Fisiche</h2>';
+    var rows=attivLog.filter(function(x){return x.tsEnd>=s&&x.tsEnd<=e;}).sort(function(a,b){return a.tsEnd-b.tsEnd;});
+    if(!rows.length) return h+'<p class="rep-empty">Nessuna attività nel periodo.</p>';
+    var totDur=0; rows.forEach(function(x){ totDur+=x.dur; });
+    h+='<p class="rep-sum">'+rows.length+' sessioni · tempo totale <b>'+fmtDur(totDur)+'</b></p>';
+    h+='<table><tr><th>Quando</th><th>Attività</th><th class="num">Durata</th></tr>';
+    rows.forEach(function(x){ h+='<tr><td>'+dmt(x.tsEnd)+'</td><td>'+e2(x.nome)+'</td><td class="num">'+fmtDur(x.dur)+'</td></tr>'; });
+    h+='</table>';
+    return h;
+  }
+  function repAlim(s,e){
+    var h='<h2>🍎 Alimentazione</h2>';
+    var wdays=Object.keys(alimWater).filter(function(k){ var t=new Date(k+"T00:00:00").getTime(); return t>=s&&t<=e; }).sort();
+    var meals=ciboLog.filter(function(x){return x.ts>=s&&x.ts<=e;}).sort(function(a,b){return a.ts-b.ts;});
+    if(!wdays.length && !meals.length) return h+'<p class="rep-empty">Nessun dato nel periodo.</p>';
+    if(wdays.length){ var tw=0; wdays.forEach(function(k){ tw+=alimWater[k]; });
+      h+='<p class="rep-sum">Acqua: media <b>'+String(Math.round(tw/wdays.length*10)/10).replace(".",",")+'</b> bicchieri/giorno ('+wdays.length+' giorni)</p>'; }
+    if(meals.length){
+      h+='<table><tr><th>Quando</th><th>Alimenti</th></tr>';
+      meals.forEach(function(m){ h+='<tr><td>'+dmt(m.ts)+'</td><td>'+e2((m.cibi||[]).join(", "))+'</td></tr>'; });
+      h+='</table>';
+    }
+    return h;
+  }
+  function repSalute(s,e){
+    var h='<h2>🩺 Salute</h2>';
+    var rows=saluteLog.filter(function(x){return x.ts>=s&&x.ts<=e;}).sort(function(a,b){return a.ts-b.ts;});
+    if(!rows.length) return h+'<p class="rep-empty">Nessun fastidio registrato nel periodo.</p>';
+    var cnt={}; rows.forEach(function(r){ (r.voci||[]).forEach(function(v){ cnt[v]=(cnt[v]||0)+1; }); });
+    var top=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];}).slice(0,8).map(function(v){return v+' ('+cnt[v]+')';});
+    h+='<p class="rep-sum">'+rows.length+' registrazioni · più frequenti: '+e2(top.join(', '))+'</p>';
+    h+='<table><tr><th>Quando</th><th>Fastidi</th></tr>';
+    rows.forEach(function(r){ h+='<tr><td>'+dmt(r.ts)+'</td><td>'+e2((r.voci||[]).join(", "))+'</td></tr>'; });
+    h+='</table>';
+    return h;
+  }
+  function repEvac(s,e){
+    var h='<h2>🚽 Evacuazioni</h2>';
+    var rows=evac.filter(function(x){return x.ts>=s&&x.ts<=e;}).sort(function(a,b){return a.ts-b.ts;});
+    if(!rows.length) return h+'<p class="rep-empty">Niente nel periodo.</p>';
+    var u=0,f=0; rows.forEach(function(x){ if(x.tipo==="feci")f++; else u++; });
+    h+='<p class="rep-sum">Totale <b>'+rows.length+'</b> · 💧 Urina '+u+' · 💩 Feci '+f+'</p>';
+    h+='<table><tr><th>Quando</th><th>Tipo</th><th>Nota</th></tr>';
+    rows.forEach(function(x){ h+='<tr><td>'+dmt(x.ts)+'</td><td>'+(x.tipo==="feci"?"Feci":"Urina")+'</td><td>'+e2(x.nota||"")+'</td></tr>'; });
+    h+='</table>';
+    return h;
+  }
+  function genReport(){
+    var mods=[]; Array.prototype.forEach.call(document.querySelectorAll("#repModules .chip-sel.on"), function(b){ mods.push(b.dataset.m); });
+    if(!mods.length){ toast("Scegli almeno un modulo"); return; }
+    var r=repRange(repPeriod);
+    var B={fumo:repFumo, pillole:repPillole, esercizio:repEser, alimentazione:repAlim, salute:repSalute, evac:repEvac};
+    var order=["fumo","pillole","esercizio","alimentazione","salute","evac"];
+    var body='<h1>Diario Salute — Report '+r.lbl+'</h1>';
+    body+='<p class="rep-meta">Periodo: '+(repPeriod==="giorno"?dmy(r.sd):dmy(r.sd)+" – "+dmy(r.ed))+' · generato il '+dmy(new Date())+'</p>';
+    order.forEach(function(m){ if(mods.indexOf(m)>=0){ body+=B[m](r.s, r.e); } });
+    document.getElementById("reportBody").innerHTML=body;
+    document.getElementById("reportView").hidden=false;
+    try{ window.scrollTo(0,0); }catch(e){}
+  }
+  document.getElementById("repGen").onclick=genReport;
+  document.getElementById("repPrint").onclick=function(){ try{ window.print(); }catch(e){ toast("Usa Condividi → Stampa"); } };
+  document.getElementById("repClose").onclick=function(){ document.getElementById("reportView").hidden=true; };
 
   // ---- Menu (home) + navigazione ----
   function renderMenu(){
