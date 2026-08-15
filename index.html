@@ -46,7 +46,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 21; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 22; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -201,6 +201,7 @@
   .dose .dtime{font-size:14.5px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink-soft);}
   .dose.late:not(.done) .dtime, .dose.late:not(.done) .dname{color:var(--lvl-high);}
   .badge-late{font-size:11px; font-weight:800; color:#fff; background:var(--lvl-high); padding:2px 8px; border-radius:999px;}
+  .taken-at{font-size:12.5px; font-weight:800; color:var(--lvl-low); white-space:nowrap;}
 
   /* ---- Alimentazione (acqua + pasti) ---- */
   .water{display:flex; align-items:center; gap:16px; margin-top:12px;}
@@ -461,6 +462,24 @@
       <button class="menu-card" type="button" data-mod="salute" style="--mc:#E11D48"><span class="mc-emoji">🩺</span><span class="mc-text"><span class="mc-name">Salute</span><span class="mc-st" id="st-salute"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="evac" style="--mc:#0D9488"><span class="mc-emoji">🚽</span><span class="mc-text"><span class="mc-name">Evacuazioni</span><span class="mc-st" id="st-evac"></span></span><span class="mc-chev">›</span></button>
     </div>
+    <h2 class="menu-grid-title">Dati e backup</h2>
+    <section class="card">
+      <div class="data-actions">
+        <button id="btnBackup" class="wide-btn">💾 Salva backup (tutta l'app)</button>
+        <button id="btnRestore" class="wide-btn">♻️ Ripristina backup</button>
+      </div>
+      <div id="restorePanel" class="restore-panel" hidden>
+        <p class="restore-help">Rimetti <b>tutti i dati dell'app</b> da un backup salvato prima. Scegli il file <b>diario-salute-backup.json</b>:</p>
+        <input id="fileRestore" type="file" accept=".json,application/json,.txt,text/plain">
+        <p class="restore-help">…oppure <b>incolla</b> qui il testo del backup e premi Ripristina:</p>
+        <textarea id="restoreText" class="data-text" placeholder='{ "app":"diario-salute", "all":{ … } }'></textarea>
+        <div class="panel-actions">
+          <button class="primary" id="restoreDo">Ripristina dal testo</button>
+          <button class="link-btn" id="restoreCancel">Chiudi</button>
+        </div>
+      </div>
+      <p class="fineprint">Un tocco salva <b>tutto</b> (sigarette, pillole, attività, cibi, salute, evacuazioni) in un file; con «Ripristina» lo rimetti. I dati stanno solo su questo telefono.</p>
+    </section>
   </section>
 
   <!-- ===== FUMO ===== -->
@@ -541,27 +560,14 @@
     <div id="history" style="margin-top:12px"></div>
   </section>
 
-  <!-- DATI -->
+  <!-- DATI (fumo) -->
   <section class="card">
-    <h2 class="section-title">Dati e backup</h2>
+    <h2 class="section-title">Dati del fumo</h2>
     <div class="data-actions">
-      <button id="btnExcel">📊 Esporta in Excel</button>
-      <button id="btnBackup">💾 Salva backup</button>
-      <button id="btnRestore" class="wide-btn">♻️ Ripristina backup</button>
+      <button id="btnExcel" class="wide-btn">📊 Esporta in Excel</button>
       <button id="btnClear" class="danger-btn">Cancella tutto</button>
     </div>
-    <div id="restorePanel" class="restore-panel" hidden>
-      <p class="restore-help">Rimetti le sigarette da un backup salvato prima. Scegli il file <b>diario-fumo-backup.json</b>:</p>
-      <input id="fileRestore" type="file" accept=".json,application/json,.txt,text/plain">
-      <p class="restore-help">…oppure <b>incolla</b> qui il testo del backup e premi Ripristina:</p>
-      <textarea id="restoreText" class="data-text" placeholder='{ "app":"diario-fumo", "entries":[ … ] }'></textarea>
-      <div class="panel-actions">
-        <button class="primary" id="restoreDo">Ripristina dal testo</button>
-        <button class="link-btn" id="restoreCancel">Chiudi</button>
-      </div>
-    </div>
-    <p class="fineprint">I dati restano salvati solo su questo telefono, in questo browser.
-      Salva un backup ogni tanto: con «Ripristina backup» lo puoi sempre rimettere.</p>
+    <p class="fineprint">Esporta le sigarette in Excel. Il <b>backup di tutta l'app</b> è nella Home, in fondo.</p>
   </section>
   </section><!-- /mod-fumo -->
 
@@ -714,7 +720,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v21</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v22</p>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -1112,11 +1118,18 @@
     else toast("Esportazione non disponibile qui");
   };
 
+  function collectAppData(){
+    var all={};
+    try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k && (k.indexOf("salute-")===0 || k.indexOf("diario-fumo")===0)) all[k]=localStorage.getItem(k); } }catch(e){}
+    try{ if((!all["diario-fumo:v1"]) && entries && entries.length) all["diario-fumo:v1"]=JSON.stringify(entries); }catch(e){}
+    return all;
+  }
   document.getElementById("btnBackup").onclick=async function(){
-    if(!entries.length){ toast("Non c'è ancora niente da salvare"); return; }
-    var data=JSON.stringify({app:"diario-fumo",v:1,entries:entries},null,2);
-    var res=await saveFile("diario-fumo-backup.json", data, null);
-    if(res.ok) toast("Backup salvato");
+    var all=collectAppData();
+    if(!Object.keys(all).length){ toast("Non c'è ancora niente da salvare"); return; }
+    var data=JSON.stringify({app:"diario-salute", v:3, all:all}, null, 2);
+    var res=await saveFile("diario-salute-backup.json", data, null);
+    if(res.ok) toast("Backup di tutta l'app salvato ✓");
     else if(res.reason==="declined") toast("Backup annullato");
     else toast("Backup non disponibile qui");
   };
@@ -1142,6 +1155,15 @@
   function importFromText(text){
     try{
       var obj=JSON.parse(text);
+      // Backup completo (tutta l'app): riscrive tutte le chiavi e ricarica
+      if(obj && obj.all && typeof obj.all==="object"){
+        var kk=Object.keys(obj.all);
+        if(!kk.length) throw new Error("vuoto");
+        kk.forEach(function(k){ try{ localStorage.setItem(k, obj.all[k]); }catch(e){} });
+        toast("Ripristinato ✓ Ricarico l'app…");
+        setTimeout(function(){ try{ location.reload(); }catch(e){} }, 800);
+        return true;
+      }
       var list = Array.isArray(obj)? obj : (obj && obj.entries);
       if(!Array.isArray(list)) throw new Error("formato");
       var clean = list.filter(function(e){ return e && e.ts && e.tipo && TIPI[e.tipo]; })
@@ -1188,8 +1210,8 @@
     function today(){
       var now=new Date(), dK=dayKey(now), nowMin=now.getHours()*60+now.getMinutes(), doses=[];
       defs.forEach(function(p){ (p.orari||[]).forEach(function(o){
-        var k=dK+"|"+p.id+"|"+o, tk=!!taken[k];
-        doses.push({id:p.id, nome:p.nome, ora:o, key:k, taken:tk, late:(!tk && nowMin>oraMin(o))});
+        var k=dK+"|"+p.id+"|"+o, tv=taken[k], tk=!!tv;
+        doses.push({id:p.id, nome:p.nome, ora:o, key:k, taken:tk, takenAt:(typeof tv==="number"?tv:null), late:(!tk && nowMin>oraMin(o))});
       }); });
       doses.sort(function(a,b){ return a.ora<b.ora?-1:(a.ora>b.ora?1:0); });
       var tk=0,late=0; doses.forEach(function(d){ if(d.taken)tk++; if(d.late)late++; });
@@ -1201,8 +1223,8 @@
       if(!t.total){ host.innerHTML='<div class="empty">'+L.empty+'</div>'; }
       t.doses.forEach(function(d){
         var row=document.createElement("div"); row.className="dose"+(d.taken?" done":"")+(d.late?" late":"");
-        row.innerHTML='<span class="dcheck">✓</span><span class="dname">'+esc(d.nome)+(d.late?' <span class="badge-late">in ritardo</span>':'')+'</span><span class="dtime">'+d.ora+'</span>';
-        row.querySelector(".dcheck").onclick=function(){ if(taken[d.key]) delete taken[d.key]; else taken[d.key]=true; saveTaken(); render(); };
+        row.innerHTML='<span class="dcheck">✓</span><span class="dname">'+esc(d.nome)+(d.late?' <span class="badge-late">in ritardo</span>':'')+(d.taken&&d.takenAt?' <span class="taken-at">presa '+hhmm(new Date(d.takenAt))+'</span>':'')+'</span><span class="dtime">'+d.ora+'</span>';
+        row.querySelector(".dcheck").onclick=function(){ if(taken[d.key]) delete taken[d.key]; else taken[d.key]=Date.now(); saveTaken(); render(); };
         host.appendChild(row);
       });
       var s=document.getElementById(I.summary);
