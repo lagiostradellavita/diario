@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 65; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 66; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -387,6 +387,13 @@
   .chip-manage .manage-name{flex:1 1 auto; min-width:0; font-size:15.5px; font-weight:700; color:var(--ink); overflow-wrap:anywhere;}
   .chip-manage .manage-edit, .chip-manage .manage-del{flex:0 0 auto; appearance:none; border:1px solid var(--line); background:var(--surface-2); color:var(--ink-soft); border-radius:9px; width:34px; height:34px; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation;}
   .chip-manage .manage-del{font-size:20px; line-height:1;}
+  .diario-fields[hidden]{display:none;}
+  #diarioTipoSeg button, #diarioSigTipo button{font-size:14px; padding:11px 2px;}
+  .tl-row{display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--line);}
+  .tl-time{flex:0 0 auto; font-size:14px; font-weight:800; color:var(--ink-soft); font-variant-numeric:tabular-nums; min-width:46px; padding-top:2px;}
+  .tl-emoji{flex:0 0 auto; font-size:18px; line-height:1.25;}
+  .tl-text{flex:1 1 auto; min-width:0; font-size:15.5px; font-weight:600; color:var(--ink); overflow-wrap:anywhere;}
+  .tl-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:8px; width:30px; height:30px; font-size:17px; cursor:pointer; touch-action:manipulation;}
   #cicloNote, #notaGiornata, #dietaPiano, #saluteNota{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
   .ciclo-prev{margin:10px 0 2px; padding:12px 14px; border-radius:14px; background:var(--surface-2); border:1px solid var(--line); font-size:15.5px; font-weight:700; color:var(--ink-soft); line-height:1.45;}
   .ciclo-prev b{color:var(--ink); font-weight:850;}
@@ -663,6 +670,7 @@
         <button class="link-btn" id="suggClose" style="margin-top:6px">Chiudi</button>
       </div>
     </section>
+    <button class="menu-card" type="button" data-mod="diario" style="--mc:#0EA5E9"><span class="mc-emoji">📔</span><span class="mc-text"><span class="mc-name">Diario di oggi</span><span class="mc-st" id="st-diario">scrivi la giornata</span></span><span class="mc-chev">›</span></button>
     <button class="menu-card" type="button" data-mod="programma" style="--mc:#6366F1"><span class="mc-emoji">📋</span><span class="mc-text"><span class="mc-name">Programma</span><span class="mc-st" id="st-prog">pianifica la giornata</span></span><span class="mc-chev">›</span></button>
     <h2 class="menu-grid-title">Le tue funzioni</h2>
     <div class="menu-grid">
@@ -1251,7 +1259,63 @@
     <p class="fineprint" style="text-align:center; margin:0">L'avviso è <b>in-app</b> (agenda + suggerimenti in Home): l'app non può far squillare una notifica. Per un promemoria che suona, usa una Sveglia/Promemoria iOS.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v65</p>
+  <section id="mod-diario" class="screen" hidden>
+    <header class="top">
+      <button class="back-btn" data-back>‹ Menu</button>
+      <div class="brandtext"><h1>Diario di oggi</h1><p class="sub" id="diarioDate"></p></div>
+    </header>
+    <section class="card">
+      <h2 class="section-title" style="margin:0 0 4px">Aggiungi cosa hai fatto</h2>
+      <p class="fineprint" style="margin:0 0 10px">Scegli il tipo, metti l'ora e aggiungi: finisce da sé nello storico della sua funzione. Registra solo ciò che hai fatto.</p>
+      <div class="seg" id="diarioTipoSeg" style="grid-template-columns:1fr 1fr; --c:#6366F1">
+        <button type="button" data-dt="sigaretta" class="on">🚬 Sigaretta</button>
+        <button type="button" data-dt="medicina">💊 Medicina</button>
+        <button type="button" data-dt="cibo">🍽️ Cibo</button>
+        <button type="button" data-dt="eser">🏃 Esercizio</button>
+        <button type="button" data-dt="fastidio">🤕 Fastidio</button>
+        <button type="button" data-dt="sveglia">⏰ Sveglia</button>
+      </div>
+      <div class="diario-fields" id="dfSigaretta">
+        <div class="seg" id="diarioSigTipo" style="grid-template-columns:1fr 1fr; --c:#C2410C; margin-top:10px">
+          <button type="button" data-st="trinciate" class="on">Trinciata</button>
+          <button type="button" data-st="riscaldate">Riscaldata</button>
+          <button type="button" data-st="normali" style="grid-column:1/-1">Normale</button>
+        </div>
+        <div class="field" style="margin-top:8px"><label for="diarioSigQ">Quante</label><input type="text" id="diarioSigQ" inputmode="numeric" value="1" autocomplete="off"></div>
+      </div>
+      <div class="diario-fields" id="dfMedicina" hidden>
+        <div class="prog-flabel" style="margin-top:10px">Quale medicina (tocca)</div>
+        <div id="diarioMedChips" class="chips"></div>
+      </div>
+      <div class="diario-fields" id="dfCibo" hidden>
+        <label class="prog-flabel" style="margin-top:10px">Cibi (uno o più)</label>
+        <div id="diarioCiboItems"></div>
+        <button type="button" class="link-btn" id="diarioCiboAdd" style="text-align:left;padding:6px 2px;margin-top:2px">＋ aggiungi cibo</button>
+      </div>
+      <div class="diario-fields" id="dfEser" hidden>
+        <div class="field" style="margin-top:10px"><label for="diarioEserNome">Esercizio</label><input type="text" id="diarioEserNome" list="dlSugAttivita" placeholder="es. Camminata" autocomplete="off"></div>
+        <div class="field"><label for="diarioEserDur">Durata (min, facolt.)</label><input type="text" id="diarioEserDur" inputmode="numeric" autocomplete="off"></div>
+      </div>
+      <div class="diario-fields" id="dfFastidio" hidden>
+        <div class="field" style="margin-top:10px"><label for="diarioFastNome">Fastidio</label><input type="text" id="diarioFastNome" list="dlFastidiAll" placeholder="es. Acufene" autocomplete="off"></div>
+        <div class="grid2">
+          <div class="field"><label for="diarioFastDove">Dove (facolt.)</label><input type="text" id="diarioFastDove" placeholder="es. Sx" autocomplete="off"></div>
+          <div class="field"><label for="diarioFastNota">Nota (facolt.)</label><input type="text" id="diarioFastNota" autocomplete="off"></div>
+        </div>
+      </div>
+      <div class="diario-fields" id="dfSveglia" hidden>
+        <div class="field" style="margin-top:10px"><label for="diarioNotaTxt">Nota</label><input type="text" id="diarioNotaTxt" placeholder="es. Sveglia" autocomplete="off"></div>
+      </div>
+      <div class="field" style="margin-top:12px"><label for="diarioOra">Ora</label><input type="time" id="diarioOra"></div>
+      <button class="primary" id="diarioAdd" style="margin-top:12px">Aggiungi alla giornata</button>
+    </section>
+    <section class="card">
+      <div class="row-between" style="flex-wrap:wrap; gap:2px 10px"><h2 class="section-title" style="margin:0">La tua giornata</h2><span id="diarioCount" class="stat-summary"></span></div>
+      <div id="diarioTimeline" style="margin-top:8px"></div>
+    </section>
+  </section>
+
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v66</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3020,6 +3084,7 @@
     var ec=evacCounts(), se2=document.getElementById("st-evac");
     se2.textContent=ec.tot?("💧"+ec.u+" 💩"+ec.f):"0 oggi"; se2.style.color=ec.tot?"var(--ink-soft)":"var(--muted)";
     try{ var ps=progTodayStatus(), sp2=document.getElementById("st-prog"); if(sp2){ if(ps.total){ sp2.textContent=ps.done+"/"+ps.total+" fatte oggi"; sp2.style.color=(ps.done>=ps.total)?"var(--lvl-low)":"var(--ink-soft)"; } else { sp2.textContent="pianifica la giornata"; sp2.style.color="var(--muted)"; } } }catch(e){}
+    try{ var sd=document.getElementById("st-diario"); if(sd){ var nd=collectTodayEvents().length; if(nd){ sd.textContent=nd+(nd===1?" voce oggi":" voci oggi"); sd.style.color="var(--ink-soft)"; } else { sd.textContent="scrivi la giornata"; sd.style.color="var(--muted)"; } } }catch(e){}
     var _sp=document.getElementById("suggPanel"), _st=document.getElementById("suggToggle");
     if(_sp) _sp.hidden=true; if(_st) _st.hidden=false;
   }
@@ -3255,11 +3320,126 @@
   };
   renderProgramma();
 
+  // ---- Diario di oggi: registrazione sequenziale che compila gli storici delle funzioni ----
+  var diarioEventi=[]; try{ var _de=JSON.parse(localStorage.getItem("salute-diario-eventi")); if(Array.isArray(_de)) diarioEventi=_de; }catch(e){}
+  function saveDiarioEventi(){ try{ localStorage.setItem("salute-diario-eventi", JSON.stringify(diarioEventi)); }catch(e){} }
+  var diarioTipo="sigaretta", diarioSigTipo="trinciate", diarioMedSel=null;
+  var diarioCiboItems=[{nome:"",qta:""}];
+  function renderDiarioCiboItems(){
+    var host=document.getElementById("diarioCiboItems"); if(!host) return; host.innerHTML="";
+    diarioCiboItems.forEach(function(itm, i){
+      var row=document.createElement("div"); row.className="pasto-row";
+      var n=document.createElement("input"); n.type="text"; n.placeholder="cibo"; n.value=itm.nome||""; n.setAttribute("list","dlProgFood"); n.setAttribute("autocomplete","off"); n.oninput=function(){ itm.nome=n.value; };
+      var q=document.createElement("input"); q.type="text"; q.className="pr-kcal"; q.placeholder="quantità"; q.value=itm.qta||""; q.setAttribute("autocomplete","off"); q.oninput=function(){ itm.qta=q.value; };
+      var x=document.createElement("button"); x.type="button"; x.className="pr-del"; x.textContent="×"; x.setAttribute("aria-label","Togli"); x.onclick=function(){ diarioCiboItems.splice(i,1); if(!diarioCiboItems.length) diarioCiboItems=[{nome:"",qta:""}]; renderDiarioCiboItems(); };
+      row.appendChild(n); row.appendChild(q); row.appendChild(x); host.appendChild(row);
+    });
+  }
+  function renderDiarioMedChips(){
+    var host=document.getElementById("diarioMedChips"); if(!host) return; host.innerHTML="";
+    var defs=[]; try{ defs=Pillole.data().defs||[]; }catch(e){}
+    if(!defs.length){ host.innerHTML='<div class="empty" style="padding:8px">Nessuna medicina salvata. Aggiungile in «Pillole».</div>'; diarioMedSel=null; return; }
+    defs.forEach(function(d){
+      var b=document.createElement("button"); b.type="button"; b.className="chip-sel"+(diarioMedSel===d.id?" on":""); b.textContent=d.nome;
+      b.onclick=function(){ diarioMedSel=(diarioMedSel===d.id?null:d.id); renderDiarioMedChips(); };
+      host.appendChild(b);
+    });
+  }
+  function diarioShowTipo(t){
+    diarioTipo=t;
+    Array.prototype.forEach.call(document.querySelectorAll("#diarioTipoSeg button"), function(b){ b.className=(b.dataset.dt===t)?"on":""; });
+    var map={sigaretta:"dfSigaretta", medicina:"dfMedicina", cibo:"dfCibo", eser:"dfEser", fastidio:"dfFastidio", sveglia:"dfSveglia"};
+    Object.keys(map).forEach(function(k){ var el=document.getElementById(map[k]); if(el) el.hidden=(k!==t); });
+    if(t==="cibo") renderDiarioCiboItems();
+    if(t==="medicina") renderDiarioMedChips();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("#diarioTipoSeg button"), function(b){ b.onclick=function(){ diarioShowTipo(b.dataset.dt); }; });
+  Array.prototype.forEach.call(document.querySelectorAll("#diarioSigTipo button"), function(b){ b.onclick=function(){ diarioSigTipo=b.dataset.st; Array.prototype.forEach.call(document.querySelectorAll("#diarioSigTipo button"), function(x){ x.className=(x.dataset.st===diarioSigTipo)?"on":""; }); }; });
+  var _dca=document.getElementById("diarioCiboAdd"); if(_dca) _dca.onclick=function(){ diarioCiboItems.push({nome:"",qta:""}); renderDiarioCiboItems(); };
+  function diarioWhenTs(){ var v=(document.getElementById("diarioOra")||{}).value; return v? todayAtHHMM(v) : Date.now(); }
+  var _dadd=document.getElementById("diarioAdd"); if(_dadd) _dadd.onclick=function(){
+    var ts=diarioWhenTs();
+    if(diarioTipo==="sigaretta"){ var q=parseInt((document.getElementById("diarioSigQ").value||"1").replace(/[^\d]/g,""),10)||1; addEntry(diarioSigTipo, q, new Date(ts), ""); }
+    else if(diarioTipo==="medicina"){
+      if(!diarioMedSel){ toast("Scegli la medicina"); return; }
+      var defs=Pillole.data().defs||[], def=null; defs.forEach(function(d){ if(d.id===diarioMedSel) def=d; });
+      if(!def){ toast("Scegli la medicina"); return; }
+      var dK=dayKey(new Date()), taken=Pillole.data().taken||{}, orari=def.orari||[], key=null, i;
+      for(i=0;i<orari.length;i++){ var k=dK+"|"+def.id+"|"+orari[i]; if(!taken[k]){ key=k; break; } }
+      if(!key && orari.length) key=dK+"|"+def.id+"|"+orari[0];
+      if(!key){ toast("Questa medicina non ha orari — impostali in «Pillole»"); return; }
+      Pillole.checkAt(key, ts); toast("💊 "+def.nome+" registrata"); diarioMedSel=null; renderDiarioMedChips();
+    }
+    else if(diarioTipo==="cibo"){
+      var citems=diarioCiboItems.map(function(x){ return {nome:(x.nome||"").trim(), qta:(x.qta||"").trim()}; }).filter(function(x){ return x.nome; });
+      if(!citems.length){ toast("Scrivi almeno un cibo"); return; }
+      var full=citems.map(function(x){ var kc=estimateKcal({nome:x.nome, tipo:"", qta:x.qta}); return {nome:x.nome, tipo:"", qta:x.qta||"", kcal:(kc==null?0:kc)}; });
+      ciboLog.push({id:uid(), ts:ts, items:full, nota:""}); saveCiboLog(); toast("🍽️ Cibo registrato");
+      diarioCiboItems=[{nome:"",qta:""}]; renderDiarioCiboItems();
+    }
+    else if(diarioTipo==="eser"){
+      var enome=(document.getElementById("diarioEserNome").value||"").trim(); if(!enome){ toast("Scrivi l'esercizio"); return; }
+      var dur=(parseInt((document.getElementById("diarioEserDur").value||"").replace(/[^\d]/g,""),10)||0)*60000;
+      attivLog.push({id:uid(), nome:enome, tsEnd:ts, dur:dur, valore:"", nota:""}); saveAttivLog(); toast("🏃 "+enome+" registrato");
+      document.getElementById("diarioEserNome").value=""; document.getElementById("diarioEserDur").value="";
+    }
+    else if(diarioTipo==="fastidio"){
+      var fn=(document.getElementById("diarioFastNome").value||"").trim(); if(!fn){ toast("Scrivi il fastidio"); return; }
+      var dv=(document.getElementById("diarioFastDove").value||"").trim(), ft=(document.getElementById("diarioFastNota").value||"").trim();
+      saluteLog.push({id:uid(), ts:ts, voci:[fn], dove:(dv?[dv]:[]), nota:ft}); saveSaluteLog(); toast("🤕 "+fn+" registrato");
+      document.getElementById("diarioFastNome").value=""; document.getElementById("diarioFastDove").value=""; document.getElementById("diarioFastNota").value="";
+    }
+    else if(diarioTipo==="sveglia"){
+      var nt=(document.getElementById("diarioNotaTxt").value||"").trim() || "Sveglia";
+      diarioEventi.push({id:uid(), ts:ts, testo:nt}); saveDiarioEventi(); toast("⏰ "+nt+" registrato");
+      document.getElementById("diarioNotaTxt").value="";
+    }
+    document.getElementById("diarioOra").value=hhmm(new Date());
+    renderDiario();
+  };
+  function collectTodayEvents(){
+    var dK=dayKey(new Date()), ev=[];
+    try{ entries.forEach(function(e){ var t=+new Date(e.ts); if(dayKey(new Date(t))===dK){ ev.push({ts:t, emoji:"🚬", text:(e.q>1?e.q+" ":"")+((TIPI[e.tipo]&&TIPI[e.tipo].label.toLowerCase())||"sigaretta")+(e.nota?" — "+e.nota:""), kind:"fumo", id:e.id}); } }); }catch(e){}
+    try{ ciboLog.forEach(function(c){ if(dayKey(new Date(c.ts))===dK){ var names=(c.items||[]).map(function(x){ return x.nome+(x.qta?" "+x.qta:""); }).join(", "); ev.push({ts:c.ts, emoji:"🍽️", text:names+(c.nota?" — "+c.nota:""), kind:"cibo", id:c.id}); } }); }catch(e){}
+    try{ attivLog.forEach(function(a){ if(dayKey(new Date(a.tsEnd))===dK){ ev.push({ts:a.tsEnd, emoji:"🏃", text:a.nome+(a.dur?" "+fmtDur(a.dur):"")+(a.valore?" · "+a.valore:"")+(a.nota?" — "+a.nota:""), kind:"attiv", id:a.id}); } }); }catch(e){}
+    try{ saluteLog.forEach(function(s){ if(dayKey(new Date(s.ts))===dK){ var st=(s.voci||[]).join(", "); if(s.dove&&s.dove.length) st+=" · 📍"+s.dove.join(", "); if(s.nota) st+=(st?" — ":"")+s.nota; ev.push({ts:s.ts, emoji:"🤕", text:st, kind:"salute", id:s.id}); } }); }catch(e){}
+    try{ var pd=Pillole.data(), tk=pd.taken||{}, nById={}; (pd.defs||[]).forEach(function(d){ nById[d.id]=d.nome; }); Object.keys(tk).forEach(function(k){ var parts=k.split("|"); if(parts[0]===dK){ var tv=tk[k], t=(typeof tv==="number"?tv:null); if(t){ ev.push({ts:t, emoji:"💊", text:(nById[parts[1]]||"Medicina"), kind:"pill", id:k}); } } }); }catch(e){}
+    try{ diarioEventi.forEach(function(d){ if(dayKey(new Date(d.ts))===dK){ ev.push({ts:d.ts, emoji:"⏰", text:d.testo, kind:"diario", id:d.id}); } }); }catch(e){}
+    ev.sort(function(a,b){ return a.ts-b.ts; });
+    return ev;
+  }
+  function diarioDeleteEvent(e){
+    if(e.kind==="fumo"){ entries=entries.filter(function(x){return x.id!==e.id;}); save(); }
+    else if(e.kind==="cibo"){ ciboLog=ciboLog.filter(function(x){return x.id!==e.id;}); saveCiboLog(); }
+    else if(e.kind==="attiv"){ attivLog=attivLog.filter(function(x){return x.id!==e.id;}); saveAttivLog(); }
+    else if(e.kind==="salute"){ saluteLog=saluteLog.filter(function(x){return x.id!==e.id;}); saveSaluteLog(); }
+    else if(e.kind==="pill"){ Pillole.checkAt(e.id, null); }
+    else if(e.kind==="diario"){ diarioEventi=diarioEventi.filter(function(x){return x.id!==e.id;}); saveDiarioEventi(); }
+    renderDiario();
+  }
+  function renderDiario(){
+    if(!document.getElementById("diarioDate")) return;
+    document.getElementById("diarioDate").textContent=fmtDayLong(new Date());
+    var oraEl=document.getElementById("diarioOra"); if(oraEl && !oraEl.value) oraEl.value=hhmm(new Date());
+    var ev=collectTodayEvents(), host=document.getElementById("diarioTimeline"); host.innerHTML="";
+    document.getElementById("diarioCount").textContent = ev.length? (ev.length+(ev.length===1?" voce":" voci")) : "";
+    if(!ev.length){ host.innerHTML='<div class="empty">Ancora niente oggi.<br>Aggiungi la prima cosa qui sopra.</div>'; return; }
+    ev.forEach(function(e){
+      var row=document.createElement("div"); row.className="tl-row";
+      row.innerHTML='<span class="tl-time">'+hhmm(new Date(e.ts))+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>';
+      row.querySelector(".tl-text").textContent=e.text;
+      var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina");
+      del.onclick=function(){ diarioDeleteEvent(e); };
+      row.appendChild(del); host.appendChild(row);
+    });
+  }
+  diarioShowTipo("sigaretta");
+
   var currentMod="menu", lastDay="";
   function showMod(m){
     currentMod=m; lastDay=dayKey(new Date());
     if(attivInterval){ clearInterval(attivInterval); attivInterval=null; }
-    ["fumo","pillole","esercizio","alimentazione","salute","evac","programma"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
+    ["fumo","pillole","esercizio","alimentazione","salute","evac","programma","diario"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
     document.getElementById("menu").hidden=(m!=="menu");
     try{ window.scrollTo(0,0); }catch(e){}
     if(m==="menu") renderMenu();
@@ -3270,6 +3450,7 @@
     else if(m==="evac") renderEvac();
     else if(m==="fumo") render();
     else if(m==="programma") renderProgramma();
+    else if(m==="diario") renderDiario();
     if(m==="menu"){ renderDocList(); } else if(modDocRender[m]){ modDocRender[m](); }
   }
   Array.prototype.forEach.call(document.querySelectorAll(".menu-card"), function(c){ c.onclick=function(){ showMod(c.dataset.mod); }; });
