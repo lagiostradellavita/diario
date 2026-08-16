@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 84; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 85; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1403,7 +1403,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v84</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v85</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3661,7 +3661,7 @@
     if(e.kind==="fumo"){ entries.forEach(function(x){ if(x.id===e.id){ x.tipo=diarioSigTipo; x.q=parseInt((document.getElementById("diarioSigQ").value||"1").replace(/[^\d]/g,""),10)||1; x.ts=new Date(ts).toISOString(); } }); save(); }
     else if(e.kind==="cibo"){ var items=diarioCiboItems.map(function(x){return {nome:(x.nome||"").trim(), qta:(x.qta||"").trim()};}).filter(function(x){return x.nome;}); if(!items.length){ toast("Scrivi almeno un cibo"); return; } var full=items.map(function(x){ var kc=estimateKcal({nome:x.nome, tipo:"", qta:x.qta}); return {nome:x.nome, tipo:"", qta:x.qta||"", kcal:(kc==null?0:kc)}; }); ciboLog.forEach(function(x){ if(x.id===e.id){ x.items=full; x.ts=ts; } }); saveCiboLog(); }
     else if(e.kind==="attiv"){ var nm=(document.getElementById("diarioEserNome").value||"").trim(); if(!nm){ toast("Scrivi l'esercizio"); return; } var dur=(parseInt((document.getElementById("diarioEserDur").value||"").replace(/[^\d]/g,""),10)||0)*60000; attivLog.forEach(function(x){ if(x.id===e.id){ x.nome=nm; x.dur=dur; x.tsEnd=ts; } }); saveAttivLog(); }
-    else if(e.kind==="salute"){ var fn=(document.getElementById("diarioFastNome").value||"").trim(); if(!fn){ toast("Scrivi il fastidio"); return; } var dv=(document.getElementById("diarioFastDove").value||"").trim(), ft=(document.getElementById("diarioFastNota").value||"").trim(); saluteLog.forEach(function(x){ if(x.id===e.id){ x.voci=[fn]; x.dove=(dv?[dv]:[]); x.nota=ft; x.ts=ts; } }); saveSaluteLog(); }
+    else if(e.kind==="salute"){ var fn=(document.getElementById("diarioFastNome").value||"").trim(), dv=(document.getElementById("diarioFastDove").value||"").trim(), ft=(document.getElementById("diarioFastNota").value||"").trim(); if(!fn && !ft && !dv){ toast("Scrivi un fastidio o una nota"); return; } saluteLog.forEach(function(x){ if(x.id===e.id){ var extraV=(x.voci&&x.voci.length>1)?x.voci.slice(1):[]; var extraD=(x.dove&&x.dove.length>1)?x.dove.slice(1):[]; x.voci=(fn?[fn].concat(extraV):extraV); x.dove=(dv?[dv].concat(extraD):extraD); x.nota=ft; x.ts=ts; } }); saveSaluteLog(); }
     else if(e.kind==="pill"){ if(!diarioMedSel){ toast("Scegli la medicina"); return; } var op=String(e.id).split("|"), ora=op[2]||"00:00"; Pillole.checkAt(e.id, null); Pillole.checkAt(dayKey(new Date(ts))+"|"+diarioMedSel+"|"+ora, ts); }
     else if(e.kind==="diario"){ var nt=(document.getElementById("diarioNotaTxt").value||"").trim()||"Sveglia"; diarioEventi.forEach(function(x){ if(x.id===e.id){ x.testo=nt; x.ts=ts; } }); saveDiarioEventi(); }
     else if(e.kind==="evac"){ var en=(document.getElementById("diarioEvacNota").value||"").trim(); evac.forEach(function(x){ if(x.id===e.id){ x.tipo=diarioEvacTipo; x.nota=en; x.ts=ts; } }); saveEvac(); }
