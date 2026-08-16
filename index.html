@@ -19,7 +19,7 @@
       try{
         var S=180, c=document.createElement("canvas"); c.width=S; c.height=S;
         var x=c.getContext("2d");
-        var g=x.createLinearGradient(0,0,S,S); g.addColorStop(0,"#34D399"); g.addColorStop(1,"#059669");
+        var g=x.createLinearGradient(0,0,S,S); g.addColorStop(0,"#F472D0"); g.addColorStop(1,"#C026D3");
         x.fillStyle=g; x.fillRect(0,0,S,S);
         var cx=S*0.5, cy=S*0.47, s=S*0.33;
         x.fillStyle="#FFFFFF"; x.beginPath();
@@ -27,7 +27,7 @@
         x.bezierCurveTo(cx-s*1.0, cy-s*0.04, cx-s*0.6, cy-s*0.9, cx, cy-s*0.36);
         x.bezierCurveTo(cx+s*0.6, cy-s*0.9, cx+s*1.0, cy-s*0.04, cx, cy+s*0.64);
         x.closePath(); x.fill();
-        x.strokeStyle="#059669"; x.lineWidth=S*0.05; x.lineCap="round"; x.lineJoin="round";
+        x.strokeStyle="#A21CAF"; x.lineWidth=S*0.05; x.lineCap="round"; x.lineJoin="round";
         var py=cy+s*0.04;
         x.beginPath();
         x.moveTo(cx-s*0.6, py); x.lineTo(cx-s*0.28, py);
@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 74; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 75; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -100,7 +100,7 @@
     --accent:#C2410C; --accent-2:#EA6A2C; --on-accent:#FFFFFF; --on-c:#FFFFFF;
     --t-risc:#0F766E; --t-trin:#A16207; --t-norm:#C2410C;
     --good:#15803D; --danger:#B91C1C;
-    --lvl-low:#15803D; --lvl-mid:#EA580C; --lvl-high:#B91C1C;
+    --lvl-low:#15803D; --lvl-yellow:#CA8A04; --lvl-mid:#EA580C; --lvl-high:#B91C1C;
     --shadow:0 1px 2px rgba(33,30,28,.05), 0 6px 20px -10px rgba(33,30,28,.18);
     --shadow-lg:0 2px 5px rgba(33,30,28,.06), 0 18px 40px -18px rgba(33,30,28,.32);
   }
@@ -112,7 +112,7 @@
       --accent:#F97316; --accent-2:#FDA657; --on-accent:#211307;
       --t-risc:#2DD4BF; --t-trin:#E0A82E; --t-norm:#FB7A3C;
       --good:#4ADE80; --danger:#F87171;
-      --lvl-low:#4ADE80; --lvl-mid:#FB923C; --lvl-high:#F87171;
+      --lvl-low:#4ADE80; --lvl-yellow:#FACC15; --lvl-mid:#FB923C; --lvl-high:#F87171;
       --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
       --shadow-lg:0 2px 6px rgba(0,0,0,.42), 0 20px 46px -18px rgba(0,0,0,.72);
     }
@@ -124,7 +124,7 @@
     --accent:#F97316; --accent-2:#FDA657; --on-accent:#211307; --on-c:#1A1512;
     --t-risc:#2DD4BF; --t-trin:#E0A82E; --t-norm:#FB7A3C;
     --good:#4ADE80; --danger:#F87171;
-    --lvl-low:#4ADE80; --lvl-mid:#FB923C; --lvl-high:#F87171;
+    --lvl-low:#4ADE80; --lvl-yellow:#FACC15; --lvl-mid:#FB923C; --lvl-high:#F87171;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
     --shadow-lg:0 2px 6px rgba(0,0,0,.42), 0 20px 46px -18px rgba(0,0,0,.72);
   }
@@ -586,7 +586,7 @@
   .stat-summary{font-size:17px; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap;}
   .stat-legend{display:flex; flex-wrap:wrap; gap:5px 14px; align-items:center; font-size:12px; color:var(--muted); font-weight:600; margin:12px 2px 0;}
   .stat-legend .lg{margin-right:3px;}
-  .lg-low{color:var(--lvl-low);} .lg-mid{color:var(--lvl-mid);} .lg-high{color:var(--lvl-high);}
+  .lg-low{color:var(--lvl-low);} .lg-yellow{color:var(--lvl-yellow);} .lg-mid{color:var(--lvl-mid);} .lg-high{color:var(--lvl-high);}
   .stat-legend-note{font-weight:500;}
 
   /* ---- toast ---- */
@@ -859,8 +859,9 @@
     <div class="chart" id="chart" style="margin-top:12px"></div>
     <p class="stat-legend">
       <span class="lg lg-low">●</span>≤10
-      <span class="lg lg-mid">●</span>11–19
-      <span class="lg lg-high">●</span>≥20
+      <span class="lg lg-yellow">●</span>11–15
+      <span class="lg lg-mid">●</span>16–20
+      <span class="lg lg-high">●</span>≥21
       <span class="stat-legend-note">· al giorno</span>
     </p>
   </section>
@@ -1371,7 +1372,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v74</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v75</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1532,9 +1533,9 @@
     updateUndoBtn();
   }
 
-  // soglie colore sui CONSUMI GIORNALIERI: ≤10 verde, 11–19 arancione, ≥20 rosso
-  function levelOf(n){ if(n>=20) return "high"; if(n>=11) return "mid"; return "low"; }
-  function lvlVar(k){ return k==="high"?"--lvl-high":(k==="mid"?"--lvl-mid":"--lvl-low"); }
+  // soglie colore sui CONSUMI GIORNALIERI: ≤10 verde, 11–15 giallo, 16–20 arancione, ≥21 rosso
+  function levelOf(n){ if(n>=21) return "high"; if(n>=16) return "mid"; if(n>=11) return "yellow"; return "low"; }
+  function lvlVar(k){ return k==="high"?"--lvl-high":(k==="mid"?"--lvl-mid":(k==="yellow"?"--lvl-yellow":"--lvl-low")); }
   function dayFloor(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
   function weekStart(d){ var x=dayFloor(d); var wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); return x; }
   function elapsedDays(start,end){ var t=dayFloor(new Date()), s=dayFloor(start), e=dayFloor(end); var lim=(e<t)?e:t; if(lim<s) return 1; return Math.round((lim-s)/86400000)+1; }
@@ -2128,7 +2129,7 @@
       var chips=document.createElement("div"); chips.className="chips";
       foodsFor(c).forEach(function(f){
         var b=document.createElement("button"); b.type="button"; b.className="chip-sel"; b.textContent=f;
-        b.onclick=function(){ pasto.push({nome:f, typed:isTyped(f), tipo:"", qta:""}); renderPasto(); toast(f+" aggiunto al pasto"); };
+        b.onclick=function(){ var idx=-1; for(var i=0;i<pasto.length;i++){ if(pasto[i].nome===f){ idx=i; break; } } if(idx>=0){ pasto.splice(idx,1); renderPasto(); toast(f+" tolto dal pasto"); } else { pasto.push({nome:f, typed:isTyped(f), tipo:"", qta:""}); renderPasto(); toast(f+" aggiunto al pasto"); } };
         chips.appendChild(b);
       });
       body.appendChild(chips);
