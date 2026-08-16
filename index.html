@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 72; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 73; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1227,10 +1227,11 @@
       <button class="link-btn" id="progAddBtn">＋ Aggiungi al programma</button>
       <div class="detail" id="progForm" hidden>
         <div class="field"><label>Tipo</label>
-          <div class="seg" id="progTipoSeg" style="grid-template-columns:1fr 1fr 1fr; --c:#6366F1">
+          <div class="seg" id="progTipoSeg" style="grid-template-columns:1fr 1fr; --c:#6366F1">
             <button type="button" data-t="pasto" class="on">🍽️ Pasto</button>
             <button type="button" data-t="eser">🏃 Esercizio</button>
             <button type="button" data-t="pillole">💊 Pillole</button>
+            <button type="button" data-t="promemoria">🔔 Promemoria</button>
           </div>
         </div>
         <div id="progPasto">
@@ -1251,6 +1252,17 @@
           <div id="progPilOrari"></div>
           <button type="button" class="link-btn" id="progPilAddOra" style="text-align:left;padding:6px 2px">＋ aggiungi orario</button>
           <p class="fineprint" style="margin:6px 0 0">La medicina finisce in «Le mie medicine» e compare qui in «Oggi da fare».</p>
+        </div>
+        <div id="progProm" hidden>
+          <label class="prog-flabel">Cosa ricordare</label>
+          <div class="seg" id="progPromSeg" style="grid-template-columns:1fr 1fr; --c:#DC2626">
+            <button type="button" data-p="pressione" class="on">🩸 Pressione</button>
+            <button type="button" data-p="saturazione">🫁 Saturazione</button>
+            <button type="button" data-p="battiti">❤️ Battiti</button>
+            <button type="button" data-p="sonno">😴 Sonno</button>
+          </div>
+          <div class="field" style="margin-top:6px"><label for="progPromOra">Ora (facoltativa)</label><input type="time" id="progPromOra"></div>
+          <p class="fineprint" style="margin:6px 0 0">Compare in «Oggi da fare»; col ✓ ti chiede il valore e lo registra.</p>
         </div>
         <div class="field" id="progRipetiWrap"><label>Quando</label>
           <div class="seg" id="progRipetiSeg" style="grid-template-columns:1fr 1fr; --c:#6366F1">
@@ -1359,7 +1371,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v72</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v73</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3227,6 +3239,7 @@
   function progItemLabel(it){
     if(it.tipo==="pasto"){ var kc=progPastoKcal(it); var names=progItems(it).map(function(x){ return x.nome+(x.qta?" "+x.qta:""); }).join(", "); return "🍽️ "+names+(kc!=null&&kc>0?" · "+kc+" kcal":""); }
     if(it.tipo==="eser"){ return "🏃 "+progItems(it).map(function(x){ return x.nome+(x.durataMin?" "+x.durataMin+" min":""); }).join(", "); }
+    if(it.tipo==="promemoria"){ var pm={pressione:"🩸 Misura la pressione", saturazione:"🫁 Misura la saturazione", battiti:"❤️ Misura i battiti", sonno:"😴 Annota il sonno"}; return pm[it.sub]||"🔔 Promemoria"; }
     if(it.tipo==="fumo") return "🚬 Max "+it.maxGiorno+"/giorno"+(it.oreMin?" · ≥"+String(it.oreMin).replace(".",",")+" h tra una e l'altra":"");
     return "";
   }
@@ -3258,6 +3271,11 @@
     var dK=dayKey(new Date()), now=(ts||Date.now()), logIds=[], modulo="";
     if(it.tipo==="pasto"){ var items=progItems(it).map(function(x){ var kc=estimateKcal({nome:x.nome, tipo:"", qta:x.qta}); return {nome:x.nome, tipo:"", qta:x.qta||"", kcal:(kc==null?0:kc)}; }); var lid=uid(); ciboLog.push({id:lid, ts:now, items:items, nota:"da programma"}); saveCiboLog(); logIds=[lid]; modulo="cibo"; }
     else if(it.tipo==="eser"){ progItems(it).forEach(function(x){ var lid=uid(); var dur=(parseInt(x.durataMin,10)||0)*60000; attivLog.push({id:lid, nome:x.nome, tsEnd:now, dur:dur, valore:"", nota:"da programma"}); logIds.push(lid); }); saveAttivLog(); modulo="attiv"; }
+    else if(it.tipo==="promemoria"){
+      var sub=it.sub;
+      if(sub==="sonno"){ var o=prompt("Ore di sonno (es. 7,5):"); if(o==null) return; o=(o||"").trim(); if(!o) return; var sid=uid(); sonno.push({id:sid, ts:now, ore:o.replace(",","."), qualita:"", nota:"da programma"}); saveSonno(); logIds=[sid]; modulo="sonno"; }
+      else { var plbl=({pressione:"Pressione (max/min, es. 120/80)", saturazione:"Saturazione (%)", battiti:"Battiti (bpm)"})[sub]||"Valore"; var v=prompt(plbl+":"); if(v==null) return; v=(v||"").trim(); if(!v) return; var pid=uid(); parametri.push({id:pid, ts:now, tipo:sub, valore:v}); saveParam(); logIds=[pid]; modulo="param"; }
+    }
     else return;
     progFatti[dK]=progFatti[dK]||{}; progFatti[dK][it.id]={ts:now, logIds:logIds, modulo:modulo}; saveProgFatti(); renderProgramma(); toast("Fatto ✓ — registrato");
   }
@@ -3266,6 +3284,8 @@
     var ids=rec.logIds||(rec.logId?[rec.logId]:[]);
     if(rec.modulo==="cibo"){ ciboLog=ciboLog.filter(function(y){return ids.indexOf(y.id)<0;}); saveCiboLog(); }
     else if(rec.modulo==="attiv"){ attivLog=attivLog.filter(function(y){return ids.indexOf(y.id)<0;}); saveAttivLog(); }
+    else if(rec.modulo==="param"){ parametri=parametri.filter(function(y){return ids.indexOf(y.id)<0;}); saveParam(); }
+    else if(rec.modulo==="sonno"){ sonno=sonno.filter(function(y){return ids.indexOf(y.id)<0;}); saveSonno(); }
     delete progFatti[dK][it.id]; saveProgFatti(); renderProgramma();
   }
   function progSetTime(it, ts){
@@ -3323,7 +3343,7 @@
       row.appendChild(del); plist.appendChild(row);
     });
   }
-  var editingProgId=null, progTipo="pasto", progRipeti="ogni", progGiorniSel={};
+  var editingProgId=null, progTipo="pasto", progRipeti="ogni", progGiorniSel={}, progPromSub="pressione";
   var progPastoItems=[{nome:"",qta:""}], progEserItems=[{nome:"",durataMin:""}];
   function renderProgFormItems(){
     var ph=document.getElementById("progPastoItems");
@@ -3360,9 +3380,10 @@
   function renderProgGiorni(){ var host=document.getElementById("progGiorni"); if(!host) return; host.innerHTML=""; GIORNI.forEach(function(g){ var b=document.createElement("button"); b.type="button"; b.className="chip-sel"+(progGiorniSel[g.n]?" on":""); b.textContent=g.l; b.onclick=function(){ if(progGiorniSel[g.n]) delete progGiorniSel[g.n]; else progGiorniSel[g.n]=true; b.classList.toggle("on"); }; host.appendChild(b); }); }
   function progShowRipeti(r){ progRipeti=r; Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.className=(b.dataset.r===r)?"on":""; }); document.getElementById("progGiorniWrap").hidden=(r!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(r!=="mese"); document.getElementById("progDataWrap").hidden=(r!=="data"); document.getElementById("progRangeWrap").hidden=(r!=="range"); if(r==="data"){ var di=document.getElementById("progGiornoData"); if(!di.value){ var t=new Date(); t.setDate(t.getDate()+1); di.value=dayKey(t); } } if(r==="range"){ var dda=document.getElementById("progGiornoDa"), daa=document.getElementById("progGiornoA"); if(!dda.value){ var t1=new Date(); t1.setDate(t1.getDate()+1); dda.value=dayKey(t1); } if(!daa.value){ var t2=new Date(); t2.setDate(t2.getDate()+7); daa.value=dayKey(t2); } } if(r==="sett") renderProgGiorni(); }
   Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.onclick=function(){ progShowRipeti(b.dataset.r); }; });
-  function progShowTipo(t){ progTipo=t; Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.className=(b.dataset.t===t)?"on":""; }); document.getElementById("progPasto").hidden=(t!=="pasto"); document.getElementById("progEser").hidden=(t!=="eser"); document.getElementById("progPillole").hidden=(t!=="pillole"); document.getElementById("progRipetiWrap").hidden=(t==="pillole"); if(t==="pillole"){ renderProgPilOrari(); document.getElementById("progGiorniWrap").hidden=true; document.getElementById("progGiornoMeseWrap").hidden=true; document.getElementById("progDataWrap").hidden=true; document.getElementById("progRangeWrap").hidden=true; } else { document.getElementById("progGiorniWrap").hidden=(progRipeti!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(progRipeti!=="mese"); document.getElementById("progDataWrap").hidden=(progRipeti!=="data"); document.getElementById("progRangeWrap").hidden=(progRipeti!=="range"); } }
+  function progShowTipo(t){ progTipo=t; Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.className=(b.dataset.t===t)?"on":""; }); document.getElementById("progPasto").hidden=(t!=="pasto"); document.getElementById("progEser").hidden=(t!=="eser"); document.getElementById("progPillole").hidden=(t!=="pillole"); document.getElementById("progProm").hidden=(t!=="promemoria"); document.getElementById("progRipetiWrap").hidden=(t==="pillole"); if(t==="pillole"){ renderProgPilOrari(); document.getElementById("progGiorniWrap").hidden=true; document.getElementById("progGiornoMeseWrap").hidden=true; document.getElementById("progDataWrap").hidden=true; document.getElementById("progRangeWrap").hidden=true; } else { document.getElementById("progGiorniWrap").hidden=(progRipeti!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(progRipeti!=="mese"); document.getElementById("progDataWrap").hidden=(progRipeti!=="data"); document.getElementById("progRangeWrap").hidden=(progRipeti!=="range"); } }
   Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.onclick=function(){ progShowTipo(b.dataset.t); }; });
-  function progResetForm(){ progGiorniSel={}; progShowTipo("pasto"); progShowRipeti("ogni"); ["progPastoOra","progEserOra","progPilNome","progGiornoMese","progGiornoData","progGiornoDa","progGiornoA"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); progPastoItems=[{nome:"",qta:""}]; progEserItems=[{nome:"",durataMin:""}]; progPilOrari=[hhmm(new Date())]; renderProgFormItems(); renderProgPilOrari(); document.getElementById("progSave").textContent="Aggiungi"; }
+  Array.prototype.forEach.call(document.querySelectorAll("#progPromSeg button"), function(b){ b.onclick=function(){ progPromSub=b.dataset.p; Array.prototype.forEach.call(document.querySelectorAll("#progPromSeg button"), function(x){ x.className=(x.dataset.p===progPromSub)?"on":""; }); }; });
+  function progResetForm(){ progGiorniSel={}; progShowTipo("pasto"); progShowRipeti("ogni"); ["progPastoOra","progEserOra","progPilNome","progPromOra","progGiornoMese","progGiornoData","progGiornoDa","progGiornoA"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); progPastoItems=[{nome:"",qta:""}]; progEserItems=[{nome:"",durataMin:""}]; progPilOrari=[hhmm(new Date())]; progPromSub="pressione"; Array.prototype.forEach.call(document.querySelectorAll("#progPromSeg button"), function(b){ b.className=(b.dataset.p==="pressione")?"on":""; }); renderProgFormItems(); renderProgPilOrari(); document.getElementById("progSave").textContent="Aggiungi"; }
   function cancelEditProg(){ editingProgId=null; document.getElementById("progSave").textContent="Aggiungi"; }
   document.getElementById("progAddBtn").onclick=function(){ var f=document.getElementById("progForm"); if(f.hidden){ editingProgId=null; progResetForm(); f.hidden=false; } else { f.hidden=true; cancelEditProg(); } };
   document.getElementById("progCancel").onclick=function(){ document.getElementById("progForm").hidden=true; cancelEditProg(); };
@@ -3371,6 +3392,7 @@
     progShowTipo(it.tipo); progShowRipeti(it.ripeti||"ogni"); document.getElementById("progGiornoMese").value=it.giornoMese||""; document.getElementById("progGiornoData").value=it.data||""; document.getElementById("progGiornoDa").value=it.dataDa||""; document.getElementById("progGiornoA").value=it.dataA||"";
     if(it.tipo==="pasto"){ progPastoItems=progItems(it).map(function(x){ return {nome:x.nome||"", qta:x.qta||""}; }); if(!progPastoItems.length) progPastoItems=[{nome:"",qta:""}]; document.getElementById("progPastoOra").value=it.ora||""; renderProgFormItems(); }
     else if(it.tipo==="eser"){ progEserItems=progItems(it).map(function(x){ return {nome:x.nome||"", durataMin:x.durataMin||""}; }); if(!progEserItems.length) progEserItems=[{nome:"",durataMin:""}]; document.getElementById("progEserOra").value=it.ora||""; renderProgFormItems(); }
+    else if(it.tipo==="promemoria"){ progPromSub=it.sub||"pressione"; Array.prototype.forEach.call(document.querySelectorAll("#progPromSeg button"), function(b){ b.className=(b.dataset.p===progPromSub)?"on":""; }); document.getElementById("progPromOra").value=it.ora||""; }
     document.getElementById("progSave").textContent="Salva modifiche";
     document.getElementById("progForm").hidden=false; scrollToEl(document.getElementById("progForm"));
   }
@@ -3386,6 +3408,7 @@
     var rec;
     if(progTipo==="pasto"){ var pit=progPastoItems.map(function(x){ return {nome:(x.nome||"").trim(), qta:(x.qta||"").trim()}; }).filter(function(x){ return x.nome; }); if(!pit.length){ toast("Aggiungi almeno un alimento"); return; } rec={tipo:"pasto", items:pit, ora:document.getElementById("progPastoOra").value||""}; }
     else if(progTipo==="eser"){ var eit=progEserItems.map(function(x){ return {nome:(x.nome||"").trim(), durataMin:(x.durataMin||"").replace(/[^\d]/g,"")}; }).filter(function(x){ return x.nome; }); if(!eit.length){ toast("Aggiungi almeno un esercizio"); return; } rec={tipo:"eser", items:eit, ora:document.getElementById("progEserOra").value||""}; }
+    else if(progTipo==="promemoria"){ rec={tipo:"promemoria", sub:progPromSub, ora:document.getElementById("progPromOra").value||""}; }
     if(progTipo!=="fumo"){ rec.ripeti=progRipeti; if(progRipeti==="sett"){ rec.giorni=Object.keys(progGiorniSel).map(function(k){return parseInt(k,10);}); if(!rec.giorni.length){ toast("Scegli almeno un giorno"); return; } } if(progRipeti==="mese"){ rec.giornoMese=(document.getElementById("progGiornoMese").value||"").replace(/[^\d]/g,""); if(!rec.giornoMese){ toast("Scrivi il giorno del mese"); return; } } if(progRipeti==="data"){ rec.data=document.getElementById("progGiornoData").value||""; if(!rec.data){ toast("Scegli una data"); return; } } if(progRipeti==="range"){ rec.dataDa=document.getElementById("progGiornoDa").value||""; rec.dataA=document.getElementById("progGiornoA").value||""; if(!rec.dataDa||!rec.dataA){ toast("Scegli le due date (da… a…)"); return; } if(rec.dataA<rec.dataDa){ toast("«Al giorno» è prima di «Dal giorno»"); return; } } }
     if(editingProgId){ rec.id=editingProgId; programma=programma.map(function(y){ return y.id===editingProgId?rec:y; }); cancelEditProg(); toast("Modifica salvata ✓"); }
     else { rec.id=uid(); programma.push(rec); toast("Aggiunto al programma ✓"); }
@@ -3527,7 +3550,7 @@
     try{ cicli.forEach(function(c){ if(c.inizio && ok(c.inizio)) ev.push({ts:c.inizio, emoji:"🌸", text:"Inizio ciclo", kind:"ciclo", id:c.id, readonly:true}); if(c.fine && ok(c.fine)) ev.push({ts:c.fine, emoji:"🌸", text:"Fine ciclo", kind:"ciclo", id:c.id, readonly:true}); }); }catch(e){}
     try{
       var now=new Date(), y=now.getFullYear(), mo=now.getMonth(), da=now.getDate();
-      programma.forEach(function(it){ if(it.tipo==="fumo") return; if(!itemAppliesToday(it)) return; if(todayFattoRec(it.id)) return; var om=it.ora?hhmmToMin(it.ora):null; var t=new Date(y,mo,da, om!=null?Math.floor(om/60):23, om!=null?om%60:59, 0); ev.push({ts:+t, emoji:(it.tipo==="pasto"?"🍽️":"🏃"), text:progItemLabel(it).replace(/^\S+\s+/,""), kind:"prog", planned:true, progItem:it}); });
+      programma.forEach(function(it){ if(it.tipo==="fumo") return; if(!itemAppliesToday(it)) return; if(todayFattoRec(it.id)) return; var om=it.ora?hhmmToMin(it.ora):null; var t=new Date(y,mo,da, om!=null?Math.floor(om/60):23, om!=null?om%60:59, 0); ev.push({ts:+t, emoji:(it.tipo==="pasto"?"🍽️":(it.tipo==="eser"?"🏃":"🔔")), text:progItemLabel(it).replace(/^\S+\s+/,""), kind:"prog", planned:true, progItem:it}); });
       Pillole.today().doses.forEach(function(dz){ if(dz.taken) return; var p=String(dz.ora).split(":"); var t=new Date(y,mo,da, parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0); ev.push({ts:+t, emoji:"💊", text:dz.nome, kind:"pillplan", planned:true, pillKey:dz.key}); });
     }catch(e){}
     return ev;
@@ -3613,7 +3636,9 @@
   try{ setInterval(checkDayRollover, 60000); }catch(e){}
 
   // Parametri vitali / Ciclo / Sonno ora sono funzioni separate: sposto le loro card nelle schermate dedicate
-  (function(){ function mv(cardId, modId){ var c=document.getElementById(cardId), m=document.getElementById(modId); if(c&&m) m.appendChild(c); } mv("parametriCard","mod-parametri"); mv("cicloCard","mod-ciclo"); mv("sonnoCard","mod-sonno"); })();
+  (function(){ function mv(cardId, modId){ var c=document.getElementById(cardId), m=document.getElementById(modId); if(c&&m) m.appendChild(c); } mv("parametriCard","mod-parametri"); mv("cicloCard","mod-ciclo"); mv("sonnoCard","mod-sonno");
+    // Parametri: è la sua schermata → niente collassabile, mostra i parametri direttamente
+    var bp=document.getElementById("bodyParam"); if(bp) bp.hidden=false; var hp=document.getElementById("headParam"); if(hp) hp.style.display="none"; var cp=document.getElementById("collapParam"); if(cp) cp.classList.remove("food-cat"); })();
 
   render();
   showMod("menu");
