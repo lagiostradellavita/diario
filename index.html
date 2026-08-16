@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 78; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 79; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1372,7 +1372,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v78</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v79</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1809,9 +1809,13 @@
   document.getElementById("btnBackup").onclick=async function(){
     var all=collectAppData();
     if(!Object.keys(all).length){ toast("Non c'è ancora niente da salvare"); return; }
-    var data=JSON.stringify({app:"diario-salute", v:3, savedAt:new Date().toISOString(), all:all}, null, 2);
-    var res=await saveFile("diario-salute-backup.json", data, null);
-    if(res.ok) toast("Backup di tutta l'app salvato ✓");
+    var now=new Date();
+    var p=function(n){ return ("0"+n).slice(-2); };
+    // Nome col giorno e l'ora, così si riconosce subito il più recente (ordina anche da solo)
+    var stamp=now.getFullYear()+"-"+p(now.getMonth()+1)+"-"+p(now.getDate())+"_"+p(now.getHours())+"-"+p(now.getMinutes())+"-"+p(now.getSeconds());
+    var data=JSON.stringify({app:"diario-salute", v:3, savedAt:now.toISOString(), all:all}, null, 2);
+    var res=await saveFile("diario-salute-backup-"+stamp+".json", data, null);
+    if(res.ok) toast("Backup salvato ✓ "+res.name);
     else if(res.reason==="declined") toast("Backup annullato");
     else toast("Backup non disponibile qui");
   };
