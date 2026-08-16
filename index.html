@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 61; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 62; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -364,6 +364,8 @@
   .prog-row .pname{flex:1; font-size:17px; font-weight:700; min-width:0; overflow-wrap:anywhere;}
   .prog-row.done .pname{text-decoration:line-through; color:var(--muted);}
   .prog-row .ptime{font-size:14.5px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink-soft); flex:none;}
+  .prog-row input.ptime{border:none; background:transparent; font-family:inherit; -webkit-appearance:none; appearance:none; padding:2px 0 1px; text-align:right; cursor:pointer; width:66px; flex:0 0 auto; border-bottom:1px dashed color-mix(in srgb, var(--ink-soft) 45%, transparent);}
+  .prog-row.done input.ptime{color:var(--accent); border-bottom-color:color-mix(in srgb, var(--accent) 50%, transparent);}
   .prog-row.late:not(.done) .ptime, .prog-row.late:not(.done) .pname{color:var(--lvl-high);}
   .prog-fumo{display:flex; align-items:center; gap:10px; padding:12px 13px; border-radius:14px; margin-bottom:8px; background:var(--surface-2); border:1px solid var(--line); font-size:15.5px; font-weight:750; color:var(--ink-soft);}
   .prog-fumo.over{background:color-mix(in srgb, var(--lvl-high) 12%, var(--surface)); border-color:color-mix(in srgb,var(--lvl-high) 35%, var(--line)); color:var(--lvl-high);}
@@ -1234,7 +1236,7 @@
     <p class="fineprint" style="text-align:center; margin:0">L'avviso è <b>in-app</b> (agenda + suggerimenti in Home): l'app non può far squillare una notifica. Per un promemoria che suona, usa una Sveglia/Promemoria iOS.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v61</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v62</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1809,7 +1811,8 @@
       document.getElementById(I.form).hidden=true; render(); toast(L.added);
     };
     return {render:render, today:today, data:function(){ return {defs:defs, taken:taken}; },
-      check:function(key){ if(taken[key]) delete taken[key]; else taken[key]=Date.now(); saveTaken(); render(); }};
+      check:function(key){ if(taken[key]) delete taken[key]; else taken[key]=Date.now(); saveTaken(); render(); },
+      checkAt:function(key, ts){ if(ts==null){ delete taken[key]; } else { taken[key]=ts; } saveTaken(); render(); }};
   }
 
   var Pillole=makeScheduler({
@@ -3088,8 +3091,9 @@
     });
   }
   function todayFattoRec(itemId){ var dK=dayKey(new Date()); return (progFatti[dK] && progFatti[dK][itemId])||null; }
-  function progDoItem(it){
-    var dK=dayKey(new Date()), now=Date.now(), logIds=[], modulo="";
+  function todayAtHHMM(v){ var p=String(v||"").split(":"); var d=new Date(); d.setHours(parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0, 0); return +d; }
+  function progDoItem(it, ts){
+    var dK=dayKey(new Date()), now=(ts||Date.now()), logIds=[], modulo="";
     if(it.tipo==="pasto"){ var items=progItems(it).map(function(x){ var kc=estimateKcal({nome:x.nome, tipo:"", qta:x.qta}); return {nome:x.nome, tipo:"", qta:x.qta||"", kcal:(kc==null?0:kc)}; }); var lid=uid(); ciboLog.push({id:lid, ts:now, items:items, nota:"da programma"}); saveCiboLog(); logIds=[lid]; modulo="cibo"; }
     else if(it.tipo==="eser"){ progItems(it).forEach(function(x){ var lid=uid(); var dur=(parseInt(x.durataMin,10)||0)*60000; attivLog.push({id:lid, nome:x.nome, tsEnd:now, dur:dur, valore:"", nota:"da programma"}); logIds.push(lid); }); saveAttivLog(); modulo="attiv"; }
     else return;
@@ -3101,6 +3105,14 @@
     if(rec.modulo==="cibo"){ ciboLog=ciboLog.filter(function(y){return ids.indexOf(y.id)<0;}); saveCiboLog(); }
     else if(rec.modulo==="attiv"){ attivLog=attivLog.filter(function(y){return ids.indexOf(y.id)<0;}); saveAttivLog(); }
     delete progFatti[dK][it.id]; saveProgFatti(); renderProgramma();
+  }
+  function progSetTime(it, ts){
+    var dK=dayKey(new Date()), rec=todayFattoRec(it.id);
+    if(!rec){ progDoItem(it, ts); return; }
+    rec.ts=ts; var ids=rec.logIds||(rec.logId?[rec.logId]:[]);
+    if(rec.modulo==="cibo"){ ciboLog.forEach(function(y){ if(ids.indexOf(y.id)>=0) y.ts=ts; }); saveCiboLog(); }
+    else if(rec.modulo==="attiv"){ attivLog.forEach(function(y){ if(ids.indexOf(y.id)>=0) y.tsEnd=ts; }); saveAttivLog(); }
+    saveProgFatti(); renderProgramma(); toast("Ora aggiornata ✓");
   }
   function progFumoRule(){ var r=null; programma.forEach(function(it){ if(it.tipo==="fumo") r=it; }); return r; }
   function progTodayStatus(){ var tot=0, done=0; programma.forEach(function(it){ if(it.tipo==="fumo") return; if(!itemAppliesToday(it)) return; tot++; if(todayFattoRec(it.id)) done++; }); try{ Pillole.today().doses.forEach(function(d){ tot++; if(d.taken) done++; }); }catch(e){} return {total:tot, done:done}; }
@@ -3123,8 +3135,8 @@
     var plannedKcal=0; programma.forEach(function(it){ if(it.tipo==="pasto" && itemAppliesToday(it)){ var k=progPastoKcal(it); if(k) plannedKcal+=k; } });
     if(plannedKcal>0){ var kl=document.createElement("div"); kl.className="prog-kcal"; var tg=(typeof dieta!=="undefined"&&dieta)?(parseInt(dieta.target,10)||0):0; kl.innerHTML="🍽️ Calorie previste oggi: <b>"+plannedKcal+"</b> kcal"+(tg?" / obiettivo <b>"+tg+"</b>":""); host.appendChild(kl); }
     var ent=[];
-    programma.forEach(function(it){ if(it.tipo==="fumo") return; if(!itemAppliesToday(it)) return; var rec=todayFattoRec(it.id); ent.push({oraMin: it.ora?hhmmToMin(it.ora):9999, ora:it.ora||"", item:it, done:!!rec, late:(!rec && it.ora && nowMin>hhmmToMin(it.ora)), kind:"prog"}); });
-    try{ Pillole.today().doses.forEach(function(d){ ent.push({oraMin:hhmmToMin(d.ora), ora:d.ora, pill:d, done:d.taken, late:d.late, kind:"pill"}); }); }catch(e){}
+    programma.forEach(function(it){ if(it.tipo==="fumo") return; if(!itemAppliesToday(it)) return; var rec=todayFattoRec(it.id); ent.push({oraMin: it.ora?hhmmToMin(it.ora):9999, schedOra: it.ora||"", doneTs:(rec?rec.ts:null), item:it, done:!!rec, late:(!rec && it.ora && nowMin>hhmmToMin(it.ora)), kind:"prog"}); });
+    try{ Pillole.today().doses.forEach(function(d){ ent.push({oraMin:hhmmToMin(d.ora), schedOra:d.ora, doneTs:(d.taken&&d.takenAt?d.takenAt:null), pill:d, done:d.taken, late:d.late, kind:"pill"}); }); }catch(e){}
     ent.sort(function(a,b){ return a.oraMin-b.oraMin; });
     var doneN=0;
     if(!ent.length && !plannedKcal){ if(!fr) host.innerHTML+='<div class="empty">Niente in programma per oggi.<br>Aggiungilo qui sotto.</div>'; }
@@ -3132,9 +3144,9 @@
       var row=document.createElement("div"); row.className="prog-row"+(e.done?" done":"")+(e.late&&!e.done?" late":"");
       var chk=document.createElement("span"); chk.className="pcheck"; chk.textContent="✓";
       var nm=document.createElement("span"); nm.className="pname";
-      var tm=document.createElement("span"); tm.className="ptime"; tm.textContent=e.ora||"";
-      if(e.kind==="pill"){ nm.textContent="💊 "+e.pill.nome; chk.onclick=function(){ Pillole.check(e.pill.key); renderProgramma(); }; }
-      else { nm.textContent=progItemLabel(e.item); chk.onclick=function(){ if(e.done) progUndoItem(e.item); else progDoItem(e.item); }; }
+      var tm=document.createElement("input"); tm.type="time"; tm.className="ptime"; tm.value=(e.doneTs? hhmm(new Date(e.doneTs)) : (e.schedOra||"")); tm.setAttribute("aria-label","Ora — tocca per correggere");
+      if(e.kind==="pill"){ nm.textContent="💊 "+e.pill.nome; chk.onclick=function(){ Pillole.check(e.pill.key); renderProgramma(); }; tm.onchange=function(){ if(!tm.value) return; Pillole.checkAt(e.pill.key, todayAtHHMM(tm.value)); renderProgramma(); }; }
+      else { nm.textContent=progItemLabel(e.item); chk.onclick=function(){ if(e.done) progUndoItem(e.item); else progDoItem(e.item); }; tm.onchange=function(){ if(!tm.value) return; progSetTime(e.item, todayAtHHMM(tm.value)); }; }
       if(e.done) doneN++;
       row.appendChild(chk); row.appendChild(nm); row.appendChild(tm); host.appendChild(row);
     });
