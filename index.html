@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 66; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 67; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -394,6 +394,9 @@
   .tl-emoji{flex:0 0 auto; font-size:18px; line-height:1.25;}
   .tl-text{flex:1 1 auto; min-width:0; font-size:15.5px; font-weight:600; color:var(--ink); overflow-wrap:anywhere;}
   .tl-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:8px; width:30px; height:30px; font-size:17px; cursor:pointer; touch-action:manipulation;}
+  .tl-edit{flex:0 0 auto; appearance:none; border:none; background:var(--surface-2); color:var(--ink-soft); border-radius:8px; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation;}
+  .tl-check{flex:0 0 auto; appearance:none; border:2px solid var(--lvl-low); background:transparent; color:var(--lvl-low); border-radius:50%; width:30px; height:30px; font-size:16px; font-weight:800; line-height:1; cursor:pointer; touch-action:manipulation;}
+  .tl-row.planned{opacity:.72;}
   #cicloNote, #notaGiornata, #dietaPiano, #saluteNota{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
   .ciclo-prev{margin:10px 0 2px; padding:12px 14px; border-radius:14px; background:var(--surface-2); border:1px solid var(--line); font-size:15.5px; font-weight:700; color:var(--ink-soft); line-height:1.45;}
   .ciclo-prev b{color:var(--ink); font-weight:850;}
@@ -1306,16 +1309,19 @@
       <div class="diario-fields" id="dfSveglia" hidden>
         <div class="field" style="margin-top:10px"><label for="diarioNotaTxt">Nota</label><input type="text" id="diarioNotaTxt" placeholder="es. Sveglia" autocomplete="off"></div>
       </div>
-      <div class="field" style="margin-top:12px"><label for="diarioOra">Ora</label><input type="time" id="diarioOra"></div>
-      <button class="primary" id="diarioAdd" style="margin-top:12px">Aggiungi alla giornata</button>
+      <div class="grid2" style="margin-top:12px">
+        <div class="field"><label for="diarioData">Giorno</label><input type="date" id="diarioData"></div>
+        <div class="field"><label for="diarioOra">Ora</label><input type="time" id="diarioOra"></div>
+      </div>
+      <div class="panel-actions" style="margin-top:12px"><button class="primary" id="diarioAdd">Aggiungi alla giornata</button><button class="link-btn" id="diarioCancel" hidden>Annulla modifica</button></div>
     </section>
     <section class="card">
-      <div class="row-between" style="flex-wrap:wrap; gap:2px 10px"><h2 class="section-title" style="margin:0">La tua giornata</h2><span id="diarioCount" class="stat-summary"></span></div>
+      <div class="row-between" style="flex-wrap:wrap; gap:2px 10px"><h2 class="section-title" style="margin:0">Il tuo diario</h2><span id="diarioCount" class="stat-summary"></span></div>
       <div id="diarioTimeline" style="margin-top:8px"></div>
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v66</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v67</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3084,7 +3090,7 @@
     var ec=evacCounts(), se2=document.getElementById("st-evac");
     se2.textContent=ec.tot?("💧"+ec.u+" 💩"+ec.f):"0 oggi"; se2.style.color=ec.tot?"var(--ink-soft)":"var(--muted)";
     try{ var ps=progTodayStatus(), sp2=document.getElementById("st-prog"); if(sp2){ if(ps.total){ sp2.textContent=ps.done+"/"+ps.total+" fatte oggi"; sp2.style.color=(ps.done>=ps.total)?"var(--lvl-low)":"var(--ink-soft)"; } else { sp2.textContent="pianifica la giornata"; sp2.style.color="var(--muted)"; } } }catch(e){}
-    try{ var sd=document.getElementById("st-diario"); if(sd){ var nd=collectTodayEvents().length; if(nd){ sd.textContent=nd+(nd===1?" voce oggi":" voci oggi"); sd.style.color="var(--ink-soft)"; } else { sd.textContent="scrivi la giornata"; sd.style.color="var(--muted)"; } } }catch(e){}
+    try{ var sd=document.getElementById("st-diario"); if(sd){ var nd=collectDiarioEvents(false).filter(function(x){return !x.planned;}).length; if(nd){ sd.textContent=nd+(nd===1?" voce oggi":" voci oggi"); sd.style.color="var(--ink-soft)"; } else { sd.textContent="scrivi la giornata"; sd.style.color="var(--muted)"; } } }catch(e){}
     var _sp=document.getElementById("suggPanel"), _st=document.getElementById("suggToggle");
     if(_sp) _sp.hidden=true; if(_st) _st.hidden=false;
   }
@@ -3356,9 +3362,36 @@
   Array.prototype.forEach.call(document.querySelectorAll("#diarioTipoSeg button"), function(b){ b.onclick=function(){ diarioShowTipo(b.dataset.dt); }; });
   Array.prototype.forEach.call(document.querySelectorAll("#diarioSigTipo button"), function(b){ b.onclick=function(){ diarioSigTipo=b.dataset.st; Array.prototype.forEach.call(document.querySelectorAll("#diarioSigTipo button"), function(x){ x.className=(x.dataset.st===diarioSigTipo)?"on":""; }); }; });
   var _dca=document.getElementById("diarioCiboAdd"); if(_dca) _dca.onclick=function(){ diarioCiboItems.push({nome:"",qta:""}); renderDiarioCiboItems(); };
-  function diarioWhenTs(){ var v=(document.getElementById("diarioOra")||{}).value; return v? todayAtHHMM(v) : Date.now(); }
+  function diarioWhenTs(){ var dv=(document.getElementById("diarioData")||{}).value, tv=(document.getElementById("diarioOra")||{}).value; var d=dv?new Date(dv+"T00:00:00"):new Date(); if(tv){ var p=String(tv).split(":"); d.setHours(parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0, 0); } return +d; }
+  var diarioEditing=null;
+  function diarioCancelEdit(){ diarioEditing=null; var b=document.getElementById("diarioAdd"); if(b) b.textContent="Aggiungi alla giornata"; var c=document.getElementById("diarioCancel"); if(c) c.hidden=true; }
+  function diarioResetForm(){ diarioCiboItems=[{nome:"",qta:""}]; renderDiarioCiboItems(); document.getElementById("diarioData").value=dayKey(new Date()); document.getElementById("diarioOra").value=hhmm(new Date()); ["diarioSigQ","diarioEserNome","diarioEserDur","diarioFastNome","diarioFastDove","diarioFastNota","diarioNotaTxt"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=(id==="diarioSigQ"?"1":""); }); }
+  function diarioStartEdit(e){
+    diarioEditing={kind:e.kind, id:e.id}; var d=new Date(e.ts);
+    document.getElementById("diarioData").value=dayKey(d); document.getElementById("diarioOra").value=hhmm(d);
+    if(e.kind==="fumo"){ var it=null; entries.forEach(function(x){ if(x.id===e.id) it=x; }); diarioShowTipo("sigaretta"); if(it){ diarioSigTipo=it.tipo; Array.prototype.forEach.call(document.querySelectorAll("#diarioSigTipo button"), function(b){ b.className=(b.dataset.st===it.tipo)?"on":""; }); document.getElementById("diarioSigQ").value=it.q||1; } }
+    else if(e.kind==="cibo"){ var c=null; ciboLog.forEach(function(x){ if(x.id===e.id) c=x; }); diarioShowTipo("cibo"); diarioCiboItems=(c&&c.items&&c.items.length)? c.items.map(function(x){ return {nome:x.nome||"", qta:x.qta||""}; }) : [{nome:"",qta:""}]; renderDiarioCiboItems(); }
+    else if(e.kind==="attiv"){ var a=null; attivLog.forEach(function(x){ if(x.id===e.id) a=x; }); diarioShowTipo("eser"); document.getElementById("diarioEserNome").value=a?a.nome:""; document.getElementById("diarioEserDur").value=(a&&a.dur)?Math.round(a.dur/60000):""; }
+    else if(e.kind==="salute"){ var s=null; saluteLog.forEach(function(x){ if(x.id===e.id) s=x; }); diarioShowTipo("fastidio"); document.getElementById("diarioFastNome").value=(s&&s.voci&&s.voci[0])||""; document.getElementById("diarioFastDove").value=(s&&s.dove&&s.dove[0])||""; document.getElementById("diarioFastNota").value=(s&&s.nota)||""; }
+    else if(e.kind==="pill"){ diarioShowTipo("medicina"); var parts=String(e.id).split("|"); diarioMedSel=parts[1]; renderDiarioMedChips(); }
+    else if(e.kind==="diario"){ var dv=null; diarioEventi.forEach(function(x){ if(x.id===e.id) dv=x; }); diarioShowTipo("sveglia"); document.getElementById("diarioNotaTxt").value=dv?dv.testo:""; }
+    document.getElementById("diarioAdd").textContent="Salva modifiche"; document.getElementById("diarioCancel").hidden=false;
+    scrollToEl(document.getElementById("diarioAdd").parentNode);
+  }
+  function diarioApplyEdit(ts){
+    var e=diarioEditing;
+    if(e.kind==="fumo"){ entries.forEach(function(x){ if(x.id===e.id){ x.tipo=diarioSigTipo; x.q=parseInt((document.getElementById("diarioSigQ").value||"1").replace(/[^\d]/g,""),10)||1; x.ts=new Date(ts).toISOString(); } }); save(); }
+    else if(e.kind==="cibo"){ var items=diarioCiboItems.map(function(x){return {nome:(x.nome||"").trim(), qta:(x.qta||"").trim()};}).filter(function(x){return x.nome;}); if(!items.length){ toast("Scrivi almeno un cibo"); return; } var full=items.map(function(x){ var kc=estimateKcal({nome:x.nome, tipo:"", qta:x.qta}); return {nome:x.nome, tipo:"", qta:x.qta||"", kcal:(kc==null?0:kc)}; }); ciboLog.forEach(function(x){ if(x.id===e.id){ x.items=full; x.ts=ts; } }); saveCiboLog(); }
+    else if(e.kind==="attiv"){ var nm=(document.getElementById("diarioEserNome").value||"").trim(); if(!nm){ toast("Scrivi l'esercizio"); return; } var dur=(parseInt((document.getElementById("diarioEserDur").value||"").replace(/[^\d]/g,""),10)||0)*60000; attivLog.forEach(function(x){ if(x.id===e.id){ x.nome=nm; x.dur=dur; x.tsEnd=ts; } }); saveAttivLog(); }
+    else if(e.kind==="salute"){ var fn=(document.getElementById("diarioFastNome").value||"").trim(); if(!fn){ toast("Scrivi il fastidio"); return; } var dv=(document.getElementById("diarioFastDove").value||"").trim(), ft=(document.getElementById("diarioFastNota").value||"").trim(); saluteLog.forEach(function(x){ if(x.id===e.id){ x.voci=[fn]; x.dove=(dv?[dv]:[]); x.nota=ft; x.ts=ts; } }); saveSaluteLog(); }
+    else if(e.kind==="pill"){ if(!diarioMedSel){ toast("Scegli la medicina"); return; } var op=String(e.id).split("|"), ora=op[2]||"00:00"; Pillole.checkAt(e.id, null); Pillole.checkAt(dayKey(new Date(ts))+"|"+diarioMedSel+"|"+ora, ts); }
+    else if(e.kind==="diario"){ var nt=(document.getElementById("diarioNotaTxt").value||"").trim()||"Sveglia"; diarioEventi.forEach(function(x){ if(x.id===e.id){ x.testo=nt; x.ts=ts; } }); saveDiarioEventi(); }
+    toast("Modifica salvata ✓"); diarioCancelEdit(); diarioResetForm(); renderDiario();
+  }
+  var _dcancel=document.getElementById("diarioCancel"); if(_dcancel) _dcancel.onclick=diarioCancelEdit;
   var _dadd=document.getElementById("diarioAdd"); if(_dadd) _dadd.onclick=function(){
     var ts=diarioWhenTs();
+    if(diarioEditing){ diarioApplyEdit(ts); return; }
     if(diarioTipo==="sigaretta"){ var q=parseInt((document.getElementById("diarioSigQ").value||"1").replace(/[^\d]/g,""),10)||1; addEntry(diarioSigTipo, q, new Date(ts), ""); }
     else if(diarioTipo==="medicina"){
       if(!diarioMedSel){ toast("Scegli la medicina"); return; }
@@ -3397,15 +3430,20 @@
     document.getElementById("diarioOra").value=hhmm(new Date());
     renderDiario();
   };
-  function collectTodayEvents(){
+  function collectDiarioEvents(all){
     var dK=dayKey(new Date()), ev=[];
-    try{ entries.forEach(function(e){ var t=+new Date(e.ts); if(dayKey(new Date(t))===dK){ ev.push({ts:t, emoji:"🚬", text:(e.q>1?e.q+" ":"")+((TIPI[e.tipo]&&TIPI[e.tipo].label.toLowerCase())||"sigaretta")+(e.nota?" — "+e.nota:""), kind:"fumo", id:e.id}); } }); }catch(e){}
-    try{ ciboLog.forEach(function(c){ if(dayKey(new Date(c.ts))===dK){ var names=(c.items||[]).map(function(x){ return x.nome+(x.qta?" "+x.qta:""); }).join(", "); ev.push({ts:c.ts, emoji:"🍽️", text:names+(c.nota?" — "+c.nota:""), kind:"cibo", id:c.id}); } }); }catch(e){}
-    try{ attivLog.forEach(function(a){ if(dayKey(new Date(a.tsEnd))===dK){ ev.push({ts:a.tsEnd, emoji:"🏃", text:a.nome+(a.dur?" "+fmtDur(a.dur):"")+(a.valore?" · "+a.valore:"")+(a.nota?" — "+a.nota:""), kind:"attiv", id:a.id}); } }); }catch(e){}
-    try{ saluteLog.forEach(function(s){ if(dayKey(new Date(s.ts))===dK){ var st=(s.voci||[]).join(", "); if(s.dove&&s.dove.length) st+=" · 📍"+s.dove.join(", "); if(s.nota) st+=(st?" — ":"")+s.nota; ev.push({ts:s.ts, emoji:"🤕", text:st, kind:"salute", id:s.id}); } }); }catch(e){}
-    try{ var pd=Pillole.data(), tk=pd.taken||{}, nById={}; (pd.defs||[]).forEach(function(d){ nById[d.id]=d.nome; }); Object.keys(tk).forEach(function(k){ var parts=k.split("|"); if(parts[0]===dK){ var tv=tk[k], t=(typeof tv==="number"?tv:null); if(t){ ev.push({ts:t, emoji:"💊", text:(nById[parts[1]]||"Medicina"), kind:"pill", id:k}); } } }); }catch(e){}
-    try{ diarioEventi.forEach(function(d){ if(dayKey(new Date(d.ts))===dK){ ev.push({ts:d.ts, emoji:"⏰", text:d.testo, kind:"diario", id:d.id}); } }); }catch(e){}
-    ev.sort(function(a,b){ return a.ts-b.ts; });
+    function ok(ts){ return all || dayKey(new Date(ts))===dK; }
+    try{ entries.forEach(function(e){ var t=+new Date(e.ts); if(ok(t)){ ev.push({ts:t, emoji:"🚬", text:(e.q>1?e.q+" ":"")+((TIPI[e.tipo]&&TIPI[e.tipo].label.toLowerCase())||"sigaretta")+(e.nota?" — "+e.nota:""), kind:"fumo", id:e.id}); } }); }catch(e){}
+    try{ ciboLog.forEach(function(c){ if(ok(c.ts)){ var prog=(c.nota==="da programma"); var names=(c.items||[]).map(function(x){ return x.nome+(x.qta?" "+x.qta:""); }).join(", "); ev.push({ts:c.ts, emoji:"🍽️", text:names+(c.nota&&!prog?" — "+c.nota:""), kind:"cibo", id:c.id, prog:prog}); } }); }catch(e){}
+    try{ attivLog.forEach(function(a){ if(ok(a.tsEnd)){ var prog=(a.nota==="da programma"); ev.push({ts:a.tsEnd, emoji:"🏃", text:a.nome+(a.dur?" "+fmtDur(a.dur):"")+(a.valore?" · "+a.valore:"")+(a.nota&&!prog?" — "+a.nota:""), kind:"attiv", id:a.id, prog:prog}); } }); }catch(e){}
+    try{ saluteLog.forEach(function(s){ if(ok(s.ts)){ var st=(s.voci||[]).join(", "); if(s.dove&&s.dove.length) st+=" · 📍"+s.dove.join(", "); if(s.nota) st+=(st?" — ":"")+s.nota; ev.push({ts:s.ts, emoji:"🤕", text:st, kind:"salute", id:s.id}); } }); }catch(e){}
+    try{ var pd=Pillole.data(), tk=pd.taken||{}, nById={}; (pd.defs||[]).forEach(function(d){ nById[d.id]=d.nome; }); Object.keys(tk).forEach(function(k){ var parts=k.split("|"); var tv=tk[k], t=(typeof tv==="number"?tv:null); if(t && ok(t)){ ev.push({ts:t, emoji:"💊", text:(nById[parts[1]]||"Medicina"), kind:"pill", id:k}); } }); }catch(e){}
+    try{ diarioEventi.forEach(function(d){ if(ok(d.ts)){ ev.push({ts:d.ts, emoji:"⏰", text:d.testo, kind:"diario", id:d.id}); } }); }catch(e){}
+    try{
+      var now=new Date(), y=now.getFullYear(), mo=now.getMonth(), da=now.getDate();
+      programma.forEach(function(it){ if(it.tipo==="fumo") return; if(!itemAppliesToday(it)) return; if(todayFattoRec(it.id)) return; var om=it.ora?hhmmToMin(it.ora):null; var t=new Date(y,mo,da, om!=null?Math.floor(om/60):23, om!=null?om%60:59, 0); ev.push({ts:+t, emoji:(it.tipo==="pasto"?"🍽️":"🏃"), text:progItemLabel(it).replace(/^\S+\s+/,""), kind:"prog", planned:true, progItem:it}); });
+      Pillole.today().doses.forEach(function(dz){ if(dz.taken) return; var p=String(dz.ora).split(":"); var t=new Date(y,mo,da, parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0); ev.push({ts:+t, emoji:"💊", text:dz.nome, kind:"pillplan", planned:true, pillKey:dz.key}); });
+    }catch(e){}
     return ev;
   }
   function diarioDeleteEvent(e){
@@ -3420,17 +3458,30 @@
   function renderDiario(){
     if(!document.getElementById("diarioDate")) return;
     document.getElementById("diarioDate").textContent=fmtDayLong(new Date());
-    var oraEl=document.getElementById("diarioOra"); if(oraEl && !oraEl.value) oraEl.value=hhmm(new Date());
-    var ev=collectTodayEvents(), host=document.getElementById("diarioTimeline"); host.innerHTML="";
-    document.getElementById("diarioCount").textContent = ev.length? (ev.length+(ev.length===1?" voce":" voci")) : "";
-    if(!ev.length){ host.innerHTML='<div class="empty">Ancora niente oggi.<br>Aggiungi la prima cosa qui sopra.</div>'; return; }
+    var dEl=document.getElementById("diarioData"); if(dEl && !dEl.value) dEl.value=dayKey(new Date());
+    var oEl=document.getElementById("diarioOra"); if(oEl && !oEl.value) oEl.value=hhmm(new Date());
+    var ev=collectDiarioEvents(true).sort(function(a,b){ return b.ts-a.ts; });
+    var host=document.getElementById("diarioTimeline"); host.innerHTML="";
+    var dKn=dayKey(new Date()), todayN=0; ev.forEach(function(x){ if(!x.planned && dayKey(new Date(x.ts))===dKn) todayN++; });
+    document.getElementById("diarioCount").textContent = todayN? (todayN+(todayN===1?" fatta oggi":" fatte oggi")) : "";
+    if(!ev.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Aggiungi la prima cosa qui sopra.</div>'; return; }
+    var lastDay=null;
     ev.forEach(function(e){
-      var row=document.createElement("div"); row.className="tl-row";
-      row.innerHTML='<span class="tl-time">'+hhmm(new Date(e.ts))+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>';
-      row.querySelector(".tl-text").textContent=e.text;
-      var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina");
-      del.onclick=function(){ diarioDeleteEvent(e); };
-      row.appendChild(del); host.appendChild(row);
+      var d=new Date(e.ts), dk=dayKey(d);
+      if(dk!==lastDay){ lastDay=dk; var h=document.createElement("div"); h.className="day-head"; h.innerHTML='<span class="dname">'+fmtDayLong(d)+'</span>'; host.appendChild(h); }
+      var row=document.createElement("div"); row.className="tl-row"+(e.planned?" planned":"");
+      row.innerHTML='<span class="tl-time">'+hhmm(d)+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>';
+      row.querySelector(".tl-text").textContent = e.text + (e.prog?" · 📋 programmato":"") + (e.planned?" · 📋 da fare":"");
+      if(e.planned){
+        var chk=document.createElement("button"); chk.className="tl-check"; chk.textContent="✓"; chk.setAttribute("aria-label","Segna fatto");
+        chk.onclick=function(){ if(e.kind==="prog"){ progDoItem(e.progItem); } else if(e.kind==="pillplan"){ Pillole.check(e.pillKey); } renderDiario(); };
+        row.appendChild(chk);
+      } else {
+        var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi"); ed.onclick=function(){ diarioStartEdit(e); };
+        var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina"); del.onclick=function(){ diarioDeleteEvent(e); };
+        row.appendChild(ed); row.appendChild(del);
+      }
+      host.appendChild(row);
     });
   }
   diarioShowTipo("sigaretta");
