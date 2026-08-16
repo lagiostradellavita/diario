@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 80; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 81; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -130,6 +130,7 @@
   }
 
   *{box-sizing:border-box}
+  button{ -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; }
   html,body{margin:0}
   body{
     background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, var(--bg)) 0, var(--bg) 460px) no-repeat;
@@ -341,8 +342,9 @@
   .water-times .wt{display:inline-flex; align-items:center; gap:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:4px 6px 4px 11px; font-size:14px; font-weight:700; color:var(--ink-soft);}
   .water-times .wt button{appearance:none; border:none; background:none; color:var(--muted); font-size:16px; line-height:1; cursor:pointer; padding:0 3px;}
   .food-cat{border:1px solid var(--line); border-radius:14px; margin-top:10px; overflow:hidden; background:var(--surface-2);}
-  .food-cat > .fc-head{display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; appearance:none; border:none; background:none; cursor:pointer; padding:14px; font-family:inherit; font-size:16.5px; font-weight:800; color:var(--ink); text-align:left; touch-action:manipulation;}
-  .food-cat > .fc-head .fc-arrow{color:var(--muted); font-weight:700; flex:0 0 auto;}
+  .food-cat > .fc-head{display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; appearance:none; border:none; background:none; cursor:pointer; padding:14px; font-family:inherit; font-size:16.5px; font-weight:800; color:var(--ink); text-align:left; touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent;}
+  .food-cat > .fc-head .fc-arrow{color:var(--muted); font-weight:700; flex:0 0 auto; transition:transform .18s ease;}
+  .food-cat.open > .fc-head .fc-arrow{transform:rotate(90deg);}
   .food-cat > .fc-body{padding:2px 14px 14px;}
   .food-cat > .fc-body[hidden]{display:none;}
   #foodCats .chip-sel.food-added{border-color:var(--accent); color:var(--accent); font-weight:850; background:color-mix(in srgb, var(--accent) 12%, var(--surface-2));}
@@ -567,6 +569,10 @@
   .data-actions button:active{background:var(--track);}
   .data-actions .danger-btn{color:var(--danger); grid-column:1 / -1;}
   .data-actions .wide-btn{grid-column:1 / -1;}
+  .data-actions .backup-strong{background:linear-gradient(135deg, var(--accent-2), var(--accent)); color:var(--on-accent); border:none; font-size:16.5px; font-weight:800; min-height:58px; box-shadow:0 9px 22px -8px color-mix(in srgb, var(--accent) 60%, transparent);}
+  .data-actions .backup-strong:active{filter:brightness(.96);}
+  .backup-hint{margin:0 0 11px; font-size:13.5px; font-weight:750; line-height:1.4; color:var(--accent); background:color-mix(in srgb, var(--accent) 9%, transparent); border:1px solid color-mix(in srgb, var(--accent) 24%, var(--line)); border-radius:11px; padding:9px 12px;}
+  .backup-hint[hidden]{display:none;}
   .restore-panel{margin-top:11px; display:flex; flex-direction:column; gap:10px;
     padding:14px; background:var(--surface-2); border:1px solid var(--line); border-radius:14px;}
   .restore-panel[hidden]{display:none;}
@@ -632,14 +638,6 @@
         <span class="pf-avatar-place" id="pfAvatarPlace" aria-hidden="true">👤</span>
       </button>
     </header>
-    <div class="card" id="backupReminder" hidden style="border-left:5px solid #E0A100; display:flex; flex-direction:column; gap:10px;">
-      <div style="font-weight:800; font-size:16.5px;">💾 Backup dei dati</div>
-      <div id="backupReminderTxt" style="font-size:14.5px; color:var(--ink-soft);"></div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button type="button" class="primary" id="backupReminderDo" style="flex:1 1 auto;">Salva backup adesso</button>
-        <button type="button" class="link-btn" id="backupReminderLater">Più tardi</button>
-      </div>
-    </div>
     <section class="card pf-card" id="pfPanel" hidden>
       <div class="pf-photo-row">
         <div class="pf-photo-prev" id="pfPhotoPrev"><img id="pfPhotoImg" alt="" hidden><span id="pfPhotoPlace" aria-hidden="true">👤</span></div>
@@ -786,8 +784,9 @@
     </section>
     <h2 class="menu-grid-title">Dati e backup</h2>
     <section class="card">
+      <p id="backupHint" class="backup-hint" hidden></p>
       <div class="data-actions">
-        <button id="btnBackup" class="wide-btn">💾 Salva backup (tutta l'app)</button>
+        <button id="btnBackup" class="wide-btn backup-strong">💾 Salva backup (tutta l'app)</button>
         <button id="btnRestore" class="wide-btn">♻️ Ripristina backup</button>
       </div>
       <div id="restorePanel" class="restore-panel" hidden>
@@ -1381,7 +1380,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v80</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v81</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1824,31 +1823,24 @@
     var stamp=now.getFullYear()+" "+p(now.getMonth()+1)+" "+p(now.getDate())+" ore "+p(now.getHours())+"."+p(now.getMinutes());
     var data=JSON.stringify({app:"diario-salute", v:3, savedAt:now.toISOString(), all:all}, null, 2);
     var res=await saveFile(stamp+" - Backup diario salute.json", data, null);
-    try{ if(res.ok) localStorage.setItem("salute-ultimo-backup", String(now.getTime())); }catch(e){}
+    try{ if(res.ok){ localStorage.setItem("salute-ultimo-backup", String(now.getTime())); var bh=document.getElementById("backupHint"); if(bh) bh.hidden=true; } }catch(e){}
     if(res.ok) toast("Backup salvato ✓ "+res.name);
     else if(res.reason==="declined") toast("Backup annullato");
     else toast("Backup non disponibile qui");
   };
 
-  // ---- Promemoria di backup, mostrato in Home quando è ora di salvarne uno ----
+  // ---- Promemoria di backup: scritta discreta sopra «Salva backup» quando è ora di salvarne uno ----
   function checkBackupReminder(){
-    var box=document.getElementById("backupReminder"); if(!box) return;
+    var box=document.getElementById("backupHint"); if(!box) return;
     var have=false; try{ have=Object.keys(collectAppData()).length>0; }catch(e){}
-    if(!have){ box.hidden=true; return; } // niente dati, niente da salvare
-    var last=0, rinvio=0;
-    try{ last=parseInt(localStorage.getItem("salute-ultimo-backup")||"0",10)||0; }catch(e){}
-    try{ rinvio=parseInt(localStorage.getItem("salute-backup-rinvio")||"0",10)||0; }catch(e){}
-    var oggi=new Date().getTime();
-    if(rinvio && (oggi-rinvio) < 86400000){ box.hidden=true; return; } // «Più tardi» rinvia di 1 giorno
-    var giorni = last ? Math.floor((oggi-last)/86400000) : 999;
-    if(last && giorni < 2){ box.hidden=true; return; } // backup recente: niente promemoria
-    var txt=document.getElementById("backupReminderTxt");
-    if(!last){ txt.textContent="Non hai ancora salvato nessun backup. Senza, se togli l'icona o cambi telefono i dati vanno persi."; }
-    else { var d=new Date(last), gg=("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2); txt.textContent="Ultimo backup: "+giorni+(giorni===1?" giorno":" giorni")+" fa (il "+gg+"). Meglio salvarne uno aggiornato."; }
+    if(!have){ box.hidden=true; return; } // niente dati, niente da ricordare
+    var last=0; try{ last=parseInt(localStorage.getItem("salute-ultimo-backup")||"0",10)||0; }catch(e){}
+    var giorni = last ? Math.floor((new Date().getTime()-last)/86400000) : 999;
+    if(last && giorni < 2){ box.hidden=true; return; } // backup recente
+    if(!last){ box.textContent="⚠️ Non hai ancora salvato nessun backup: tocca «Salva backup» qui sotto."; }
+    else { var d=new Date(last), gg=("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2); box.textContent="⚠️ Ultimo backup "+giorni+(giorni===1?" giorno":" giorni")+" fa (il "+gg+"): meglio salvarne uno."; }
     box.hidden=false;
   }
-  var _brDo=document.getElementById("backupReminderDo"); if(_brDo) _brDo.onclick=function(){ document.getElementById("backupReminder").hidden=true; document.getElementById("btnBackup").click(); };
-  var _brLater=document.getElementById("backupReminderLater"); if(_brLater) _brLater.onclick=function(){ try{ localStorage.setItem("salute-backup-rinvio", String(new Date().getTime())); }catch(e){} document.getElementById("backupReminder").hidden=true; };
 
   document.getElementById("btnRestore").onclick=function(){
     var p=document.getElementById("restorePanel"); p.hidden=!p.hidden;
