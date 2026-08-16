@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 62; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 65; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -381,7 +381,13 @@
   .ver-row .ver-num{flex:0 0 auto; font-size:13.5px; font-weight:800; color:var(--muted); font-variant-numeric:tabular-nums; width:44px; text-align:right;}
   .pasto-row .pr-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:9px; width:34px; height:34px; font-size:18px; cursor:pointer; touch-action:manipulation;}
   .prog-flabel{display:block; font-size:14px; font-weight:800; color:var(--ink-soft); margin:2px 0 4px;}
-  #cicloNote, #notaGiornata, #dietaPiano{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
+  .chip-manage{margin-top:8px;}
+  .chip-manage .manage-lbl{font-size:13px; font-weight:700; color:var(--muted); margin:2px 0 4px;}
+  .chip-manage .manage-row{display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--line);}
+  .chip-manage .manage-name{flex:1 1 auto; min-width:0; font-size:15.5px; font-weight:700; color:var(--ink); overflow-wrap:anywhere;}
+  .chip-manage .manage-edit, .chip-manage .manage-del{flex:0 0 auto; appearance:none; border:1px solid var(--line); background:var(--surface-2); color:var(--ink-soft); border-radius:9px; width:34px; height:34px; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation;}
+  .chip-manage .manage-del{font-size:20px; line-height:1;}
+  #cicloNote, #notaGiornata, #dietaPiano, #saluteNota{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
   .ciclo-prev{margin:10px 0 2px; padding:12px 14px; border-radius:14px; background:var(--surface-2); border:1px solid var(--line); font-size:15.5px; font-weight:700; color:var(--ink-soft); line-height:1.45;}
   .ciclo-prev b{color:var(--ink); font-weight:850;}
   .ciclo-prev.late{background:color-mix(in srgb, #E11D48 12%, var(--surface)); border-color:color-mix(in srgb,#E11D48 40%, var(--line)); color:#E11D48;}
@@ -992,6 +998,14 @@
             <input type="text" id="fastidiAddInput" placeholder="Aggiungi un nuovo fastidio…">
             <button type="button" id="fastidiAddBtn">＋</button>
           </div>
+          <div id="fastidiManage" class="chip-manage"></div>
+          <div class="prog-flabel" style="margin-top:14px">📍 Dove (per fastidi localizzati, es. acufene)</div>
+          <div id="doveChips" class="chips"></div>
+          <div class="chip-add" style="margin-top:8px">
+            <input type="text" id="doveAddInput" placeholder="Scrivi dove (es. gamba destra)…">
+            <button type="button" id="doveAddBtn">＋</button>
+          </div>
+          <div id="doveManage" class="chip-manage"></div>
         </div>
       </div>
       <div class="food-cat" id="collapPsico">
@@ -1002,9 +1016,10 @@
             <input type="text" id="psicoAddInput" placeholder="Aggiungi (es. tensione)…">
             <button type="button" id="psicoAddBtn">＋</button>
           </div>
+          <div id="psicoManage" class="chip-manage"></div>
         </div>
       </div>
-      <div class="field" style="margin-top:14px"><label for="saluteNota">Nota (facoltativa)</label><input type="text" id="saluteNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
+      <div class="field" style="margin-top:14px"><label for="saluteNota">Note e sensazioni</label><textarea id="saluteNota" rows="4" placeholder="Descrivi come ti senti: sensazioni, dove, da quando, cosa lo scatena…"></textarea></div>
       <button class="link-btn" id="saluteWhenToggle" style="margin-top:8px">＋ cambia data e ora (invece di adesso)</button>
       <div class="grid2" id="saluteWhen" hidden>
         <div class="field"><label for="saluteData">Data</label><input type="date" id="saluteData"></div>
@@ -1236,7 +1251,7 @@
     <p class="fineprint" style="text-align:center; margin:0">L'avviso è <b>in-app</b> (agenda + suggerimenti in Home): l'app non può far squillare una notifica. Per un promemoria che suona, usa una Sveglia/Promemoria iOS.</p>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v62</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v65</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1860,12 +1875,31 @@
         };
         host.appendChild(b);
       });
+      renderManager();
     }
-    function add(lbl){ lbl=(lbl||"").trim(); if(!lbl) return false; if(all().indexOf(lbl)>=0) return false; custom.push(lbl); try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} render(); fire(); return true; }
+    function saveCustom(){ try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} }
+    function renderManager(){
+      if(!opt.manageId) return;
+      var m=document.getElementById(opt.manageId); if(!m) return; m.innerHTML="";
+      if(!custom.length) return;
+      var lab=document.createElement("div"); lab.className="manage-lbl"; lab.textContent="Le tue aggiunte (correggi ✏️ o togli ×):"; m.appendChild(lab);
+      custom.slice().forEach(function(name){
+        var row=document.createElement("div"); row.className="manage-row";
+        var nm=document.createElement("span"); nm.className="manage-name"; nm.textContent=name;
+        var ed=document.createElement("button"); ed.type="button"; ed.className="manage-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi");
+        ed.onclick=function(){ var nw=prompt("Correggi «"+name+"»:", name); if(nw==null) return; nw=(nw||"").trim(); if(!nw||nw===name) return; renameCustom(name, nw); };
+        var del=document.createElement("button"); del.type="button"; del.className="manage-del"; del.textContent="×"; del.setAttribute("aria-label","Togli");
+        del.onclick=function(){ if(confirm("Togliere «"+name+"» dai pulsanti?")) removeCustom(name); };
+        row.appendChild(nm); row.appendChild(ed); row.appendChild(del); m.appendChild(row);
+      });
+    }
+    function removeCustom(lbl){ var i=custom.indexOf(lbl); if(i<0) return; custom.splice(i,1); delete sel[lbl]; saveCustom(); render(); fire(); }
+    function renameCustom(old, nw){ if(all().indexOf(nw)>=0){ toast("«"+nw+"» esiste già"); return; } var i=custom.indexOf(old); if(i<0) return; custom[i]=nw; if(sel[old]){ delete sel[old]; sel[nw]=true; } saveCustom(); render(); fire(); }
+    function add(lbl){ lbl=(lbl||"").trim(); if(!lbl) return false; if(all().indexOf(lbl)>=0) return false; custom.push(lbl); saveCustom(); render(); fire(); return true; }
     function set(arr){ sel={}; (arr||[]).forEach(function(v){ if(v==null||v==="") return; if(all().indexOf(v)<0){ custom.push(v); try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} } sel[v]=true; }); render(); fire(); }
     function selectOne(v){ v=(v||"").trim(); if(!v) return false; if(all().indexOf(v)<0){ custom.push(v); try{ localStorage.setItem(customKey, JSON.stringify(custom)); }catch(e){} } if(single) sel={}; sel[v]=true; render(); fire(); return true; }
     render();
-    return { selected:function(){ return Object.keys(sel); }, value:function(){ var k=Object.keys(sel); return k.length?k[0]:""; }, clear:function(){ sel={}; render(); fire(); }, add:add, set:set, selectOne:selectOne, opts:opts };
+    return { selected:function(){ return Object.keys(sel); }, value:function(){ var k=Object.keys(sel); return k.length?k[0]:""; }, clear:function(){ sel={}; render(); fire(); }, add:add, set:set, selectOne:selectOne, opts:opts, removeCustom:removeCustom, renameCustom:renameCustom, customList:function(){ return custom.slice(); } };
   }
   function wireAdd(inputId, btnId, group){
     var inp=document.getElementById(inputId), btn=document.getElementById(btnId); if(!inp||!btn) return;
@@ -2286,10 +2320,12 @@
   // ---- Salute: fastidi fisici + stato psicologico ----
   var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Nausea","Vomito","Stanchezza","Fiato corto","Tosse","Bruciore di stomaco","Dolori addominali","Dolori muscolari","Spasmi muscolari","Mal di schiena","Dolori articolari","Tensione al collo","Fascicolazioni","Acufene","Nebbia mentale","Palpitazioni","Caviglie gonfie","Sudorazione notturna","Insonnia","Fastidio vescica"];
   var PSICO=["Ansia","Stress","Attacco di panico","Tristezza","Umore basso","Depressione","Agitazione","Pensieri ossessivi","Irritabilità"];
-  var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts", false, {sortAlpha:true, onChange:onFastidiChange});
-  var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts");
+  var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts", false, {sortAlpha:true, onChange:onFastidiChange, manageId:"fastidiManage"});
+  var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts", false, {manageId:"psicoManage"});
+  var doveG=makeChipGroup("doveChips", ["Dx (destro)","Sx (sinistro)","Bilaterale"], "salute-dove-opts", false, {manageId:"doveManage"});
   wireAdd("fastidiAddInput","fastidiAddBtn", fastidiG);
   wireAdd("psicoAddInput","psicoAddBtn", psicoG);
+  wireAdd("doveAddInput","doveAddBtn", doveG);
   // Fastidi fisici: ricerca con suggerimenti + elenco a scomparsa alfabetico + pillole dei selezionati
   function updateFastidiDatalist(){
     var dl=document.getElementById("dlFastidiAll"); if(!dl){ dl=document.createElement("datalist"); dl.id="dlFastidiAll"; document.body.appendChild(dl); }
@@ -2342,7 +2378,7 @@
       var d=new Date(x.ts), dk=dayKey(d);
       if(dk!==lastDay){ lastDay=dk; var h=document.createElement("div"); h.className="day-head"; h.innerHTML='<span class="dname">'+fmtDayLong(d)+'</span>'; host.appendChild(h); }
       var row=document.createElement("div"); row.className="rowitem";
-      var stxt=(x.voci||[]).join(", "); if(x.nota){ stxt += (stxt?' — ':'') + x.nota; }
+      var stxt=(x.voci||[]).join(", "); if(x.dove && x.dove.length){ stxt += (stxt?" · ":"") + "📍 "+x.dove.join(", "); } if(x.nota){ stxt += (stxt?' — ':'') + x.nota; }
       row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname" style="display:block">'+esc(stxt)+'</span>';
       row.appendChild(editBtn(function(){ startEditSalute(x); }));
       var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
@@ -2356,6 +2392,7 @@
     var fo=fastidiG.opts();
     fastidiG.set((x.voci||[]).filter(function(v){ return fo.indexOf(v)>=0; }));
     psicoG.set((x.voci||[]).filter(function(v){ return fo.indexOf(v)<0; }));
+    doveG.set(x.dove||[]);
     document.getElementById("saluteNota").value=x.nota||"";
     document.getElementById("bodyFastidi").hidden=false; document.getElementById("collapFastidi").classList.add("open");
     document.getElementById("bodyPsico").hidden=false; document.getElementById("collapPsico").classList.add("open");
@@ -2368,12 +2405,13 @@
   document.getElementById("saluteWhenToggle").onclick=function(){ whenToggle("saluteWhen","saluteData","saluteOra"); };
   document.getElementById("saluteReg").onclick=function(){
     var v=fastidiG.selected().concat(psicoG.selected());
+    var dove=doveG.selected();
     var nota=(document.getElementById("saluteNota").value||"").trim();
     if(!v.length && !nota){ toast("Seleziona un fastidio o scrivi una nota"); return; }
     var ts=whenTs("saluteWhen","saluteData","saluteOra");
-    if(editingSaluteId){ var it=null; saluteLog.forEach(function(y){ if(y.id===editingSaluteId) it=y; }); if(it){ it.voci=v; it.nota=nota; it.ts=ts; } cancelEditSalute(); toast("Modifica salvata ✓"); }
-    else { saluteLog.push({id:uid(), ts:ts, voci:v, nota:nota}); toast("Registrato ✓"); }
-    saveSaluteLog(); whenHide("saluteWhen"); fastidiG.clear(); psicoG.clear(); document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
+    if(editingSaluteId){ var it=null; saluteLog.forEach(function(y){ if(y.id===editingSaluteId) it=y; }); if(it){ it.voci=v; it.nota=nota; it.ts=ts; it.dove=dove; } cancelEditSalute(); toast("Modifica salvata ✓"); }
+    else { saluteLog.push({id:uid(), ts:ts, voci:v, nota:nota, dove:dove}); toast("Registrato ✓"); }
+    saveSaluteLog(); whenHide("saluteWhen"); fastidiG.clear(); psicoG.clear(); doveG.clear(); document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
   };
 
   // ---- Parametri: pressione arteriosa, saturazione, battiti cardiaci ----
@@ -2806,7 +2844,7 @@
     var top=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];}).slice(0,8).map(function(v){return v+' ('+cnt[v]+')';});
     h+='<p class="rep-sum">'+rows.length+' registrazioni · più frequenti: '+e2(top.join(', '))+'</p>';
     h+='<table><tr><th>Quando</th><th>Fastidi</th></tr>';
-    rows.forEach(function(r){ var st=(r.voci||[]).join(", ")+(r.nota?((r.voci&&r.voci.length?' — ':'')+r.nota):''); h+='<tr><td>'+dmt(r.ts)+'</td><td>'+e2(st)+'</td></tr>'; });
+    rows.forEach(function(r){ var st=(r.voci||[]).join(", "); if(r.dove&&r.dove.length) st+=(st?' · ':'')+'📍 '+r.dove.join(", "); if(r.nota) st+=(st?' — ':'')+r.nota; h+='<tr><td>'+dmt(r.ts)+'</td><td>'+e2(st)+'</td></tr>'; });
     h+='</table>';
     return h;
   }
