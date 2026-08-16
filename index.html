@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 77; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 78; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -785,7 +785,7 @@
         <p class="restore-help">Rimetti <b>tutti i dati dell'app</b> da un backup salvato prima. Scegli il file <b>diario-salute-backup.json</b>:</p>
         <input id="fileRestore" type="file" accept=".json,application/json,.txt,text/plain">
         <p class="restore-help">…oppure <b>incolla</b> qui il testo del backup e premi Ripristina:</p>
-        <textarea id="restoreText" class="data-text" placeholder='{ "app":"diario-salute", "all":{ … } }'></textarea>
+        <textarea id="restoreText" class="data-text" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder='{ "app":"diario-salute", "all":{ … } }'></textarea>
         <div class="panel-actions">
           <button class="primary" id="restoreDo">Ripristina dal testo</button>
           <button class="link-btn" id="restoreCancel">Chiudi</button>
@@ -1372,7 +1372,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v77</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v78</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1809,7 +1809,7 @@
   document.getElementById("btnBackup").onclick=async function(){
     var all=collectAppData();
     if(!Object.keys(all).length){ toast("Non c'è ancora niente da salvare"); return; }
-    var data=JSON.stringify({app:"diario-salute", v:3, all:all}, null, 2);
+    var data=JSON.stringify({app:"diario-salute", v:3, savedAt:new Date().toISOString(), all:all}, null, 2);
     var res=await saveFile("diario-salute-backup.json", data, null);
     if(res.ok) toast("Backup di tutta l'app salvato ✓");
     else if(res.reason==="declined") toast("Backup annullato");
@@ -1836,11 +1836,27 @@
 
   function importFromText(text){
     try{
-      var obj=JSON.parse(text);
+      var raw=String(text||"").trim();
+      var obj;
+      // Prima provo il testo così com'è: un backup valido (anche con « » o virgolette nelle note) passa intatto
+      try{ obj=JSON.parse(raw); }
+      catch(pe){
+        // Solo se fallisce: iPhone può aver incurvato le virgolette dritte, o incollato testo attorno al JSON
+        var fixed=raw.replace(/[“”„‟]/g,'"').replace(/[‘’‚‛]/g,"'");
+        var a=fixed.indexOf("{"), b=fixed.lastIndexOf("}");
+        if(a>=0 && b>a){ fixed=fixed.slice(a,b+1); }
+        obj=JSON.parse(fixed);
+      }
       // Backup completo (tutta l'app): riscrive tutte le chiavi e ricarica
       if(obj && obj.all && typeof obj.all==="object"){
         var kk=Object.keys(obj.all);
         if(!kk.length) throw new Error("vuoto");
+        // Conteggio registrazioni e data, per la conferma
+        var recs=0; kk.forEach(function(k){ try{ var v=JSON.parse(obj.all[k]); if(Array.isArray(v)) recs+=v.length; }catch(e){} });
+        var quando=""; if(obj.savedAt){ try{ var d=new Date(obj.savedAt); if(!isNaN(d)) quando=" salvato il "+("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear()+" alle "+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2); }catch(e){} }
+        var msg="Backup"+quando+":\n"+kk.length+" tipi di dati, "+recs+" registrazioni in tutto.\n\nSostituisco i dati attuali dell'app con questo backup?";
+        var ok=true; try{ ok=window.confirm(msg); }catch(e){ ok=true; }
+        if(!ok){ toast("Ripristino annullato — niente è stato toccato"); return false; }
         kk.forEach(function(k){ try{ localStorage.setItem(k, obj.all[k]); }catch(e){} });
         toast("Ripristinato ✓ Ricarico l'app…");
         setTimeout(function(){ try{ location.reload(); }catch(e){} }, 800);
@@ -1862,7 +1878,7 @@
         toast("Ripristinate "+addedIds.length+" righe", "Annulla", doUndo);
       } else { toast("Nessuna nuova riga (già presenti)"); }
       return true;
-    }catch(e){ toast("Dati non validi"); return false; }
+    }catch(e){ toast("Testo non valido — meglio «Scegli file» col backup .json"); return false; }
   }
 
   // (rimossi: «Copia dati», «Incolla dati» e «Ripristina da file» — non più necessari dopo il travaso)
