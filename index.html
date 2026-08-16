@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 71; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 72; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1299,6 +1299,7 @@
         <button type="button" data-dt="fastidio">🤕 Fastidio</button>
         <button type="button" data-dt="sveglia">⏰ Sveglia</button>
         <button type="button" data-dt="evac">🚽 Bagno</button>
+        <button type="button" data-dt="param">❤️ Parametri</button>
       </div>
       <div class="diario-fields" id="dfSigaretta">
         <div class="seg" id="diarioSigTipo" style="grid-template-columns:1fr 1fr; --c:#C2410C; margin-top:10px">
@@ -1338,6 +1339,14 @@
         </div>
         <div class="field" style="margin-top:8px"><label for="diarioEvacNota">Nota (facolt.)</label><input type="text" id="diarioEvacNota" placeholder="es. colore, bruciore…" autocomplete="off"></div>
       </div>
+      <div class="diario-fields" id="dfParam" hidden>
+        <div class="seg" id="diarioParamSeg" style="grid-template-columns:1fr 1fr; --c:#DC2626; margin-top:10px">
+          <button type="button" data-pv="pressione" class="on">🩸 Pressione</button>
+          <button type="button" data-pv="saturazione">🫁 Saturazione</button>
+          <button type="button" data-pv="battiti" style="grid-column:1/-1">❤️ Battiti</button>
+        </div>
+        <div class="field" style="margin-top:8px"><label for="diarioParamVal">Valore</label><input type="text" id="diarioParamVal" placeholder="es. 120/80 · 98 · 72" autocomplete="off"></div>
+      </div>
       <div class="grid2" style="margin-top:12px">
         <div class="field"><label for="diarioData">Giorno</label><input type="date" id="diarioData"></div>
         <div class="field"><label for="diarioOra">Ora</label><input type="time" id="diarioOra"></div>
@@ -1350,7 +1359,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v71</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v72</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3387,7 +3396,7 @@
   // ---- Diario di oggi: registrazione sequenziale che compila gli storici delle funzioni ----
   var diarioEventi=[]; try{ var _de=JSON.parse(localStorage.getItem("salute-diario-eventi")); if(Array.isArray(_de)) diarioEventi=_de; }catch(e){}
   function saveDiarioEventi(){ try{ localStorage.setItem("salute-diario-eventi", JSON.stringify(diarioEventi)); }catch(e){} }
-  var diarioTipo="sigaretta", diarioSigTipo="trinciate", diarioMedSel=null, diarioEvacTipo="urina";
+  var diarioTipo="sigaretta", diarioSigTipo="trinciate", diarioMedSel=null, diarioEvacTipo="urina", diarioParamTipo="pressione";
   var diarioCiboItems=[{nome:"",qta:""}];
   function renderDiarioCiboItems(){
     var host=document.getElementById("diarioCiboItems"); if(!host) return; host.innerHTML="";
@@ -3412,7 +3421,7 @@
   function diarioShowTipo(t){
     diarioTipo=t;
     Array.prototype.forEach.call(document.querySelectorAll("#diarioTipoSeg button"), function(b){ b.className=(b.dataset.dt===t)?"on":""; });
-    var map={sigaretta:"dfSigaretta", medicina:"dfMedicina", cibo:"dfCibo", eser:"dfEser", fastidio:"dfFastidio", sveglia:"dfSveglia", evac:"dfEvac"};
+    var map={sigaretta:"dfSigaretta", medicina:"dfMedicina", cibo:"dfCibo", eser:"dfEser", fastidio:"dfFastidio", sveglia:"dfSveglia", evac:"dfEvac", param:"dfParam"};
     Object.keys(map).forEach(function(k){ var el=document.getElementById(map[k]); if(el) el.hidden=(k!==t); });
     if(t==="cibo") renderDiarioCiboItems();
     if(t==="medicina") renderDiarioMedChips();
@@ -3420,6 +3429,7 @@
   Array.prototype.forEach.call(document.querySelectorAll("#diarioTipoSeg button"), function(b){ b.onclick=function(){ diarioShowTipo(b.dataset.dt); }; });
   Array.prototype.forEach.call(document.querySelectorAll("#diarioSigTipo button"), function(b){ b.onclick=function(){ diarioSigTipo=b.dataset.st; Array.prototype.forEach.call(document.querySelectorAll("#diarioSigTipo button"), function(x){ x.className=(x.dataset.st===diarioSigTipo)?"on":""; }); }; });
   Array.prototype.forEach.call(document.querySelectorAll("#diarioEvacSeg button"), function(b){ b.onclick=function(){ diarioEvacTipo=b.dataset.ev; Array.prototype.forEach.call(document.querySelectorAll("#diarioEvacSeg button"), function(x){ x.className=(x.dataset.ev===diarioEvacTipo)?"on":""; }); }; });
+  Array.prototype.forEach.call(document.querySelectorAll("#diarioParamSeg button"), function(b){ b.onclick=function(){ diarioParamTipo=b.dataset.pv; Array.prototype.forEach.call(document.querySelectorAll("#diarioParamSeg button"), function(x){ x.className=(x.dataset.pv===diarioParamTipo)?"on":""; }); var pv=document.getElementById("diarioParamVal"); if(pv) pv.placeholder=(diarioParamTipo==="pressione"?"es. 120/80":(diarioParamTipo==="saturazione"?"es. 98":"es. 72")); }; });
   var _dca=document.getElementById("diarioCiboAdd"); if(_dca) _dca.onclick=function(){ diarioCiboItems.push({nome:"",qta:""}); renderDiarioCiboItems(); };
   function diarioWhenTs(){ var dv=(document.getElementById("diarioData")||{}).value, tv=(document.getElementById("diarioOra")||{}).value; var d=dv?new Date(dv+"T00:00:00"):new Date(); if(tv){ var p=String(tv).split(":"); d.setHours(parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0, 0); } return +d; }
   var diarioEditing=null;
@@ -3493,6 +3503,12 @@
       evac.push({id:uid(), ts:ts, tipo:diarioEvacTipo, nota:en}); saveEvac(); toast((diarioEvacTipo==="feci"?"💩 Feci":"💧 Urina")+" registrata");
       document.getElementById("diarioEvacNota").value="";
     }
+    else if(diarioTipo==="param"){
+      var pval=(document.getElementById("diarioParamVal").value||"").trim();
+      if(!pval){ toast("Scrivi il valore"); return; }
+      parametri.push({id:uid(), ts:ts, tipo:diarioParamTipo, valore:pval}); saveParam(); toast((PARAM_LBL[diarioParamTipo]||"Parametro")+" registrata");
+      document.getElementById("diarioParamVal").value=""; try{ renderParametri(); }catch(e){}
+    }
     document.getElementById("diarioOra").value=hhmm(new Date());
     renderDiario();
   };
@@ -3506,6 +3522,9 @@
     try{ var pd=Pillole.data(), tk=pd.taken||{}, nById={}; (pd.defs||[]).forEach(function(d){ nById[d.id]=d.nome; }); Object.keys(tk).forEach(function(k){ var parts=k.split("|"); var tv=tk[k], t=(typeof tv==="number"?tv:null); if(t && ok(t)){ ev.push({ts:t, emoji:"💊", text:(nById[parts[1]]||"Medicina"), kind:"pill", id:k}); } }); }catch(e){}
     try{ diarioEventi.forEach(function(d){ if(ok(d.ts)){ ev.push({ts:d.ts, emoji:"⏰", text:d.testo, kind:"diario", id:d.id}); } }); }catch(e){}
     try{ evac.forEach(function(x){ if(ok(x.ts)){ ev.push({ts:x.ts, emoji:(x.tipo==="feci"?"💩":"💧"), text:evacLabel(x).replace(/^\S+\s+/,""), kind:"evac", id:x.id}); } }); }catch(e){}
+    try{ parametri.forEach(function(p){ if(ok(p.ts)){ var pn={pressione:"Pressione", saturazione:"Saturazione", battiti:"Battiti"}[p.tipo]||"Parametro", pu={pressione:" mmHg", saturazione:"%", battiti:" bpm"}[p.tipo]||""; ev.push({ts:p.ts, emoji:"❤️", text:pn+" "+p.valore+pu, kind:"param", id:p.id, noEdit:true}); } }); }catch(e){}
+    try{ sonno.forEach(function(s){ if(ok(s.ts)){ ev.push({ts:s.ts, emoji:"😴", text:(s.ore?String(s.ore).replace(".",",")+" ore di sonno":"Sonno")+(s.qualita?" · "+s.qualita:"")+(s.nota?" — "+s.nota:""), kind:"sonno", id:s.id, noEdit:true}); } }); }catch(e){}
+    try{ cicli.forEach(function(c){ if(c.inizio && ok(c.inizio)) ev.push({ts:c.inizio, emoji:"🌸", text:"Inizio ciclo", kind:"ciclo", id:c.id, readonly:true}); if(c.fine && ok(c.fine)) ev.push({ts:c.fine, emoji:"🌸", text:"Fine ciclo", kind:"ciclo", id:c.id, readonly:true}); }); }catch(e){}
     try{
       var now=new Date(), y=now.getFullYear(), mo=now.getMonth(), da=now.getDate();
       programma.forEach(function(it){ if(it.tipo==="fumo") return; if(!itemAppliesToday(it)) return; if(todayFattoRec(it.id)) return; var om=it.ora?hhmmToMin(it.ora):null; var t=new Date(y,mo,da, om!=null?Math.floor(om/60):23, om!=null?om%60:59, 0); ev.push({ts:+t, emoji:(it.tipo==="pasto"?"🍽️":"🏃"), text:progItemLabel(it).replace(/^\S+\s+/,""), kind:"prog", planned:true, progItem:it}); });
@@ -3521,6 +3540,8 @@
     else if(e.kind==="pill"){ Pillole.checkAt(e.id, null); }
     else if(e.kind==="diario"){ diarioEventi=diarioEventi.filter(function(x){return x.id!==e.id;}); saveDiarioEventi(); }
     else if(e.kind==="evac"){ evac=evac.filter(function(x){return x.id!==e.id;}); saveEvac(); }
+    else if(e.kind==="param"){ parametri=parametri.filter(function(x){return x.id!==e.id;}); saveParam(); try{ renderParametri(); }catch(e2){} }
+    else if(e.kind==="sonno"){ sonno=sonno.filter(function(x){return x.id!==e.id;}); saveSonno(); try{ renderSonno(); }catch(e2){} }
     renderDiario();
   }
   function renderDiario(){
@@ -3544,6 +3565,11 @@
         var chk=document.createElement("button"); chk.className="tl-check"; chk.textContent="✓"; chk.setAttribute("aria-label","Segna fatto");
         chk.onclick=function(){ if(e.kind==="prog"){ progDoItem(e.progItem); } else if(e.kind==="pillplan"){ Pillole.check(e.pillKey); } renderDiario(); };
         row.appendChild(chk);
+      } else if(e.readonly){
+        /* voce sola lettura (es. ciclo): si gestisce nella sua schermata */
+      } else if(e.noEdit){
+        var deln=document.createElement("button"); deln.className="tl-del"; deln.textContent="×"; deln.setAttribute("aria-label","Elimina"); deln.onclick=function(){ diarioDeleteEvent(e); };
+        row.appendChild(deln);
       } else {
         var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi"); ed.onclick=function(){ diarioStartEdit(e); };
         var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina"); del.onclick=function(){ diarioDeleteEvent(e); };
