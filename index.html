@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 83; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 84; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -256,6 +256,12 @@
   #reportBody th,#reportBody td{text-align:left; padding:7px 8px; border-bottom:1px solid #ececec; vertical-align:top;}
   #reportBody th{background:#f5f5f5; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.03em; color:#444;}
   #reportBody td.num,#reportBody th.num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  #reportBody .rep-doc-cat{font-size:16px; margin:18px 0 8px; color:#333; border-bottom:1px solid #eee; padding-bottom:4px;}
+  #reportBody .rep-doc{margin:0 0 14px; break-inside:avoid; page-break-inside:avoid;}
+  #reportBody .rep-doc-name{font-size:14px; font-weight:700; margin:0 0 5px;}
+  #reportBody .rep-doc-date{font-weight:500; color:#777;}
+  #reportBody .rep-doc-img{display:block; max-width:100%; height:auto; border:1px solid #ddd; border-radius:6px;}
+  #reportBody .rep-doc-note{font-size:13.5px; color:#666;}
   @media print{
     .wrap{display:none !important;}
     .rep-toolbar{display:none !important;}
@@ -762,6 +768,7 @@
         <button type="button" class="chip-sel on" data-m="alimentazione">Alimentazione</button>
         <button type="button" class="chip-sel on" data-m="salute">Salute</button>
         <button type="button" class="chip-sel on" data-m="evac">Evacuazioni</button>
+        <button type="button" class="chip-sel on" data-m="referti">Referti</button>
       </div>
       <div class="panel-actions" style="margin-top:15px">
         <button class="primary" id="repGen">Genera report PDF</button>
@@ -1396,7 +1403,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v83</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v84</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3112,6 +3119,35 @@
     document.getElementById("reportBody").innerHTML=body;
     document.getElementById("reportView").hidden=false;
     try{ window.scrollTo(0,0); }catch(e){}
+    if(mods.indexOf("referti")>=0){ try{ appendRefertiReport(); }catch(e){} }
+  }
+  // Aggiunge in fondo al report i referti caricati: foto incorporate, PDF/altro elencati
+  function appendRefertiReport(){
+    var host=document.getElementById("reportBody"); if(!host) return;
+    host.insertAdjacentHTML("beforeend", '<div id="repRefertiSec"><h2>📁 Referti e documenti</h2><p class="rep-empty">Carico i referti…</p></div>');
+    docAll().then(function(list){
+      var sec=document.getElementById("repRefertiSec"); if(!sec) return;
+      if(!list.length){ sec.innerHTML='<h2>📁 Referti e documenti</h2><p class="rep-empty">Nessun referto caricato.</p>'; return; }
+      list.sort(function(a,b){ return b.ts-a.ts; });
+      return Promise.all(list.map(function(f){
+        var isImg=(f.tipo||"").toLowerCase().indexOf("image")>=0 || /\.(jpe?g|png|gif|webp|bmp|heic|heif)$/i.test(f.nome||"");
+        if(!isImg) return Promise.resolve({f:f, img:null});
+        return new Promise(function(res){ try{ var fr=new FileReader(); fr.onload=function(){ res({f:f, img:fr.result}); }; fr.onerror=function(){ res({f:f, img:null}); }; fr.readAsDataURL(new Blob([f.buf],{type:f.tipo||"image/jpeg"})); }catch(e){ res({f:f, img:null}); } });
+      })).then(function(items){
+        var h='<h2>📁 Referti e documenti</h2>';
+        var byCat={}; items.forEach(function(it){ var c=it.f.cat||"Documenti"; (byCat[c]=byCat[c]||[]).push(it); });
+        Object.keys(byCat).forEach(function(cat){
+          h+='<h3 class="rep-doc-cat">'+e2(cat)+' ('+byCat[cat].length+')</h3>';
+          byCat[cat].forEach(function(it){ var f=it.f;
+            h+='<div class="rep-doc"><div class="rep-doc-name">'+e2(f.nome||"documento")+' <span class="rep-doc-date">('+dmy(new Date(f.ts))+')</span></div>';
+            if(it.img){ h+='<img class="rep-doc-img" src="'+it.img+'" alt="">'; }
+            else { h+='<div class="rep-doc-note">📄 PDF o altro documento — resta allegato nell\'app, in «Referti e documenti».</div>'; }
+            h+='</div>';
+          });
+        });
+        var sec2=document.getElementById("repRefertiSec"); if(sec2) sec2.innerHTML=h;
+      });
+    }).catch(function(){ var sec=document.getElementById("repRefertiSec"); if(sec) sec.innerHTML='<h2>📁 Referti e documenti</h2><p class="rep-empty">Referti non disponibili in questa modalità.</p>'; });
   }
   document.getElementById("repToggle").onclick=function(){ document.getElementById("repToggle").hidden=true; document.getElementById("repOptions").hidden=false; };
   document.getElementById("repOptClose").onclick=function(){ document.getElementById("repOptions").hidden=true; document.getElementById("repToggle").hidden=false; };
