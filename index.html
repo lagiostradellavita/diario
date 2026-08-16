@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 79; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 80; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -368,6 +368,7 @@
   .prog-row.done input.ptime{color:var(--accent); border-bottom-color:color-mix(in srgb, var(--accent) 50%, transparent);}
   .prog-row.late:not(.done) .ptime, .prog-row.late:not(.done) .pname{color:var(--lvl-high);}
   .prog-row .prow-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:7px; width:26px; height:26px; font-size:16px; line-height:1; cursor:pointer; touch-action:manipulation;}
+  .prog-row .prow-ok{flex:0 0 auto; appearance:none; border:none; background:var(--lvl-low); color:#fff; border-radius:7px; width:26px; height:26px; font-size:16px; font-weight:800; line-height:1; cursor:pointer; touch-action:manipulation;}
   .prog-fumo{display:flex; align-items:center; gap:10px; padding:12px 13px; border-radius:14px; margin-bottom:8px; background:var(--surface-2); border:1px solid var(--line); font-size:15.5px; font-weight:750; color:var(--ink-soft);}
   .prog-fumo.over{background:color-mix(in srgb, var(--lvl-high) 12%, var(--surface)); border-color:color-mix(in srgb,var(--lvl-high) 35%, var(--line)); color:var(--lvl-high);}
   .prog-plan-row{display:flex; align-items:center; gap:8px; padding:11px 2px; border-bottom:1px solid var(--line); position:relative;}
@@ -631,6 +632,14 @@
         <span class="pf-avatar-place" id="pfAvatarPlace" aria-hidden="true">👤</span>
       </button>
     </header>
+    <div class="card" id="backupReminder" hidden style="border-left:5px solid #E0A100; display:flex; flex-direction:column; gap:10px;">
+      <div style="font-weight:800; font-size:16.5px;">💾 Backup dei dati</div>
+      <div id="backupReminderTxt" style="font-size:14.5px; color:var(--ink-soft);"></div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" class="primary" id="backupReminderDo" style="flex:1 1 auto;">Salva backup adesso</button>
+        <button type="button" class="link-btn" id="backupReminderLater">Più tardi</button>
+      </div>
+    </div>
     <section class="card pf-card" id="pfPanel" hidden>
       <div class="pf-photo-row">
         <div class="pf-photo-prev" id="pfPhotoPrev"><img id="pfPhotoImg" alt="" hidden><span id="pfPhotoPlace" aria-hidden="true">👤</span></div>
@@ -1372,7 +1381,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v79</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v80</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1811,14 +1820,35 @@
     if(!Object.keys(all).length){ toast("Non c'è ancora niente da salvare"); return; }
     var now=new Date();
     var p=function(n){ return ("0"+n).slice(-2); };
-    // Nome col giorno e l'ora, così si riconosce subito il più recente (ordina anche da solo)
-    var stamp=now.getFullYear()+"-"+p(now.getMonth()+1)+"-"+p(now.getDate())+"_"+p(now.getHours())+"-"+p(now.getMinutes())+"-"+p(now.getSeconds());
+    // Nome «AAAA MM GG ore HH.MM - Backup diario salute» (un solo trattino)
+    var stamp=now.getFullYear()+" "+p(now.getMonth()+1)+" "+p(now.getDate())+" ore "+p(now.getHours())+"."+p(now.getMinutes());
     var data=JSON.stringify({app:"diario-salute", v:3, savedAt:now.toISOString(), all:all}, null, 2);
-    var res=await saveFile("diario-salute-backup-"+stamp+".json", data, null);
+    var res=await saveFile(stamp+" - Backup diario salute.json", data, null);
+    try{ if(res.ok) localStorage.setItem("salute-ultimo-backup", String(now.getTime())); }catch(e){}
     if(res.ok) toast("Backup salvato ✓ "+res.name);
     else if(res.reason==="declined") toast("Backup annullato");
     else toast("Backup non disponibile qui");
   };
+
+  // ---- Promemoria di backup, mostrato in Home quando è ora di salvarne uno ----
+  function checkBackupReminder(){
+    var box=document.getElementById("backupReminder"); if(!box) return;
+    var have=false; try{ have=Object.keys(collectAppData()).length>0; }catch(e){}
+    if(!have){ box.hidden=true; return; } // niente dati, niente da salvare
+    var last=0, rinvio=0;
+    try{ last=parseInt(localStorage.getItem("salute-ultimo-backup")||"0",10)||0; }catch(e){}
+    try{ rinvio=parseInt(localStorage.getItem("salute-backup-rinvio")||"0",10)||0; }catch(e){}
+    var oggi=new Date().getTime();
+    if(rinvio && (oggi-rinvio) < 86400000){ box.hidden=true; return; } // «Più tardi» rinvia di 1 giorno
+    var giorni = last ? Math.floor((oggi-last)/86400000) : 999;
+    if(last && giorni < 2){ box.hidden=true; return; } // backup recente: niente promemoria
+    var txt=document.getElementById("backupReminderTxt");
+    if(!last){ txt.textContent="Non hai ancora salvato nessun backup. Senza, se togli l'icona o cambi telefono i dati vanno persi."; }
+    else { var d=new Date(last), gg=("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2); txt.textContent="Ultimo backup: "+giorni+(giorni===1?" giorno":" giorni")+" fa (il "+gg+"). Meglio salvarne uno aggiornato."; }
+    box.hidden=false;
+  }
+  var _brDo=document.getElementById("backupReminderDo"); if(_brDo) _brDo.onclick=function(){ document.getElementById("backupReminder").hidden=true; document.getElementById("btnBackup").click(); };
+  var _brLater=document.getElementById("backupReminderLater"); if(_brLater) _brLater.onclick=function(){ try{ localStorage.setItem("salute-backup-rinvio", String(new Date().getTime())); }catch(e){} document.getElementById("backupReminder").hidden=true; };
 
   document.getElementById("btnRestore").onclick=function(){
     var p=document.getElementById("restorePanel"); p.hidden=!p.hidden;
@@ -3380,15 +3410,20 @@
       var chk=document.createElement("span"); chk.className="pcheck"; chk.textContent="✓";
       var nm=document.createElement("span"); nm.className="pname";
       var tm=document.createElement("input"); tm.type="time"; tm.className="ptime"; tm.value=(e.doneTs? hhmm(new Date(e.doneTs)) : (e.schedOra||"")); tm.setAttribute("aria-label","Ora — tocca per correggere");
-      if(e.kind==="pill"){ nm.textContent="💊 "+e.pill.nome; chk.onclick=function(){ Pillole.check(e.pill.key); renderProgramma(); }; tm.onchange=function(){ if(!tm.value) return; Pillole.checkAt(e.pill.key, todayAtHHMM(tm.value)); renderProgramma(); }; }
-      else { nm.textContent=progItemLabel(e.item); chk.onclick=function(){ if(e.done) progUndoItem(e.item); else progDoItem(e.item); }; tm.onchange=function(){ if(!tm.value) return; progSetTime(e.item, todayAtHHMM(tm.value)); }; }
+      var cok=document.createElement("button"); cok.type="button"; cok.className="prow-ok"; cok.textContent="✓"; cok.hidden=true; cok.setAttribute("aria-label","Conferma l'ora"); cok.title="Conferma l'ora";
+      var applyOra;
+      if(e.kind==="pill"){ nm.textContent="💊 "+e.pill.nome; chk.onclick=function(){ Pillole.check(e.pill.key); renderProgramma(); }; applyOra=function(){ if(!tm.value) return; Pillole.checkAt(e.pill.key, todayAtHHMM(tm.value)); renderProgramma(); }; }
+      else { nm.textContent=progItemLabel(e.item); chk.onclick=function(){ if(e.done) progUndoItem(e.item); else progDoItem(e.item); }; applyOra=function(){ if(!tm.value) return; progSetTime(e.item, todayAtHHMM(tm.value)); renderProgramma(); }; }
       var del=document.createElement("button"); del.className="prow-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina");
       del.onclick=function(){
         if(e.kind==="pill"){ if(confirm("Eliminare la medicina «"+e.pill.nome+"»? La togli anche da «Le mie medicine».")){ Pillole.removeDef(e.pill.id); renderProgramma(); } }
         else { if(confirm("Eliminare «"+progItemLabel(e.item).replace(/^\S+\s+/,"")+"» dal programma?")){ programma=programma.filter(function(y){return y.id!==e.item.id;}); if(editingProgId===e.item.id) cancelEditProg(); saveProgramma(); renderProgramma(); } }
       };
+      // L'ora non si applica da sola: quando la cambi compare ✓ da toccare per confermare
+      tm.onchange=function(){ if(!tm.value) return; cok.hidden=false; del.hidden=true; };
+      cok.onclick=applyOra;
       if(e.done) doneN++;
-      row.appendChild(chk); row.appendChild(nm); row.appendChild(tm); row.appendChild(del); host.appendChild(row);
+      row.appendChild(chk); row.appendChild(nm); row.appendChild(tm); row.appendChild(cok); row.appendChild(del); host.appendChild(row);
     });
     document.getElementById("progOggiSum").textContent = ent.length? (doneN+"/"+ent.length+" fatte") : "";
     renderVerifica();
@@ -3671,7 +3706,7 @@
     ["fumo","pillole","esercizio","alimentazione","salute","evac","programma","diario","parametri","ciclo","sonno"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
     document.getElementById("menu").hidden=(m!=="menu");
     try{ window.scrollTo(0,0); }catch(e){}
-    if(m==="menu") renderMenu();
+    if(m==="menu"){ renderMenu(); try{ checkBackupReminder(); }catch(e){} }
     else if(m==="pillole") Pillole.render();
     else if(m==="esercizio") renderAttiv();
     else if(m==="alimentazione") renderAlim();
