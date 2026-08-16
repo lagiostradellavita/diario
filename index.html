@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 67; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 68; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -926,11 +926,12 @@
         <input type="text" id="eserAddInput" placeholder="Aggiungi un'attività…">
         <button type="button" id="eserAddBtn">＋</button>
       </div>
-      <button class="link-btn" id="attivFotoBtn" style="margin-top:10px">📷 Aggiungi da foto / screenshot</button>
+      <div id="eserManage" class="chip-manage"></div>
+      <button class="link-btn" id="attivFotoBtn" style="margin-top:10px">✏️ Aggiungi a mano (senza timer)</button>
       <div class="detail" id="attivFotoForm" hidden>
-        <p class="fineprint" style="margin:0 0 8px">Fai lo screenshot dei passi (o dei minuti) dall'app Salute e scrivi qui il numero: lo registro come attività. Puoi anche allegare lo screenshot.</p>
-        <div class="field"><label for="attivFotoNome">Attività</label><input type="text" id="attivFotoNome" list="dlAttivita" value="Camminata" autocomplete="off"><datalist id="dlAttivita"></datalist></div>
-        <div class="field"><label for="attivFotoVal">Quanto (passi o minuti)</label><input type="text" id="attivFotoVal" placeholder="es. 1389 passi · 30 min" autocomplete="off"></div>
+        <p class="fineprint" style="margin:0 0 8px">Registra un'attività <b>a mano</b>: scrivi cosa hai fatto, l'ora, e (se vuoi) quanto. Lo screenshot è facoltativo.</p>
+        <div class="field"><label for="attivFotoNome">Attività</label><input type="text" id="attivFotoNome" list="dlAttivita" placeholder="es. Camminata, Sblocco del risveglio…" autocomplete="off"><datalist id="dlAttivita"></datalist></div>
+        <div class="field"><label for="attivFotoVal">Quanto (minuti o passi, facolt.)</label><input type="text" id="attivFotoVal" placeholder="es. 30 min · 1389 passi" autocomplete="off"></div>
         <div class="field"><label for="attivFotoFile">Screenshot (facoltativo)</label><input type="file" id="attivFotoFile" accept="image/*"></div>
         <div class="field"><label for="attivFotoNota">Nota (facoltativa)</label><input type="text" id="attivFotoNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
         <button class="link-btn" id="attivWhenToggle" style="text-align:left;padding:4px 2px">＋ cambia data e ora (invece di adesso)</button>
@@ -1321,7 +1322,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v67</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v68</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2667,16 +2668,32 @@
     if(attivRunning){ es.textContent="in corso…"; es.style.color="var(--good)"; }
     else if(today.length){ var tot=0; today.forEach(function(x){tot+=x.dur;}); es.textContent=today.length+" · "+fmtDur(tot); es.style.color="var(--ink-soft)"; }
     else { es.textContent=""; }
+    renderEserManage();
     if(attivInterval){ clearInterval(attivInterval); attivInterval=null; }
     if(attivRunning){ attivInterval=setInterval(function(){ var el=document.querySelector('#eserList .act-timer[data-run]'); if(el && attivRunning){ el.textContent=fmtDur(Date.now()-attivRunning.start); } }, 1000); }
   }
   function attivStart(nome){ attivRunning={nome:nome, start:Date.now()}; saveAttivRun(); renderAttiv(); toast("Avviato: "+nome); }
   function attivStop(){ if(!attivRunning) return; var dur=Date.now()-attivRunning.start, nome=attivRunning.nome; var nEl=document.getElementById("attivNota"), nota=nEl?(nEl.value||"").trim():""; attivLog.push({id:uid(), nome:nome, tsEnd:Date.now(), dur:dur, nota:nota}); saveAttivLog(); if(nEl) nEl.value=""; attivRunning=null; saveAttivRun(); renderAttiv(); toast("Registrato: "+nome+" "+fmtDur(dur)); }
+  function saveAttivCustom(){ try{ localStorage.setItem("salute-attiv-opts", JSON.stringify(attivCustom)); }catch(e){} }
+  function renderEserManage(){
+    var m=document.getElementById("eserManage"); if(!m) return; m.innerHTML="";
+    if(!attivCustom.length) return;
+    var lab=document.createElement("div"); lab.className="manage-lbl"; lab.textContent="Le tue attività aggiunte (correggi ✏️ o togli ×):"; m.appendChild(lab);
+    attivCustom.slice().forEach(function(name){
+      var row=document.createElement("div"); row.className="manage-row";
+      var nm=document.createElement("span"); nm.className="manage-name"; nm.textContent=name;
+      var ed=document.createElement("button"); ed.type="button"; ed.className="manage-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi");
+      ed.onclick=function(){ var nw=prompt("Correggi «"+name+"»:", name); if(nw==null) return; nw=(nw||"").trim(); if(!nw||nw===name) return; if(attivOpts().indexOf(nw)>=0){ toast("«"+nw+"» esiste già"); return; } var i=attivCustom.indexOf(name); if(i>=0){ attivCustom[i]=nw; saveAttivCustom(); renderAttiv(); } };
+      var del=document.createElement("button"); del.type="button"; del.className="manage-del"; del.textContent="×"; del.setAttribute("aria-label","Togli");
+      del.onclick=function(){ if(confirm("Togliere l'attività «"+name+"»?")){ attivCustom=attivCustom.filter(function(x){return x!==name;}); saveAttivCustom(); renderAttiv(); } };
+      row.appendChild(nm); row.appendChild(ed); row.appendChild(del); m.appendChild(row);
+    });
+  }
   document.getElementById("eserAddBtn").onclick=function(){
     var inp=document.getElementById("eserAddInput"), v=(inp.value||"").trim();
     if(!v){ return; }
     if(attivOpts().indexOf(v)>=0){ toast("Già presente"); return; }
-    attivCustom.push(v); try{ localStorage.setItem("salute-attiv-opts", JSON.stringify(attivCustom)); }catch(e){} inp.value=""; renderAttiv();
+    attivCustom.push(v); saveAttivCustom(); inp.value=""; renderAttiv();
   };
   document.getElementById("eserAddInput").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("eserAddBtn").click(); } });
   var editingAttivId=null;
@@ -2704,8 +2721,8 @@
     document.getElementById("attivFotoCancel").onclick=function(){ form.hidden=true; btn.hidden=false; resetForm(); cancelEditAttiv(); };
     document.getElementById("attivWhenToggle").onclick=function(){ whenToggle("attivWhen","attivData","attivOra"); };
     document.getElementById("attivFotoSave").onclick=function(){
-      var nome=(nomeI.value||"").trim()||"Camminata", val=(valI.value||"").trim(), nota=notaI?(notaI.value||"").trim():"";
-      if(!editingAttivId && !val){ toast("Scrivi quanti passi o minuti"); try{ valI.focus(); }catch(e){} return; }
+      var nome=(nomeI.value||"").trim(), val=(valI.value||"").trim(), nota=notaI?(notaI.value||"").trim():"";
+      if(!nome){ toast("Scrivi l'attività"); try{ nomeI.focus(); }catch(e){} return; }
       var file=fileI && fileI.files && fileI.files[0], ts=whenTs("attivWhen","attivData","attivOra");
       function finish(fotoId){
         if(editingAttivId){ var it=null; attivLog.forEach(function(y){ if(y.id===editingAttivId) it=y; }); if(it){ it.nome=nome; it.valore=val; it.nota=nota; it.tsEnd=ts; if(fotoId) it.foto=fotoId; } cancelEditAttiv(); toast("Modifica salvata ✓"); }
