@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 70; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 71; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -684,6 +684,9 @@
       <button class="menu-card" type="button" data-mod="alimentazione" style="--mc:#16A34A"><span class="mc-emoji">🍎</span><span class="mc-text"><span class="mc-name">Alimentazione</span><span class="mc-st" id="st-alim"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="salute" style="--mc:#E11D48"><span class="mc-emoji">🩺</span><span class="mc-text"><span class="mc-name">Salute</span><span class="mc-st" id="st-salute"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="evac" style="--mc:#0D9488"><span class="mc-emoji">🚽</span><span class="mc-text"><span class="mc-name">Evacuazioni</span><span class="mc-st" id="st-evac"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="parametri" style="--mc:#DC2626"><span class="mc-emoji">❤️</span><span class="mc-text"><span class="mc-name">Parametri vitali</span><span class="mc-st" id="st-parametri">pressione · saturazione · battiti</span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="ciclo" style="--mc:#DB2777"><span class="mc-emoji">🌸</span><span class="mc-text"><span class="mc-name">Ciclo</span><span class="mc-st" id="st-ciclo">inizio · fine · previsione</span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="sonno" style="--mc:#6366F1"><span class="mc-emoji">😴</span><span class="mc-text"><span class="mc-name">Sonno</span><span class="mc-st" id="st-sonno">ore e qualità</span></span><span class="mc-chev">›</span></button>
     </div>
     <datalist id="dlPatologie">
       <option>Ipertensione</option><option>Diabete tipo 2</option><option>Diabete tipo 1</option>
@@ -1042,7 +1045,7 @@
     </section>
     <section class="card" id="parametriCard">
       <div class="food-cat" id="collapParam">
-        <button type="button" class="fc-head" id="headParam"><span>📊 Parametri</span><span class="fc-arrow">›</span></button>
+        <button type="button" class="fc-head" id="headParam"><span>📊 Parametri vitali</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodyParam" hidden>
       <div id="parametriSummary" style="margin-top:3px; font-size:15px; font-weight:750; color:var(--ink-soft); white-space:normal;"></div>
       <p class="group-lbl">🩸 Pressione arteriosa (mmHg)</p>
@@ -1131,6 +1134,21 @@
       <h2 class="section-title">Storico</h2>
       <div id="saluteList"></div>
     </section>
+  </section>
+
+  <!-- ===== PARAMETRI VITALI ===== -->
+  <section id="mod-parametri" class="screen" hidden>
+    <header class="top"><button class="back-btn" type="button" data-back>‹ Menu</button><span class="mark">❤️</span><div class="brandtext"><h1>Parametri vitali</h1><p class="sub" id="parametriDate"></p></div></header>
+  </section>
+
+  <!-- ===== CICLO ===== -->
+  <section id="mod-ciclo" class="screen" hidden>
+    <header class="top"><button class="back-btn" type="button" data-back>‹ Menu</button><span class="mark">🌸</span><div class="brandtext"><h1>Ciclo</h1><p class="sub" id="cicloDate"></p></div></header>
+  </section>
+
+  <!-- ===== SONNO ===== -->
+  <section id="mod-sonno" class="screen" hidden>
+    <header class="top"><button class="back-btn" type="button" data-back>‹ Menu</button><span class="mark">😴</span><div class="brandtext"><h1>Sonno</h1><p class="sub" id="sonnoDate"></p></div></header>
   </section>
 
   <!-- ===== EVACUAZIONI ===== -->
@@ -1332,7 +1350,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v70</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v71</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2450,9 +2468,6 @@
   function saveSaluteLog(){ try{ localStorage.setItem("salute-log", JSON.stringify(saluteLog)); }catch(e){} }
   function renderSalute(){
     document.getElementById("saluteDate").textContent=fmtDayLong(new Date());
-    try{ renderCiclo(); }catch(e){}
-    try{ renderParametri(); }catch(e){}
-    try{ renderSonno(); }catch(e){}
     try{ renderNoteG(); }catch(e){}
     var host=document.getElementById("saluteList"); host.innerHTML="";
     if(!saluteLog.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Seleziona i fastidi e tocca «Registra adesso».</div>'; return; }
@@ -3543,7 +3558,7 @@
   function showMod(m){
     currentMod=m; lastDay=dayKey(new Date());
     if(attivInterval){ clearInterval(attivInterval); attivInterval=null; }
-    ["fumo","pillole","esercizio","alimentazione","salute","evac","programma","diario"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
+    ["fumo","pillole","esercizio","alimentazione","salute","evac","programma","diario","parametri","ciclo","sonno"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
     document.getElementById("menu").hidden=(m!=="menu");
     try{ window.scrollTo(0,0); }catch(e){}
     if(m==="menu") renderMenu();
@@ -3555,6 +3570,9 @@
     else if(m==="fumo") render();
     else if(m==="programma") renderProgramma();
     else if(m==="diario") renderDiario();
+    else if(m==="parametri"){ try{ renderParametri(); }catch(e){} }
+    else if(m==="ciclo"){ try{ renderCiclo(); }catch(e){} }
+    else if(m==="sonno"){ try{ renderSonno(); }catch(e){} }
     if(m==="menu"){ renderDocList(); } else if(modDocRender[m]){ modDocRender[m](); }
   }
   Array.prototype.forEach.call(document.querySelectorAll(".menu-card"), function(c){ c.onclick=function(){ showMod(c.dataset.mod); }; });
@@ -3567,6 +3585,9 @@
   try{ document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="visible") checkDayRollover(); }); }catch(e){}
   try{ window.addEventListener("focus", checkDayRollover); }catch(e){}
   try{ setInterval(checkDayRollover, 60000); }catch(e){}
+
+  // Parametri vitali / Ciclo / Sonno ora sono funzioni separate: sposto le loro card nelle schermate dedicate
+  (function(){ function mv(cardId, modId){ var c=document.getElementById(cardId), m=document.getElementById(modId); if(c&&m) m.appendChild(c); } mv("parametriCard","mod-parametri"); mv("cicloCard","mod-ciclo"); mv("sonnoCard","mod-sonno"); })();
 
   render();
   showMod("menu");
