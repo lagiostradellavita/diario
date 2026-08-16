@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 76; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 77; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1372,7 +1372,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v76</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v77</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2687,7 +2687,12 @@
   // ---- Attività Fisiche: avvio/termine con cronometro ----
   var ATTIVITA=["Camminata","Giri in terrazza","Cyclette","Stretching","Esercizi collo/schiena","Squat e piegamenti","Respirazione"];
   var attivCustom=[]; try{ var _ax=JSON.parse(localStorage.getItem("salute-attiv-opts")); if(Array.isArray(_ax)) attivCustom=_ax; }catch(e){}
-  function attivOpts(){ return ATTIVITA.concat(attivCustom); }
+  var attivHidden=[]; try{ var _ah=JSON.parse(localStorage.getItem("salute-attiv-hidden")); if(Array.isArray(_ah)) attivHidden=_ah; }catch(e){}
+  var attivRenames={}; try{ var _arn=JSON.parse(localStorage.getItem("salute-attiv-ren")); if(_arn&&typeof _arn==="object") attivRenames=_arn; }catch(e){}
+  var attivManageOpen=false;
+  function saveAttivHidden(){ try{ localStorage.setItem("salute-attiv-hidden", JSON.stringify(attivHidden)); }catch(e){} }
+  function saveAttivRenames(){ try{ localStorage.setItem("salute-attiv-ren", JSON.stringify(attivRenames)); }catch(e){} }
+  function attivOpts(){ var a=[]; ATTIVITA.forEach(function(p){ if(attivHidden.indexOf(p)<0) a.push(attivRenames[p]||p); }); return a.concat(attivCustom); }
   var attivLog=[]; try{ var _alg=JSON.parse(localStorage.getItem("salute-attiv-log")); if(Array.isArray(_alg)) attivLog=_alg; }catch(e){}
   function saveAttivLog(){ try{ localStorage.setItem("salute-attiv-log", JSON.stringify(attivLog)); }catch(e){} }
   var attivRunning=null; try{ var _ar=JSON.parse(localStorage.getItem("salute-attiv-run")); if(_ar && _ar.nome) attivRunning=_ar; }catch(e){}
@@ -2739,15 +2744,19 @@
   function saveAttivCustom(){ try{ localStorage.setItem("salute-attiv-opts", JSON.stringify(attivCustom)); }catch(e){} }
   function renderEserManage(){
     var m=document.getElementById("eserManage"); if(!m) return; m.innerHTML="";
-    if(!attivCustom.length) return;
-    var lab=document.createElement("div"); lab.className="manage-lbl"; lab.textContent="Le tue attività aggiunte (correggi ✏️ o togli ×):"; m.appendChild(lab);
-    attivCustom.slice().forEach(function(name){
+    var items=[];
+    ATTIVITA.forEach(function(p){ if(attivHidden.indexOf(p)<0) items.push({label:(attivRenames[p]||p), preset:true, orig:p}); });
+    attivCustom.forEach(function(c){ items.push({label:c, preset:false}); });
+    if(!items.length) return;
+    var tog=document.createElement("button"); tog.type="button"; tog.className="link-btn"; tog.style.cssText="text-align:left;padding:6px 2px;margin-top:4px"; tog.textContent=(attivManageOpen?"▾":"▸")+" ⚙️ Gestisci le attività (correggi o elimina)"; tog.onclick=function(){ attivManageOpen=!attivManageOpen; renderEserManage(); }; m.appendChild(tog);
+    if(!attivManageOpen) return;
+    items.forEach(function(it){
       var row=document.createElement("div"); row.className="manage-row";
-      var nm=document.createElement("span"); nm.className="manage-name"; nm.textContent=name;
+      var nm=document.createElement("span"); nm.className="manage-name"; nm.textContent=it.label;
       var ed=document.createElement("button"); ed.type="button"; ed.className="manage-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi");
-      ed.onclick=function(){ var nw=prompt("Correggi «"+name+"»:", name); if(nw==null) return; nw=(nw||"").trim(); if(!nw||nw===name) return; if(attivOpts().indexOf(nw)>=0){ toast("«"+nw+"» esiste già"); return; } var i=attivCustom.indexOf(name); if(i>=0){ attivCustom[i]=nw; saveAttivCustom(); renderAttiv(); } };
+      ed.onclick=function(){ var nw=prompt("Correggi «"+it.label+"»:", it.label); if(nw==null) return; nw=(nw||"").trim(); if(!nw||nw===it.label) return; if(attivOpts().indexOf(nw)>=0){ toast("«"+nw+"» esiste già"); return; } if(it.preset){ attivRenames[it.orig]=nw; saveAttivRenames(); } else { var i=attivCustom.indexOf(it.label); if(i>=0){ attivCustom[i]=nw; saveAttivCustom(); } } renderAttiv(); };
       var del=document.createElement("button"); del.type="button"; del.className="manage-del"; del.textContent="×"; del.setAttribute("aria-label","Togli");
-      del.onclick=function(){ if(confirm("Togliere l'attività «"+name+"»?")){ attivCustom=attivCustom.filter(function(x){return x!==name;}); saveAttivCustom(); renderAttiv(); } };
+      del.onclick=function(){ if(!confirm("Togliere l'attività «"+it.label+"»?")) return; if(it.preset){ attivHidden.push(it.orig); saveAttivHidden(); } else { attivCustom=attivCustom.filter(function(x){return x!==it.label;}); saveAttivCustom(); } renderAttiv(); };
       row.appendChild(nm); row.appendChild(ed); row.appendChild(del); m.appendChild(row);
     });
   }
