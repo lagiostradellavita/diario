@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 81; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 82; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -213,10 +213,13 @@
   .pil-ora-row input[type=time]{width:auto; min-width:112px;}
   .pil-ora-row button{appearance:none; border:none; background:var(--track); color:var(--danger); cursor:pointer;
     width:34px; height:34px; border-radius:9px; font-size:20px; font-family:inherit; line-height:1; flex:none;}
-  .pilrow{display:flex; align-items:center; gap:11px; padding:11px 2px; border-bottom:1px solid var(--line);}
+  .pilrow{display:flex; align-items:center; gap:11px; padding:11px 2px; border-bottom:1px solid var(--line); cursor:pointer; border-radius:8px;}
   .pilrow:last-child{border-bottom:none;}
-  .pilrow .pn{flex:1; font-size:16px; font-weight:650;}
-  .pilrow .po{font-size:13.5px; color:var(--muted); font-variant-numeric:tabular-nums; margin-right:4px;}
+  .pilrow:active{background:var(--surface-2);}
+  .pilrow.presa-oggi{background:color-mix(in srgb, var(--lvl-low) 9%, transparent);}
+  .pilrow .pn{flex:1; font-size:16px; font-weight:650; min-width:0;}
+  .pilrow .po{font-size:13.5px; color:var(--muted); font-variant-numeric:tabular-nums; margin-right:4px; flex:0 0 auto;}
+  .pilrow .pil-taken-badge{font-size:12.5px; font-weight:800; color:var(--lvl-low); flex:0 0 auto; white-space:nowrap; margin-right:2px;}
   .dose{display:flex; align-items:center; gap:12px; padding:13px 2px; border-bottom:1px solid var(--line);}
   .dose:last-child{border-bottom:none;}
   .dose .dcheck{width:32px; height:32px; flex:none; border-radius:50%; border:2px solid var(--line); background:var(--surface-2);
@@ -1380,7 +1383,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v81</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v82</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1955,13 +1958,31 @@
       if(t.total){ s.textContent=t.taken+"/"+t.total+" "+L.done; s.style.color=t.late?"var(--lvl-high)":(t.taken===t.total?"var(--lvl-low)":"var(--lvl-mid)"); }
       else s.textContent="";
       var list=document.getElementById(I.list); list.innerHTML="";
+      var todayDK=dayKey(new Date());
       defs.forEach(function(p){
-        var r=document.createElement("div"); r.className="pilrow";
-        r.innerHTML='<span class="pn">'+esc(p.nome)+'</span><span class="po">'+(p.orari||[]).join(" · ")+'</span>';
+        var os=(p.orari||[]);
+        var doneCount=0; os.forEach(function(o){ if(taken[todayDK+"|"+p.id+"|"+o]) doneCount++; });
+        var allDone=os.length>0 && doneCount===os.length;
+        var r=document.createElement("div"); r.className="pilrow"+(allDone?" presa-oggi":"");
+        var nm=document.createElement("span"); nm.className="pn"; nm.textContent=p.nome;
+        var po=document.createElement("span"); po.className="po"; po.textContent=os.join(" · ");
+        r.appendChild(nm); r.appendChild(po);
+        if(doneCount>0){ var bg=document.createElement("span"); bg.className="pil-taken-badge"; bg.textContent=allDone?"✓ presa":("✓ "+doneCount+"/"+os.length); r.appendChild(bg); }
         var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina");
         del.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
-        del.onclick=function(){ if(confirm("Eliminare «"+p.nome+"»?")){ defs=defs.filter(function(x){return x.id!==p.id;}); saveDefs(); render(); } };
-        r.appendChild(del); list.appendChild(r);
+        del.onclick=function(ev){ ev.stopPropagation(); if(confirm("Eliminare «"+p.nome+"»?")){ defs=defs.filter(function(x){return x.id!==p.id;}); saveDefs(); render(); } };
+        r.appendChild(del);
+        // Tocco sulla riga = segna presa oggi (la prima dose non ancora presa); se tutte prese, annulla l'ultima
+        r.setAttribute("title","Tocca per segnarla presa oggi");
+        r.onclick=function(ev){ if(ev.target.closest(".del")) return;
+          var keys=os.map(function(o){ return todayDK+"|"+p.id+"|"+o; });
+          if(!keys.length) return;
+          var firstUndone=null; for(var i=0;i<keys.length;i++){ if(!taken[keys[i]]){ firstUndone=keys[i]; break; } }
+          if(firstUndone){ taken[firstUndone]=Date.now(); toast("✓ "+p.nome+" segnata come presa"); }
+          else { delete taken[keys[keys.length-1]]; toast(p.nome+": presa annullata"); }
+          saveTaken(); render();
+        };
+        list.appendChild(r);
       });
     }
     function oraRow(val){
