@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 73; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 74; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1371,7 +1371,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v73</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v74</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3208,8 +3208,19 @@
     var evacEv=evac.map(function(x){ return {ts:x.ts}; }).filter(function(e){ return typeof e.ts==="number"; });
     var pilEv=[]; try{ var pd=Pillole.data(), tk=(pd&&pd.taken)||{}; Object.keys(tk).forEach(function(k){ var tv=tk[k]; if(typeof tv==="number") pilEv.push({ts:tv}); }); }catch(e){}
     function cnt(arr,end,f){ var s=end-LINK_W,n=0,sum=0; arr.forEach(function(e){ if(e.ts>=s && e.ts<end){ n++; if(f) sum+=e[f]||0; } }); return f?sum:n; }
+    var parEv={pressione:[], saturazione:[], battiti:[]};
+    try{ parametri.forEach(function(p){ if(typeof p.ts==="number" && parEv[p.tipo]) parEv[p.tipo].push({ts:p.ts, v:p.valore}); }); }catch(e){}
+    var sonnoEv=[]; try{ sonno.forEach(function(s){ if(typeof s.ts==="number") sonnoEv.push({ts:s.ts, ore:parseFloat(String(s.ore).replace(",","."))||0}); }); }catch(e){}
+    function lastIn(arr,end){ var s=end-LINK_W, best=null; arr.forEach(function(e){ if(e.ts>=s && e.ts<end && (!best || e.ts>best.ts)) best=e; }); return best; }
+    function cicloActiveAt(t){ var act=false; try{ cicli.forEach(function(c){ if(c.inizio && t>=c.inizio && (!c.fine || t<=c.fine)) act=true; }); }catch(e){} return act; }
     var byVoce={};
-    saluteLog.forEach(function(ep){ if(!ep||typeof ep.ts!=="number") return; (ep.voci||[]).forEach(function(v){ var g=byVoce[v]=byVoce[v]||{n:0,sig:0,att:0,pasti:0,pil:0,ev:0}; g.n++; g.sig+=cnt(fumoEv,ep.ts,"q"); g.att+=cnt(attivEv,ep.ts); g.pasti+=cnt(pastiEv,ep.ts); g.pil+=cnt(pilEv,ep.ts); g.ev+=cnt(evacEv,ep.ts); }); });
+    saluteLog.forEach(function(ep){ if(!ep||typeof ep.ts!=="number") return; (ep.voci||[]).forEach(function(v){ var g=byVoce[v]=byVoce[v]||{n:0,sig:0,att:0,pasti:0,pil:0,ev:0}; g.n++; g.sig+=cnt(fumoEv,ep.ts,"q"); g.att+=cnt(attivEv,ep.ts); g.pasti+=cnt(pastiEv,ep.ts); g.pil+=cnt(pilEv,ep.ts); g.ev+=cnt(evacEv,ep.ts);
+      var so=lastIn(sonnoEv,ep.ts); if(so){ g.sonnoSum=(g.sonnoSum||0)+so.ore; g.sonnoN=(g.sonnoN||0)+1; }
+      var pp=lastIn(parEv.pressione,ep.ts); if(pp){ var mm=String(pp.v).split("/"); g.sysSum=(g.sysSum||0)+(parseInt(mm[0],10)||0); g.diaSum=(g.diaSum||0)+(parseInt(mm[1],10)||0); g.presN=(g.presN||0)+1; }
+      var sa=lastIn(parEv.saturazione,ep.ts); if(sa){ g.satSum=(g.satSum||0)+(parseInt(sa.v,10)||0); g.satN=(g.satN||0)+1; }
+      var ba=lastIn(parEv.battiti,ep.ts); if(ba){ g.batSum=(g.batSum||0)+(parseInt(ba.v,10)||0); g.batN=(g.batN||0)+1; }
+      if(cicloActiveAt(ep.ts)) g.cicloN=(g.cicloN||0)+1;
+    }); });
     var voci=Object.keys(byVoce).sort(function(a,b){ return byVoce[b].n-byVoce[a].n; });
     host.innerHTML="";
     if(!voci.length){ host.innerHTML='<div class="empty lk-note">Ancora nessun fastidio registrato. Usa «Salute» per segnare come ti senti: qui vedrai cosa lo ha preceduto nelle 48 ore.</div>'; return; }
@@ -3220,6 +3231,13 @@
       var g=byVoce[v];
       var h='<div class="lk-card"><p class="lk-h">'+esc(v)+' <span class="lk-n">'+g.n+(g.n===1?' episodio':' episodi')+'</span></p>';
       h+='<p class="lk-line">Nelle <b>48 h</b> prima, in media: 🚬 <b>'+avg(g.sig,g.n)+'</b> sig · 🏃 <b>'+avg(g.att,g.n)+'</b> attività · 🍽️ <b>'+avg(g.pasti,g.n)+'</b> pasti · 💊 <b>'+avg(g.pil,g.n)+'</b> pillole · 🚽 <b>'+avg(g.ev,g.n)+'</b></p>';
+      var extra=[];
+      if(g.sonnoN) extra.push("😴 <b>"+avg(g.sonnoSum,g.sonnoN)+"</b> h di sonno");
+      if(g.presN) extra.push("🩸 <b>"+Math.round(g.sysSum/g.presN)+"/"+Math.round(g.diaSum/g.presN)+"</b>");
+      if(g.satN) extra.push("🫁 <b>"+Math.round(g.satSum/g.satN)+"%</b>");
+      if(g.batN) extra.push("❤️ <b>"+Math.round(g.batSum/g.batN)+"</b> bpm");
+      if(g.cicloN) extra.push("🌸 in ciclo <b>"+g.cicloN+"/"+g.n+"</b>");
+      if(extra.length) h+='<p class="lk-line">Parametri: '+extra.join(" · ")+'</p>';
       h+='</div>';
       host.insertAdjacentHTML("beforeend", h);
     });
