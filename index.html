@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 92; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 93; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1364,6 +1364,8 @@
         <div class="panel-actions"><button class="primary" id="progSave">Aggiungi</button><button class="link-btn" id="progCancel">Annulla</button></div>
       </div>
       <div id="progList" style="margin-top:10px"></div>
+      <button type="button" id="progExportIcs" style="width:100%; margin-top:14px; appearance:none; cursor:pointer; font-family:inherit; font-weight:800; font-size:15.5px; background:color-mix(in srgb, var(--accent) 12%, var(--surface)); border:1.5px solid color-mix(in srgb, var(--accent) 40%, var(--line)); color:var(--accent); border-radius:13px; padding:14px; min-height:52px; touch-action:manipulation;">📅 Esporta i promemoria nel Calendario</button>
+      <p class="fineprint" style="margin:7px 2px 0">Crea un file con gli orari programmati (pillole e promemoria). Aprilo e aggiungilo al <b>Calendario di iPhone</b>: sarà iPhone ad avvisarti agli orari giusti. Rifallo se cambi il programma.</p>
     </section>
     <section class="card" id="verificaCard">
       <div class="row-between" style="flex-wrap:wrap; gap:2px 10px"><h2 class="section-title" style="margin:0">📊 Verifica</h2><span id="verificaSum" class="stat-summary"></span></div>
@@ -1457,7 +1459,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v92</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v93</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1841,6 +1843,7 @@
   function mimeFor(fn){
     if(/\.json$/i.test(fn)) return "application/json;charset=utf-8";
     if(/\.csv$/i.test(fn))  return "text/csv;charset=utf-8";
+    if(/\.ics$/i.test(fn))  return "text/calendar;charset=utf-8";
     return "text/plain;charset=utf-8";
   }
   function downloadBlob(filename, data){
@@ -3688,6 +3691,42 @@
     if(editingProgId){ rec.id=editingProgId; programma=programma.map(function(y){ return y.id===editingProgId?rec:y; }); cancelEditProg(); toast("Modifica salvata ✓"); }
     else { rec.id=uid(); programma.push(rec); toast("Aggiunto al programma ✓"); }
     saveProgramma(); document.getElementById("progForm").hidden=true; renderProgramma();
+  };
+  // ---- Esporta i promemoria programmati come file Calendario (.ics) per iPhone ----
+  function icsEsc(s){ return String(s||"").replace(/([,;\\])/g,"\\$1").replace(/\r?\n/g,"\\n"); }
+  function buildICS(){
+    function p2(n){ return ("0"+n).slice(-2); }
+    var now=new Date();
+    var stamp=now.getUTCFullYear()+p2(now.getUTCMonth()+1)+p2(now.getUTCDate())+"T"+p2(now.getUTCHours())+p2(now.getUTCMinutes())+p2(now.getUTCSeconds())+"Z";
+    var L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Diario Salute//IT//","CALSCALE:GREGORIAN","METHOD:PUBLISH"], n=0;
+    function ev(summary, startDate, ora, rrule){
+      var hm=String(ora||"").split(":"), h=parseInt(hm[0],10)||0, mi=parseInt(hm[1],10)||0;
+      var dt=startDate.getFullYear()+p2(startDate.getMonth()+1)+p2(startDate.getDate())+"T"+p2(h)+p2(mi)+"00";
+      L.push("BEGIN:VEVENT","UID:ds"+(n++)+"-"+stamp+"@diario-salute","DTSTAMP:"+stamp,"DTSTART:"+dt,"DURATION:PT10M","SUMMARY:"+icsEsc(summary));
+      if(rrule) L.push("RRULE:"+rrule);
+      L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc(summary),"TRIGGER:PT0S","END:VALARM","END:VEVENT");
+    }
+    var today=new Date(); today.setHours(0,0,0,0);
+    try{ (Pillole.data().defs||[]).forEach(function(d){ (d.orari||[]).forEach(function(o){ ev("💊 "+d.nome, today, o, "FREQ=DAILY"); }); }); }catch(e){}
+    try{ programma.forEach(function(it){ if(it.tipo==="fumo") return; var ora=it.ora; if(!ora) return; var summary=progItemLabel(it); var start=new Date(today), rrule=null;
+      if(it.ripeti==="ogni"){ rrule="FREQ=DAILY"; }
+      else if(it.ripeti==="sett"){ var dd=(it.giorni||[]).map(function(x){ return ["SU","MO","TU","WE","TH","FR","SA"][x]; }).filter(Boolean); if(dd.length) rrule="FREQ=WEEKLY;BYDAY="+dd.join(","); }
+      else if(it.ripeti==="mese"){ var gm=parseInt(it.giornoMese,10); if(gm>0) rrule="FREQ=MONTHLY;BYMONTHDAY="+gm; }
+      else if(it.ripeti==="data"){ if(it.data){ start=new Date(it.data+"T00:00:00"); } }
+      else if(it.ripeti==="range"){ if(it.dataDa){ start=new Date(it.dataDa+"T00:00:00"); } var u=it.dataA? it.dataA.replace(/-/g,"")+"T235900" : null; rrule="FREQ=DAILY"+(u?";UNTIL="+u:""); }
+      ev(summary, start, ora, rrule);
+    }); }catch(e){}
+    L.push("END:VCALENDAR");
+    return L.join("\r\n");
+  }
+  var _progExp=document.getElementById("progExportIcs"); if(_progExp) _progExp.onclick=async function(){
+    var nPill=0; try{ (Pillole.data().defs||[]).forEach(function(d){ nPill+=(d.orari||[]).length; }); }catch(e){}
+    var nProg=0; try{ programma.forEach(function(it){ if(it.tipo!=="fumo" && it.ora) nProg++; }); }catch(e){}
+    if(nPill+nProg===0){ toast("Niente da esportare: aggiungi pillole o promemoria con un'ora"); return; }
+    var res=await saveFile("Promemoria Diario Salute.ics", buildICS(), null);
+    if(res.ok) toast("Calendario creato ✓ Ora aprilo e aggiungilo");
+    else if(res.reason==="declined") toast("Esportazione annullata");
+    else toast("Esportazione non disponibile qui");
   };
   renderProgramma();
 
