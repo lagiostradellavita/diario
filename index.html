@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 91; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 92; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1457,7 +1457,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v91</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v92</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2264,7 +2264,33 @@
   function parseGrammi(qta){ var s=String(qta||""); var m=s.replace(",",".").match(/(\d+(?:\.\d+)?)/); if(!m) return null; var n=parseFloat(m[1]); if(isNaN(n)) return null;
     if(/\b(g|gr|grammi|ml|cc)\b/i.test(s)) return n; if(!/[a-zA-Z]/.test(s)) return n; return null; }
   function kcalPer100(nome, tipo){ var t=(tipo||"").toLowerCase().trim(), n=(nome||"").toLowerCase().trim(); if(t && KCAL[t]!=null) return KCAL[t]; if(KCAL[n]!=null) return KCAL[n]; return null; }
-  function estimateKcal(it){ var base=kcalPer100(it.nome, it.tipo); if(base==null) return null; var g=parseGrammi(it.qta); if(g==null) return null; return Math.round(base*g/100); }
+  // Grammi tipici di UNA porzione/pezzo (per stimare le calorie a porzioni, non a grammi)
+  var PORZIONE={
+    "acqua":200,"acqua gasata":200,"tè":200,"te":200,"tè verde":200,"camomilla":200,"caffè":30,"caffe":30,"cappuccino":150,"latte":200,"latte di soia":200,"vino":120,"vino rosso":120,"vino bianco":120,"birra":330,"superalcolico":40,"coca cola":330,"fanta":330,"aranciata":330,"succo di frutta":200,"spremuta":200,"tisana":200,
+    "pasta":80,"spaghetti":80,"penne":80,"fusilli":80,"rigatoni":80,"pasta integrale":80,"riso":80,"risotto":250,"pane":50,"pane integrale":50,"focaccia":100,"pizza":250,"piadina":100,"patatine":50,"cereali":40,"corn flakes":40,"avena":40,"orzo":80,"farro":80,"couscous":80,"gnocchi":150,"polenta":200,"crackers":25,"fette biscottate":20,
+    "carne":130,"pollo":150,"manzo":130,"maiale":130,"tacchino":150,"vitello":130,"agnello":130,"coniglio":150,"salsiccia":80,"hamburger":150,"bistecca":150,
+    "pesce":130,"salmone":130,"tonno":80,"merluzzo":150,"orata":150,"branzino":150,"gamberi":100,"calamari":120,"sgombro":130,"alici":80,"platessa":150,"nasello":150,"cozze":150,
+    "uova":55,"uovo":55,"legumi":150,"ceci":150,"lenticchie":150,"fagioli":150,"piselli":150,"fave":150,"cannellini":150,"borlotti":150,"soia":100,
+    "formaggio":60,"mozzarella":100,"parmigiano":30,"grana":30,"pecorino":30,"ricotta":100,"gorgonzola":50,"stracchino":60,"scamorza":80,"provola":80,"feta":60,"emmental":50,
+    "salumi":50,"prosciutto":50,"prosciutto crudo":50,"prosciutto cotto":50,"salame":50,"mortadella":50,"bresaola":50,"speck":50,"pancetta":40,"coppa":50,
+    "yogurt":125,"yogurt greco":150,
+    "olio evo":10,"olio di semi":10,"burro":10,"margarina":10,"frutta secca":30,"noci":30,"mandorle":30,"nocciole":30,"arachidi":30,"avocado":100,"olive":30,"semi":15,
+    "frutta":130,"mela":130,"banana":120,"arancia":150,"pera":150,"kiwi":75,"uva":100,"fragole":150,"pesca":150,"melone":200,"anguria":250,"ananas":150,"mandarino":80,"albicocca":50,"ciliegie":100,"prugne":60,
+    "verdura":150,"insalata":80,"pomodori":120,"zucchine":150,"melanzane":150,"spinaci":150,"broccoli":150,"carote":100,"zucca":150,"finocchi":150,"peperoni":150,"cavolfiore":150,"fagiolini":150,"patate":150,"cetrioli":100,"minestrone":300,"zuppa":300,
+    "zucchero":5,"sugo":80,"salsa di pomodoro":80,"pesto":20,"maionese":15,"ketchup":15,"senape":10,"marmellata":20,"miele":20,"nutella":20,
+    "dolci":100,"torta":100,"biscotti":30,"cioccolato":25,"cioccolata":25,"gelato":100,"merendine":35,"caramelle":10,"croissant":50,"cornetto":50,"snack salati":30
+  };
+  function porzioneG(nome, tipo){ var t=(tipo||"").toLowerCase().trim(), n=(nome||"").toLowerCase().trim(); if(t && PORZIONE[t]!=null) return PORZIONE[t]; if(PORZIONE[n]!=null) return PORZIONE[n]; return 130; }
+  var UNIT_G={"fetta":30,"fette":30,"fettina":20,"fettine":20,"bicchiere":200,"bicchieri":200,"tazza":200,"tazze":200,"tazzina":40,"tazzine":40,"cucchiaio":15,"cucchiai":15,"cucchiaino":5,"cucchiaini":5,"manciata":30,"manciate":30,"pugno":30,"vasetto":125,"vasetti":125,"spicchio":15,"spicchi":15,"scatoletta":80,"lattina":330};
+  // Quantità -> grammi: grammi/ml espliciti, oppure unità note, oppure numero di porzioni/pezzi (default 1)
+  function qtaToGrams(nome, tipo, qta){
+    var s=String(qta||"").toLowerCase().replace(",",".");
+    var m=s.match(/(\d+(?:\.\d+)?)/); var num=m?parseFloat(m[1]):1; if(isNaN(num)||num<=0) num=1;
+    if(/\b(g|gr|grammi|ml|cc)\b/.test(s)) return num;
+    var uk=Object.keys(UNIT_G); for(var i=0;i<uk.length;i++){ if(new RegExp("(^|[^a-zà-ù])"+uk[i]+"([^a-zà-ù]|$)").test(s)) return num*UNIT_G[uk[i]]; }
+    return num*porzioneG(nome, tipo);
+  }
+  function estimateKcal(it){ var base=kcalPer100(it.nome, it.tipo); if(base==null) return null; var g=qtaToGrams(it.nome, it.tipo, it.qta); if(g==null||g<=0) return null; return Math.round(base*g/100); }
   function itemKcal(it){ var k=parseInt(String(it.kcal==null?"":it.kcal).replace(/[^\d]/g,""),10); return isNaN(k)?0:k; }
   function mealKcal(x){ if(!x.items) return 0; var s=0; x.items.forEach(function(it){ s+=itemKcal(it); }); return s; }
   function renderFoodCats(){
@@ -2306,7 +2332,7 @@
       var ki;
       function recompute(){ if(it.kcalManual) return; var est=estimateKcal(it); it.kcal=(est==null?"":est); if(ki) ki.value=(est==null?"":String(est)); }
       if(it.typed){ var ti=document.createElement("input"); ti.type="text"; ti.placeholder="tipo (es. spaghetti)"; ti.value=it.tipo; if(FOOD_TYPES[it.nome]){ ti.setAttribute("list", typeListId(it.nome)); ti.setAttribute("autocomplete","off"); } ti.oninput=function(){ it.tipo=ti.value; recompute(); }; row.appendChild(ti); }
-      var qi=document.createElement("input"); qi.type="text"; qi.placeholder="quantità (es. 100 g)"; qi.value=it.qta; qi.oninput=function(){ it.qta=qi.value; recompute(); }; row.appendChild(qi);
+      var qi=document.createElement("input"); qi.type="text"; qi.placeholder="quantità (es. 1 mela, 2 fette, 1 porzione)"; qi.value=it.qta; qi.oninput=function(){ it.qta=qi.value; recompute(); }; row.appendChild(qi);
       ki=document.createElement("input"); ki.type="text"; ki.className="pr-kcal"; ki.setAttribute("inputmode","numeric"); ki.placeholder="kcal"; ki.value=(it.kcal===0||it.kcal)?String(it.kcal):""; ki.oninput=function(){ it.kcal=ki.value; it.kcalManual=true; }; row.appendChild(ki);
       var del=document.createElement("button"); del.type="button"; del.className="pr-del"; del.textContent="×"; del.setAttribute("aria-label","Togli"); del.onclick=function(){ pasto.splice(idx,1); renderPasto(); }; row.appendChild(del);
       host.appendChild(row);
@@ -3599,7 +3625,7 @@
     if(ph){ ph.innerHTML=""; progPastoItems.forEach(function(itm, i){
       var row=document.createElement("div"); row.className="pasto-row";
       var n=document.createElement("input"); n.type="text"; n.placeholder="alimento"; n.value=itm.nome||""; n.setAttribute("list","dlProgFood"); n.setAttribute("autocomplete","off"); n.oninput=function(){ itm.nome=n.value; };
-      var q=document.createElement("input"); q.type="text"; q.className="pr-kcal"; q.placeholder="quantità"; q.value=itm.qta||""; q.setAttribute("autocomplete","off"); q.oninput=function(){ itm.qta=q.value; };
+      var q=document.createElement("input"); q.type="text"; q.className="pr-kcal"; q.placeholder="quantità (es. 1 porzione)"; q.value=itm.qta||""; q.setAttribute("autocomplete","off"); q.oninput=function(){ itm.qta=q.value; };
       var x=document.createElement("button"); x.type="button"; x.className="pr-del"; x.textContent="×"; x.setAttribute("aria-label","Togli"); x.onclick=function(){ progPastoItems.splice(i,1); if(!progPastoItems.length) progPastoItems=[{nome:"",qta:""}]; renderProgFormItems(); };
       row.appendChild(n); row.appendChild(q); row.appendChild(x); ph.appendChild(row);
     }); }
@@ -3675,7 +3701,7 @@
     diarioCiboItems.forEach(function(itm, i){
       var row=document.createElement("div"); row.className="pasto-row";
       var n=document.createElement("input"); n.type="text"; n.placeholder="cibo"; n.value=itm.nome||""; n.setAttribute("list","dlProgFood"); n.setAttribute("autocomplete","off"); n.oninput=function(){ itm.nome=n.value; };
-      var q=document.createElement("input"); q.type="text"; q.className="pr-kcal"; q.placeholder="quantità"; q.value=itm.qta||""; q.setAttribute("autocomplete","off"); q.oninput=function(){ itm.qta=q.value; };
+      var q=document.createElement("input"); q.type="text"; q.className="pr-kcal"; q.placeholder="quantità (es. 1 porzione)"; q.value=itm.qta||""; q.setAttribute("autocomplete","off"); q.oninput=function(){ itm.qta=q.value; };
       var x=document.createElement("button"); x.type="button"; x.className="pr-del"; x.textContent="×"; x.setAttribute("aria-label","Togli"); x.onclick=function(){ diarioCiboItems.splice(i,1); if(!diarioCiboItems.length) diarioCiboItems=[{nome:"",qta:""}]; renderDiarioCiboItems(); };
       row.appendChild(n); row.appendChild(q); row.appendChild(x); host.appendChild(row);
     });
