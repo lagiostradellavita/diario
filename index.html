@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 89; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 90; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -406,6 +406,7 @@
   .tl-time{flex:0 0 auto; font-size:14px; font-weight:800; color:var(--ink-soft); font-variant-numeric:tabular-nums; min-width:46px; padding-top:2px;}
   .tl-emoji{flex:0 0 auto; font-size:18px; line-height:1.25;}
   .tl-text{flex:1 1 auto; min-width:0; font-size:15.5px; font-weight:600; color:var(--ink); overflow-wrap:anywhere;}
+  .tl-text.expandable{cursor:pointer; text-decoration:underline dotted; text-underline-offset:3px; text-decoration-color:var(--muted);}
   .tl-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:8px; width:30px; height:30px; font-size:17px; cursor:pointer; touch-action:manipulation;}
   .tl-edit{flex:0 0 auto; appearance:none; border:none; background:var(--surface-2); color:var(--ink-soft); border-radius:8px; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation;}
   .tl-check{flex:0 0 auto; appearance:none; border:2px solid var(--lvl-low); background:transparent; color:var(--lvl-low); border-radius:50%; width:30px; height:30px; font-size:16px; font-weight:800; line-height:1; cursor:pointer; touch-action:manipulation;}
@@ -1373,11 +1374,11 @@
       <div class="brandtext"><h1>Diario di oggi</h1><p class="sub" id="diarioDate"></p></div>
     </header>
     <section class="card">
-      <div class="row-between" style="flex-wrap:wrap; gap:2px 10px"><h2 class="section-title" style="margin:0">📖 Racconto di oggi</h2><span id="raccontoStato" class="stat-summary"></span></div>
-      <p class="fineprint" style="margin:4px 0 8px">Scrivi com'è andata, con parole tue. Poi tocca <b>«Trova nel testo»</b>: l'app ti propone medicine, orari e fastidi da salvare come dati.</p>
+      <div class="row-between" style="flex-wrap:wrap; gap:2px 10px"><h2 class="section-title" style="margin:0">📖 Scrivi una nota</h2><span id="raccontoStato" class="stat-summary"></span></div>
+      <p class="fineprint" style="margin:4px 0 8px">Scrivi com'è andata, con parole tue. <b>Ogni nota resta nel diario col suo orario</b> (non sovrascrive le precedenti). Poi tocca <b>«Trova nel testo»</b> per salvare medicine, orari e fastidi come dati.</p>
       <textarea id="raccontoTxt" rows="7" placeholder="Es. Dopo una giornata di stare male, verso le 2.30 capogiri, stanchezza, dispnea, tachicardia… Alle 6 doccia e preso Xanax."></textarea>
       <div id="raccontoEditNota" class="fineprint" hidden style="margin:6px 0 0; color:var(--accent); font-weight:700"></div>
-      <div class="panel-actions" style="margin-top:10px"><button class="primary" id="raccontoSave">Salva racconto</button><button class="link-btn" id="raccontoFind">🔎 Trova nel testo</button></div>
+      <div class="panel-actions" style="margin-top:10px"><button class="primary" id="raccontoSave">Salva nota</button><button class="link-btn" id="raccontoFind">🔎 Trova nel testo</button><button class="link-btn" id="raccontoAnnulla" hidden>Annulla modifica</button></div>
       <div id="raccontoReco" hidden style="margin-top:12px"></div>
     </section>
     <section class="card">
@@ -1451,7 +1452,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v89</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v90</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3788,22 +3789,20 @@
   function ddmm(d){ return ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2); }
   function renderRacconto(){
     var ta=document.getElementById("raccontoTxt"); if(!ta) return;
-    var nota=document.getElementById("raccontoEditNota");
-    var target = raccontoEditId ? raccontoById(raccontoEditId) : raccontoOfDay(dayKey(new Date()));
-    ta.value = target ? (target.testo||"") : "";
-    if(raccontoEditId && target){ if(nota){ nota.textContent="Stai modificando il racconto del "+ddmm(new Date(target.ts)); nota.hidden=false; } }
-    else if(nota){ nota.hidden=true; }
-    var st=document.getElementById("raccontoStato"), todayR=raccontoOfDay(dayKey(new Date()));
-    if(st){ st.textContent = todayR? ("salvato "+hhmm(new Date(todayR.ts))) : ""; }
+    var nota=document.getElementById("raccontoEditNota"), ann=document.getElementById("raccontoAnnulla"), save=document.getElementById("raccontoSave");
+    if(raccontoEditId){ var target=raccontoById(raccontoEditId); ta.value = target? (target.testo||"") : ""; var td=new Date(target?target.ts:Date.now()); if(nota){ nota.textContent="Stai modificando la nota del "+ddmm(td)+" · "+hhmm(td); nota.hidden=false; } if(ann) ann.hidden=false; if(save) save.textContent="Salva modifiche"; }
+    else { ta.value=""; if(nota) nota.hidden=true; if(ann) ann.hidden=true; if(save) save.textContent="Salva nota"; }
+    var st=document.getElementById("raccontoStato"); if(st){ var n=0, dk=dayKey(new Date()); racconti.forEach(function(x){ if(dayKey(new Date(x.ts))===dk) n++; }); st.textContent = n? (n+(n===1?" nota oggi":" note oggi")) : ""; }
     var reco=document.getElementById("raccontoReco"); if(reco){ reco.hidden=true; reco.innerHTML=""; }
   }
   function raccontoSaveNow(){
     var ta=document.getElementById("raccontoTxt"), txt=(ta.value||"").trim();
-    if(!txt){ toast("Scrivi qualcosa nel racconto"); return; }
-    if(raccontoEditId){ var r=raccontoById(raccontoEditId); if(r) r.testo=txt; raccontoEditId=null; toast("Racconto aggiornato ✓"); }
-    else { var dk=dayKey(new Date()), ex=raccontoOfDay(dk); if(ex){ ex.testo=txt; toast("Racconto aggiornato ✓"); } else { racconti.push({id:uid(), day:dk, ts:+new Date(), testo:txt}); toast("Racconto salvato ✓"); } }
+    if(!txt){ toast("Scrivi qualcosa nella nota"); return; }
+    if(raccontoEditId){ var r=raccontoById(raccontoEditId); if(r) r.testo=txt; raccontoEditId=null; toast("Nota aggiornata ✓"); }
+    else { var now=new Date(); racconti.push({id:uid(), day:dayKey(now), ts:+now, testo:txt}); toast("Nota salvata ✓"); }
     saveRacconti(); renderRacconto(); renderDiario();
   }
+  function raccontoAnnullaEdit(){ raccontoEditId=null; renderRacconto(); }
   var RECO_FASTIDI={"capogiri":"Capogiri","vertigini":"Capogiri","giramenti":"Capogiri","stanchezza":"Stanchezza","spossatezza":"Stanchezza","affaticamento":"Stanchezza","dispnea":"Fiato corto","fiato corto":"Fiato corto","affanno":"Fiato corto","respiro corto":"Fiato corto","tachicardia":"Palpitazioni","cardiopalma":"Palpitazioni","palpitazioni":"Palpitazioni","batticuore":"Palpitazioni","nausea":"Nausea","vomito":"Vomito","febbre":"Febbre","brividi":"Brividi","mal di testa":"Mal di testa","cefalea":"Mal di testa","emicrania":"Mal di testa","tosse":"Tosse","acufene":"Acufene","ronzio":"Acufene","insonnia":"Insonnia","tremore":"Fascicolazioni","tremori":"Fascicolazioni","fascicolazioni":"Fascicolazioni","nebbia mentale":"Nebbia mentale","tensione al collo":"Tensione al collo","collo che tira":"Tensione al collo","collo rigido":"Tensione al collo","dolori muscolari":"Dolori muscolari","dolore muscolare":"Dolori muscolari","mal di schiena":"Mal di schiena","dolori articolari":"Dolori articolari","bruciore di stomaco":"Bruciore di stomaco","sudorazione notturna":"Sudorazione notturna","sudori notturni":"Sudorazione notturna","caviglie gonfie":"Caviglie gonfie"};
   function recognize(text){
     var low=" "+(text||"").toLowerCase()+" ", found={};
@@ -3858,6 +3857,7 @@
   }
   var _rSave=document.getElementById("raccontoSave"); if(_rSave) _rSave.onclick=raccontoSaveNow;
   var _rFind=document.getElementById("raccontoFind"); if(_rFind) _rFind.onclick=function(){ renderReco(); var h=document.getElementById("raccontoReco"); if(h){ try{ h.scrollIntoView({behavior:"smooth", block:"nearest"}); }catch(e){} } };
+  var _rAnn=document.getElementById("raccontoAnnulla"); if(_rAnn) _rAnn.onclick=raccontoAnnullaEdit;
   // Malessere del giorno: conteggio fastidi + PUNTEGGIO = somma delle intensità (Lieve1/Medio2/Forte3; default Medio)
   // Solo i FASTIDI (non gli stati psicologici): se c'è intens sono le sue chiavi, altrimenti filtro le voci con l'elenco fastidi
   function entryFastidi(s){ if(s.intens && Object.keys(s.intens).length) return Object.keys(s.intens); var fo=null; try{ fo=fastidiG.opts(); }catch(e){} return (s.voci||[]).filter(function(v){ return fo? fo.indexOf(v)>=0 : true; }); }
@@ -3884,7 +3884,7 @@
       programma.forEach(function(it){ if(it.tipo==="fumo") return; if(!itemAppliesToday(it)) return; if(todayFattoRec(it.id)) return; var om=it.ora?hhmmToMin(it.ora):null; var t=new Date(y,mo,da, om!=null?Math.floor(om/60):23, om!=null?om%60:59, 0); ev.push({ts:+t, emoji:(it.tipo==="pasto"?"🍽️":(it.tipo==="eser"?"🏃":"🔔")), text:progItemLabel(it).replace(/^\S+\s+/,""), kind:"prog", planned:true, progItem:it}); });
       Pillole.today().doses.forEach(function(dz){ if(dz.taken) return; var p=String(dz.ora).split(":"); var t=new Date(y,mo,da, parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0); ev.push({ts:+t, emoji:"💊", text:dz.nome, kind:"pillplan", planned:true, pillKey:dz.key}); });
     }catch(e){}
-    try{ racconti.forEach(function(rc){ if(ok(rc.ts)){ var t=(rc.testo||"").replace(/\s+/g," ").trim(); ev.push({ts:rc.ts, emoji:"📖", text:(t.length>90? t.slice(0,90)+"…":t), kind:"racconto", id:rc.id}); } }); }catch(e){}
+    try{ racconti.forEach(function(rc){ if(ok(rc.ts)){ var t=(rc.testo||"").replace(/\s+/g," ").trim(); ev.push({ts:rc.ts, emoji:"📖", text:(t.length>90? t.slice(0,90)+"…":t), full:t, kind:"racconto", id:rc.id}); } }); }catch(e){}
     return ev;
   }
   function diarioDeleteEvent(e){
@@ -3918,6 +3918,7 @@
       var row=document.createElement("div"); row.className="tl-row"+(e.planned?" planned":"");
       row.innerHTML='<span class="tl-time">'+hhmm(d)+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>';
       row.querySelector(".tl-text").textContent = e.text + (e.prog?" · 📋 programmato":"") + (e.planned?" · 📋 da fare":"");
+      if(e.kind==="racconto" && e.full && e.full.length>90){ var _tt=row.querySelector(".tl-text"); _tt.className="tl-text expandable"; _tt.title="Tocca per leggere tutto"; var _exp=false; _tt.onclick=function(){ _exp=!_exp; _tt.textContent = _exp? e.full : (e.full.slice(0,90)+"…"); }; }
       if(e.planned){
         var chk=document.createElement("button"); chk.className="tl-check"; chk.textContent="✓"; chk.setAttribute("aria-label","Segna fatto");
         chk.onclick=function(){ if(e.kind==="prog"){ progDoItem(e.progItem); } else if(e.kind==="pillplan"){ Pillole.check(e.pillKey); } renderDiario(); };
