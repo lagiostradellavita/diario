@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 86; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 87; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -581,6 +581,18 @@
   .day-head .dname{font-size:16px; font-weight:800; text-transform:capitalize;}
   .day-head .dtot{font-size:13.5px; color:var(--muted); font-weight:700;
     font-variant-numeric:tabular-nums;}
+  /* tinta del giorno in base a quanto si è stati male (n. fastidi) */
+  .day-head.mal1, .day-head.mal2, .day-head.mal3{border-bottom:none; border-radius:9px; padding:5px 10px 6px;}
+  .day-head.mal1{background:color-mix(in srgb, var(--lvl-yellow) 16%, transparent);}
+  .day-head.mal2{background:color-mix(in srgb, var(--lvl-mid) 15%, transparent);}
+  .day-head.mal3{background:color-mix(in srgb, var(--lvl-high) 18%, transparent);}
+  .day-head .dmal{font-size:12.5px; font-weight:800; white-space:nowrap;}
+  .day-head.mal1 .dmal{color:var(--lvl-yellow);}
+  .day-head.mal2 .dmal{color:var(--lvl-mid);}
+  .day-head.mal3 .dmal{color:var(--lvl-high);}
+  #mod-diario .card.racconto-mal1{border-left:5px solid var(--lvl-yellow); background:color-mix(in srgb, var(--lvl-yellow) 8%, var(--surface));}
+  #mod-diario .card.racconto-mal2{border-left:5px solid var(--lvl-mid); background:color-mix(in srgb, var(--lvl-mid) 9%, var(--surface));}
+  #mod-diario .card.racconto-mal3{border-left:5px solid var(--lvl-high); background:color-mix(in srgb, var(--lvl-high) 10%, var(--surface));}
   .rowitem{display:flex; align-items:center; gap:8px; padding:12px 2px;
     border-bottom:1px solid var(--line);}
   .rowitem:last-child{border-bottom:none;}
@@ -1428,7 +1440,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v86</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v87</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3820,6 +3832,10 @@
   }
   var _rSave=document.getElementById("raccontoSave"); if(_rSave) _rSave.onclick=raccontoSaveNow;
   var _rFind=document.getElementById("raccontoFind"); if(_rFind) _rFind.onclick=function(){ renderReco(); var h=document.getElementById("raccontoReco"); if(h){ try{ h.scrollIntoView({behavior:"smooth", block:"nearest"}); }catch(e){} } };
+  // Quanto si è stati male in un giorno = numero di fastidi/stati registrati (saluteLog)
+  function dayMalessere(dk){ var n=0; try{ saluteLog.forEach(function(s){ if(dayKey(new Date(s.ts))===dk){ n+=(s.voci&&s.voci.length)?s.voci.length:0; } }); }catch(e){} return n; }
+  function malLevel(n){ return n<=0?0:(n<=2?1:(n<=5?2:3)); }
+  var MAL_LBL=["","qualche fastidio","giornata difficile","giornata pesante"];
 
   function collectDiarioEvents(all){
     var dK=dayKey(new Date()), ev=[];
@@ -3858,6 +3874,7 @@
   function renderDiario(){
     if(!document.getElementById("diarioDate")) return;
     document.getElementById("diarioDate").textContent=fmtDayLong(new Date());
+    try{ var _rt=document.getElementById("raccontoTxt"); if(_rt){ var _card=_rt.closest(".card"); if(_card){ _card.classList.remove("racconto-mal1","racconto-mal2","racconto-mal3"); var _ml=malLevel(dayMalessere(dayKey(new Date()))); if(_ml) _card.classList.add("racconto-mal"+_ml); } } }catch(e){}
     var dEl=document.getElementById("diarioData"); if(dEl && !dEl.value) dEl.value=dayKey(new Date());
     var oEl=document.getElementById("diarioOra"); if(oEl && !oEl.value) oEl.value=hhmm(new Date());
     var ev=collectDiarioEvents(true).sort(function(a,b){ return b.ts-a.ts; });
@@ -3868,7 +3885,7 @@
     var lastDay=null;
     ev.forEach(function(e){
       var d=new Date(e.ts), dk=dayKey(d);
-      if(dk!==lastDay){ lastDay=dk; var h=document.createElement("div"); h.className="day-head"; h.innerHTML='<span class="dname">'+fmtDayLong(d)+'</span>'; host.appendChild(h); }
+      if(dk!==lastDay){ lastDay=dk; var mal=dayMalessere(dk), ml=malLevel(mal); var h=document.createElement("div"); h.className="day-head"+(ml?" mal"+ml:""); h.innerHTML='<span class="dname">'+fmtDayLong(d)+'</span>'+(ml?'<span class="dmal">'+MAL_LBL[ml]+' ('+mal+')</span>':''); host.appendChild(h); }
       var row=document.createElement("div"); row.className="tl-row"+(e.planned?" planned":"");
       row.innerHTML='<span class="tl-time">'+hhmm(d)+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>';
       row.querySelector(".tl-text").textContent = e.text + (e.prog?" · 📋 programmato":"") + (e.planned?" · 📋 da fare":"");
