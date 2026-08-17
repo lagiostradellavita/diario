@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 90; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 91; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -591,6 +591,11 @@
   .day-head{display:flex; align-items:baseline; justify-content:space-between;
     padding:0 2px 8px; border-bottom:1px solid var(--line); margin-bottom:4px;}
   .day-head .dname{font-size:16px; font-weight:800; text-transform:capitalize;}
+  .day-toggle{cursor:pointer; -webkit-user-select:none; user-select:none; display:block;}
+  .day-toggle .dh-top{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .day-toggle .dchev{font-size:13px; color:var(--muted); font-weight:800; flex:0 0 auto;}
+  .day-head.day-toggle .dmal{display:block; white-space:normal; text-align:left; margin-top:2px;}
+  .day-body[hidden]{display:none;}
   .day-head .dtot{font-size:13.5px; color:var(--muted); font-weight:700;
     font-variant-numeric:tabular-nums;}
   /* tinta del giorno in base a quanto si è stati male (n. fastidi) */
@@ -1452,7 +1457,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v90</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v91</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3900,6 +3905,7 @@
     else if(e.kind==="racconto"){ racconti=racconti.filter(function(x){return x.id!==e.id;}); saveRacconti(); if(raccontoEditId===e.id) raccontoEditId=null; renderRacconto(); }
     renderDiario();
   }
+  var diarioDayOpen={}; // dk -> aperto/chiuso (default: oggi aperto, passati chiusi)
   function renderDiario(){
     if(!document.getElementById("diarioDate")) return;
     document.getElementById("diarioDate").textContent=fmtDayLong(new Date());
@@ -3911,10 +3917,8 @@
     var dKn=dayKey(new Date()), todayN=0; ev.forEach(function(x){ if(!x.planned && dayKey(new Date(x.ts))===dKn) todayN++; });
     document.getElementById("diarioCount").textContent = todayN? (todayN+(todayN===1?" fatta oggi":" fatte oggi")) : "";
     if(!ev.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Aggiungi la prima cosa qui sopra.</div>'; return; }
-    var lastDay=null;
-    ev.forEach(function(e){
-      var d=new Date(e.ts), dk=dayKey(d);
-      if(dk!==lastDay){ lastDay=dk; var cnt=dayMalessere(dk), sc=dayScore(dk), ml=malLevel(sc); var iw=cnt?(" · "+INT_LBL[Math.max(1,Math.min(3,Math.round(sc/cnt)))]):""; var h=document.createElement("div"); h.className="day-head"+(ml?" mal"+ml:""); h.innerHTML='<span class="dname">'+fmtDayLong(d)+'</span>'+(ml?'<span class="dmal">'+MAL_LBL[ml]+' ('+cnt+iw+')</span>':''); host.appendChild(h); }
+    function buildRow(e){
+      var d=new Date(e.ts);
       var row=document.createElement("div"); row.className="tl-row"+(e.planned?" planned":"");
       row.innerHTML='<span class="tl-time">'+hhmm(d)+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>';
       row.querySelector(".tl-text").textContent = e.text + (e.prog?" · 📋 programmato":"") + (e.planned?" · 📋 da fare":"");
@@ -3933,7 +3937,20 @@
         var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina"); del.onclick=function(){ diarioDeleteEvent(e); };
         row.appendChild(ed); row.appendChild(del);
       }
-      host.appendChild(row);
+      return row;
+    }
+    // Raggruppa per giorno (ordine: più recente prima). Oggi aperto, giorni passati a scomparsa.
+    var groups=[], byDay={};
+    ev.forEach(function(e){ var dk=dayKey(new Date(e.ts)); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(e.ts), items:[]}; groups.push(byDay[dk]); } byDay[dk].items.push(e); });
+    groups.forEach(function(g){
+      var open = (g.dk in diarioDayOpen) ? diarioDayOpen[g.dk] : (g.dk===dKn);
+      var cnt=dayMalessere(g.dk), sc=dayScore(g.dk), ml=malLevel(sc); var iw=cnt?(" · "+INT_LBL[Math.max(1,Math.min(3,Math.round(sc/cnt)))]):"";
+      var h=document.createElement("div"); h.className="day-head day-toggle"+(ml?" mal"+ml:"");
+      h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+(ml?'<span class="dmal">'+MAL_LBL[ml]+' ('+cnt+iw+')</span>':'');
+      var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
+      g.items.forEach(function(e){ body.appendChild(buildRow(e)); });
+      h.onclick=function(){ var willOpen=body.hidden; body.hidden=!willOpen; diarioDayOpen[g.dk]=willOpen; var chev=h.querySelector(".dchev"); if(chev) chev.textContent=willOpen?"▾":"▸"; };
+      host.appendChild(h); host.appendChild(body);
     });
   }
   diarioShowTipo("sigaretta");
