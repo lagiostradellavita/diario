@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 85; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 86; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -410,7 +410,24 @@
   .tl-edit{flex:0 0 auto; appearance:none; border:none; background:var(--surface-2); color:var(--ink-soft); border-radius:8px; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation;}
   .tl-check{flex:0 0 auto; appearance:none; border:2px solid var(--lvl-low); background:transparent; color:var(--lvl-low); border-radius:50%; width:30px; height:30px; font-size:16px; font-weight:800; line-height:1; cursor:pointer; touch-action:manipulation;}
   .tl-row.planned{opacity:.72;}
-  #cicloNote, #notaGiornata, #dietaPiano, #saluteNota{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
+  #cicloNote, #notaGiornata, #dietaPiano, #saluteNota, #raccontoTxt{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
+  #raccontoTxt{min-height:150px; font-size:16px; line-height:1.5;}
+  #raccontoReco{border-top:1px dashed var(--line); padding-top:12px;}
+  .reco-sec{margin:0 0 14px;}
+  .reco-lbl{font-size:13.5px; font-weight:800; color:var(--ink-soft); margin:0 0 7px;}
+  .reco-chips{display:flex; flex-wrap:wrap; gap:7px;}
+  .reco-chip{appearance:none; font-family:inherit; font-size:14.5px; font-weight:700; padding:8px 13px; border-radius:999px; cursor:pointer; touch-action:manipulation; border:1.5px solid color-mix(in srgb, var(--accent) 45%, var(--line)); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); color:var(--ink);}
+  .reco-chip.off{opacity:.45; border-style:dashed; background:var(--surface-2);}
+  .reco-chip .rc-x{color:var(--muted); font-weight:800; margin-left:2px;}
+  .reco-time-row{display:flex; align-items:center; gap:9px; margin-top:9px; flex-wrap:wrap;}
+  .reco-time-row label{font-size:14px; font-weight:700; color:var(--ink-soft);}
+  .reco-time-row input[type=time]{font-family:inherit; font-size:15px; padding:7px 9px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink);}
+  .reco-add{appearance:none; border:none; font-family:inherit; font-weight:800; font-size:14.5px; padding:9px 14px; border-radius:11px; cursor:pointer; touch-action:manipulation; background:var(--good); color:#fff;}
+  .reco-add.done{background:var(--surface-2); color:var(--muted);}
+  .reco-med-row{display:flex; align-items:center; gap:9px; flex-wrap:wrap; padding:7px 0; border-bottom:1px solid var(--line);}
+  .reco-med-row:last-child{border-bottom:none;}
+  .reco-med-name{flex:1; min-width:90px; font-size:15px; font-weight:750;}
+  .reco-empty{font-size:14px; color:var(--muted); font-style:italic;}
   .ciclo-prev{margin:10px 0 2px; padding:12px 14px; border-radius:14px; background:var(--surface-2); border:1px solid var(--line); font-size:15.5px; font-weight:700; color:var(--ink-soft); line-height:1.45;}
   .ciclo-prev b{color:var(--ink); font-weight:850;}
   .ciclo-prev.late{background:color-mix(in srgb, #E11D48 12%, var(--surface)); border-color:color-mix(in srgb,#E11D48 40%, var(--line)); color:#E11D48;}
@@ -1333,8 +1350,16 @@
       <div class="brandtext"><h1>Diario di oggi</h1><p class="sub" id="diarioDate"></p></div>
     </header>
     <section class="card">
-      <h2 class="section-title" style="margin:0 0 4px">Aggiungi cosa hai fatto</h2>
-      <p class="fineprint" style="margin:0 0 10px">Scegli il tipo, metti l'ora e aggiungi: finisce da sé nello storico della sua funzione. Registra solo ciò che hai fatto.</p>
+      <div class="row-between" style="flex-wrap:wrap; gap:2px 10px"><h2 class="section-title" style="margin:0">📖 Racconto di oggi</h2><span id="raccontoStato" class="stat-summary"></span></div>
+      <p class="fineprint" style="margin:4px 0 8px">Scrivi com'è andata, con parole tue. Poi tocca <b>«Trova nel testo»</b>: l'app ti propone medicine, orari e fastidi da salvare come dati.</p>
+      <textarea id="raccontoTxt" rows="7" placeholder="Es. Dopo una giornata di stare male, verso le 2.30 capogiri, stanchezza, dispnea, tachicardia… Alle 6 doccia e preso Xanax."></textarea>
+      <div id="raccontoEditNota" class="fineprint" hidden style="margin:6px 0 0; color:var(--accent); font-weight:700"></div>
+      <div class="panel-actions" style="margin-top:10px"><button class="primary" id="raccontoSave">Salva racconto</button><button class="link-btn" id="raccontoFind">🔎 Trova nel testo</button></div>
+      <div id="raccontoReco" hidden style="margin-top:12px"></div>
+    </section>
+    <section class="card">
+      <h2 class="section-title" style="margin:0 0 4px">➕ Aggiungi un dato a mano</h2>
+      <p class="fineprint" style="margin:0 0 10px">Per ciò che il racconto non prende: scegli il tipo, metti l'ora e aggiungi. Finisce nello storico della sua funzione.</p>
       <div class="seg" id="diarioTipoSeg" style="grid-template-columns:1fr 1fr; --c:#6366F1">
         <button type="button" data-dt="sigaretta" class="on">🚬 Sigaretta</button>
         <button type="button" data-dt="medicina">💊 Medicina</button>
@@ -1403,7 +1428,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v85</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v86</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3644,6 +3669,7 @@
   function diarioCancelEdit(){ diarioEditing=null; var b=document.getElementById("diarioAdd"); if(b) b.textContent="Aggiungi alla giornata"; var c=document.getElementById("diarioCancel"); if(c) c.hidden=true; }
   function diarioResetForm(){ diarioCiboItems=[{nome:"",qta:""}]; renderDiarioCiboItems(); document.getElementById("diarioData").value=dayKey(new Date()); document.getElementById("diarioOra").value=hhmm(new Date()); ["diarioSigQ","diarioEserNome","diarioEserDur","diarioFastNome","diarioFastDove","diarioFastNota","diarioNotaTxt","diarioEvacNota"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=(id==="diarioSigQ"?"1":""); }); }
   function diarioStartEdit(e){
+    if(e.kind==="racconto"){ raccontoEditId=e.id; renderRacconto(); try{ var rt=document.getElementById("raccontoTxt"); scrollToEl(rt); rt.focus(); }catch(e2){} return; }
     diarioEditing={kind:e.kind, id:e.id}; var d=new Date(e.ts);
     document.getElementById("diarioData").value=dayKey(d); document.getElementById("diarioOra").value=hhmm(d);
     if(e.kind==="fumo"){ var it=null; entries.forEach(function(x){ if(x.id===e.id) it=x; }); diarioShowTipo("sigaretta"); if(it){ diarioSigTipo=it.tipo; Array.prototype.forEach.call(document.querySelectorAll("#diarioSigTipo button"), function(b){ b.className=(b.dataset.st===it.tipo)?"on":""; }); document.getElementById("diarioSigQ").value=it.q||1; } }
@@ -3720,6 +3746,81 @@
     document.getElementById("diarioOra").value=hhmm(new Date());
     renderDiario();
   };
+  // ==== Racconto di oggi (diario discorsivo) + riconoscimento a regole ====
+  var racconti=[]; try{ var _rc=JSON.parse(localStorage.getItem("salute-racconti")); if(Array.isArray(_rc)) racconti=_rc; }catch(e){}
+  function saveRacconti(){ try{ localStorage.setItem("salute-racconti", JSON.stringify(racconti)); }catch(e){} }
+  function raccontoOfDay(dk){ var r=null; racconti.forEach(function(x){ if(x.day===dk) r=x; }); return r; }
+  function raccontoById(id){ var r=null; racconti.forEach(function(x){ if(x.id===id) r=x; }); return r; }
+  var raccontoEditId=null;
+  function ddmm(d){ return ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2); }
+  function renderRacconto(){
+    var ta=document.getElementById("raccontoTxt"); if(!ta) return;
+    var nota=document.getElementById("raccontoEditNota");
+    var target = raccontoEditId ? raccontoById(raccontoEditId) : raccontoOfDay(dayKey(new Date()));
+    ta.value = target ? (target.testo||"") : "";
+    if(raccontoEditId && target){ if(nota){ nota.textContent="Stai modificando il racconto del "+ddmm(new Date(target.ts)); nota.hidden=false; } }
+    else if(nota){ nota.hidden=true; }
+    var st=document.getElementById("raccontoStato"), todayR=raccontoOfDay(dayKey(new Date()));
+    if(st){ st.textContent = todayR? ("salvato "+hhmm(new Date(todayR.ts))) : ""; }
+    var reco=document.getElementById("raccontoReco"); if(reco){ reco.hidden=true; reco.innerHTML=""; }
+  }
+  function raccontoSaveNow(){
+    var ta=document.getElementById("raccontoTxt"), txt=(ta.value||"").trim();
+    if(!txt){ toast("Scrivi qualcosa nel racconto"); return; }
+    if(raccontoEditId){ var r=raccontoById(raccontoEditId); if(r) r.testo=txt; raccontoEditId=null; toast("Racconto aggiornato ✓"); }
+    else { var dk=dayKey(new Date()), ex=raccontoOfDay(dk); if(ex){ ex.testo=txt; toast("Racconto aggiornato ✓"); } else { racconti.push({id:uid(), day:dk, ts:+new Date(), testo:txt}); toast("Racconto salvato ✓"); } }
+    saveRacconti(); renderRacconto(); renderDiario();
+  }
+  var RECO_FASTIDI={"capogiri":"Capogiri","vertigini":"Capogiri","giramenti":"Capogiri","stanchezza":"Stanchezza","spossatezza":"Stanchezza","affaticamento":"Stanchezza","dispnea":"Fiato corto","fiato corto":"Fiato corto","affanno":"Fiato corto","respiro corto":"Fiato corto","tachicardia":"Palpitazioni","cardiopalma":"Palpitazioni","palpitazioni":"Palpitazioni","batticuore":"Palpitazioni","nausea":"Nausea","vomito":"Vomito","febbre":"Febbre","brividi":"Brividi","mal di testa":"Mal di testa","cefalea":"Mal di testa","emicrania":"Mal di testa","tosse":"Tosse","acufene":"Acufene","ronzio":"Acufene","insonnia":"Insonnia","tremore":"Fascicolazioni","tremori":"Fascicolazioni","fascicolazioni":"Fascicolazioni","nebbia mentale":"Nebbia mentale","tensione al collo":"Tensione al collo","collo che tira":"Tensione al collo","collo rigido":"Tensione al collo","dolori muscolari":"Dolori muscolari","dolore muscolare":"Dolori muscolari","mal di schiena":"Mal di schiena","dolori articolari":"Dolori articolari","bruciore di stomaco":"Bruciore di stomaco","sudorazione notturna":"Sudorazione notturna","sudori notturni":"Sudorazione notturna","caviglie gonfie":"Caviglie gonfie"};
+  function recognize(text){
+    var low=" "+(text||"").toLowerCase()+" ", found={};
+    Object.keys(RECO_FASTIDI).forEach(function(k){ if(low.indexOf(k)>=0) found[RECO_FASTIDI[k]]=true; });
+    try{ fastidiG.opts().forEach(function(o){ if(o && o.length>=4 && low.indexOf(o.toLowerCase())>=0) found[o]=true; }); }catch(e){}
+    var fastidi=Object.keys(found);
+    var meds=[]; try{ (Pillole.data().defs||[]).forEach(function(d){ var toks=(d.nome||"").toLowerCase().split(/[^a-zàèéìòù0-9]+/).filter(function(t){ return t.length>=4 && !/^\d+$/.test(t); }); var pos=-1; toks.forEach(function(t){ var i=low.indexOf(t); if(i>=0 && (pos<0||i<pos)) pos=i; }); if(pos>=0) meds.push({id:d.id, nome:d.nome, orari:d.orari||[], pos:pos}); }); }catch(e){}
+    var times=[], seen={}, m;
+    var re1=/(\d{1,2})[.:](\d{2})/g; while((m=re1.exec(text||""))){ var h=parseInt(m[1],10), mi=parseInt(m[2],10); if(h<24&&mi<60){ var s=("0"+h).slice(-2)+":"+("0"+mi).slice(-2); if(!seen[s]){ seen[s]=1; times.push({s:s, pos:m.index}); } } }
+    var re2=/(?:alle|all['’]|verso le|verso l['’])\s*(\d{1,2})(?![.:\d])/gi; while((m=re2.exec(text||""))){ var h2=parseInt(m[1],10); if(h2<24){ var s2=("0"+h2).slice(-2)+":00"; if(!seen[s2]){ seen[s2]=1; times.push({s:s2, pos:m.index}); } } }
+    return {fastidi:fastidi, meds:meds, times:times};
+  }
+  function nearestTime(times, pos){ if(!times.length) return null; var best=times[0], bd=Math.abs(times[0].pos-pos); times.forEach(function(t){ var d=Math.abs(t.pos-pos); if(d<bd){ bd=d; best=t; } }); return best.s; }
+  function renderReco(){
+    var host=document.getElementById("raccontoReco"); if(!host) return;
+    var r=recognize(document.getElementById("raccontoTxt").value||""); host.innerHTML=""; host.hidden=false;
+    if(!r.fastidi.length && !r.meds.length){ host.innerHTML='<div class="reco-empty">Non ho riconosciuto medicine o fastidi noti. Usa «Aggiungi un dato a mano» qui sotto — e le parole nuove le imparo per la prossima volta.</div>'; return; }
+    var defTime = r.times.length? r.times[0].s : hhmm(new Date());
+    if(r.fastidi.length){
+      var sec=document.createElement("div"); sec.className="reco-sec";
+      var lbl=document.createElement("div"); lbl.className="reco-lbl"; lbl.textContent="🤕 Fastidi riconosciuti — tocca per togliere"; sec.appendChild(lbl);
+      var chips=document.createElement("div"); chips.className="reco-chips"; var sel={};
+      r.fastidi.forEach(function(f){ sel[f]=true; var c=document.createElement("button"); c.type="button"; c.className="reco-chip"; c.textContent=f; c.onclick=function(){ sel[f]=!sel[f]; c.classList.toggle("off", !sel[f]); }; chips.appendChild(c); });
+      sec.appendChild(chips);
+      var tr=document.createElement("div"); tr.className="reco-time-row";
+      var tl=document.createElement("label"); tl.textContent="Ora"; var ti=document.createElement("input"); ti.type="time"; ti.value=defTime;
+      var add=document.createElement("button"); add.type="button"; add.className="reco-add"; add.textContent="Aggiungi ai fastidi";
+      add.onclick=function(){ var voci=Object.keys(sel).filter(function(k){return sel[k];}); if(!voci.length){ toast("Nessun fastidio selezionato"); return; } saluteLog.push({id:uid(), ts:todayAtHHMM(ti.value||hhmm(new Date())), voci:voci, dove:[], nota:""}); saveSaluteLog(); toast("🤕 "+voci.length+(voci.length===1?" fastidio aggiunto":" fastidi aggiunti")); add.className="reco-add done"; add.textContent="Aggiunti ✓"; add.disabled=true; renderDiario(); try{ renderSalute(); }catch(e){} };
+      tr.appendChild(tl); tr.appendChild(ti); tr.appendChild(add); sec.appendChild(tr); host.appendChild(sec);
+    }
+    if(r.meds.length){
+      var sec2=document.createElement("div"); sec2.className="reco-sec";
+      var lbl2=document.createElement("div"); lbl2.className="reco-lbl"; lbl2.textContent="💊 Medicine riconosciute"; sec2.appendChild(lbl2);
+      r.meds.forEach(function(md){ var row=document.createElement("div"); row.className="reco-med-row";
+        var nm=document.createElement("span"); nm.className="reco-med-name"; nm.textContent=md.nome;
+        var ti2=document.createElement("input"); ti2.type="time"; ti2.value=nearestTime(r.times, md.pos) || (md.orari&&md.orari[0]) || defTime;
+        var add2=document.createElement("button"); add2.type="button"; add2.className="reco-add"; add2.textContent="Segna presa";
+        add2.onclick=function(){ var ora=(md.orari&&md.orari.length)? md.orari[0] : (ti2.value||"00:00"); Pillole.checkAt(dayKey(new Date())+"|"+md.id+"|"+ora, todayAtHHMM(ti2.value||ora)); toast("💊 "+md.nome+" segnata presa"); add2.className="reco-add done"; add2.textContent="Presa ✓"; add2.disabled=true; renderDiario(); };
+        row.appendChild(nm); row.appendChild(ti2); row.appendChild(add2); sec2.appendChild(row); });
+      host.appendChild(sec2);
+    }
+    if(r.times.length){
+      var sec3=document.createElement("div"); sec3.className="reco-sec";
+      var lbl3=document.createElement("div"); lbl3.className="reco-lbl"; lbl3.textContent="🕑 Orari trovati nel testo"; sec3.appendChild(lbl3);
+      var ch3=document.createElement("div"); ch3.className="reco-chips"; r.times.slice().sort(function(a,b){return a.s<b.s?-1:1;}).forEach(function(t){ var c=document.createElement("span"); c.className="reco-chip off"; c.style.cursor="default"; c.textContent=t.s; ch3.appendChild(c); }); sec3.appendChild(ch3); host.appendChild(sec3);
+    }
+  }
+  var _rSave=document.getElementById("raccontoSave"); if(_rSave) _rSave.onclick=raccontoSaveNow;
+  var _rFind=document.getElementById("raccontoFind"); if(_rFind) _rFind.onclick=function(){ renderReco(); var h=document.getElementById("raccontoReco"); if(h){ try{ h.scrollIntoView({behavior:"smooth", block:"nearest"}); }catch(e){} } };
+
   function collectDiarioEvents(all){
     var dK=dayKey(new Date()), ev=[];
     function ok(ts){ return all || dayKey(new Date(ts))===dK; }
@@ -3738,6 +3839,7 @@
       programma.forEach(function(it){ if(it.tipo==="fumo") return; if(!itemAppliesToday(it)) return; if(todayFattoRec(it.id)) return; var om=it.ora?hhmmToMin(it.ora):null; var t=new Date(y,mo,da, om!=null?Math.floor(om/60):23, om!=null?om%60:59, 0); ev.push({ts:+t, emoji:(it.tipo==="pasto"?"🍽️":(it.tipo==="eser"?"🏃":"🔔")), text:progItemLabel(it).replace(/^\S+\s+/,""), kind:"prog", planned:true, progItem:it}); });
       Pillole.today().doses.forEach(function(dz){ if(dz.taken) return; var p=String(dz.ora).split(":"); var t=new Date(y,mo,da, parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0); ev.push({ts:+t, emoji:"💊", text:dz.nome, kind:"pillplan", planned:true, pillKey:dz.key}); });
     }catch(e){}
+    try{ racconti.forEach(function(rc){ if(ok(rc.ts)){ var t=(rc.testo||"").replace(/\s+/g," ").trim(); ev.push({ts:rc.ts, emoji:"📖", text:(t.length>90? t.slice(0,90)+"…":t), kind:"racconto", id:rc.id}); } }); }catch(e){}
     return ev;
   }
   function diarioDeleteEvent(e){
@@ -3750,6 +3852,7 @@
     else if(e.kind==="evac"){ evac=evac.filter(function(x){return x.id!==e.id;}); saveEvac(); }
     else if(e.kind==="param"){ parametri=parametri.filter(function(x){return x.id!==e.id;}); saveParam(); try{ renderParametri(); }catch(e2){} }
     else if(e.kind==="sonno"){ sonno=sonno.filter(function(x){return x.id!==e.id;}); saveSonno(); try{ renderSonno(); }catch(e2){} }
+    else if(e.kind==="racconto"){ racconti=racconti.filter(function(x){return x.id!==e.id;}); saveRacconti(); if(raccontoEditId===e.id) raccontoEditId=null; renderRacconto(); }
     renderDiario();
   }
   function renderDiario(){
@@ -3803,7 +3906,7 @@
     else if(m==="evac") renderEvac();
     else if(m==="fumo") render();
     else if(m==="programma") renderProgramma();
-    else if(m==="diario") renderDiario();
+    else if(m==="diario"){ renderDiario(); try{ renderRacconto(); }catch(e){} }
     else if(m==="parametri"){ try{ renderParametri(); }catch(e){} }
     else if(m==="ciclo"){ try{ renderCiclo(); }catch(e){} }
     else if(m==="sonno"){ try{ renderSonno(); }catch(e){} }
