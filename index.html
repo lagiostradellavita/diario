@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 88; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 89; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1451,7 +1451,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v88</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v89</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3859,8 +3859,10 @@
   var _rSave=document.getElementById("raccontoSave"); if(_rSave) _rSave.onclick=raccontoSaveNow;
   var _rFind=document.getElementById("raccontoFind"); if(_rFind) _rFind.onclick=function(){ renderReco(); var h=document.getElementById("raccontoReco"); if(h){ try{ h.scrollIntoView({behavior:"smooth", block:"nearest"}); }catch(e){} } };
   // Malessere del giorno: conteggio fastidi + PUNTEGGIO = somma delle intensità (Lieve1/Medio2/Forte3; default Medio)
-  function dayMalessere(dk){ var n=0; try{ saluteLog.forEach(function(s){ if(dayKey(new Date(s.ts))===dk) n+=(s.voci&&s.voci.length)?s.voci.length:0; }); }catch(e){} return n; }
-  function dayScore(dk){ var sc=0; try{ saluteLog.forEach(function(s){ if(dayKey(new Date(s.ts))===dk){ (s.voci||[]).forEach(function(v){ sc += (s.intens && s.intens[v]) ? s.intens[v] : 2; }); } }); }catch(e){} return sc; }
+  // Solo i FASTIDI (non gli stati psicologici): se c'è intens sono le sue chiavi, altrimenti filtro le voci con l'elenco fastidi
+  function entryFastidi(s){ if(s.intens && Object.keys(s.intens).length) return Object.keys(s.intens); var fo=null; try{ fo=fastidiG.opts(); }catch(e){} return (s.voci||[]).filter(function(v){ return fo? fo.indexOf(v)>=0 : true; }); }
+  function dayMalessere(dk){ var n=0; try{ saluteLog.forEach(function(s){ if(dayKey(new Date(s.ts))===dk) n+=entryFastidi(s).length; }); }catch(e){} return n; }
+  function dayScore(dk){ var sc=0; try{ saluteLog.forEach(function(s){ if(dayKey(new Date(s.ts))===dk){ entryFastidi(s).forEach(function(v){ sc += (s.intens && s.intens[v]) ? s.intens[v] : 2; }); } }); }catch(e){} return sc; }
   function malLevel(sc){ return sc<=0?0:(sc<=10?1:(sc<=20?2:3)); } // soglie sul punteggio (con tutto Medio = tue bande 1-5/6-10/11+)
   var MAL_LBL=["","qualche fastidio","giornata difficile","giornata pesante"];
 
