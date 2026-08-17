@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 87; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 88; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -428,6 +428,17 @@
   .reco-med-row:last-child{border-bottom:none;}
   .reco-med-name{flex:1; min-width:90px; font-size:15px; font-weight:750;}
   .reco-empty{font-size:14px; color:var(--muted); font-style:italic;}
+  /* intensità per fastidio (Lieve/Medio/Forte) */
+  .fast-int-row{display:flex; align-items:center; gap:9px; padding:7px 0; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .fast-int-row:last-child{border-bottom:none;}
+  .fast-int-row .fi-name{flex:1; min-width:80px; font-size:15px; font-weight:750;}
+  .fi-seg{display:inline-flex; border:1px solid var(--line); border-radius:9px; overflow:hidden; flex:0 0 auto;}
+  .fi-seg button{appearance:none; border:none; background:var(--surface-2); color:var(--muted); font-family:inherit; font-size:12.5px; font-weight:800; padding:6px 10px; cursor:pointer; touch-action:manipulation;}
+  .fi-seg button+button{border-left:1px solid var(--line);}
+  .fi-seg button.on[data-lv="1"]{background:var(--lvl-yellow); color:#fff;}
+  .fi-seg button.on[data-lv="2"]{background:var(--lvl-mid); color:#fff;}
+  .fi-seg button.on[data-lv="3"]{background:var(--lvl-high); color:#fff;}
+  .fi-x{appearance:none; border:none; background:var(--track); color:var(--muted); width:26px; height:26px; border-radius:7px; font-size:15px; line-height:1; cursor:pointer; touch-action:manipulation; flex:0 0 auto;}
   .ciclo-prev{margin:10px 0 2px; padding:12px 14px; border-radius:14px; background:var(--surface-2); border:1px solid var(--line); font-size:15.5px; font-weight:700; color:var(--ink-soft); line-height:1.45;}
   .ciclo-prev b{color:var(--ink); font-weight:850;}
   .ciclo-prev.late{background:color-mix(in srgb, #E11D48 12%, var(--surface)); border-color:color-mix(in srgb,#E11D48 40%, var(--line)); color:#E11D48;}
@@ -1440,7 +1451,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v87</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v88</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2587,12 +2598,20 @@
     var dl=document.getElementById("dlFastidiAll"); if(!dl){ dl=document.createElement("datalist"); dl.id="dlFastidiAll"; document.body.appendChild(dl); }
     dl.innerHTML=""; fastidiG.opts().forEach(function(o){ var op=document.createElement("option"); op.value=o; dl.appendChild(op); });
   }
+  var fastIntens={}; // nome fastidio -> intensità 1(Lieve)/2(Medio)/3(Forte)
+  var INT_LBL=["","Lieve","Medio","Forte"];
   function renderFastidiSel(){
     var host=document.getElementById("fastidiSelected"); if(!host) return; host.innerHTML="";
-    fastidiG.selected().forEach(function(v){
-      var b=document.createElement("button"); b.type="button"; b.className="chip-sel on"; b.innerHTML=esc(v)+' <span style="opacity:.65">×</span>';
-      b.onclick=function(){ fastidiG.set(fastidiG.selected().filter(function(x){return x!==v;})); };
-      host.appendChild(b);
+    var sel=fastidiG.selected();
+    Object.keys(fastIntens).forEach(function(k){ if(sel.indexOf(k)<0) delete fastIntens[k]; });
+    sel.forEach(function(v){
+      if(!fastIntens[v]) fastIntens[v]=2;
+      var row=document.createElement("div"); row.className="fast-int-row";
+      var nm=document.createElement("span"); nm.className="fi-name"; nm.textContent=v;
+      var seg=document.createElement("div"); seg.className="fi-seg";
+      [1,2,3].forEach(function(lv){ var b=document.createElement("button"); b.type="button"; b.setAttribute("data-lv",lv); b.textContent=INT_LBL[lv]; if(fastIntens[v]===lv) b.className="on"; b.onclick=function(){ fastIntens[v]=lv; renderFastidiSel(); }; seg.appendChild(b); });
+      var x=document.createElement("button"); x.type="button"; x.className="fi-x"; x.textContent="×"; x.setAttribute("aria-label","Togli"); x.onclick=function(){ fastidiG.set(sel.filter(function(y){return y!==v;})); };
+      row.appendChild(nm); row.appendChild(seg); row.appendChild(x); host.appendChild(row);
     });
   }
   function onFastidiChange(){ renderFastidiSel(); updateFastidiDatalist(); if(typeof updateSaluteCount==="function") updateSaluteCount(); }
@@ -2643,6 +2662,7 @@
   function startEditSalute(x){
     editingSaluteId=x.id;
     var fo=fastidiG.opts();
+    fastIntens={}; if(x.intens){ Object.keys(x.intens).forEach(function(k){ fastIntens[k]=x.intens[k]; }); }
     fastidiG.set((x.voci||[]).filter(function(v){ return fo.indexOf(v)>=0; }));
     psicoG.set((x.voci||[]).filter(function(v){ return fo.indexOf(v)<0; }));
     doveG.set(x.dove||[]);
@@ -2662,9 +2682,10 @@
     var nota=(document.getElementById("saluteNota").value||"").trim();
     if(!v.length && !nota){ toast("Seleziona un fastidio o scrivi una nota"); return; }
     var ts=whenTs("saluteWhen","saluteData","saluteOra");
-    if(editingSaluteId){ var it=null; saluteLog.forEach(function(y){ if(y.id===editingSaluteId) it=y; }); if(it){ it.voci=v; it.nota=nota; it.ts=ts; it.dove=dove; } cancelEditSalute(); toast("Modifica salvata ✓"); }
-    else { saluteLog.push({id:uid(), ts:ts, voci:v, nota:nota, dove:dove}); toast("Registrato ✓"); }
-    saveSaluteLog(); whenHide("saluteWhen"); fastidiG.clear(); psicoG.clear(); doveG.clear(); document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
+    var intens={}; fastidiG.selected().forEach(function(f){ intens[f]=fastIntens[f]||2; });
+    if(editingSaluteId){ var it=null; saluteLog.forEach(function(y){ if(y.id===editingSaluteId) it=y; }); if(it){ it.voci=v; it.nota=nota; it.ts=ts; it.dove=dove; it.intens=intens; } cancelEditSalute(); toast("Modifica salvata ✓"); }
+    else { saluteLog.push({id:uid(), ts:ts, voci:v, nota:nota, dove:dove, intens:intens}); toast("Registrato ✓"); }
+    saveSaluteLog(); whenHide("saluteWhen"); fastidiG.clear(); psicoG.clear(); doveG.clear(); fastIntens={}; document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
   };
 
   // ---- Parametri: pressione arteriosa, saturazione, battiti cardiaci ----
@@ -3807,10 +3828,15 @@
       var chips=document.createElement("div"); chips.className="reco-chips"; var sel={};
       r.fastidi.forEach(function(f){ sel[f]=true; var c=document.createElement("button"); c.type="button"; c.className="reco-chip"; c.textContent=f; c.onclick=function(){ sel[f]=!sel[f]; c.classList.toggle("off", !sel[f]); }; chips.appendChild(c); });
       sec.appendChild(chips);
+      var batchInt=2;
+      var ir=document.createElement("div"); ir.className="reco-time-row";
+      var il=document.createElement("label"); il.textContent="Intensità"; var iseg=document.createElement("div"); iseg.className="fi-seg";
+      [1,2,3].forEach(function(lv){ var b=document.createElement("button"); b.type="button"; b.setAttribute("data-lv",lv); b.textContent=INT_LBL[lv]; if(lv===2) b.className="on"; b.onclick=function(){ batchInt=lv; Array.prototype.forEach.call(iseg.children, function(x){ x.className=(parseInt(x.getAttribute("data-lv"),10)===lv)?"on":""; }); }; iseg.appendChild(b); });
+      ir.appendChild(il); ir.appendChild(iseg); sec.appendChild(ir);
       var tr=document.createElement("div"); tr.className="reco-time-row";
       var tl=document.createElement("label"); tl.textContent="Ora"; var ti=document.createElement("input"); ti.type="time"; ti.value=defTime;
       var add=document.createElement("button"); add.type="button"; add.className="reco-add"; add.textContent="Aggiungi ai fastidi";
-      add.onclick=function(){ var voci=Object.keys(sel).filter(function(k){return sel[k];}); if(!voci.length){ toast("Nessun fastidio selezionato"); return; } saluteLog.push({id:uid(), ts:todayAtHHMM(ti.value||hhmm(new Date())), voci:voci, dove:[], nota:""}); saveSaluteLog(); toast("🤕 "+voci.length+(voci.length===1?" fastidio aggiunto":" fastidi aggiunti")); add.className="reco-add done"; add.textContent="Aggiunti ✓"; add.disabled=true; renderDiario(); try{ renderSalute(); }catch(e){} };
+      add.onclick=function(){ var voci=Object.keys(sel).filter(function(k){return sel[k];}); if(!voci.length){ toast("Nessun fastidio selezionato"); return; } var intens={}; voci.forEach(function(v){ intens[v]=batchInt; }); saluteLog.push({id:uid(), ts:todayAtHHMM(ti.value||hhmm(new Date())), voci:voci, dove:[], nota:"", intens:intens}); saveSaluteLog(); toast("🤕 "+voci.length+(voci.length===1?" fastidio aggiunto":" fastidi aggiunti")); add.className="reco-add done"; add.textContent="Aggiunti ✓"; add.disabled=true; renderDiario(); try{ renderSalute(); }catch(e){} };
       tr.appendChild(tl); tr.appendChild(ti); tr.appendChild(add); sec.appendChild(tr); host.appendChild(sec);
     }
     if(r.meds.length){
@@ -3832,9 +3858,10 @@
   }
   var _rSave=document.getElementById("raccontoSave"); if(_rSave) _rSave.onclick=raccontoSaveNow;
   var _rFind=document.getElementById("raccontoFind"); if(_rFind) _rFind.onclick=function(){ renderReco(); var h=document.getElementById("raccontoReco"); if(h){ try{ h.scrollIntoView({behavior:"smooth", block:"nearest"}); }catch(e){} } };
-  // Quanto si è stati male in un giorno = numero di fastidi/stati registrati (saluteLog)
-  function dayMalessere(dk){ var n=0; try{ saluteLog.forEach(function(s){ if(dayKey(new Date(s.ts))===dk){ n+=(s.voci&&s.voci.length)?s.voci.length:0; } }); }catch(e){} return n; }
-  function malLevel(n){ return n<=0?0:(n<=2?1:(n<=5?2:3)); }
+  // Malessere del giorno: conteggio fastidi + PUNTEGGIO = somma delle intensità (Lieve1/Medio2/Forte3; default Medio)
+  function dayMalessere(dk){ var n=0; try{ saluteLog.forEach(function(s){ if(dayKey(new Date(s.ts))===dk) n+=(s.voci&&s.voci.length)?s.voci.length:0; }); }catch(e){} return n; }
+  function dayScore(dk){ var sc=0; try{ saluteLog.forEach(function(s){ if(dayKey(new Date(s.ts))===dk){ (s.voci||[]).forEach(function(v){ sc += (s.intens && s.intens[v]) ? s.intens[v] : 2; }); } }); }catch(e){} return sc; }
+  function malLevel(sc){ return sc<=0?0:(sc<=10?1:(sc<=20?2:3)); } // soglie sul punteggio (con tutto Medio = tue bande 1-5/6-10/11+)
   var MAL_LBL=["","qualche fastidio","giornata difficile","giornata pesante"];
 
   function collectDiarioEvents(all){
@@ -3874,7 +3901,7 @@
   function renderDiario(){
     if(!document.getElementById("diarioDate")) return;
     document.getElementById("diarioDate").textContent=fmtDayLong(new Date());
-    try{ var _rt=document.getElementById("raccontoTxt"); if(_rt){ var _card=_rt.closest(".card"); if(_card){ _card.classList.remove("racconto-mal1","racconto-mal2","racconto-mal3"); var _ml=malLevel(dayMalessere(dayKey(new Date()))); if(_ml) _card.classList.add("racconto-mal"+_ml); } } }catch(e){}
+    try{ var _rt=document.getElementById("raccontoTxt"); if(_rt){ var _card=_rt.closest(".card"); if(_card){ _card.classList.remove("racconto-mal1","racconto-mal2","racconto-mal3"); var _ml=malLevel(dayScore(dayKey(new Date()))); if(_ml) _card.classList.add("racconto-mal"+_ml); } } }catch(e){}
     var dEl=document.getElementById("diarioData"); if(dEl && !dEl.value) dEl.value=dayKey(new Date());
     var oEl=document.getElementById("diarioOra"); if(oEl && !oEl.value) oEl.value=hhmm(new Date());
     var ev=collectDiarioEvents(true).sort(function(a,b){ return b.ts-a.ts; });
@@ -3885,7 +3912,7 @@
     var lastDay=null;
     ev.forEach(function(e){
       var d=new Date(e.ts), dk=dayKey(d);
-      if(dk!==lastDay){ lastDay=dk; var mal=dayMalessere(dk), ml=malLevel(mal); var h=document.createElement("div"); h.className="day-head"+(ml?" mal"+ml:""); h.innerHTML='<span class="dname">'+fmtDayLong(d)+'</span>'+(ml?'<span class="dmal">'+MAL_LBL[ml]+' ('+mal+')</span>':''); host.appendChild(h); }
+      if(dk!==lastDay){ lastDay=dk; var cnt=dayMalessere(dk), sc=dayScore(dk), ml=malLevel(sc); var iw=cnt?(" · "+INT_LBL[Math.max(1,Math.min(3,Math.round(sc/cnt)))]):""; var h=document.createElement("div"); h.className="day-head"+(ml?" mal"+ml:""); h.innerHTML='<span class="dname">'+fmtDayLong(d)+'</span>'+(ml?'<span class="dmal">'+MAL_LBL[ml]+' ('+cnt+iw+')</span>':''); host.appendChild(h); }
       var row=document.createElement("div"); row.className="tl-row"+(e.planned?" planned":"");
       row.innerHTML='<span class="tl-time">'+hhmm(d)+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>';
       row.querySelector(".tl-text").textContent = e.text + (e.prog?" · 📋 programmato":"") + (e.planned?" · 📋 da fare":"");
