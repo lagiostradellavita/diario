@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 98; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 99; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1477,7 +1477,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v98</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v99</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2903,7 +2903,8 @@
      items:["Squat dalla sedia (10, senza usare le mani)","Ponte glutei (8–10)","Quadrupedia alternata (6 per lato)","Piegamenti al muro (10)","Alzate sulle punte (15)","Plank sulle ginocchia (20 s × 2)"]}
   ];
   function eserShort(s){ return String(s||"").replace(/\s*\(.*/,"").trim(); }
-  function renderEserConsigliati(hostId, actionLabel, onPick, interactive){
+  function renderEserConsigliati(hostId, actionLabel, onPick, opts){
+    opts=opts||{};
     var host=document.getElementById(hostId); if(!host) return; host.innerHTML="";
     ESERCIZI_CONSIGLIATI.forEach(function(ex){
       var cat=document.createElement("div"); cat.className="food-cat"; cat.style.marginTop="8px";
@@ -2913,20 +2914,20 @@
       if(ex.intro){ var pi=document.createElement("p"); pi.className="ec-desc"; pi.style.margin="0 0 6px"; pi.textContent=ex.intro; body.appendChild(pi); }
       var checks=[];
       (ex.items||[]).forEach(function(it){
-        if(interactive){ var lab=document.createElement("label"); lab.className="ex-check"; var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=true; var sp=document.createElement("span"); sp.textContent=it; lab.appendChild(cb); lab.appendChild(sp); body.appendChild(lab); checks.push({cb:cb, text:it}); }
+        if(opts.checks){ var lab=document.createElement("label"); lab.className="ex-check"; var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=true; var sp=document.createElement("span"); sp.textContent=it; lab.appendChild(cb); lab.appendChild(sp); body.appendChild(lab); checks.push({cb:cb, text:it}); }
         else { var li=document.createElement("div"); li.className="ec-li"; li.textContent="• "+it; body.appendChild(li); }
       });
       var noteInp=null;
-      if(interactive){ var f=document.createElement("div"); f.className="field"; f.style.margin="10px 0 10px"; var lb=document.createElement("label"); lb.textContent="Nota per tutto il blocco (facoltativa)"; noteInp=document.createElement("input"); noteInp.type="text"; noteInp.setAttribute("autocomplete","off"); noteInp.placeholder="es. fatto a metà, con un po' di dolore…"; f.appendChild(lb); f.appendChild(noteInp); body.appendChild(f); }
+      if(opts.note){ var f=document.createElement("div"); f.className="field"; f.style.margin="10px 0 10px"; var lb=document.createElement("label"); lb.textContent="Nota per tutto il blocco (facoltativa)"; noteInp=document.createElement("input"); noteInp.type="text"; noteInp.setAttribute("autocomplete","off"); noteInp.placeholder="es. fatto a metà, con un po' di dolore…"; f.appendChild(lb); f.appendChild(noteInp); body.appendChild(f); }
       var btn=document.createElement("button"); btn.type="button"; btn.className="primary"; btn.textContent=actionLabel;
-      btn.onclick=function(){ var sel = interactive ? checks.filter(function(c){return c.cb.checked;}).map(function(c){return c.text;}) : (ex.items||[]).slice(); onPick(ex, noteInp?(noteInp.value||"").trim():"", sel); };
+      btn.onclick=function(){ var sel = opts.checks ? checks.filter(function(c){return c.cb.checked;}).map(function(c){return c.text;}) : (ex.items||[]).slice(); onPick(ex, noteInp?(noteInp.value||"").trim():"", sel); };
       body.appendChild(btn);
       head.onclick=function(){ var open=body.hidden; body.hidden=!open; cat.classList.toggle("open", open); };
       cat.appendChild(head); cat.appendChild(body); host.appendChild(cat);
     });
   }
-  renderEserConsigliati("eserConsigliati", "✓ Registra i selezionati (nel diario)", function(ex, nota, sel){ if(!sel || !sel.length){ toast("Seleziona almeno un esercizio"); return; } var full=sel.map(eserShort).join(", ")+(nota?" — "+nota:""); attivLog.push({id:uid(), nome:ex.t, tsEnd:Date.now(), dur:(ex.dur||0)*60000, valore:sel.length+"/"+(ex.items?ex.items.length:sel.length), nota:full}); saveAttivLog(); try{ renderAttiv(); }catch(e){} toast("🏃 Registrato: "+ex.t); }, true);
-  renderEserConsigliati("progEserConsigliati", "➕ Aggiungi al programma", function(ex){ var slot=null; for(var i=0;i<progEserItems.length;i++){ if(!progEserItems[i].nome){ slot=progEserItems[i]; break; } } if(slot){ slot.nome=ex.t; slot.durataMin=String(ex.dur||""); } else { progEserItems.push({nome:ex.t, durataMin:String(ex.dur||"")}); } try{ renderProgFormItems(); }catch(e){} toast("Aggiunto: "+ex.t); }, false);
+  renderEserConsigliati("eserConsigliati", "✓ Registra i selezionati (nel diario)", function(ex, nota, sel){ if(!sel || !sel.length){ toast("Seleziona almeno un esercizio"); return; } var full=sel.map(eserShort).join(", ")+(nota?" — "+nota:""); attivLog.push({id:uid(), nome:ex.t, tsEnd:Date.now(), dur:(ex.dur||0)*60000, valore:sel.length+"/"+(ex.items?ex.items.length:sel.length), nota:full}); saveAttivLog(); try{ renderAttiv(); }catch(e){} toast("🏃 Registrato: "+ex.t); }, {checks:true, note:true});
+  renderEserConsigliati("progEserConsigliati", "➕ Aggiungi i selezionati al programma", function(ex, nota, sel){ if(!sel || !sel.length){ toast("Seleziona almeno un esercizio"); return; } sel.forEach(function(it){ var nm=eserShort(it); var slot=null; for(var i=0;i<progEserItems.length;i++){ if(!progEserItems[i].nome){ slot=progEserItems[i]; break; } } if(slot){ slot.nome=nm; slot.durataMin=""; } else { progEserItems.push({nome:nm, durataMin:""}); } }); try{ renderProgFormItems(); }catch(e){} toast(sel.length+(sel.length===1?" esercizio aggiunto":" esercizi aggiunti")); }, {checks:true, note:false});
   var attivLog=[]; try{ var _alg=JSON.parse(localStorage.getItem("salute-attiv-log")); if(Array.isArray(_alg)) attivLog=_alg; }catch(e){}
   function saveAttivLog(){ try{ localStorage.setItem("salute-attiv-log", JSON.stringify(attivLog)); }catch(e){} }
   var attivRunning=null; try{ var _ar=JSON.parse(localStorage.getItem("salute-attiv-run")); if(_ar && _ar.nome) attivRunning=_ar; }catch(e){}
@@ -3659,7 +3660,7 @@
     var ent=[];
     programma.forEach(function(it){ if(it.tipo==="fumo") return; if(!itemAppliesToday(it)) return; var rec=todayFattoRec(it.id); ent.push({oraMin: it.ora?hhmmToMin(it.ora):9999, schedOra: it.ora||"", doneTs:(rec?rec.ts:null), item:it, done:!!rec, late:(!rec && it.ora && nowMin>hhmmToMin(it.ora)), kind:"prog"}); });
     try{ Pillole.today().doses.forEach(function(d){ ent.push({oraMin:hhmmToMin(d.ora), schedOra:d.ora, doneTs:(d.taken&&d.takenAt?d.takenAt:null), pill:d, done:d.taken, late:d.late, kind:"pill"}); }); }catch(e){}
-    ent.sort(function(a,b){ return a.oraMin-b.oraMin; });
+    ent.sort(function(a,b){ function em(e){ return e.doneTs ? (new Date(e.doneTs).getHours()*60+new Date(e.doneTs).getMinutes()) : e.oraMin; } return em(a)-em(b); });
     var doneN=0;
     if(!ent.length && !plannedKcal){ host.innerHTML+='<div class="empty">Niente in programma per oggi.<br>Aggiungilo qui sotto.</div>'; }
     ent.forEach(function(e){
