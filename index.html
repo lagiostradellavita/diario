@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 101; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 102; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -489,6 +489,7 @@
 
   /* chip selezionabili (fastidi, cibi) */
   .chips{display:flex; flex-wrap:wrap; gap:9px; margin-top:6px;}
+  .chips[hidden]{display:none;} /* l'attributo hidden deve vincere su display:flex (scomparsa «Sfoglia tutti») */
   .chip-sel{appearance:none; cursor:pointer; font-family:inherit; font-size:16px; font-weight:700;
     padding:11px 16px; border-radius:999px; border:1.5px solid var(--line); background:var(--surface-2); color:var(--ink);
     touch-action:manipulation; -webkit-tap-highlight-color:transparent; transition:transform .05s ease;}
@@ -1122,8 +1123,10 @@
       <div class="food-cat" id="collapPsico">
         <button type="button" class="fc-head" id="headPsico"><span id="lblPsico">🧠 Stato psicologico</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodyPsico" hidden>
-          <div id="psicoChips" class="chips"></div>
-          <div class="chip-add">
+          <div id="psicoSelected" class="chips" style="margin-top:2px"></div>
+          <button type="button" class="link-btn" id="psicoListToggle" style="margin-top:6px;text-align:left;padding:8px 2px">▸ Sfoglia tutti</button>
+          <div id="psicoChips" class="chips" hidden style="margin-top:4px"></div>
+          <div class="chip-add" style="margin-top:10px">
             <input type="text" id="psicoAddInput" placeholder="Aggiungi (es. tensione)…">
             <button type="button" id="psicoAddBtn">＋</button>
           </div>
@@ -1480,7 +1483,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v101</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v102</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2644,7 +2647,7 @@
   var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Nausea","Vomito","Stanchezza","Fiato corto","Tosse","Bruciore di stomaco","Dolori addominali","Dolori muscolari","Spasmi muscolari","Mal di schiena","Dolori articolari","Tensione al collo","Fascicolazioni","Acufene","Nebbia mentale","Palpitazioni","Caviglie gonfie","Sudorazione notturna","Insonnia","Fastidio vescica"];
   var PSICO=["Ansia","Stress","Attacco di panico","Tristezza","Umore basso","Depressione","Agitazione","Pensieri ossessivi","Irritabilità"];
   var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts", false, {sortAlpha:true, onChange:onFastidiChange, manageId:"fastidiManage"});
-  var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts", false, {manageId:"psicoManage"});
+  var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts", false, {manageId:"psicoManage", onChange:onPsicoChange});
   var doveG=makeChipGroup("doveChips", ["Dx (destro)","Sx (sinistro)","Bilaterale"], "salute-dove-opts", false, {manageId:"doveManage"});
   wireAdd("fastidiAddInput","fastidiAddBtn", fastidiG);
   wireAdd("psicoAddInput","psicoAddBtn", psicoG);
@@ -2679,6 +2682,17 @@
     if(lt){ lt.onclick=function(){ var c=document.getElementById("fastidiChips"); c.hidden=!c.hidden; lt.textContent=(c.hidden?"▸":"▾")+" Sfoglia tutti i fastidi"; }; }
   })();
   updateFastidiDatalist();
+  // Stato psicologico: selezionati sempre visibili + elenco completo a scomparsa (come i Fastidi fisici)
+  function renderPsicoSel(){
+    var host=document.getElementById("psicoSelected"); if(!host) return; host.innerHTML="";
+    psicoG.selected().forEach(function(v){
+      var chip=document.createElement("button"); chip.type="button"; chip.className="chip-sel on"; chip.textContent=v+"  ×"; chip.setAttribute("aria-label","Togli "+v);
+      chip.onclick=function(){ psicoG.set(psicoG.selected().filter(function(y){return y!==v;})); };
+      host.appendChild(chip);
+    });
+  }
+  function onPsicoChange(){ renderPsicoSel(); if(typeof updateSaluteCount==="function") updateSaluteCount(); }
+  (function(){ var lt=document.getElementById("psicoListToggle"); if(lt){ lt.onclick=function(){ var c=document.getElementById("psicoChips"); c.hidden=!c.hidden; lt.textContent=(c.hidden?"▸":"▾")+" Sfoglia tutti"; }; } })();
   // pulsanti a scomparsa: Fastidi fisici / Stato psicologico, con conteggio dei selezionati
   function saluteCollapWire(headId, bodyId, catId){
     var head=document.getElementById(headId); if(!head) return;
@@ -2693,7 +2707,7 @@
     if(lf) lf.textContent="🤕 Fastidi fisici"+(nf?" · "+nf+(nf===1?" scelto":" scelti"):"");
     if(lp) lp.textContent="🧠 Stato psicologico"+(np?" · "+np+(np===1?" scelto":" scelti"):"");
   }
-  var _pc=document.getElementById("psicoChips"); if(_pc) _pc.addEventListener("click", updateSaluteCount);
+  // (conteggio dello stato psicologico ora aggiornato da onPsicoChange)
   var saluteLog=[]; try{ var _sl=JSON.parse(localStorage.getItem("salute-log")); if(Array.isArray(_sl)) saluteLog=_sl; }catch(e){}
   function saveSaluteLog(){ try{ localStorage.setItem("salute-log", JSON.stringify(saluteLog)); }catch(e){} }
   var saluteDayOpen={}; // dk -> aperto/chiuso (default: oggi aperto, passati chiusi) — come il Diario
