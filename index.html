@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 97; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 98; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -547,6 +547,7 @@
   .act-row{display:flex; align-items:center; gap:11px; padding:14px 2px; border-bottom:1px solid var(--line);}
   .act-row:last-child{border-bottom:none;}
   .act-name{flex:1; min-width:0; font-size:17.5px; font-weight:700;}
+  .act-row .act-pick{width:21px; height:21px; flex:0 0 auto; accent-color:var(--accent); cursor:pointer;}
   .act-timer{font-variant-numeric:tabular-nums; font-weight:800; font-size:17px; color:var(--accent); min-width:58px; text-align:right;}
   .act-btn{flex:none; appearance:none; cursor:pointer; font-family:inherit; font-weight:800; font-size:15px; border:none;
     border-radius:12px; padding:11px 17px; min-height:46px; touch-action:manipulation; color:#fff;}
@@ -1015,6 +1016,7 @@
       <div class="row-between"><h2 class="section-title" style="margin:0">Attività</h2><span id="eserSummary" class="stat-summary"></span></div>
       <p class="fineprint" style="margin:2px 0 10px">Tocca <b>Avvia</b> quando inizi e <b>Termina</b> quando finisci: segno durata e ora.</p>
       <div id="eserList"></div>
+      <button type="button" id="eserToProgBtn" hidden style="width:100%; margin-top:8px; appearance:none; cursor:pointer; font-family:inherit; font-weight:800; font-size:14.5px; background:color-mix(in srgb, var(--accent) 12%, var(--surface)); border:1.5px solid color-mix(in srgb, var(--accent) 40%, var(--line)); color:var(--accent); border-radius:12px; padding:12px; touch-action:manipulation;">➕ Aggiungi al programma</button>
       <div class="field" style="margin:6px 0 0"><label for="attivNota">Nota per la sessione (facoltativa)</label><input type="text" id="attivNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
       <div class="chip-add" style="margin-top:10px">
         <input type="text" id="eserAddInput" placeholder="Aggiungi un'attività…">
@@ -1334,6 +1336,8 @@
           <label class="prog-flabel">Esercizi (uno o più: es. Collo, Camminata, Respirazione)</label>
           <div id="progEserItems"></div>
           <button type="button" class="link-btn" id="progEserAdd" style="text-align:left;padding:6px 2px;margin-top:2px">＋ aggiungi esercizio</button>
+          <div class="prog-flabel" style="margin-top:10px; font-size:12.5px">Le tue attività (tocca per aggiungerle):</div>
+          <div id="progEserAttivChips" class="chips"></div>
           <div class="prog-flabel" style="margin-top:10px; font-size:12.5px">Oppure scegli un esercizio programmato (tocca il titolo per i dettagli):</div>
           <div id="progEserConsigliati"></div>
           <div class="field" style="margin-top:6px"><label for="progEserOra">Ora (facoltativa)</label><input type="time" id="progEserOra"></div>
@@ -1473,7 +1477,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v97</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v98</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2928,12 +2932,28 @@
   var attivRunning=null; try{ var _ar=JSON.parse(localStorage.getItem("salute-attiv-run")); if(_ar && _ar.nome) attivRunning=_ar; }catch(e){}
   function saveAttivRun(){ try{ if(attivRunning) localStorage.setItem("salute-attiv-run", JSON.stringify(attivRunning)); else localStorage.removeItem("salute-attiv-run"); }catch(e){} }
   var attivInterval=null;
+  var attivProgSel={}; // attività spuntate per essere mandate al Programma
+  function updateEserToProgBtn(){ var b=document.getElementById("eserToProgBtn"); if(!b) return; var n=Object.keys(attivProgSel).length; b.hidden=(n===0); b.textContent="➕ Aggiungi al programma"+(n?" ("+n+")":""); }
+  function attivSelToProgramma(){
+    var names=Object.keys(attivProgSel); if(!names.length){ toast("Spunta almeno un'attività da mettere in programma"); return; }
+    showMod("programma");
+    try{ cancelEditProg(); }catch(e){}
+    try{ progResetForm(); progShowTipo("eser"); }catch(e){}
+    progEserItems = names.map(function(n){ return {nome:n, durataMin:""}; });
+    try{ renderProgFormItems(); }catch(e){}
+    var f=document.getElementById("progForm"); if(f) f.hidden=false;
+    try{ scrollToEl(f); }catch(e){}
+    attivProgSel={}; try{ renderAttiv(); }catch(e){}
+    toast("Nel Programma: scegli ora e ripetizione, poi salva");
+  }
+  var _e2p=document.getElementById("eserToProgBtn"); if(_e2p) _e2p.onclick=attivSelToProgramma;
   function renderAttiv(){
     document.getElementById("eserDate").textContent=fmtDayLong(new Date());
     var host=document.getElementById("eserList"); host.innerHTML="";
     attivOpts().forEach(function(nome){
       var run=attivRunning && attivRunning.nome===nome;
       var row=document.createElement("div"); row.className="act-row"+(run?" running":"");
+      var pick=document.createElement("input"); pick.type="checkbox"; pick.className="act-pick"; pick.checked=!!attivProgSel[nome]; pick.setAttribute("aria-label","Seleziona per il programma"); pick.onclick=function(e){ e.stopPropagation(); if(pick.checked) attivProgSel[nome]=true; else delete attivProgSel[nome]; updateEserToProgBtn(); }; row.appendChild(pick);
       var nm=document.createElement("span"); nm.className="act-name"; nm.textContent=nome; row.appendChild(nm);
       if(run){
         var tm=document.createElement("span"); tm.className="act-timer"; tm.setAttribute("data-run","1"); tm.textContent=fmtDur(Date.now()-attivRunning.start); row.appendChild(tm);
@@ -2945,6 +2965,7 @@
       }
       host.appendChild(row);
     });
+    updateEserToProgBtn();
     var log=document.getElementById("eserLog"); log.innerHTML="";
     var dK=dayKey(new Date());
     var today=attivLog.filter(function(x){ return dayKey(new Date(x.tsEnd))===dK; }).sort(function(a,b){ return b.tsEnd-a.tsEnd; });
@@ -3678,6 +3699,14 @@
   }
   var editingProgId=null, progTipo="pasto", progRipeti="ogni", progGiorniSel={}, progPromSub="pressione";
   var progPastoItems=[{nome:"",qta:""}], progEserItems=[{nome:"",durataMin:""}];
+  function renderProgEserAttivChips(){
+    var host=document.getElementById("progEserAttivChips"); if(!host) return; host.innerHTML="";
+    attivOpts().forEach(function(nome){
+      var b=document.createElement("button"); b.type="button"; b.className="chip-sel"; b.textContent=nome;
+      b.onclick=function(){ var slot=null; for(var i=0;i<progEserItems.length;i++){ if(!progEserItems[i].nome){ slot=progEserItems[i]; break; } } if(slot){ slot.nome=nome; } else { progEserItems.push({nome:nome, durataMin:""}); } renderProgFormItems(); toast("Aggiunto: "+nome); };
+      host.appendChild(b);
+    });
+  }
   function renderProgFormItems(){
     var ph=document.getElementById("progPastoItems");
     if(ph){ ph.innerHTML=""; progPastoItems.forEach(function(itm, i){
@@ -3713,7 +3742,7 @@
   function renderProgGiorni(){ var host=document.getElementById("progGiorni"); if(!host) return; host.innerHTML=""; GIORNI.forEach(function(g){ var b=document.createElement("button"); b.type="button"; b.className="chip-sel"+(progGiorniSel[g.n]?" on":""); b.textContent=g.l; b.onclick=function(){ if(progGiorniSel[g.n]) delete progGiorniSel[g.n]; else progGiorniSel[g.n]=true; b.classList.toggle("on"); }; host.appendChild(b); }); }
   function progShowRipeti(r){ progRipeti=r; Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.className=(b.dataset.r===r)?"on":""; }); document.getElementById("progGiorniWrap").hidden=(r!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(r!=="mese"); document.getElementById("progDataWrap").hidden=(r!=="data"); document.getElementById("progRangeWrap").hidden=(r!=="range"); if(r==="data"){ var di=document.getElementById("progGiornoData"); if(!di.value){ var t=new Date(); t.setDate(t.getDate()+1); di.value=dayKey(t); } } if(r==="range"){ var dda=document.getElementById("progGiornoDa"), daa=document.getElementById("progGiornoA"); if(!dda.value){ var t1=new Date(); t1.setDate(t1.getDate()+1); dda.value=dayKey(t1); } if(!daa.value){ var t2=new Date(); t2.setDate(t2.getDate()+7); daa.value=dayKey(t2); } } if(r==="sett") renderProgGiorni(); }
   Array.prototype.forEach.call(document.querySelectorAll("#progRipetiSeg button"), function(b){ b.onclick=function(){ progShowRipeti(b.dataset.r); }; });
-  function progShowTipo(t){ progTipo=t; Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.className=(b.dataset.t===t)?"on":""; }); document.getElementById("progPasto").hidden=(t!=="pasto"); document.getElementById("progEser").hidden=(t!=="eser"); document.getElementById("progPillole").hidden=(t!=="pillole"); document.getElementById("progProm").hidden=(t!=="promemoria"); document.getElementById("progRipetiWrap").hidden=(t==="pillole"); if(t==="pillole"){ renderProgPilOrari(); document.getElementById("progGiorniWrap").hidden=true; document.getElementById("progGiornoMeseWrap").hidden=true; document.getElementById("progDataWrap").hidden=true; document.getElementById("progRangeWrap").hidden=true; } else { document.getElementById("progGiorniWrap").hidden=(progRipeti!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(progRipeti!=="mese"); document.getElementById("progDataWrap").hidden=(progRipeti!=="data"); document.getElementById("progRangeWrap").hidden=(progRipeti!=="range"); } }
+  function progShowTipo(t){ progTipo=t; Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.className=(b.dataset.t===t)?"on":""; }); document.getElementById("progPasto").hidden=(t!=="pasto"); document.getElementById("progEser").hidden=(t!=="eser"); document.getElementById("progPillole").hidden=(t!=="pillole"); document.getElementById("progProm").hidden=(t!=="promemoria"); document.getElementById("progRipetiWrap").hidden=(t==="pillole"); if(t==="pillole"){ renderProgPilOrari(); document.getElementById("progGiorniWrap").hidden=true; document.getElementById("progGiornoMeseWrap").hidden=true; document.getElementById("progDataWrap").hidden=true; document.getElementById("progRangeWrap").hidden=true; } else { document.getElementById("progGiorniWrap").hidden=(progRipeti!=="sett"); document.getElementById("progGiornoMeseWrap").hidden=(progRipeti!=="mese"); document.getElementById("progDataWrap").hidden=(progRipeti!=="data"); document.getElementById("progRangeWrap").hidden=(progRipeti!=="range"); } if(t==="eser"){ try{ renderProgEserAttivChips(); }catch(e){} } }
   Array.prototype.forEach.call(document.querySelectorAll("#progTipoSeg button"), function(b){ b.onclick=function(){ progShowTipo(b.dataset.t); }; });
   Array.prototype.forEach.call(document.querySelectorAll("#progPromSeg button"), function(b){ b.onclick=function(){ progPromSub=b.dataset.p; Array.prototype.forEach.call(document.querySelectorAll("#progPromSeg button"), function(x){ x.className=(x.dataset.p===progPromSub)?"on":""; }); }; });
   function progResetForm(){ progGiorniSel={}; progShowTipo("pasto"); progShowRipeti("ogni"); ["progPastoOra","progEserOra","progPilNome","progPromOra","progGiornoMese","progGiornoData","progGiornoDa","progGiornoA"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); progPastoItems=[{nome:"",qta:""}]; progEserItems=[{nome:"",durataMin:""}]; progPilOrari=[hhmm(new Date())]; progPromSub="pressione"; Array.prototype.forEach.call(document.querySelectorAll("#progPromSeg button"), function(b){ b.className=(b.dataset.p==="pressione")?"on":""; }); renderProgFormItems(); renderProgPilOrari(); document.getElementById("progSave").textContent="Aggiungi"; }
