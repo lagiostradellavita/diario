@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 96; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 97; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -359,6 +359,9 @@
   .fc-head .ec-t{font-size:15.5px; font-weight:800; overflow-wrap:anywhere;}
   .fc-head .ec-sub{font-size:12px; font-weight:600; color:var(--muted); overflow-wrap:anywhere;}
   .ec-desc{font-size:14.5px; line-height:1.55; margin:0 0 12px; color:var(--ink-soft);}
+  .ex-check{display:flex; align-items:flex-start; gap:10px; padding:7px 2px; cursor:pointer; -webkit-user-select:none; user-select:none; font-size:14.5px; line-height:1.4; color:var(--ink);}
+  .ex-check input[type=checkbox]{width:20px; height:20px; flex:0 0 auto; margin-top:1px; accent-color:var(--accent);}
+  .ec-li{font-size:14px; line-height:1.5; color:var(--ink-soft); padding:2px 2px;}
   .food-cat > .fc-body[hidden]{display:none;}
   #foodCats .chip-sel.food-added{border-color:var(--accent); color:var(--accent); font-weight:850; background:color-mix(in srgb, var(--accent) 12%, var(--surface-2));}
   #foodCats .chip-sel.food-added::after{content:" ✓";}
@@ -1004,6 +1007,11 @@
       <div class="brandtext"><h1>Attività Fisiche</h1><p class="sub" id="eserDate"></p></div>
     </header>
     <section class="card">
+      <h2 class="section-title">📋 Esercizi programmati</h2>
+      <p class="fineprint" style="margin:2px 0 10px">Tocca un titolo per aprire il blocco: <b>spunta</b> gli esercizi che hai fatto, aggiungi una <b>nota</b>, poi <b>«Registra»</b> (finisce nel diario).</p>
+      <div id="eserConsigliati"></div>
+    </section>
+    <section class="card">
       <div class="row-between"><h2 class="section-title" style="margin:0">Attività</h2><span id="eserSummary" class="stat-summary"></span></div>
       <p class="fineprint" style="margin:2px 0 10px">Tocca <b>Avvia</b> quando inizi e <b>Termina</b> quando finisci: segno durata e ora.</p>
       <div id="eserList"></div>
@@ -1030,11 +1038,6 @@
           <button class="link-btn" id="attivFotoCancel">Annulla</button>
         </div>
       </div>
-    </section>
-    <section class="card">
-      <h2 class="section-title">📋 Esercizi consigliati</h2>
-      <p class="fineprint" style="margin:2px 0 10px">Tocca un titolo per leggere gli esercizi. Poi <b>«Registra»</b> per segnarlo fatto: finisce nel diario.</p>
-      <div id="eserConsigliati"></div>
     </section>
     <section class="card">
       <h2 class="section-title">Oggi</h2>
@@ -1331,7 +1334,7 @@
           <label class="prog-flabel">Esercizi (uno o più: es. Collo, Camminata, Respirazione)</label>
           <div id="progEserItems"></div>
           <button type="button" class="link-btn" id="progEserAdd" style="text-align:left;padding:6px 2px;margin-top:2px">＋ aggiungi esercizio</button>
-          <div class="prog-flabel" style="margin-top:10px; font-size:12.5px">Oppure scegli un consigliato (tocca il titolo per i dettagli):</div>
+          <div class="prog-flabel" style="margin-top:10px; font-size:12.5px">Oppure scegli un esercizio programmato (tocca il titolo per i dettagli):</div>
           <div id="progEserConsigliati"></div>
           <div class="field" style="margin-top:6px"><label for="progEserOra">Ora (facoltativa)</label><input type="time" id="progEserOra"></div>
         </div>
@@ -1470,7 +1473,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v96</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v97</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2880,30 +2883,45 @@
   function saveAttivHidden(){ try{ localStorage.setItem("salute-attiv-hidden", JSON.stringify(attivHidden)); }catch(e){} }
   function saveAttivRenames(){ try{ localStorage.setItem("salute-attiv-ren", JSON.stringify(attivRenames)); }catch(e){} }
   function attivOpts(){ var a=[]; ATTIVITA.forEach(function(p){ if(attivHidden.indexOf(p)<0) a.push(attivRenames[p]||p); }); return a.concat(attivCustom); }
-  // ---- Esercizi consigliati (schiena, collo, dolori muscolari): titoli + descrizione a scomparsa ----
+  // ---- Esercizi programmati (schiena, collo, dolori muscolari): titoli + esercizi selezionabili a scomparsa ----
   var ESERCIZI_CONSIGLIATI=[
-    {t:"A. Sblocco del risveglio", sub:"5 minuti, appena sveglio", dur:5, d:"I primi esercizi sul letto prima di alzarsi (unica eccezione al «letto solo per dormire»): respirazione diaframmatica (5 respiri), oscillazione del bacino (10 per lato, ginocchia che cadono di lato ad ampiezza piccola), ginocchio al petto (20 s per lato), caviglie e polsi (10 giri), gatto-cammello (8–10), poi due minuti in piedi camminando — non tornare a letto."},
-    {t:"B. Collo e spalle", sub:"5 minuti, dopo la camminata (a muscoli caldi)", dur:5, d:"Da seduto, schiena appoggiata, sguardo dritto, movimenti lenti mai a fine corsa: retrazione del mento (8–10, «doppio mento», l'esercizio chiave contro la postura in avanti), inclinazione laterale (20 s per lato), trapezio superiore ed elevatore della scapola (20 s per lato), circonduzioni scapolari (10+10), rotazione controllata (6 per lato, sospendere se compare capogiro)."},
-    {t:"C. Schiena e anche", sub:"10 minuti, di seguito al blocco B", dur:10, d:"Rotazione lombare (30 s per lato, ginocchia unite che cadono di lato, spalle a terra), posteriori della coscia con asciugamano (30 s, non a gamba tesa), ileopsoas (30 s per lato, l'antidoto alle ore da seduto), piriforme/figura 4 (30 s per lato), posizione del bambino (30–60 s) a chiudere."},
-    {t:"D. Rinforzo", sub:"dalla 3ª settimana, tre volte a settimana alle 19:00", dur:15, d:"Ricostruisce la massa persa con l'immobilità (a medio termine è la parte che riduce davvero i dolori). Si aggiunge alla camminata, non la sostituisce: squat dalla sedia (10, senza usare le mani), ponte glutei (8–10), quadrupedia alternata (6 per lato), piegamenti al muro (10), alzate sulle punte (15), plank sulle ginocchia (20 s × 2)."}
+    {t:"A. Sblocco del risveglio", sub:"5 minuti, appena sveglio", dur:5,
+     intro:"I primi esercizi sul letto prima di alzarsi (unica eccezione al «letto solo per dormire»).",
+     items:["Respirazione diaframmatica (5 respiri)","Oscillazione del bacino (10 per lato, ginocchia che cadono di lato ad ampiezza piccola)","Ginocchio al petto (20 s per lato)","Caviglie e polsi (10 giri)","Gatto-cammello (8–10)","Due minuti in piedi camminando (non tornare a letto)"]},
+    {t:"B. Collo e spalle", sub:"5 minuti, dopo la camminata (a muscoli caldi)", dur:5,
+     intro:"Da seduto, schiena appoggiata, sguardo dritto, movimenti lenti mai a fine corsa.",
+     items:["Retrazione del mento (8–10, «doppio mento», l'esercizio chiave contro la postura in avanti)","Inclinazione laterale (20 s per lato)","Trapezio superiore ed elevatore della scapola (20 s per lato)","Circonduzioni scapolari (10+10)","Rotazione controllata (6 per lato, sospendere se compare capogiro)"]},
+    {t:"C. Schiena e anche", sub:"10 minuti, di seguito al blocco B", dur:10,
+     intro:"",
+     items:["Rotazione lombare (30 s per lato, ginocchia unite che cadono di lato, spalle a terra)","Posteriori della coscia con asciugamano (30 s, non a gamba tesa)","Ileopsoas (30 s per lato, l'antidoto alle ore da seduto)","Piriforme/figura 4 (30 s per lato)","Posizione del bambino (30–60 s) a chiudere"]},
+    {t:"D. Rinforzo", sub:"dalla 3ª settimana, tre volte a settimana alle 19:00", dur:15,
+     intro:"Ricostruisce la massa persa con l'immobilità (a medio termine è la parte che riduce davvero i dolori). Si aggiunge alla camminata, non la sostituisce.",
+     items:["Squat dalla sedia (10, senza usare le mani)","Ponte glutei (8–10)","Quadrupedia alternata (6 per lato)","Piegamenti al muro (10)","Alzate sulle punte (15)","Plank sulle ginocchia (20 s × 2)"]}
   ];
-  function renderEserConsigliati(hostId, actionLabel, onPick, withNote){
+  function eserShort(s){ return String(s||"").replace(/\s*\(.*/,"").trim(); }
+  function renderEserConsigliati(hostId, actionLabel, onPick, interactive){
     var host=document.getElementById(hostId); if(!host) return; host.innerHTML="";
     ESERCIZI_CONSIGLIATI.forEach(function(ex){
       var cat=document.createElement("div"); cat.className="food-cat"; cat.style.marginTop="8px";
       var head=document.createElement("button"); head.type="button"; head.className="fc-head";
       head.innerHTML='<span class="ec-h"><span class="ec-t">'+esc(ex.t)+'</span><span class="ec-sub">'+esc(ex.sub)+'</span></span><span class="fc-arrow">›</span>';
       var body=document.createElement("div"); body.className="fc-body"; body.hidden=true;
-      var p=document.createElement("p"); p.className="ec-desc"; p.textContent=ex.d; body.appendChild(p);
+      if(ex.intro){ var pi=document.createElement("p"); pi.className="ec-desc"; pi.style.margin="0 0 6px"; pi.textContent=ex.intro; body.appendChild(pi); }
+      var checks=[];
+      (ex.items||[]).forEach(function(it){
+        if(interactive){ var lab=document.createElement("label"); lab.className="ex-check"; var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=true; var sp=document.createElement("span"); sp.textContent=it; lab.appendChild(cb); lab.appendChild(sp); body.appendChild(lab); checks.push({cb:cb, text:it}); }
+        else { var li=document.createElement("div"); li.className="ec-li"; li.textContent="• "+it; body.appendChild(li); }
+      });
       var noteInp=null;
-      if(withNote){ var f=document.createElement("div"); f.className="field"; f.style.margin="0 0 10px"; var lb=document.createElement("label"); lb.textContent="Nota (facoltativa)"; noteInp=document.createElement("input"); noteInp.type="text"; noteInp.setAttribute("autocomplete","off"); noteInp.placeholder="es. fatto a metà, con un po' di dolore…"; f.appendChild(lb); f.appendChild(noteInp); body.appendChild(f); }
-      var btn=document.createElement("button"); btn.type="button"; btn.className="primary"; btn.textContent=actionLabel; btn.onclick=function(){ onPick(ex, noteInp?(noteInp.value||"").trim():""); };
+      if(interactive){ var f=document.createElement("div"); f.className="field"; f.style.margin="10px 0 10px"; var lb=document.createElement("label"); lb.textContent="Nota per tutto il blocco (facoltativa)"; noteInp=document.createElement("input"); noteInp.type="text"; noteInp.setAttribute("autocomplete","off"); noteInp.placeholder="es. fatto a metà, con un po' di dolore…"; f.appendChild(lb); f.appendChild(noteInp); body.appendChild(f); }
+      var btn=document.createElement("button"); btn.type="button"; btn.className="primary"; btn.textContent=actionLabel;
+      btn.onclick=function(){ var sel = interactive ? checks.filter(function(c){return c.cb.checked;}).map(function(c){return c.text;}) : (ex.items||[]).slice(); onPick(ex, noteInp?(noteInp.value||"").trim():"", sel); };
       body.appendChild(btn);
       head.onclick=function(){ var open=body.hidden; body.hidden=!open; cat.classList.toggle("open", open); };
       cat.appendChild(head); cat.appendChild(body); host.appendChild(cat);
     });
   }
-  renderEserConsigliati("eserConsigliati", "✓ Registra ora (nel diario)", function(ex, nota){ attivLog.push({id:uid(), nome:ex.t, tsEnd:Date.now(), dur:(ex.dur||0)*60000, valore:"", nota:nota||""}); saveAttivLog(); try{ renderAttiv(); }catch(e){} toast("🏃 Registrato: "+ex.t+(nota?" (con nota)":"")); }, true);
+  renderEserConsigliati("eserConsigliati", "✓ Registra i selezionati (nel diario)", function(ex, nota, sel){ if(!sel || !sel.length){ toast("Seleziona almeno un esercizio"); return; } var full=sel.map(eserShort).join(", ")+(nota?" — "+nota:""); attivLog.push({id:uid(), nome:ex.t, tsEnd:Date.now(), dur:(ex.dur||0)*60000, valore:sel.length+"/"+(ex.items?ex.items.length:sel.length), nota:full}); saveAttivLog(); try{ renderAttiv(); }catch(e){} toast("🏃 Registrato: "+ex.t); }, true);
   renderEserConsigliati("progEserConsigliati", "➕ Aggiungi al programma", function(ex){ var slot=null; for(var i=0;i<progEserItems.length;i++){ if(!progEserItems[i].nome){ slot=progEserItems[i]; break; } } if(slot){ slot.nome=ex.t; slot.durataMin=String(ex.dur||""); } else { progEserItems.push({nome:ex.t, durataMin:String(ex.dur||"")}); } try{ renderProgFormItems(); }catch(e){} toast("Aggiunto: "+ex.t); }, false);
   var attivLog=[]; try{ var _alg=JSON.parse(localStorage.getItem("salute-attiv-log")); if(Array.isArray(_alg)) attivLog=_alg; }catch(e){}
   function saveAttivLog(){ try{ localStorage.setItem("salute-attiv-log", JSON.stringify(attivLog)); }catch(e){} }
