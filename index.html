@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 95; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 96; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1470,7 +1470,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v95</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v96</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2887,7 +2887,7 @@
     {t:"C. Schiena e anche", sub:"10 minuti, di seguito al blocco B", dur:10, d:"Rotazione lombare (30 s per lato, ginocchia unite che cadono di lato, spalle a terra), posteriori della coscia con asciugamano (30 s, non a gamba tesa), ileopsoas (30 s per lato, l'antidoto alle ore da seduto), piriforme/figura 4 (30 s per lato), posizione del bambino (30–60 s) a chiudere."},
     {t:"D. Rinforzo", sub:"dalla 3ª settimana, tre volte a settimana alle 19:00", dur:15, d:"Ricostruisce la massa persa con l'immobilità (a medio termine è la parte che riduce davvero i dolori). Si aggiunge alla camminata, non la sostituisce: squat dalla sedia (10, senza usare le mani), ponte glutei (8–10), quadrupedia alternata (6 per lato), piegamenti al muro (10), alzate sulle punte (15), plank sulle ginocchia (20 s × 2)."}
   ];
-  function renderEserConsigliati(hostId, actionLabel, onPick){
+  function renderEserConsigliati(hostId, actionLabel, onPick, withNote){
     var host=document.getElementById(hostId); if(!host) return; host.innerHTML="";
     ESERCIZI_CONSIGLIATI.forEach(function(ex){
       var cat=document.createElement("div"); cat.className="food-cat"; cat.style.marginTop="8px";
@@ -2895,14 +2895,16 @@
       head.innerHTML='<span class="ec-h"><span class="ec-t">'+esc(ex.t)+'</span><span class="ec-sub">'+esc(ex.sub)+'</span></span><span class="fc-arrow">›</span>';
       var body=document.createElement("div"); body.className="fc-body"; body.hidden=true;
       var p=document.createElement("p"); p.className="ec-desc"; p.textContent=ex.d; body.appendChild(p);
-      var btn=document.createElement("button"); btn.type="button"; btn.className="primary"; btn.textContent=actionLabel; btn.onclick=function(){ onPick(ex); };
+      var noteInp=null;
+      if(withNote){ var f=document.createElement("div"); f.className="field"; f.style.margin="0 0 10px"; var lb=document.createElement("label"); lb.textContent="Nota (facoltativa)"; noteInp=document.createElement("input"); noteInp.type="text"; noteInp.setAttribute("autocomplete","off"); noteInp.placeholder="es. fatto a metà, con un po' di dolore…"; f.appendChild(lb); f.appendChild(noteInp); body.appendChild(f); }
+      var btn=document.createElement("button"); btn.type="button"; btn.className="primary"; btn.textContent=actionLabel; btn.onclick=function(){ onPick(ex, noteInp?(noteInp.value||"").trim():""); };
       body.appendChild(btn);
       head.onclick=function(){ var open=body.hidden; body.hidden=!open; cat.classList.toggle("open", open); };
       cat.appendChild(head); cat.appendChild(body); host.appendChild(cat);
     });
   }
-  renderEserConsigliati("eserConsigliati", "✓ Registra ora (nel diario)", function(ex){ attivLog.push({id:uid(), nome:ex.t, tsEnd:Date.now(), dur:(ex.dur||0)*60000, valore:"", nota:""}); saveAttivLog(); try{ renderAttiv(); }catch(e){} toast("🏃 Registrato: "+ex.t); });
-  renderEserConsigliati("progEserConsigliati", "➕ Aggiungi al programma", function(ex){ var slot=null; for(var i=0;i<progEserItems.length;i++){ if(!progEserItems[i].nome){ slot=progEserItems[i]; break; } } if(slot){ slot.nome=ex.t; slot.durataMin=String(ex.dur||""); } else { progEserItems.push({nome:ex.t, durataMin:String(ex.dur||"")}); } try{ renderProgFormItems(); }catch(e){} toast("Aggiunto: "+ex.t); });
+  renderEserConsigliati("eserConsigliati", "✓ Registra ora (nel diario)", function(ex, nota){ attivLog.push({id:uid(), nome:ex.t, tsEnd:Date.now(), dur:(ex.dur||0)*60000, valore:"", nota:nota||""}); saveAttivLog(); try{ renderAttiv(); }catch(e){} toast("🏃 Registrato: "+ex.t+(nota?" (con nota)":"")); }, true);
+  renderEserConsigliati("progEserConsigliati", "➕ Aggiungi al programma", function(ex){ var slot=null; for(var i=0;i<progEserItems.length;i++){ if(!progEserItems[i].nome){ slot=progEserItems[i]; break; } } if(slot){ slot.nome=ex.t; slot.durataMin=String(ex.dur||""); } else { progEserItems.push({nome:ex.t, durataMin:String(ex.dur||"")}); } try{ renderProgFormItems(); }catch(e){} toast("Aggiunto: "+ex.t); }, false);
   var attivLog=[]; try{ var _alg=JSON.parse(localStorage.getItem("salute-attiv-log")); if(Array.isArray(_alg)) attivLog=_alg; }catch(e){}
   function saveAttivLog(){ try{ localStorage.setItem("salute-attiv-log", JSON.stringify(attivLog)); }catch(e){} }
   var attivRunning=null; try{ var _ar=JSON.parse(localStorage.getItem("salute-attiv-run")); if(_ar && _ar.nome) attivRunning=_ar; }catch(e){}
