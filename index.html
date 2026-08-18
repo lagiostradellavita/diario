@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 100; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 101; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1480,7 +1480,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v100</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v101</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2696,22 +2696,36 @@
   var _pc=document.getElementById("psicoChips"); if(_pc) _pc.addEventListener("click", updateSaluteCount);
   var saluteLog=[]; try{ var _sl=JSON.parse(localStorage.getItem("salute-log")); if(Array.isArray(_sl)) saluteLog=_sl; }catch(e){}
   function saveSaluteLog(){ try{ localStorage.setItem("salute-log", JSON.stringify(saluteLog)); }catch(e){} }
+  var saluteDayOpen={}; // dk -> aperto/chiuso (default: oggi aperto, passati chiusi) — come il Diario
   function renderSalute(){
     document.getElementById("saluteDate").textContent=fmtDayLong(new Date());
     try{ renderNoteG(); }catch(e){}
     var host=document.getElementById("saluteList"); host.innerHTML="";
     if(!saluteLog.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Seleziona i fastidi e tocca «Registra adesso».</div>'; return; }
-    var sorted=saluteLog.slice().sort(function(a,b){ return b.ts-a.ts; }), lastDay=null;
-    sorted.forEach(function(x){
-      var d=new Date(x.ts), dk=dayKey(d);
-      if(dk!==lastDay){ lastDay=dk; var h=document.createElement("div"); h.className="day-head"; h.innerHTML='<span class="dname">'+fmtDayLong(d)+'</span>'; host.appendChild(h); }
-      var row=document.createElement("div"); row.className="rowitem";
-      var stxt=(x.voci||[]).join(", "); if(x.dove && x.dove.length){ stxt += (stxt?" · ":"") + "📍 "+x.dove.join(", "); } if(x.nota){ stxt += (stxt?' — ':'') + x.nota; }
-      row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname" style="display:block">'+esc(stxt)+'</span>';
-      row.appendChild(editBtn(function(){ startEditSalute(x); }));
-      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ saluteLog=saluteLog.filter(function(y){return y.id!==x.id;}); if(editingSaluteId===x.id) cancelEditSalute(); saveSaluteLog(); renderSalute(); };
-      row.appendChild(del); host.appendChild(row);
+    var sorted=saluteLog.slice().sort(function(a,b){ return b.ts-a.ts; });
+    var todayK=dayKey(new Date());
+    // Raggruppa per giorno, stessa impaginazione del Diario (a scomparsa + colore malessere + righe timeline)
+    var groups=[], byDay={};
+    sorted.forEach(function(x){ var dk=dayKey(new Date(x.ts)); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(x.ts), items:[]}; groups.push(byDay[dk]); } byDay[dk].items.push(x); });
+    groups.forEach(function(g){
+      var open = (g.dk in saluteDayOpen) ? saluteDayOpen[g.dk] : (g.dk===todayK);
+      var cnt=dayMalessere(g.dk), sc=dayScore(g.dk), ml=malLevel(sc); var iw=cnt?(" · "+INT_LBL[Math.max(1,Math.min(3,Math.round(sc/cnt)))]):"";
+      var h=document.createElement("div"); h.className="day-head day-toggle"+(ml?" mal"+ml:"");
+      h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+(ml?'<span class="dmal">'+MAL_LBL[ml]+' ('+cnt+iw+')</span>':'');
+      var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
+      g.items.forEach(function(x){
+        var d=new Date(x.ts);
+        var stxt=(x.voci||[]).join(", "); if(x.dove && x.dove.length){ stxt += (stxt?" · ":"") + "📍 "+x.dove.join(", "); } if(x.nota){ stxt += (stxt?' — ':'') + x.nota; }
+        var row=document.createElement("div"); row.className="tl-row";
+        row.innerHTML='<span class="tl-time">'+hhmm(d)+'</span><span class="tl-emoji">🤕</span><span class="tl-text"></span>';
+        row.querySelector(".tl-text").textContent=stxt;
+        var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi"); ed.onclick=function(){ startEditSalute(x); };
+        var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina");
+        del.onclick=function(){ saluteLog=saluteLog.filter(function(y){return y.id!==x.id;}); if(editingSaluteId===x.id) cancelEditSalute(); saveSaluteLog(); renderSalute(); };
+        row.appendChild(ed); row.appendChild(del); body.appendChild(row);
+      });
+      h.onclick=function(){ var willOpen=body.hidden; body.hidden=!willOpen; saluteDayOpen[g.dk]=willOpen; var chev=h.querySelector(".dchev"); if(chev) chev.textContent=willOpen?"▾":"▸"; };
+      host.appendChild(h); host.appendChild(body);
     });
   }
   var editingSaluteId=null;
