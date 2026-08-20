@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 116; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 117; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1512,7 +1512,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v116</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v117</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2108,7 +2108,10 @@
         var nm=document.createElement("span"); nm.className="pn"; nm.textContent=p.nome;
         var po=document.createElement("span"); po.className="po"; po.textContent=os.join(" · ");
         r.appendChild(nm); r.appendChild(po);
-        if(doneCount>0){ var bg=document.createElement("span"); bg.className="pil-taken-badge"; bg.textContent=allDone?"✓ presa":("✓ "+doneCount+"/"+os.length); r.appendChild(bg); }
+        if(doneCount>0){ var bg=document.createElement("span"); bg.className="pil-taken-badge";
+          if(allDone){ var _tt=[]; os.forEach(function(o){ var tv=taken[todayDK+"|"+p.id+"|"+o]; if(typeof tv==="number") _tt.push(hhmm(new Date(tv))); }); bg.textContent="✓ presa"+(_tt.length?" "+_tt.join(", "):""); }
+          else { bg.textContent="✓ "+doneCount+"/"+os.length; }
+          r.appendChild(bg); }
         var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina");
         del.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
         del.onclick=function(ev){ ev.stopPropagation(); if(confirm("Eliminare «"+p.nome+"»?")){ defs=defs.filter(function(x){return x.id!==p.id;}); saveDefs(); render(); } };
