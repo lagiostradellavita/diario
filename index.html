@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 103; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 104; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -230,7 +230,8 @@
   .dose .dtime{font-size:14.5px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink-soft);}
   .dose.late:not(.done) .dtime, .dose.late:not(.done) .dname{color:var(--lvl-high);}
   .badge-late{font-size:11px; font-weight:800; color:#fff; background:var(--lvl-high); padding:2px 8px; border-radius:999px;}
-  .taken-at{font-size:12.5px; font-weight:800; color:var(--lvl-low); white-space:nowrap;}
+  .taken-at{font-size:12.5px; font-weight:800; color:var(--lvl-low); white-space:nowrap; appearance:none; border:none; background:transparent; font-family:inherit; padding:0; cursor:pointer;}
+  .taken-edit{font-family:inherit; font-size:12.5px; padding:2px 5px; border:1.5px solid var(--accent); border-radius:8px; background:var(--surface); color:var(--ink);}
 
   /* ---- Report PDF ---- */
   .rep-seg{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;}
@@ -987,7 +988,7 @@
       <div id="pilToday" style="margin-top:12px"></div>
     </section>
     <section class="card">
-      <h2 class="section-title">Le mie medicine</h2>
+      <h2 class="section-title">Le mie pillole</h2>
       <div id="pilList"></div>
       <button class="link-btn" id="pilAddBtn">＋ Aggiungi medicina</button>
       <div class="detail" id="pilForm" hidden>
@@ -1001,6 +1002,10 @@
           <button class="link-btn" id="pilCancel">Annulla</button>
         </div>
       </div>
+    </section>
+    <section class="card">
+      <h2 class="section-title">Storico</h2>
+      <div id="pilStorico"></div>
     </section>
   </section>
 
@@ -1353,7 +1358,7 @@
           <label class="prog-flabel" style="margin-top:6px">Orari (quando prenderla)</label>
           <div id="progPilOrari"></div>
           <button type="button" class="link-btn" id="progPilAddOra" style="text-align:left;padding:6px 2px">＋ aggiungi orario</button>
-          <p class="fineprint" style="margin:6px 0 0">La medicina finisce in «Le mie medicine» e compare qui in «Oggi da fare».</p>
+          <p class="fineprint" style="margin:6px 0 0">La medicina finisce in «Le mie pillole» e compare qui in «Oggi da fare».</p>
         </div>
         <div id="progProm" hidden>
           <label class="prog-flabel">Cosa ricordare</label>
@@ -1483,7 +1488,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v103</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v104</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2028,6 +2033,37 @@
 
   function oraMin(o){ return parseInt(o.slice(0,2),10)*60+parseInt(o.slice(3,5),10); }
 
+  // ---- Storico riutilizzabile: voci raggruppate per giorno, a scomparsa (come in Salute) ----
+  // rows: [{ts, emoji, text, rowClass?, onEdit?(), onDelete?()}]; openState: oggetto dk->aperto/chiuso
+  function renderStorico(hostId, rows, openState, opts){
+    opts=opts||{};
+    var host=document.getElementById(hostId); if(!host) return; host.innerHTML="";
+    if(!rows || !rows.length){ host.innerHTML='<div class="empty">'+(opts.empty||"Ancora niente.")+'</div>'; return; }
+    var sorted=rows.slice().sort(function(a,b){ return b.ts-a.ts; });
+    var todayK=dayKey(new Date());
+    var groups=[], byDay={};
+    sorted.forEach(function(r){ var dk=dayKey(new Date(r.ts)); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(r.ts), items:[]}; groups.push(byDay[dk]); } byDay[dk].items.push(r); });
+    groups.forEach(function(g){
+      var open = (g.dk in openState) ? openState[g.dk] : (g.dk===todayK);
+      var mlClass="", dmalHtml="";
+      if(opts.malessere){ var cnt=dayMalessere(g.dk), sc=dayScore(g.dk), ml=malLevel(sc); if(ml){ mlClass=" mal"+ml; var iw=cnt?(" · "+INT_LBL[Math.max(1,Math.min(3,Math.round(sc/cnt)))]):""; dmalHtml='<span class="dmal">'+MAL_LBL[ml]+' ('+cnt+iw+')</span>'; } }
+      var h=document.createElement("div"); h.className="day-head day-toggle"+mlClass;
+      h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+dmalHtml;
+      if(opts.headExtra){ try{ var ex=opts.headExtra(g); if(ex) h.appendChild(ex); }catch(e){} }
+      var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
+      g.items.forEach(function(r){
+        var row=document.createElement("div"); row.className="tl-row"+(r.rowClass?" "+r.rowClass:"");
+        row.innerHTML='<span class="tl-time">'+hhmm(new Date(r.ts))+'</span><span class="tl-emoji">'+(r.emoji||"")+'</span><span class="tl-text"></span>';
+        row.querySelector(".tl-text").textContent=r.text;
+        if(r.onEdit){ var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi"); (function(rr){ ed.onclick=function(){ rr.onEdit(); }; })(r); row.appendChild(ed); }
+        if(r.onDelete){ var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina"); (function(rr){ del.onclick=function(){ rr.onDelete(); }; })(r); row.appendChild(del); }
+        body.appendChild(row);
+      });
+      h.onclick=function(){ var willOpen=body.hidden; body.hidden=!willOpen; openState[g.dk]=willOpen; var chev=h.querySelector(".dchev"); if(chev) chev.textContent=willOpen?"▾":"▸"; };
+      host.appendChild(h); host.appendChild(body);
+    });
+  }
+
   // ---- Motore «cose da fare a un'ora» (usato da Pillole) ----
   function makeScheduler(cfg){
     var I=cfg.ids, L=cfg.labels;
@@ -2035,6 +2071,7 @@
     var taken={}; try{ var _t=JSON.parse(localStorage.getItem(cfg.takenKey)); if(_t && typeof _t==="object") taken=_t; }catch(e){}
     function saveDefs(){ try{ localStorage.setItem(cfg.defsKey, JSON.stringify(defs)); }catch(e){} }
     function saveTaken(){ try{ localStorage.setItem(cfg.takenKey, JSON.stringify(taken)); }catch(e){} }
+    var storicoOpen={};
     function today(){
       var now=new Date(), dK=dayKey(now), nowMin=now.getHours()*60+now.getMinutes(), doses=[];
       defs.forEach(function(p){ (p.orari||[]).forEach(function(o){
@@ -2051,8 +2088,15 @@
       if(!t.total){ host.innerHTML='<div class="empty">'+L.empty+'</div>'; }
       t.doses.forEach(function(d){
         var row=document.createElement("div"); row.className="dose"+(d.taken?" done":"")+(d.late?" late":"");
-        row.innerHTML='<span class="dcheck">✓</span><span class="dname">'+esc(d.nome)+(d.late?' <span class="badge-late">in ritardo</span>':'')+(d.taken&&d.takenAt?' <span class="taken-at">presa '+hhmm(new Date(d.takenAt))+'</span>':'')+'</span><span class="dtime">'+d.ora+'</span>';
+        row.innerHTML='<span class="dcheck">✓</span><span class="dname">'+esc(d.nome)+(d.late?' <span class="badge-late">in ritardo</span>':'')+(d.taken&&d.takenAt?' <button type="button" class="taken-at">presa '+hhmm(new Date(d.takenAt))+' ✎</button>':'')+'</span><span class="dtime">'+d.ora+'</span>';
         row.querySelector(".dcheck").onclick=function(){ if(taken[d.key]) delete taken[d.key]; else taken[d.key]=Date.now(); saveTaken(); render(); };
+        var ta=row.querySelector(".taken-at");
+        if(ta){ ta.onclick=function(ev){ ev.stopPropagation();
+          var inp=document.createElement("input"); inp.type="time"; inp.className="taken-edit"; inp.value=hhmm(new Date(taken[d.key]||Date.now()));
+          ta.replaceWith(inp); try{ inp.focus(); }catch(e){}
+          var done=false; function commit(){ if(done) return; done=true; var v=inp.value; if(v){ var pp=v.split(":"); var nd=new Date(); nd.setHours(parseInt(pp[0],10)||0, parseInt(pp[1],10)||0, 0, 0); taken[d.key]=+nd; saveTaken(); } render(); }
+          inp.addEventListener("change", commit); inp.addEventListener("blur", function(){ setTimeout(commit,120); });
+        }; }
         host.appendChild(row);
       });
       var s=document.getElementById(I.summary);
@@ -2060,7 +2104,8 @@
       else s.textContent="";
       var list=document.getElementById(I.list); list.innerHTML="";
       var todayDK=dayKey(new Date());
-      defs.forEach(function(p){
+      var listDefs=defs.slice().sort(function(a,b){ var ao=(a.orari&&a.orari.length)?a.orari[0]:"99:99", bo=(b.orari&&b.orari.length)?b.orari[0]:"99:99"; return ao<bo?-1:(ao>bo?1:0); });
+      listDefs.forEach(function(p){
         var os=(p.orari||[]);
         var doneCount=0; os.forEach(function(o){ if(taken[todayDK+"|"+p.id+"|"+o]) doneCount++; });
         var allDone=os.length>0 && doneCount===os.length;
@@ -2085,6 +2130,13 @@
         };
         list.appendChild(r);
       });
+      // Storico: dosi effettivamente prese (con l'ora reale), per giorno, a scomparsa
+      if(document.getElementById(I.storico)){
+        var stRows=[], nmeById={}; defs.forEach(function(p){ nmeById[p.id]=p.nome; });
+        Object.keys(taken).forEach(function(k){ var tv=taken[k]; if(typeof tv!=="number") return; var parts=k.split("|"); var nm=nmeById[parts[1]]||"Pillola", ora=parts[2];
+          stRows.push({ ts:tv, emoji:"💊", text:nm+(ora?" · programmata "+ora:""), onDelete:(function(key){ return function(){ if(confirm("Togliere questa presa dallo storico?")){ delete taken[key]; saveTaken(); render(); } }; })(k) }); });
+        renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora."});
+      }
     }
     function oraRow(val){
       var wrap=document.getElementById(I.orari);
@@ -2119,7 +2171,7 @@
 
   var Pillole=makeScheduler({
     defsKey:"salute-pil-defs", takenKey:"salute-pil-taken", defaultOra:"08:00",
-    ids:{date:"pilDate", summary:"pilSummary", today:"pilToday", list:"pilList", addBtn:"pilAddBtn", form:"pilForm", nome:"pilNome", orari:"pilOrari", addOra:"pilAddOra", save:"pilSave", cancel:"pilCancel"},
+    ids:{date:"pilDate", summary:"pilSummary", today:"pilToday", list:"pilList", storico:"pilStorico", addBtn:"pilAddBtn", form:"pilForm", nome:"pilNome", orari:"pilOrari", addOra:"pilAddOra", save:"pilSave", cancel:"pilCancel"},
     labels:{done:"prese", empty:"Nessuna medicina impostata.<br>Aggiungila qui sotto con i suoi orari.", needName:"Scrivi il nome della medicina", added:"Medicina aggiunta ✓"}
   });
   // ---- helper condivisi ----
@@ -3710,7 +3762,7 @@
       else { nm.textContent=progItemLabel(e.item); chk.onclick=function(){ if(e.done) progUndoItem(e.item); else progDoItem(e.item); }; applyOra=function(){ if(!tm.value) return; progSetTime(e.item, todayAtHHMM(tm.value)); renderProgramma(); }; }
       var del=document.createElement("button"); del.className="prow-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina");
       del.onclick=function(){
-        if(e.kind==="pill"){ if(confirm("Eliminare la medicina «"+e.pill.nome+"»? La togli anche da «Le mie medicine».")){ Pillole.removeDef(e.pill.id); renderProgramma(); } }
+        if(e.kind==="pill"){ if(confirm("Eliminare la medicina «"+e.pill.nome+"»? La togli anche da «Le mie pillole».")){ Pillole.removeDef(e.pill.id); renderProgramma(); } }
         else { if(confirm("Eliminare «"+progItemLabel(e.item).replace(/^\S+\s+/,"")+"» dal programma?")){ programma=programma.filter(function(y){return y.id!==e.item.id;}); if(editingProgId===e.item.id) cancelEditProg(); saveProgramma(); renderProgramma(); } }
       };
       // L'ora non si applica da sola: quando la cambi compare ✓ da toccare per confermare
