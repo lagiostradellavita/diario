@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 107; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 108; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1239,14 +1239,18 @@
       <div id="notaGiornataStorico" style="margin-top:10px"></div>
     </section>
     <section class="card">
-      <h2 class="section-title">⭐ Fastidi maggiori di oggi</h2>
-      <p class="fineprint" style="margin:2px 0 8px">Scegli i fastidi che oggi ti hanno dato più fastidio: compaiono in evidenza in cima alla giornata nello Storico.</p>
-      <div id="maggioriChips" class="chips"></div>
-      <div class="chip-add" style="margin-top:8px">
-        <input type="text" id="maggioriAddInput" placeholder="Aggiungi…">
-        <button type="button" id="maggioriAddBtn">＋</button>
+      <div class="food-cat" id="collapMaggiori">
+        <button type="button" class="fc-head" id="headMaggiori"><span id="lblMaggiori">⭐ Fastidi maggiori di oggi</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyMaggiori" hidden>
+          <p class="fineprint" style="margin:2px 0 8px">Scegli i fastidi che oggi ti hanno dato più fastidio: compaiono in evidenza in cima alla giornata nello Storico.</p>
+          <div id="maggioriChips" class="chips"></div>
+          <div class="chip-add" style="margin-top:8px">
+            <input type="text" id="maggioriAddInput" placeholder="Aggiungi…">
+            <button type="button" id="maggioriAddBtn">＋</button>
+          </div>
+          <div id="maggioriManage" class="chip-manage"></div>
+        </div>
       </div>
-      <div id="maggioriManage" class="chip-manage"></div>
     </section>
     <section class="card">
       <h2 class="section-title">Storico</h2>
@@ -1503,7 +1507,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v107</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v108</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2677,7 +2681,8 @@
   // Fastidi maggiori del giorno: selezione libera a parte, mostrata in cima alla giornata nello Storico
   var fastidiMaggiori={}; try{ var _fm=JSON.parse(localStorage.getItem("salute-fastidi-maggiori")); if(_fm && typeof _fm==="object") fastidiMaggiori=_fm; }catch(e){}
   function saveFastidiMaggiori(){ try{ localStorage.setItem("salute-fastidi-maggiori", JSON.stringify(fastidiMaggiori)); }catch(e){} }
-  function onMaggioriChange(){ var dk=dayKey(new Date()); var s=maggioriG.selected(); if(s.length) fastidiMaggiori[dk]=s; else delete fastidiMaggiori[dk]; saveFastidiMaggiori(); try{ renderSalute(); }catch(e){} }
+  function updateMaggioriCount(){ var lm=document.getElementById("lblMaggiori"); if(!lm) return; var n=maggioriG.selected().length; lm.textContent="⭐ Fastidi maggiori di oggi"+(n?" · "+n+(n===1?" scelto":" scelti"):""); }
+  function onMaggioriChange(){ var dk=dayKey(new Date()); var s=maggioriG.selected(); if(s.length) fastidiMaggiori[dk]=s; else delete fastidiMaggiori[dk]; saveFastidiMaggiori(); updateMaggioriCount(); try{ renderSalute(); }catch(e){} }
   var maggioriG=makeChipGroup("maggioriChips", FASTIDI.concat(PSICO), "salute-maggiori-opts", false, {sortAlpha:true, onChange:onMaggioriChange, manageId:"maggioriManage"});
   wireAdd("maggioriAddInput","maggioriAddBtn", maggioriG);
   function syncMaggiori(){ try{ maggioriG.set(fastidiMaggiori[dayKey(new Date())]||[]); }catch(e){} }
@@ -2730,6 +2735,7 @@
   }
   saluteCollapWire("headFastidi","bodyFastidi","collapFastidi");
   saluteCollapWire("headPsico","bodyPsico","collapPsico");
+  saluteCollapWire("headMaggiori","bodyMaggiori","collapMaggiori");
   saluteCollapWire("headParam","bodyParam","collapParam");
   function updateSaluteCount(){
     var nf=fastidiG.selected().length, np=psicoG.selected().length;
@@ -4225,7 +4231,7 @@
       if(currentMod==="menu") return;
       var i=ORDER.indexOf(currentMod); if(i<0) return;
       var t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
-      if(Math.abs(dx)<70 || Math.abs(dx)<Math.abs(dy)*1.7) return;
+      if(Math.abs(dx)<120 || Math.abs(dy)>90 || Math.abs(dx)<Math.abs(dy)*2.2) return;
       var ni=(dx>0? i+1 : i-1); ni=(ni+ORDER.length)%ORDER.length;
       showMod(ORDER[ni]); try{ window.scrollTo(0,0); }catch(e2){}
     }, {passive:true});
