@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 113; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 114; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -495,10 +495,10 @@
   /* chip selezionabili (fastidi, cibi) */
   .chips{display:flex; flex-wrap:wrap; gap:9px; margin-top:6px;}
   .chips[hidden]{display:none;} /* l'attributo hidden deve vincere su display:flex (scomparsa «Sfoglia tutti») */
-  /* barra suggerimenti nota: fissa appena sopra la tastiera (appesa al body, fuori dallo zoom) */
-  .nota-sug{position:fixed; left:0; right:0; z-index:200; display:flex; flex-wrap:nowrap; gap:8px; align-items:center; padding:9px 12px; background:var(--surface); border-top:1.5px solid var(--line); box-shadow:0 -3px 12px rgba(0,0,0,.15); overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  /* barra suggerimenti nota: fissa appena SOPRA il campo nota (appesa al body, fuori dallo zoom) */
+  .nota-sug{position:fixed; left:0; right:0; z-index:200; display:flex; flex-wrap:nowrap; gap:6px; align-items:center; padding:6px 11px; background:var(--surface); border-top:1px solid var(--line); border-bottom:1px solid var(--line); box-shadow:0 2px 12px rgba(0,0,0,.16); overflow-x:auto; -webkit-overflow-scrolling:touch;}
   .nota-sug[hidden]{display:none;}
-  .nota-sug .nota-sug-chip{flex:0 0 auto; font-size:17px; padding:9px 15px; white-space:nowrap;}
+  .nota-sug .nota-sug-chip{flex:0 0 auto; font-size:13.5px; padding:5px 11px; white-space:nowrap;}
   .chip-sel{appearance:none; cursor:pointer; font-family:inherit; font-size:16px; font-weight:700;
     padding:11px 16px; border-radius:999px; border:1.5px solid var(--line); background:var(--surface-2); color:var(--ink);
     touch-action:manipulation; -webkit-tap-highlight-color:transparent; transition:transform .05s ease;}
@@ -1513,7 +1513,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v113</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v114</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2697,8 +2697,9 @@
     var nt=document.getElementById("saluteNota"); if(!nt) return;
     var box=document.getElementById("saluteNotaSug");
     if(box && box.parentNode!==document.body){ try{ document.body.appendChild(box); }catch(e){} }
-    function positionSug(){ if(!box || box.hidden) return; var vv=window.visualViewport; if(vv){ box.style.top=Math.max(0, Math.round(vv.offsetTop+vv.height-box.offsetHeight))+"px"; box.style.bottom="auto"; } else { box.style.top="auto"; box.style.bottom="0px"; } }
+    function positionSug(){ if(!box || box.hidden) return; var h=box.offsetHeight||42; var r=nt.getBoundingClientRect(); var vv=window.visualViewport; var minTop=(vv?vv.offsetTop:0)+2; var top=r.top-h-4; if(top<minTop) top=minTop; box.style.top=Math.round(top)+"px"; box.style.bottom="auto"; }
     if(window.visualViewport){ try{ window.visualViewport.addEventListener("resize", positionSug); window.visualViewport.addEventListener("scroll", positionSug); }catch(e){} }
+    try{ window.addEventListener("scroll", positionSug, {passive:true}); }catch(e){}
     function reEsc(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
     function fragInfo(){ var pos=(typeof nt.selectionStart==="number")?nt.selectionStart:nt.value.length; var before=nt.value.slice(0,pos); var mm=before.match(/[^\s,.;:!?]*$/); return { frag:(mm?mm[0]:""), pos:pos, before:before }; }
     function hideSug(){ if(box){ box.hidden=true; box.innerHTML=""; } }
