@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 114; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 115; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -495,10 +495,10 @@
   /* chip selezionabili (fastidi, cibi) */
   .chips{display:flex; flex-wrap:wrap; gap:9px; margin-top:6px;}
   .chips[hidden]{display:none;} /* l'attributo hidden deve vincere su display:flex (scomparsa «Sfoglia tutti») */
-  /* barra suggerimenti nota: fissa appena SOPRA il campo nota (appesa al body, fuori dallo zoom) */
-  .nota-sug{position:fixed; left:0; right:0; z-index:200; display:flex; flex-wrap:nowrap; gap:6px; align-items:center; padding:6px 11px; background:var(--surface); border-top:1px solid var(--line); border-bottom:1px solid var(--line); box-shadow:0 2px 12px rgba(0,0,0,.16); overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  /* suggerimenti nota: riga in linea SOPRA il textarea, scorrevole in orizzontale */
+  .nota-sug{display:flex; flex-wrap:nowrap; gap:6px; align-items:center; margin:6px 0 4px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px;}
   .nota-sug[hidden]{display:none;}
-  .nota-sug .nota-sug-chip{flex:0 0 auto; font-size:13.5px; padding:5px 11px; white-space:nowrap;}
+  .nota-sug .nota-sug-chip{flex:0 0 auto; font-size:14px; padding:6px 12px; white-space:nowrap;}
   .chip-sel{appearance:none; cursor:pointer; font-family:inherit; font-size:16px; font-weight:700;
     padding:11px 16px; border-radius:999px; border:1.5px solid var(--line); background:var(--surface-2); color:var(--ink);
     touch-action:manipulation; -webkit-tap-highlight-color:transparent; transition:transform .05s ease;}
@@ -1146,8 +1146,7 @@
           <div id="psicoManage" class="chip-manage"></div>
         </div>
       </div>
-      <div class="field" style="margin-top:14px"><label for="saluteNota">Note e sensazioni</label><textarea id="saluteNota" rows="4" placeholder="Descrivi come ti senti: sensazioni, dove, da quando, cosa lo scatena…"></textarea></div>
-      <div id="saluteNotaSug" class="nota-sug" hidden></div>
+      <div class="field" style="margin-top:14px"><label for="saluteNota">Note e sensazioni</label><div id="saluteNotaSug" class="nota-sug" hidden></div><textarea id="saluteNota" rows="4" placeholder="Descrivi come ti senti: sensazioni, dove, da quando, cosa lo scatena…"></textarea></div>
       <button class="link-btn" id="saluteWhenToggle" style="margin-top:8px">＋ cambia data e ora (invece di adesso)</button>
       <div class="grid2" id="saluteWhen" hidden>
         <div class="field"><label for="saluteData">Data</label><input type="date" id="saluteData"></div>
@@ -1513,7 +1512,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v114</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v115</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2677,7 +2676,7 @@
   renderSonno(); renderNoteG();
 
   // ---- Salute: fastidi fisici + stato psicologico ----
-  var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Nausea","Vomito","Stanchezza","Fiato corto","Tosse","Bruciore di stomaco","Dolori addominali","Dolori muscolari","Spasmi muscolari","Mal di schiena","Dolori articolari","Tensione al collo","Fascicolazioni","Acufene","Nebbia mentale","Palpitazioni","Caviglie gonfie","Sudorazione notturna","Insonnia","Fastidio vescica"];
+  var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Cefalea","Emicrania","Vertigini","Nausea","Vomito","Stanchezza","Debolezza","Malessere","Fiato corto","Dispnea","Tosse","Mal di gola","Difficoltà a deglutire","Naso chiuso","Bruciore di stomaco","Reflusso","Dolori addominali","Gonfiore addominale","Stitichezza","Diarrea","Dolori muscolari","Crampi","Spasmi muscolari","Mal di schiena","Lombalgia","Sciatica","Dolori articolari","Tensione al collo","Torcicollo","Dolore cervicale","Dolore al petto","Fascicolazioni","Formicolii","Intorpidimento","Acufene","Ronzio auricolare","Vista offuscata","Occhi stanchi","Nebbia mentale","Palpitazioni","Tachicardia","Extrasistoli","Caviglie gonfie","Sudorazione","Sudorazione notturna","Prurito","Insonnia","Inappetenza","Fastidio vescica"];
   var PSICO=["Ansia","Stress","Attacco di panico","Tristezza","Umore basso","Depressione","Agitazione","Pensieri ossessivi","Irritabilità"];
   var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts", false, {sortAlpha:true, onChange:onFastidiChange, manageId:"fastidiManage"});
   var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts", false, {manageId:"psicoManage", onChange:onPsicoChange});
@@ -2696,20 +2695,18 @@
   (function(){
     var nt=document.getElementById("saluteNota"); if(!nt) return;
     var box=document.getElementById("saluteNotaSug");
-    if(box && box.parentNode!==document.body){ try{ document.body.appendChild(box); }catch(e){} }
-    function positionSug(){ if(!box || box.hidden) return; var h=box.offsetHeight||42; var r=nt.getBoundingClientRect(); var vv=window.visualViewport; var minTop=(vv?vv.offsetTop:0)+2; var top=r.top-h-4; if(top<minTop) top=minTop; box.style.top=Math.round(top)+"px"; box.style.bottom="auto"; }
-    if(window.visualViewport){ try{ window.visualViewport.addEventListener("resize", positionSug); window.visualViewport.addEventListener("scroll", positionSug); }catch(e){} }
-    try{ window.addEventListener("scroll", positionSug, {passive:true}); }catch(e){}
     function reEsc(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
     function fragInfo(){ var pos=(typeof nt.selectionStart==="number")?nt.selectionStart:nt.value.length; var before=nt.value.slice(0,pos); var mm=before.match(/[^\s,.;:!?]*$/); return { frag:(mm?mm[0]:""), pos:pos, before:before }; }
     function hideSug(){ if(box){ box.hidden=true; box.innerHTML=""; } }
     function pick(term, group){ var fi=fragInfo(); var after=nt.value.slice(fi.pos); var head=fi.before.slice(0, fi.before.length-fi.frag.length)+term; nt.value=head+" "+after; try{ nt.setSelectionRange(head.length+1, head.length+1); }catch(e){} try{ group.selectOne(term); }catch(e){} hideSug(); try{ nt.focus(); }catch(e){} }
+    function addChip(label, term, group){ var b=document.createElement("button"); b.type="button"; b.className="chip-sel nota-sug-chip"; b.textContent=label; (function(t,grp){ var done=false; function go(e){ if(done) return; done=true; if(e&&e.preventDefault) e.preventDefault(); pick(t,grp); } b.addEventListener("pointerdown", go); b.addEventListener("click", go); })(term,group); box.appendChild(b); }
     function updateSug(){
-      if(!box) return; var frag=fragInfo().frag.toLowerCase(); box.innerHTML="";
-      if(frag.length<2){ box.hidden=true; return; }
-      var seen={}, n=0;
-      [fastidiG, psicoG].forEach(function(g){ g.opts().forEach(function(term){ if(n>=8) return; var tl=String(term).toLowerCase(); if(seen[tl]) return; if(g.selected().indexOf(term)>=0) return; if(new RegExp("(^|\\s)"+reEsc(frag)).test(tl)){ seen[tl]=1; n++; var b=document.createElement("button"); b.type="button"; b.className="chip-sel nota-sug-chip"; b.textContent=term; (function(t,grp){ var done=false; function go(e){ if(done) return; done=true; if(e&&e.preventDefault) e.preventDefault(); pick(t,grp); } b.addEventListener("pointerdown", go); b.addEventListener("click", go); })(term,g); box.appendChild(b); } }); });
-      box.hidden=(n===0); if(n>0) positionSug();
+      if(!box) return; var frag=fragInfo().frag, fl=frag.toLowerCase(); box.innerHTML="";
+      if(fl.length<2){ box.hidden=true; return; }
+      var seen={}, n=0, exact=false;
+      [fastidiG, psicoG].forEach(function(g){ g.opts().forEach(function(term){ var tl=String(term).toLowerCase(); if(tl===fl) exact=true; if(n>=6) return; if(seen[tl]) return; if(g.selected().indexOf(term)>=0) return; if(new RegExp("(^|\\s)"+reEsc(fl)).test(tl)){ seen[tl]=1; n++; addChip(term, term, g); } }); });
+      if(fl.length>=3 && !exact){ var cap=frag.charAt(0).toUpperCase()+frag.slice(1); addChip("➕ "+cap, cap, fastidiG); n++; }
+      box.hidden=(n===0);
     }
     function autoSelectFromNote(){ var txt=(nt.value||"").toLowerCase(); if(txt.length<3) return; [fastidiG, psicoG].forEach(function(group){ group.opts().forEach(function(term){ var tl=String(term).toLowerCase().trim(); if(tl.length<3) return; if(group.selected().indexOf(term)>=0) return; try{ var re=new RegExp("(^|[^0-9a-zàèéìòùáéíóúüç])"+reEsc(tl)+"([^0-9a-zàèéìòùáéíóúüç]|$)","i"); if(re.test(txt)) group.selectOne(term); }catch(e){} }); }); }
     nt.addEventListener("input", function(){ autoSelectFromNote(); updateSug(); });
