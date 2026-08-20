@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 111; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 112; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1512,7 +1512,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v111</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v112</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2703,14 +2703,14 @@
       if(!box) return; var frag=fragInfo().frag.toLowerCase(); box.innerHTML="";
       if(frag.length<2){ box.hidden=true; return; }
       var seen={}, n=0;
-      [fastidiG, psicoG].forEach(function(g){ g.opts().forEach(function(term){ if(n>=8) return; var tl=String(term).toLowerCase(); if(seen[tl]) return; if(g.selected().indexOf(term)>=0) return; if(new RegExp("(^|\\s)"+reEsc(frag)).test(tl)){ seen[tl]=1; n++; var b=document.createElement("button"); b.type="button"; b.className="chip-sel nota-sug-chip"; b.textContent=term; (function(t,grp){ b.onclick=function(){ pick(t,grp); }; })(term,g); box.appendChild(b); } }); });
+      [fastidiG, psicoG].forEach(function(g){ g.opts().forEach(function(term){ if(n>=8) return; var tl=String(term).toLowerCase(); if(seen[tl]) return; if(g.selected().indexOf(term)>=0) return; if(new RegExp("(^|\\s)"+reEsc(frag)).test(tl)){ seen[tl]=1; n++; var b=document.createElement("button"); b.type="button"; b.className="chip-sel nota-sug-chip"; b.textContent=term; (function(t,grp){ var done=false; function go(e){ if(done) return; done=true; if(e&&e.preventDefault) e.preventDefault(); pick(t,grp); } b.addEventListener("pointerdown", go); b.addEventListener("click", go); })(term,g); box.appendChild(b); } }); });
       box.hidden=(n===0);
     }
     function autoSelectFromNote(){ var txt=(nt.value||"").toLowerCase(); if(txt.length<3) return; [fastidiG, psicoG].forEach(function(group){ group.opts().forEach(function(term){ var tl=String(term).toLowerCase().trim(); if(tl.length<3) return; if(group.selected().indexOf(term)>=0) return; try{ var re=new RegExp("(^|[^0-9a-zàèéìòùáéíóúüç])"+reEsc(tl)+"([^0-9a-zàèéìòùáéíóúüç]|$)","i"); if(re.test(txt)) group.selectOne(term); }catch(e){} }); }); }
     nt.addEventListener("input", function(){ autoSelectFromNote(); updateSug(); });
     nt.addEventListener("keyup", updateSug);
     nt.addEventListener("click", updateSug);
-    nt.addEventListener("blur", function(){ setTimeout(hideSug, 250); });
+    nt.addEventListener("blur", function(){ setTimeout(hideSug, 350); });
   })();
   wireAdd("doveAddInput","doveAddBtn", doveG);
   // Fastidi fisici: ricerca con suggerimenti + elenco a scomparsa alfabetico + pillole dei selezionati
