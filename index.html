@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 115; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 116; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1512,7 +1512,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v115</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v116</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2798,7 +2798,8 @@
       if(magg.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">⭐</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+magg.join(", "); body.appendChild(mr); }
       g.items.forEach(function(x){
         var d=new Date(x.ts);
-        var stxt=(x.voci||[]).join(", "); if(x.dove && x.dove.length){ stxt += (stxt?" · ":"") + "📍 "+x.dove.join(", "); } if(x.nota){ stxt += (stxt?' — ':'') + x.nota; }
+        var _nl=(x.nota||"").toLowerCase(); var _voci=(x.voci||[]).filter(function(v){ return _nl.indexOf(String(v).toLowerCase())<0; });
+        var stxt=_voci.join(", "); if(x.dove && x.dove.length){ stxt += (stxt?" · ":"") + "📍 "+x.dove.join(", "); } if(x.nota){ stxt += (stxt?' — ':'') + x.nota; }
         var row=document.createElement("div"); row.className="tl-row";
         row.innerHTML='<span class="tl-time">'+hhmm(d)+'</span><span class="tl-emoji">🤕</span><span class="tl-text"></span>';
         row.querySelector(".tl-text").textContent=stxt;
@@ -4119,7 +4120,7 @@
     try{ entries.forEach(function(e){ var t=+new Date(e.ts); if(ok(t)){ ev.push({ts:t, emoji:"🚬", text:(e.q>1?e.q+" ":"")+((TIPI[e.tipo]&&TIPI[e.tipo].label.toLowerCase())||"sigaretta")+(e.nota?" — "+e.nota:""), kind:"fumo", id:e.id}); } }); }catch(e){}
     try{ ciboLog.forEach(function(c){ if(ok(c.ts)){ var prog=(c.nota==="da programma"); var names=(c.items||[]).map(function(x){ return x.nome+(x.qta?" "+x.qta:""); }).join(", "); ev.push({ts:c.ts, emoji:"🍽️", text:names+(c.nota&&!prog?" — "+c.nota:""), kind:"cibo", id:c.id, prog:prog}); } }); }catch(e){}
     try{ attivLog.forEach(function(a){ if(ok(a.tsEnd)){ var prog=(a.nota==="da programma"); ev.push({ts:a.tsEnd, emoji:"🏃", text:a.nome+(a.dur?" "+fmtDur(a.dur):"")+(a.valore?" · "+a.valore:"")+(a.nota&&!prog?" — "+a.nota:""), kind:"attiv", id:a.id, prog:prog}); } }); }catch(e){}
-    try{ saluteLog.forEach(function(s){ if(ok(s.ts)){ var st=(s.voci||[]).join(", "); if(s.dove&&s.dove.length) st+=" · 📍"+s.dove.join(", "); if(s.nota) st+=(st?" — ":"")+s.nota; ev.push({ts:s.ts, emoji:"🤕", text:st, kind:"salute", id:s.id}); } }); }catch(e){}
+    try{ saluteLog.forEach(function(s){ if(ok(s.ts)){ var snl=(s.nota||"").toLowerCase(); var sv=(s.voci||[]).filter(function(v){ return snl.indexOf(String(v).toLowerCase())<0; }); var st=sv.join(", "); if(s.dove&&s.dove.length) st+=(st?" · ":"")+"📍"+s.dove.join(", "); if(s.nota) st+=(st?" — ":"")+s.nota; ev.push({ts:s.ts, emoji:"🤕", text:st, kind:"salute", id:s.id}); } }); }catch(e){}
     try{ var pd=Pillole.data(), tk=pd.taken||{}, nById={}; (pd.defs||[]).forEach(function(d){ nById[d.id]=d.nome; }); Object.keys(tk).forEach(function(k){ var parts=k.split("|"); var tv=tk[k], t=(typeof tv==="number"?tv:null); if(t && ok(t)){ ev.push({ts:t, emoji:"💊", text:(nById[parts[1]]||"Medicina"), kind:"pill", id:k}); } }); }catch(e){}
     try{ diarioEventi.forEach(function(d){ if(ok(d.ts)){ ev.push({ts:d.ts, emoji:"⏰", text:d.testo, kind:"diario", id:d.id}); } }); }catch(e){}
     try{ evac.forEach(function(x){ if(ok(x.ts)){ ev.push({ts:x.ts, emoji:(x.tipo==="feci"?"💩":"💧"), text:evacLabel(x).replace(/^\S+\s+/,""), kind:"evac", id:x.id}); } }); }catch(e){}
