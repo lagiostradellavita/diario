@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 102; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 103; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -766,10 +766,10 @@
     <h2 class="menu-grid-title">Le tue funzioni</h2>
     <div class="menu-grid">
       <button class="menu-card" type="button" data-mod="fumo" style="--mc:#C2410C"><span class="mc-emoji">🚬</span><span class="mc-text"><span class="mc-name">Fumo</span><span class="mc-st" id="st-fumo"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="salute" style="--mc:#E11D48"><span class="mc-emoji">🩺</span><span class="mc-text"><span class="mc-name">Salute</span><span class="mc-st" id="st-salute"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="pillole" style="--mc:#7C3AED"><span class="mc-emoji">💊</span><span class="mc-text"><span class="mc-name">Pillole</span><span class="mc-st" id="st-pillole"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="esercizio" style="--mc:#2563EB"><span class="mc-emoji">🏃</span><span class="mc-text"><span class="mc-name">Attività Fisiche</span><span class="mc-st" id="st-eserc"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="alimentazione" style="--mc:#16A34A"><span class="mc-emoji">🍎</span><span class="mc-text"><span class="mc-name">Alimentazione</span><span class="mc-st" id="st-alim"></span></span><span class="mc-chev">›</span></button>
-      <button class="menu-card" type="button" data-mod="salute" style="--mc:#E11D48"><span class="mc-emoji">🩺</span><span class="mc-text"><span class="mc-name">Salute</span><span class="mc-st" id="st-salute"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="evac" style="--mc:#0D9488"><span class="mc-emoji">🚽</span><span class="mc-text"><span class="mc-name">Evacuazioni</span><span class="mc-st" id="st-evac"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="parametri" style="--mc:#DC2626"><span class="mc-emoji">❤️</span><span class="mc-text"><span class="mc-name">Parametri vitali</span><span class="mc-st" id="st-parametri">pressione · saturazione · battiti</span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="ciclo" style="--mc:#DB2777"><span class="mc-emoji">🌸</span><span class="mc-text"><span class="mc-name">Ciclo</span><span class="mc-st" id="st-ciclo">inizio · fine · previsione</span></span><span class="mc-chev">›</span></button>
@@ -1483,7 +1483,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v102</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v103</p>
 </div>
 
 <div id="reportView" hidden>
