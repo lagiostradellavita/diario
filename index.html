@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 112; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 113; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -495,9 +495,10 @@
   /* chip selezionabili (fastidi, cibi) */
   .chips{display:flex; flex-wrap:wrap; gap:9px; margin-top:6px;}
   .chips[hidden]{display:none;} /* l'attributo hidden deve vincere su display:flex (scomparsa «Sfoglia tutti») */
-  .nota-sug{display:flex; flex-wrap:wrap; gap:7px; margin-top:8px;}
+  /* barra suggerimenti nota: fissa appena sopra la tastiera (appesa al body, fuori dallo zoom) */
+  .nota-sug{position:fixed; left:0; right:0; z-index:200; display:flex; flex-wrap:nowrap; gap:8px; align-items:center; padding:9px 12px; background:var(--surface); border-top:1.5px solid var(--line); box-shadow:0 -3px 12px rgba(0,0,0,.15); overflow-x:auto; -webkit-overflow-scrolling:touch;}
   .nota-sug[hidden]{display:none;}
-  .nota-sug .nota-sug-chip{font-size:14px; padding:7px 12px;}
+  .nota-sug .nota-sug-chip{flex:0 0 auto; font-size:17px; padding:9px 15px; white-space:nowrap;}
   .chip-sel{appearance:none; cursor:pointer; font-family:inherit; font-size:16px; font-weight:700;
     padding:11px 16px; border-radius:999px; border:1.5px solid var(--line); background:var(--surface-2); color:var(--ink);
     touch-action:manipulation; -webkit-tap-highlight-color:transparent; transition:transform .05s ease;}
@@ -1512,7 +1513,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v112</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v113</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2695,6 +2696,9 @@
   (function(){
     var nt=document.getElementById("saluteNota"); if(!nt) return;
     var box=document.getElementById("saluteNotaSug");
+    if(box && box.parentNode!==document.body){ try{ document.body.appendChild(box); }catch(e){} }
+    function positionSug(){ if(!box || box.hidden) return; var vv=window.visualViewport; if(vv){ box.style.top=Math.max(0, Math.round(vv.offsetTop+vv.height-box.offsetHeight))+"px"; box.style.bottom="auto"; } else { box.style.top="auto"; box.style.bottom="0px"; } }
+    if(window.visualViewport){ try{ window.visualViewport.addEventListener("resize", positionSug); window.visualViewport.addEventListener("scroll", positionSug); }catch(e){} }
     function reEsc(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
     function fragInfo(){ var pos=(typeof nt.selectionStart==="number")?nt.selectionStart:nt.value.length; var before=nt.value.slice(0,pos); var mm=before.match(/[^\s,.;:!?]*$/); return { frag:(mm?mm[0]:""), pos:pos, before:before }; }
     function hideSug(){ if(box){ box.hidden=true; box.innerHTML=""; } }
@@ -2704,7 +2708,7 @@
       if(frag.length<2){ box.hidden=true; return; }
       var seen={}, n=0;
       [fastidiG, psicoG].forEach(function(g){ g.opts().forEach(function(term){ if(n>=8) return; var tl=String(term).toLowerCase(); if(seen[tl]) return; if(g.selected().indexOf(term)>=0) return; if(new RegExp("(^|\\s)"+reEsc(frag)).test(tl)){ seen[tl]=1; n++; var b=document.createElement("button"); b.type="button"; b.className="chip-sel nota-sug-chip"; b.textContent=term; (function(t,grp){ var done=false; function go(e){ if(done) return; done=true; if(e&&e.preventDefault) e.preventDefault(); pick(t,grp); } b.addEventListener("pointerdown", go); b.addEventListener("click", go); })(term,g); box.appendChild(b); } }); });
-      box.hidden=(n===0);
+      box.hidden=(n===0); if(n>0) positionSug();
     }
     function autoSelectFromNote(){ var txt=(nt.value||"").toLowerCase(); if(txt.length<3) return; [fastidiG, psicoG].forEach(function(group){ group.opts().forEach(function(term){ var tl=String(term).toLowerCase().trim(); if(tl.length<3) return; if(group.selected().indexOf(term)>=0) return; try{ var re=new RegExp("(^|[^0-9a-zàèéìòùáéíóúüç])"+reEsc(tl)+"([^0-9a-zàèéìòùáéíóúüç]|$)","i"); if(re.test(txt)) group.selectOne(term); }catch(e){} }); }); }
     nt.addEventListener("input", function(){ autoSelectFromNote(); updateSug(); });
