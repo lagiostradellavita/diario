@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 106; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 107; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -420,6 +420,8 @@
   .tl-edit{flex:0 0 auto; appearance:none; border:none; background:var(--surface-2); color:var(--ink-soft); border-radius:8px; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation;}
   .tl-check{flex:0 0 auto; appearance:none; border:2px solid var(--lvl-low); background:transparent; color:var(--lvl-low); border-radius:50%; width:30px; height:30px; font-size:16px; font-weight:800; line-height:1; cursor:pointer; touch-action:manipulation;}
   .tl-row.planned{opacity:.72;}
+  .magg-row{background:color-mix(in srgb, var(--accent) 8%, transparent); border-radius:10px;}
+  .magg-row .tl-text{color:var(--accent); font-weight:800;}
   .tl-row.missed .tl-text{color:var(--lvl-high); font-weight:700;}
   .tl-row.missed .tl-time, .tl-row.missed .tl-emoji{color:var(--lvl-high);}
   .tl-missed-sum{margin:2px 0 8px; padding:8px 11px; border-radius:11px; background:color-mix(in srgb, var(--lvl-high) 10%, var(--surface)); border:1px solid color-mix(in srgb, var(--lvl-high) 30%, var(--line)); color:var(--lvl-high); font-size:13.5px; font-weight:800; overflow-wrap:anywhere;}
@@ -1237,6 +1239,16 @@
       <div id="notaGiornataStorico" style="margin-top:10px"></div>
     </section>
     <section class="card">
+      <h2 class="section-title">⭐ Fastidi maggiori di oggi</h2>
+      <p class="fineprint" style="margin:2px 0 8px">Scegli i fastidi che oggi ti hanno dato più fastidio: compaiono in evidenza in cima alla giornata nello Storico.</p>
+      <div id="maggioriChips" class="chips"></div>
+      <div class="chip-add" style="margin-top:8px">
+        <input type="text" id="maggioriAddInput" placeholder="Aggiungi…">
+        <button type="button" id="maggioriAddBtn">＋</button>
+      </div>
+      <div id="maggioriManage" class="chip-manage"></div>
+    </section>
+    <section class="card">
       <h2 class="section-title">Storico</h2>
       <div id="saluteList"></div>
     </section>
@@ -1491,7 +1503,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v106</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v107</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2662,6 +2674,13 @@
   var doveG=makeChipGroup("doveChips", ["Dx (destro)","Sx (sinistro)","Bilaterale"], "salute-dove-opts", false, {manageId:"doveManage"});
   wireAdd("fastidiAddInput","fastidiAddBtn", fastidiG);
   wireAdd("psicoAddInput","psicoAddBtn", psicoG);
+  // Fastidi maggiori del giorno: selezione libera a parte, mostrata in cima alla giornata nello Storico
+  var fastidiMaggiori={}; try{ var _fm=JSON.parse(localStorage.getItem("salute-fastidi-maggiori")); if(_fm && typeof _fm==="object") fastidiMaggiori=_fm; }catch(e){}
+  function saveFastidiMaggiori(){ try{ localStorage.setItem("salute-fastidi-maggiori", JSON.stringify(fastidiMaggiori)); }catch(e){} }
+  function onMaggioriChange(){ var dk=dayKey(new Date()); var s=maggioriG.selected(); if(s.length) fastidiMaggiori[dk]=s; else delete fastidiMaggiori[dk]; saveFastidiMaggiori(); try{ renderSalute(); }catch(e){} }
+  var maggioriG=makeChipGroup("maggioriChips", FASTIDI.concat(PSICO), "salute-maggiori-opts", false, {sortAlpha:true, onChange:onMaggioriChange, manageId:"maggioriManage"});
+  wireAdd("maggioriAddInput","maggioriAddBtn", maggioriG);
+  function syncMaggiori(){ try{ maggioriG.set(fastidiMaggiori[dayKey(new Date())]||[]); }catch(e){} }
   wireAdd("doveAddInput","doveAddBtn", doveG);
   // Fastidi fisici: ricerca con suggerimenti + elenco a scomparsa alfabetico + pillole dei selezionati
   function updateFastidiDatalist(){
@@ -2726,18 +2745,23 @@
     document.getElementById("saluteDate").textContent=fmtDayLong(new Date());
     try{ renderNoteG(); }catch(e){}
     var host=document.getElementById("saluteList"); host.innerHTML="";
-    if(!saluteLog.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Seleziona i fastidi e tocca «Registra adesso».</div>'; return; }
+    var maggKeys=Object.keys(fastidiMaggiori).filter(function(k){ return (fastidiMaggiori[k]||[]).length; });
+    if(!saluteLog.length && !maggKeys.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Seleziona i fastidi e tocca «Registra adesso».</div>'; return; }
     var sorted=saluteLog.slice().sort(function(a,b){ return b.ts-a.ts; });
     var todayK=dayKey(new Date());
     // Raggruppa per giorno, stessa impaginazione del Diario (a scomparsa + colore malessere + righe timeline)
     var groups=[], byDay={};
     sorted.forEach(function(x){ var dk=dayKey(new Date(x.ts)); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(x.ts), items:[]}; groups.push(byDay[dk]); } byDay[dk].items.push(x); });
+    maggKeys.forEach(function(dk){ if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } });
+    groups.sort(function(a,b){ return b.d-a.d; });
     groups.forEach(function(g){
       var open = (g.dk in saluteDayOpen) ? saluteDayOpen[g.dk] : (g.dk===todayK);
       var cnt=dayMalessere(g.dk), sc=dayScore(g.dk), ml=malLevel(sc); var iw=cnt?(" · "+INT_LBL[Math.max(1,Math.min(3,Math.round(sc/cnt)))]):"";
       var h=document.createElement("div"); h.className="day-head day-toggle"+(ml?" mal"+ml:"");
       h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+(ml?'<span class="dmal">'+MAL_LBL[ml]+' ('+cnt+iw+')</span>':'');
       var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
+      var magg=(fastidiMaggiori[g.dk]||[]);
+      if(magg.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">⭐</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+magg.join(", "); body.appendChild(mr); }
       g.items.forEach(function(x){
         var d=new Date(x.ts);
         var stxt=(x.voci||[]).join(", "); if(x.dove && x.dove.length){ stxt += (stxt?" · ":"") + "📍 "+x.dove.join(", "); } if(x.nota){ stxt += (stxt?' — ':'') + x.nota; }
@@ -4177,7 +4201,7 @@
     else if(m==="pillole") Pillole.render();
     else if(m==="esercizio") renderAttiv();
     else if(m==="alimentazione") renderAlim();
-    else if(m==="salute") renderSalute();
+    else if(m==="salute"){ renderSalute(); try{ syncMaggiori(); }catch(e){} }
     else if(m==="evac") renderEvac();
     else if(m==="fumo") render();
     else if(m==="programma") renderProgramma();
@@ -4190,6 +4214,22 @@
   }
   Array.prototype.forEach.call(document.querySelectorAll(".menu-card"), function(c){ c.onclick=function(){ showMod(c.dataset.mod); }; });
   Array.prototype.forEach.call(document.querySelectorAll("[data-back]"), function(b){ b.onclick=function(){ showMod("menu"); }; });
+  // Scorrimento (swipe) tra le funzioni: dito a destra → funzione successiva, a sinistra → precedente
+  (function(){
+    var ORDER=["diario","programma","fumo","salute","pillole","esercizio","alimentazione","evac","parametri","ciclo","sonno"];
+    var sx=0, sy=0, track=false;
+    function scrollableX(el){ while(el && el.nodeType===1 && el!==document.body){ if(el.scrollWidth>el.clientWidth+6){ var ov=getComputedStyle(el).overflowX; if(ov==="auto"||ov==="scroll") return true; } el=el.parentElement; } return false; }
+    document.addEventListener("touchstart", function(e){ if(e.touches.length!==1){ track=false; return; } var t=e.touches[0]; sx=t.clientX; sy=t.clientY; track=!scrollableX(e.target); }, {passive:true});
+    document.addEventListener("touchend", function(e){
+      if(!track) return; track=false;
+      if(currentMod==="menu") return;
+      var i=ORDER.indexOf(currentMod); if(i<0) return;
+      var t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
+      if(Math.abs(dx)<70 || Math.abs(dx)<Math.abs(dy)*1.7) return;
+      var ni=(dx>0? i+1 : i-1); ni=(ni+ORDER.length)%ORDER.length;
+      showMod(ORDER[ni]); try{ window.scrollTo(0,0); }catch(e2){}
+    }, {passive:true});
+  })();
 
   // Cambio giorno: quando scatta la mezzanotte (app aperta o riaperta), l'agenda passa al nuovo
   // giorno con le caselle vuote. I dati già registrati (spunte→ciboLog/attivLog, progFatti per
