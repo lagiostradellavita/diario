@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 104; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 105; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1051,7 +1051,7 @@
       </div>
     </section>
     <section class="card">
-      <h2 class="section-title">Oggi</h2>
+      <h2 class="section-title">Storico</h2>
       <div id="eserLog"></div>
     </section>
   </section>
@@ -1090,7 +1090,7 @@
       <button class="primary" id="ciboSave" style="margin-top:14px">Registra pasto</button>
     </section>
     <section class="card">
-      <h2 class="section-title">Pasti di oggi</h2>
+      <h2 class="section-title">Storico</h2>
       <div id="ciboLog"></div>
     </section>
   </section>
@@ -1173,6 +1173,7 @@
         <div class="field"><label for="paramData">Data</label><input type="date" id="paramData"></div>
         <div class="field"><label for="paramOra">Ora</label><input type="time" id="paramOra"></div>
       </div>
+      <h2 class="section-title" style="margin:16px 0 0">Storico</h2>
       <div id="parametriStorico" style="margin-top:12px"></div>
         </div>
       </div>
@@ -1224,6 +1225,7 @@
       <p class="fineprint" style="margin:2px 0 0">Le ore vanno scritte a mano: l'import automatico dall'app Salute/Apple Watch non è possibile da web. Lo screenshot resta allegato come promemoria.</p>
       <button class="primary" id="sonnoSave" style="margin-top:12px">Registra sonno</button>
       <div id="sonnoGrafico" style="margin-top:12px"></div>
+      <h2 class="section-title" style="margin:16px 0 0">Storico</h2>
       <div id="sonnoStorico" style="margin-top:4px"></div>
     </section>
     <section class="card" id="noteGiornataCard">
@@ -1488,7 +1490,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v104</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v105</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1729,46 +1731,14 @@
   }
 
   function renderHistory(){
-    var host=document.getElementById("history"); host.innerHTML="";
     var total = entries.reduce(function(s,e){ return s+e.q; },0);
-    document.getElementById("histCount").textContent =
-      entries.length ? num(total)+" in totale" : "";
-
-    if(!entries.length){
-      host.innerHTML='<div class="empty">Ancora niente.<br>Tocca un pulsante qui sopra per iniziare.</div>';
-      return;
-    }
-    var sorted=entries.slice().sort(function(a,b){ return b.ts<a.ts?-1:(b.ts>a.ts?1:0); });
-    var groups={}, keys=[];
-    sorted.forEach(function(e){
-      var k=dayKey(new Date(e.ts));
-      if(!groups[k]){ groups[k]=[]; keys.push(k); }
-      groups[k].push(e);
-    });
-    keys.forEach(function(k){
-      var wrap=document.createElement("div"); wrap.className="day";
-      var tot=groups[k].reduce(function(s,e){ return s+e.q; },0);
-      var head=document.createElement("div"); head.className="day-head";
-      head.innerHTML='<span class="dname">'+relName(k)+'</span>'
-        +'<span class="dtot" style="color:var('+lvlVar(levelOf(tot))+');font-weight:800">'+num(tot)+(tot===1?" sigaretta":" sigarette")+'</span>';
-      wrap.appendChild(head);
-      groups[k].forEach(function(e){
-        var d=new Date(e.ts);
-        var row=document.createElement("div"); row.className="rowitem";
-        var meta=TIPI[e.tipo]||{label:e.tipo,cvar:"--muted"};
-        row.innerHTML=
-          '<span class="time">'+fmtTime(d)+'</span>'
-          +'<span class="tname"><span class="tdot" style="--c:var('+meta.cvar+')"></span>'+meta.label+(e.nota?' <span style="color:var(--muted);font-weight:600">· '+esc(e.nota)+'</span>':'')+'</span>'
-          +'<span class="q">'+num(e.q)+'</span>';
-        var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina");
-        del.innerHTML='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
-        del.onclick=function(){ deleteEntry(e.id); };
-        row.appendChild(editBtn(function(){ startEditFumo(e); }));
-        row.appendChild(del);
-        wrap.appendChild(row);
-      });
-      host.appendChild(wrap);
-    });
+    document.getElementById("histCount").textContent = entries.length ? num(total)+" in totale" : "";
+    var rows=entries.map(function(e){ var meta=TIPI[e.tipo]||{label:e.tipo};
+      return { ts:+new Date(e.ts), q:e.q, emoji:"🚬", text:(e.q>1?num(e.q)+" ":"")+meta.label+(e.nota?" — "+e.nota:""),
+        onEdit:(function(ee){ return function(){ startEditFumo(ee); }; })(e),
+        onDelete:(function(ee){ return function(){ deleteEntry(ee.id); }; })(e) }; });
+    renderStorico("history", rows, storOpen.fumo, {empty:'Ancora niente.<br>Tocca un pulsante qui sopra per iniziare.',
+      headExtra:function(g){ var tot=g.items.reduce(function(s,r){ return s+(r.q||0); },0); var sp=document.createElement("span"); sp.className="dmal"; sp.style.color="var("+lvlVar(levelOf(tot))+")"; sp.textContent=num(tot)+(tot===1?" sigaretta":" sigarette"); return sp; }});
   }
 
   // ---- quick buttons ----
@@ -2053,8 +2023,9 @@
       var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
       g.items.forEach(function(r){
         var row=document.createElement("div"); row.className="tl-row"+(r.rowClass?" "+r.rowClass:"");
-        row.innerHTML='<span class="tl-time">'+hhmm(new Date(r.ts))+'</span><span class="tl-emoji">'+(r.emoji||"")+'</span><span class="tl-text"></span>';
+        row.innerHTML='<span class="tl-time"'+(opts.noTime?' style="display:none"':'')+'>'+hhmm(new Date(r.ts))+'</span><span class="tl-emoji">'+(r.emoji||"")+'</span><span class="tl-text"></span>';
         row.querySelector(".tl-text").textContent=r.text;
+        if(r.onPhoto){ var ph=document.createElement("button"); ph.className="tl-edit"; ph.textContent="📷"; ph.setAttribute("aria-label","Vedi foto"); (function(rr){ ph.onclick=function(){ rr.onPhoto(); }; })(r); row.appendChild(ph); }
         if(r.onEdit){ var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi"); (function(rr){ ed.onclick=function(){ rr.onEdit(); }; })(r); row.appendChild(ed); }
         if(r.onDelete){ var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina"); (function(rr){ del.onclick=function(){ rr.onDelete(); }; })(r); row.appendChild(del); }
         body.appendChild(row);
@@ -2063,6 +2034,8 @@
       host.appendChild(h); host.appendChild(body);
     });
   }
+  // stato aperto/chiuso degli storici, per funzione
+  var storOpen={param:{}, evac:{}, sonno:{}, alim:{}, attiv:{}, fumo:{}};
 
   // ---- Motore «cose da fare a un'ora» (usato da Pillole) ----
   function makeScheduler(cfg){
@@ -2425,19 +2398,11 @@
   function renderAlim(){
     var now=new Date(), dK=dayKey(now);
     document.getElementById("alimDate").textContent=fmtDayLong(now);
-    var host=document.getElementById("ciboLog"); host.innerHTML="";
-    var today=ciboLog.filter(function(x){ return dayKey(new Date(x.ts))===dK; }).sort(function(a,b){ return b.ts-a.ts; });
-    if(!today.length){ host.innerHTML='<div class="empty">Nessun pasto segnato oggi.</div>'; }
-    else today.forEach(function(x){
-      var row=document.createElement("div"); row.className="rowitem";
-      var mtxt=cibiText(x); if(x.nota){ mtxt += (mtxt?' — ':'') + x.nota; }
-      var mk=mealKcal(x);
-      row.innerHTML='<span class="time">'+hhmm(new Date(x.ts))+'</span><span class="tname" style="display:block">'+esc(mtxt)+(mk>0?' <span style="color:var(--muted);font-weight:700">· '+mk+' kcal</span>':'')+'</span>';
-      row.appendChild(editBtn(function(){ startEditMeal(x); }));
-      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ ciboLog=ciboLog.filter(function(y){return y.id!==x.id;}); if(editingMealId===x.id) cancelEditMeal(); saveCiboLog(); renderAlim(); };
-      row.appendChild(del); host.appendChild(row);
-    });
+    var rows=ciboLog.map(function(x){ var mtxt=cibiText(x); if(x.nota){ mtxt += (mtxt?' — ':'') + x.nota; } var mk=mealKcal(x); if(mk>0) mtxt += " · "+mk+" kcal";
+      return { ts:x.ts, emoji:"🍽️", text:mtxt,
+        onEdit:(function(xx){ return function(){ startEditMeal(xx); }; })(x),
+        onDelete:(function(xx){ return function(){ ciboLog=ciboLog.filter(function(y){return y.id!==xx.id;}); if(editingMealId===xx.id) cancelEditMeal(); saveCiboLog(); renderAlim(); }; })(x) }; });
+    renderStorico("ciboLog", rows, storOpen.alim, {empty:"Nessun pasto registrato."});
     try{ renderDieta(); }catch(e){}
   }
   var editingMealId=null;
@@ -2629,19 +2594,12 @@
     var gbox=document.getElementById("sonnoGrafico");
     if(sorted.length){ var series=sorted.slice(-14).map(function(s){ var d=new Date(s.ts); return {lbl:pad2(d.getDate())+"/"+pad2(d.getMonth()+1), val:Math.round((s.ore||0)*10)/10}; }); gbox.innerHTML='<div class="ciclo-chart-box"><div class="cc-cap">Ore di sonno per notte</div>'+svgBars(series,"#6366F1")+'</div>'; }
     else { gbox.innerHTML=""; }
-    var host=document.getElementById("sonnoStorico"); host.innerHTML="";
-    if(!sorted.length){ host.innerHTML='<div class="empty">Nessuna notte registrata.</div>'; return; }
-    sorted.slice().reverse().forEach(function(s){
-      var d=new Date(s.ts), row=document.createElement("div"); row.className="rowitem";
-      var parts=[oreStr(s.ore||0)]; if(s.qualita)parts.push(s.qualita); if(s.nota)parts.push(s.nota);
-      var fotoBtn = s.foto ? ' <button type="button" class="mini-photo" aria-label="Vedi screenshot">📷</button>':'';
-      row.innerHTML='<span class="time">'+pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'</span><span class="tname" style="display:block">'+esc(parts.join(" · "))+'</span>'+fotoBtn;
-      var pB=row.querySelector(".mini-photo"); if(pB){ pB.onclick=function(){ docView(s.foto); }; }
-      row.appendChild(editBtn(function(){ startEditSonno(s); }));
-      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ sonno=sonno.filter(function(y){return y.id!==s.id;}); if(editingSonnoId===s.id) cancelEditSonno(); saveSonno(); renderSonno(); };
-      row.appendChild(del); host.appendChild(row);
-    });
+    var rows=sonno.map(function(s){ var parts=[oreStr(s.ore||0)]; if(s.qualita)parts.push(s.qualita); if(s.nota)parts.push(s.nota);
+      return { ts:s.ts, emoji:"😴", text:parts.join(" · "),
+        onPhoto:(s.foto?(function(f){ return function(){ docView(f); }; })(s.foto):null),
+        onEdit:(function(ss){ return function(){ startEditSonno(ss); }; })(s),
+        onDelete:(function(ss){ return function(){ sonno=sonno.filter(function(y){return y.id!==ss.id;}); if(editingSonnoId===ss.id) cancelEditSonno(); saveSonno(); renderSonno(); }; })(s) }; });
+    renderStorico("sonnoStorico", rows, storOpen.sonno, {noTime:true, empty:"Nessuna notte registrata."});
   }
   var editingSonnoId=null;
   function cancelEditSonno(){ editingSonnoId=null; var b=document.getElementById("sonnoSave"); if(b) b.textContent="Registra sonno"; }
@@ -2857,19 +2815,11 @@
     var last={}; parametri.slice().sort(function(a,b){return a.ts-b.ts;}).forEach(function(x){ last[x.tipo]=x.valore; });
     var sp=[]; if(last.pressione)sp.push("🩸"+last.pressione); if(last.saturazione)sp.push("🫁"+last.saturazione+"%"); if(last.battiti)sp.push("❤️"+last.battiti);
     var sum=document.getElementById("parametriSummary"); sum.textContent=sp.join("  "); sum.style.color="var(--ink-soft)";
-    var host=document.getElementById("parametriStorico"); host.innerHTML="";
-    if(!parametri.length){ host.innerHTML='<div class="empty">Nessun parametro registrato.</div>'; return; }
-    var sorted=parametri.slice().sort(function(a,b){ return b.ts-a.ts; }), lastDay=null;
-    sorted.forEach(function(x){
-      var d=new Date(x.ts), dk=dayKey(d);
-      if(dk!==lastDay){ lastDay=dk; var h=document.createElement("div"); h.className="day-head"; h.innerHTML='<span class="dname">'+fmtDayLong(d)+'</span>'; host.appendChild(h); }
-      var row=document.createElement("div"); row.className="rowitem";
-      row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname" style="display:block">'+(PARAM_LBL[x.tipo]||x.tipo)+' <b>'+esc(String(x.valore))+'</b> '+(PARAM_UNIT[x.tipo]||'')+'</span>';
-      row.appendChild(editBtn(function(){ startEditParam(x); }));
-      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ parametri=parametri.filter(function(y){return y.id!==x.id;}); if(editingParamId===x.id) editingParamCancel(); saveParam(); renderParametri(); };
-      row.appendChild(del); host.appendChild(row);
-    });
+    var pEmo={pressione:"🩸", saturazione:"🫁", battiti:"❤️"}, pNam={pressione:"Pressione", saturazione:"Saturazione", battiti:"Battiti"};
+    var rows=parametri.map(function(x){ return { ts:x.ts, emoji:(pEmo[x.tipo]||"❤️"), text:(pNam[x.tipo]||x.tipo)+" "+String(x.valore)+" "+(PARAM_UNIT[x.tipo]||''),
+      onEdit:(function(xx){ return function(){ startEditParam(xx); }; })(x),
+      onDelete:(function(xx){ return function(){ parametri=parametri.filter(function(y){return y.id!==xx.id;}); if(editingParamId===xx.id) editingParamCancel(); saveParam(); renderParametri(); }; })(x) }; });
+    renderStorico("parametriStorico", rows, storOpen.param, {empty:"Nessun parametro registrato."});
   }
   renderParametri();
 
@@ -2898,24 +2848,10 @@
     document.getElementById("evacDate").textContent=fmtDayLong(new Date());
     var c=evacCounts(), s=document.getElementById("evacSummary");
     s.textContent=c.tot? (c.tot+(c.tot===1?" volta":" volte")+" · 💧"+c.u+" 💩"+c.f) : "0 volte"; s.style.color=c.tot?"var(--ink-soft)":"var(--muted)";
-    var host=document.getElementById("evacList"); host.innerHTML="";
-    if(!evac.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Tocca Urina o Feci quando serve.</div>'; return; }
-    var sorted=evac.slice().sort(function(a,b){ return b.ts-a.ts; }), lastDay=null;
-    sorted.forEach(function(x){
-      var d=new Date(x.ts), dk=dayKey(d);
-      if(dk!==lastDay){ lastDay=dk;
-        var cnt=sorted.filter(function(y){ return dayKey(new Date(y.ts))===dk; }).length;
-        var h=document.createElement("div"); h.className="day-head";
-        h.innerHTML='<span class="dname">'+fmtDayLong(d)+'</span><span class="dtot">'+cnt+(cnt===1?" volta":" volte")+'</span>';
-        host.appendChild(h);
-      }
-      var row=document.createElement("div"); row.className="rowitem";
-      row.innerHTML='<span class="time">'+hhmm(d)+'</span><span class="tname">'+esc(evacLabel(x))+'</span>';
-      row.appendChild(editBtn(function(){ startEditEvac(x); }));
-      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ evac=evac.filter(function(y){return y.id!==x.id;}); if(editingEvacId===x.id) cancelEditEvac(); saveEvac(); renderEvac(); };
-      row.appendChild(del); host.appendChild(row);
-    });
+    var rows=evac.map(function(x){ return { ts:x.ts, emoji:(x.tipo==="feci"?"💩":"💧"), text:evacLabel(x).replace(/^\S+\s+/,""),
+      onEdit:(function(xx){ return function(){ startEditEvac(xx); }; })(x),
+      onDelete:(function(xx){ return function(){ evac=evac.filter(function(y){return y.id!==xx.id;}); if(editingEvacId===xx.id) cancelEditEvac(); saveEvac(); renderEvac(); }; })(x) }; });
+    renderStorico("evacList", rows, storOpen.evac, {empty:'Ancora niente.<br>Tocca Urina o Feci quando serve.'});
   }
   function evacPush(rec){ evac.push(rec); saveEvac(); renderEvac(); toast(EVAC_LBL[rec.tipo]+" registrata ✓"); }
   function evacScrollTo(id){ var c=document.getElementById(id); c.hidden=false; try{ c.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} }
@@ -3050,22 +2986,14 @@
       host.appendChild(row);
     });
     updateEserToProgBtn();
-    var log=document.getElementById("eserLog"); log.innerHTML="";
     var dK=dayKey(new Date());
-    var today=attivLog.filter(function(x){ return dayKey(new Date(x.tsEnd))===dK; }).sort(function(a,b){ return b.tsEnd-a.tsEnd; });
-    if(!today.length){ log.innerHTML='<div class="empty">Nessuna attività registrata oggi.</div>'; }
-    else today.forEach(function(x){
-      var row=document.createElement("div"); row.className="rowitem";
-      var dparts=[]; if(x.dur>0) dparts.push(fmtDur(x.dur)); if(x.valore) dparts.push(esc(x.valore)); if(x.nota) dparts.push(esc(x.nota)); if(!dparts.length) dparts.push(fmtDur(x.dur||0));
-      var detail = dparts.join(' · ');
-      var fotoBtn = x.foto ? ' <button type="button" class="mini-photo" aria-label="Vedi screenshot">📷</button>' : '';
-      row.innerHTML='<span class="time">'+hhmm(new Date(x.tsEnd))+'</span><span class="tname" style="display:block">'+esc(x.nome)+' <span style="color:var(--muted);font-weight:700">· '+detail+'</span>'+fotoBtn+'</span>';
-      var pB=row.querySelector(".mini-photo"); if(pB){ pB.onclick=function(){ docView(x.foto); }; }
-      row.appendChild(editBtn(function(){ startEditAttiv(x); }));
-      var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
-      del.onclick=function(){ attivLog=attivLog.filter(function(y){return y.id!==x.id;}); if(editingAttivId===x.id) cancelEditAttiv(); saveAttivLog(); renderAttiv(); };
-      row.appendChild(del); log.appendChild(row);
-    });
+    var today=attivLog.filter(function(x){ return dayKey(new Date(x.tsEnd))===dK; });
+    var rows=attivLog.map(function(x){ var dparts=[]; if(x.dur>0) dparts.push(fmtDur(x.dur)); if(x.valore) dparts.push(x.valore); if(x.nota) dparts.push(x.nota); if(!dparts.length) dparts.push(fmtDur(x.dur||0));
+      return { ts:x.tsEnd, emoji:"🏃", text:x.nome+" · "+dparts.join(" · "),
+        onPhoto:(x.foto?(function(f){ return function(){ docView(f); }; })(x.foto):null),
+        onEdit:(function(xx){ return function(){ startEditAttiv(xx); }; })(x),
+        onDelete:(function(xx){ return function(){ attivLog=attivLog.filter(function(y){return y.id!==xx.id;}); if(editingAttivId===xx.id) cancelEditAttiv(); saveAttivLog(); renderAttiv(); }; })(x) }; });
+    renderStorico("eserLog", rows, storOpen.attiv, {empty:"Nessuna attività registrata."});
     var es=document.getElementById("eserSummary");
     if(attivRunning){ es.textContent="in corso…"; es.style.color="var(--good)"; }
     else if(today.length){ var tot=0; today.forEach(function(x){tot+=x.dur;}); es.textContent=today.length+" · "+fmtDur(tot); es.style.color="var(--ink-soft)"; }
