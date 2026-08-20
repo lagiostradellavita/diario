@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 110; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 111; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -495,6 +495,9 @@
   /* chip selezionabili (fastidi, cibi) */
   .chips{display:flex; flex-wrap:wrap; gap:9px; margin-top:6px;}
   .chips[hidden]{display:none;} /* l'attributo hidden deve vincere su display:flex (scomparsa «Sfoglia tutti») */
+  .nota-sug{display:flex; flex-wrap:wrap; gap:7px; margin-top:8px;}
+  .nota-sug[hidden]{display:none;}
+  .nota-sug .nota-sug-chip{font-size:14px; padding:7px 12px;}
   .chip-sel{appearance:none; cursor:pointer; font-family:inherit; font-size:16px; font-weight:700;
     padding:11px 16px; border-radius:999px; border:1.5px solid var(--line); background:var(--surface-2); color:var(--ink);
     touch-action:manipulation; -webkit-tap-highlight-color:transparent; transition:transform .05s ease;}
@@ -1143,6 +1146,7 @@
         </div>
       </div>
       <div class="field" style="margin-top:14px"><label for="saluteNota">Note e sensazioni</label><textarea id="saluteNota" rows="4" placeholder="Descrivi come ti senti: sensazioni, dove, da quando, cosa lo scatena…"></textarea></div>
+      <div id="saluteNotaSug" class="nota-sug" hidden></div>
       <button class="link-btn" id="saluteWhenToggle" style="margin-top:8px">＋ cambia data e ora (invece di adesso)</button>
       <div class="grid2" id="saluteWhen" hidden>
         <div class="field"><label for="saluteData">Data</label><input type="date" id="saluteData"></div>
@@ -1508,7 +1512,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v110</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v111</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2687,21 +2691,26 @@
   var maggioriG=makeChipGroup("maggioriChips", FASTIDI.concat(PSICO), "salute-maggiori-opts", false, {sortAlpha:true, onChange:onMaggioriChange, manageId:"maggioriManage"});
   wireAdd("maggioriAddInput","maggioriAddBtn", maggioriG);
   function syncMaggiori(){ try{ maggioriG.set(fastidiMaggiori[dayKey(new Date())]||[]); }catch(e){} }
-  // Riconoscimento nella nota: se scrivi un disturbo già tra quelli suggeriti, lo seleziona da solo
+  // Nota di Salute: suggerimenti mentre scrivi (per prefisso) + selezione automatica dei disturbi scritti per intero
   (function(){
     var nt=document.getElementById("saluteNota"); if(!nt) return;
+    var box=document.getElementById("saluteNotaSug");
     function reEsc(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
-    function autoSelectFromNote(){
-      var txt=(nt.value||"").toLowerCase(); if(txt.length<3) return;
-      [fastidiG, psicoG].forEach(function(group){
-        group.opts().forEach(function(term){
-          var tl=String(term).toLowerCase().trim(); if(tl.length<3) return;
-          if(group.selected().indexOf(term)>=0) return;
-          try{ var re=new RegExp("(^|[^0-9a-zàèéìòùáéíóúüç])"+reEsc(tl)+"([^0-9a-zàèéìòùáéíóúüç]|$)","i"); if(re.test(txt)) group.selectOne(term); }catch(e){}
-        });
-      });
+    function fragInfo(){ var pos=(typeof nt.selectionStart==="number")?nt.selectionStart:nt.value.length; var before=nt.value.slice(0,pos); var mm=before.match(/[^\s,.;:!?]*$/); return { frag:(mm?mm[0]:""), pos:pos, before:before }; }
+    function hideSug(){ if(box){ box.hidden=true; box.innerHTML=""; } }
+    function pick(term, group){ var fi=fragInfo(); var after=nt.value.slice(fi.pos); var head=fi.before.slice(0, fi.before.length-fi.frag.length)+term; nt.value=head+" "+after; try{ nt.setSelectionRange(head.length+1, head.length+1); }catch(e){} try{ group.selectOne(term); }catch(e){} hideSug(); try{ nt.focus(); }catch(e){} }
+    function updateSug(){
+      if(!box) return; var frag=fragInfo().frag.toLowerCase(); box.innerHTML="";
+      if(frag.length<2){ box.hidden=true; return; }
+      var seen={}, n=0;
+      [fastidiG, psicoG].forEach(function(g){ g.opts().forEach(function(term){ if(n>=8) return; var tl=String(term).toLowerCase(); if(seen[tl]) return; if(g.selected().indexOf(term)>=0) return; if(new RegExp("(^|\\s)"+reEsc(frag)).test(tl)){ seen[tl]=1; n++; var b=document.createElement("button"); b.type="button"; b.className="chip-sel nota-sug-chip"; b.textContent=term; (function(t,grp){ b.onclick=function(){ pick(t,grp); }; })(term,g); box.appendChild(b); } }); });
+      box.hidden=(n===0);
     }
-    nt.addEventListener("input", autoSelectFromNote);
+    function autoSelectFromNote(){ var txt=(nt.value||"").toLowerCase(); if(txt.length<3) return; [fastidiG, psicoG].forEach(function(group){ group.opts().forEach(function(term){ var tl=String(term).toLowerCase().trim(); if(tl.length<3) return; if(group.selected().indexOf(term)>=0) return; try{ var re=new RegExp("(^|[^0-9a-zàèéìòùáéíóúüç])"+reEsc(tl)+"([^0-9a-zàèéìòùáéíóúüç]|$)","i"); if(re.test(txt)) group.selectOne(term); }catch(e){} }); }); }
+    nt.addEventListener("input", function(){ autoSelectFromNote(); updateSug(); });
+    nt.addEventListener("keyup", updateSug);
+    nt.addEventListener("click", updateSug);
+    nt.addEventListener("blur", function(){ setTimeout(hideSug, 250); });
   })();
   wireAdd("doveAddInput","doveAddBtn", doveG);
   // Fastidi fisici: ricerca con suggerimenti + elenco a scomparsa alfabetico + pillole dei selezionati
