@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 105; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 106; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -372,6 +372,7 @@
   .pasto-row .pr-nome{font-weight:800; font-size:15.5px; color:var(--ink); flex:0 0 auto;}
   .pasto-row input{flex:1 1 90px; min-width:0; padding:9px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15px;}
   .pasto-row .pr-kcal{flex:0 1 88px; text-align:right;}
+  .pasto-row .pr-ora{flex:0 1 118px; text-align:center;}
   .param-line{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:2px;}
   .param-line input{flex:1 1 60px; min-width:0; text-align:center;}
   .param-line .param-sep{font-weight:850; color:var(--muted); flex:0 0 auto; font-size:20px;}
@@ -1353,7 +1354,7 @@
           <div id="progEserAttivChips" class="chips"></div>
           <div class="prog-flabel" style="margin-top:10px; font-size:12.5px">Oppure scegli un esercizio programmato (tocca il titolo per i dettagli):</div>
           <div id="progEserConsigliati"></div>
-          <div class="field" style="margin-top:6px"><label for="progEserOra">Ora (facoltativa)</label><input type="time" id="progEserOra"></div>
+          <p class="fineprint" style="margin:8px 0 0">Ogni esercizio ha il suo orario (la casella dell'orologio): in «Oggi da fare» compaiono separati, ciascuno alla sua ora.</p>
         </div>
         <div id="progPillole" hidden>
           <div class="field"><label for="progPilNome">Nome medicina</label><input type="text" id="progPilNome" list="dlFarmaci" placeholder="es. Xanax 0,25" autocomplete="off"></div>
@@ -1490,7 +1491,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v105</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v106</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3738,8 +3739,9 @@
       var row=document.createElement("div"); row.className="pasto-row";
       var n=document.createElement("input"); n.type="text"; n.placeholder="esercizio"; n.value=itm.nome||""; n.setAttribute("list","dlSugAttivita"); n.setAttribute("autocomplete","off"); n.oninput=function(){ itm.nome=n.value; };
       var d=document.createElement("input"); d.type="text"; d.className="pr-kcal"; d.placeholder="min"; d.setAttribute("inputmode","numeric"); d.value=itm.durataMin||""; d.oninput=function(){ itm.durataMin=d.value; };
-      var x=document.createElement("button"); x.type="button"; x.className="pr-del"; x.textContent="×"; x.setAttribute("aria-label","Togli"); x.onclick=function(){ progEserItems.splice(i,1); if(!progEserItems.length) progEserItems=[{nome:"",durataMin:""}]; renderProgFormItems(); };
-      row.appendChild(n); row.appendChild(d); row.appendChild(x); eh.appendChild(row);
+      var t=document.createElement("input"); t.type="time"; t.className="pr-ora"; t.value=itm.ora||""; t.setAttribute("aria-label","Ora di questo esercizio"); t.onchange=function(){ itm.ora=t.value; };
+      var x=document.createElement("button"); x.type="button"; x.className="pr-del"; x.textContent="×"; x.setAttribute("aria-label","Togli"); x.onclick=function(){ progEserItems.splice(i,1); if(!progEserItems.length) progEserItems=[{nome:"",durataMin:"",ora:""}]; renderProgFormItems(); };
+      row.appendChild(n); row.appendChild(d); row.appendChild(t); row.appendChild(x); eh.appendChild(row);
     }); }
   }
   var _ppa=document.getElementById("progPastoAdd"); if(_ppa) _ppa.onclick=function(){ progPastoItems.push({nome:"",qta:""}); renderProgFormItems(); };
@@ -3770,10 +3772,18 @@
     editingProgId=it.id; progGiorniSel={}; (it.giorni||[]).forEach(function(d){ progGiorniSel[d]=true; });
     progShowTipo(it.tipo); progShowRipeti(it.ripeti||"ogni"); document.getElementById("progGiornoMese").value=it.giornoMese||""; document.getElementById("progGiornoData").value=it.data||""; document.getElementById("progGiornoDa").value=it.dataDa||""; document.getElementById("progGiornoA").value=it.dataA||"";
     if(it.tipo==="pasto"){ progPastoItems=progItems(it).map(function(x){ return {nome:x.nome||"", qta:x.qta||""}; }); if(!progPastoItems.length) progPastoItems=[{nome:"",qta:""}]; document.getElementById("progPastoOra").value=it.ora||""; renderProgFormItems(); }
-    else if(it.tipo==="eser"){ progEserItems=progItems(it).map(function(x){ return {nome:x.nome||"", durataMin:x.durataMin||""}; }); if(!progEserItems.length) progEserItems=[{nome:"",durataMin:""}]; document.getElementById("progEserOra").value=it.ora||""; renderProgFormItems(); }
+    else if(it.tipo==="eser"){ progEserItems=progItems(it).map(function(x){ return {nome:x.nome||"", durataMin:x.durataMin||"", ora:(x.ora||it.ora||"")}; }); if(!progEserItems.length) progEserItems=[{nome:"",durataMin:"",ora:""}]; renderProgFormItems(); }
     else if(it.tipo==="promemoria"){ progPromSub=it.sub||"pressione"; Array.prototype.forEach.call(document.querySelectorAll("#progPromSeg button"), function(b){ b.className=(b.dataset.p===progPromSub)?"on":""; }); document.getElementById("progPromOra").value=it.ora||""; }
     document.getElementById("progSave").textContent="Salva modifiche";
     document.getElementById("progForm").hidden=false; scrollToEl(document.getElementById("progForm"));
+  }
+  function applyRipeti(rec){
+    rec.ripeti=progRipeti;
+    if(progRipeti==="sett"){ rec.giorni=Object.keys(progGiorniSel).map(function(k){return parseInt(k,10);}); if(!rec.giorni.length){ toast("Scegli almeno un giorno"); return false; } }
+    if(progRipeti==="mese"){ rec.giornoMese=(document.getElementById("progGiornoMese").value||"").replace(/[^\d]/g,""); if(!rec.giornoMese){ toast("Scrivi il giorno del mese"); return false; } }
+    if(progRipeti==="data"){ rec.data=document.getElementById("progGiornoData").value||""; if(!rec.data){ toast("Scegli una data"); return false; } }
+    if(progRipeti==="range"){ rec.dataDa=document.getElementById("progGiornoDa").value||""; rec.dataA=document.getElementById("progGiornoA").value||""; if(!rec.dataDa||!rec.dataA){ toast("Scegli le due date (da… a…)"); return false; } if(rec.dataA<rec.dataDa){ toast("«Al giorno» è prima di «Dal giorno»"); return false; } }
+    return true;
   }
   document.getElementById("progSave").onclick=function(){
     if(progTipo==="pillole"){
@@ -3784,11 +3794,26 @@
       Pillole.addDef(pnome, por); toast("Medicina aggiunta ✓");
       document.getElementById("progForm").hidden=true; cancelEditProg(); renderProgramma(); return;
     }
+    // ESERCIZI: un orario per ogni esercizio → una voce di programma per esercizio (compaiono separati in agenda)
+    if(progTipo==="eser"){
+      var eit=progEserItems.map(function(x){ return {nome:(x.nome||"").trim(), durataMin:(x.durataMin||"").replace(/[^\d]/g,""), ora:(x.ora||"").trim()}; }).filter(function(x){ return x.nome; });
+      if(!eit.length){ toast("Aggiungi almeno un esercizio"); return; }
+      var tmpl={tipo:"eser"}; if(!applyRipeti(tmpl)) return;
+      var firstDone=false;
+      eit.forEach(function(x){
+        var r=JSON.parse(JSON.stringify(tmpl)); r.items=[{nome:x.nome, durataMin:x.durataMin}]; r.ora=x.ora||"";
+        if(!firstDone && editingProgId){ var _o=null; programma.forEach(function(y){ if(y.id===editingProgId) _o=y; }); if(_o&&_o.createdTs) r.createdTs=_o.createdTs; r.id=editingProgId; programma=programma.map(function(y){ return y.id===editingProgId?r:y; }); }
+        else { r.id=uid(); r.createdTs=Date.now(); programma.push(r); }
+        firstDone=true;
+      });
+      if(editingProgId) cancelEditProg();
+      toast(eit.length>1? (eit.length+" esercizi nel programma ✓") : "Aggiunto al programma ✓");
+      saveProgramma(); document.getElementById("progForm").hidden=true; renderProgramma(); return;
+    }
     var rec;
     if(progTipo==="pasto"){ var pit=progPastoItems.map(function(x){ return {nome:(x.nome||"").trim(), qta:(x.qta||"").trim()}; }).filter(function(x){ return x.nome; }); if(!pit.length){ toast("Aggiungi almeno un alimento"); return; } rec={tipo:"pasto", items:pit, ora:document.getElementById("progPastoOra").value||""}; }
-    else if(progTipo==="eser"){ var eit=progEserItems.map(function(x){ return {nome:(x.nome||"").trim(), durataMin:(x.durataMin||"").replace(/[^\d]/g,"")}; }).filter(function(x){ return x.nome; }); if(!eit.length){ toast("Aggiungi almeno un esercizio"); return; } rec={tipo:"eser", items:eit, ora:document.getElementById("progEserOra").value||""}; }
     else if(progTipo==="promemoria"){ rec={tipo:"promemoria", sub:progPromSub, ora:document.getElementById("progPromOra").value||""}; }
-    if(progTipo!=="fumo"){ rec.ripeti=progRipeti; if(progRipeti==="sett"){ rec.giorni=Object.keys(progGiorniSel).map(function(k){return parseInt(k,10);}); if(!rec.giorni.length){ toast("Scegli almeno un giorno"); return; } } if(progRipeti==="mese"){ rec.giornoMese=(document.getElementById("progGiornoMese").value||"").replace(/[^\d]/g,""); if(!rec.giornoMese){ toast("Scrivi il giorno del mese"); return; } } if(progRipeti==="data"){ rec.data=document.getElementById("progGiornoData").value||""; if(!rec.data){ toast("Scegli una data"); return; } } if(progRipeti==="range"){ rec.dataDa=document.getElementById("progGiornoDa").value||""; rec.dataA=document.getElementById("progGiornoA").value||""; if(!rec.dataDa||!rec.dataA){ toast("Scegli le due date (da… a…)"); return; } if(rec.dataA<rec.dataDa){ toast("«Al giorno» è prima di «Dal giorno»"); return; } } }
+    if(!applyRipeti(rec)) return;
     if(editingProgId){ var _old=null; programma.forEach(function(y){ if(y.id===editingProgId) _old=y; }); if(_old&&_old.createdTs) rec.createdTs=_old.createdTs; rec.id=editingProgId; programma=programma.map(function(y){ return y.id===editingProgId?rec:y; }); cancelEditProg(); toast("Modifica salvata ✓"); }
     else { rec.id=uid(); rec.createdTs=Date.now(); programma.push(rec); toast("Aggiunto al programma ✓"); }
     saveProgramma(); document.getElementById("progForm").hidden=true; renderProgramma();
