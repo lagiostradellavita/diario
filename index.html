@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 108; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 109; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -192,6 +192,7 @@
   .menu-card .mc-name{font-size:20px; font-weight:850; color:var(--mc); letter-spacing:-.01em; line-height:1.12;}
   .menu-card .mc-st{font-size:17px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; line-height:1.1;}
   .menu-card .mc-chev{flex:none; color:color-mix(in srgb, var(--mc) 55%, var(--muted)); font-size:27px; font-weight:700; line-height:1;}
+  .menu-card .mc-badge{flex:none; min-width:27px; height:27px; padding:0 8px; border-radius:999px; background:#FF3B30; color:#fff; font-weight:800; font-size:15px; line-height:1; display:inline-flex; align-items:center; justify-content:center; margin-right:3px; box-shadow:0 1px 3px rgba(0,0,0,.22);}
 
   /* suggerimenti "cosa vuoi fare adesso" */
   .sugg-title{margin:0 0 14px; font-size:19px; font-weight:850; letter-spacing:-.01em; color:var(--ink);}
@@ -1507,7 +1508,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v108</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v109</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3505,6 +3506,12 @@
   });
 
   // ---- Menu (home) + navigazione ----
+  function setCardBadge(mod, n){
+    var card=document.querySelector('.menu-card[data-mod="'+mod+'"]'); if(!card) return;
+    var b=card.querySelector(".mc-badge");
+    if(n>0){ if(!b){ b=document.createElement("span"); b.className="mc-badge"; b.setAttribute("aria-label","da fare"); card.insertBefore(b, card.querySelector(".mc-chev")); } b.textContent=n; }
+    else if(b){ b.parentNode.removeChild(b); }
+  }
   function renderMenu(){
     var now=new Date(), dK=dayKey(now);
     document.getElementById("menuDate").textContent=fmtDayLong(now);
@@ -3527,7 +3534,8 @@
     else { ss.textContent="come ti senti?"; ss.style.color="var(--muted)"; }
     var ec=evacCounts(), se2=document.getElementById("st-evac");
     se2.textContent=ec.tot?("💧"+ec.u+" 💩"+ec.f):"0 oggi"; se2.style.color=ec.tot?"var(--ink-soft)":"var(--muted)";
-    try{ var ps=progTodayStatus(), sp2=document.getElementById("st-prog"); if(sp2){ if(ps.total){ sp2.textContent=ps.done+"/"+ps.total+" fatte oggi"; sp2.style.color=(ps.done>=ps.total)?"var(--lvl-low)":"var(--ink-soft)"; } else { sp2.textContent="pianifica la giornata"; sp2.style.color="var(--muted)"; } } }catch(e){}
+    try{ var ps=progTodayStatus(), sp2=document.getElementById("st-prog"); if(sp2){ if(ps.total){ sp2.textContent=ps.done+"/"+ps.total+" fatte oggi"; sp2.style.color=(ps.done>=ps.total)?"var(--lvl-low)":"var(--ink-soft)"; } else { sp2.textContent="pianifica la giornata"; sp2.style.color="var(--muted)"; } } setCardBadge("programma", Math.max(0,(ps.total||0)-(ps.done||0))); }catch(e){}
+    try{ var _pt=Pillole.today(); setCardBadge("pillole", Math.max(0,(_pt.total||0)-(_pt.taken||0))); }catch(e){}
     try{ var sd=document.getElementById("st-diario"); if(sd){ var nd=collectDiarioEvents(false).filter(function(x){return !x.planned;}).length; if(nd){ sd.textContent=nd+(nd===1?" voce oggi":" voci oggi"); sd.style.color="var(--ink-soft)"; } else { sd.textContent="scrivi la giornata"; sd.style.color="var(--muted)"; } } }catch(e){}
     var _sp=document.getElementById("suggPanel"), _st=document.getElementById("suggToggle");
     if(_sp) _sp.hidden=true; if(_st) _st.hidden=false;
