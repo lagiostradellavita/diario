@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 120; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 121; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -414,6 +414,8 @@
   #diarioTipoSeg button, #diarioSigTipo button{font-size:14px; padding:11px 2px;}
   .tl-row{display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--line);}
   .tl-time{flex:0 0 auto; font-size:14px; font-weight:800; color:var(--ink-soft); font-variant-numeric:tabular-nums; min-width:46px; padding-top:2px;}
+  .tl-time.tl-time-ed{cursor:pointer; text-decoration:underline dotted; text-underline-offset:3px; text-decoration-color:var(--accent);}
+  .tl-row input.tl-time-edit{flex:1 1 auto; font-family:inherit; font-size:14px; line-height:1.2; padding:4px 8px; min-height:0; height:auto; border:1.5px solid var(--accent); border-radius:8px; background:var(--surface); color:var(--ink); min-width:0; max-width:100%;}
   .tl-emoji{flex:0 0 auto; font-size:18px; line-height:1.25;}
   .tl-text{flex:1 1 auto; min-width:0; font-size:15.5px; font-weight:600; color:var(--ink); overflow-wrap:anywhere;}
   .tl-text.expandable{cursor:pointer; text-decoration:underline dotted; text-underline-offset:3px; text-decoration-color:var(--muted);}
@@ -1542,7 +1544,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v120</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v121</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2077,6 +2079,7 @@
         var row=document.createElement("div"); row.className="tl-row"+(r.rowClass?" "+r.rowClass:"");
         row.innerHTML='<span class="tl-time"'+(opts.noTime?' style="display:none"':'')+'>'+hhmm(new Date(r.ts))+'</span><span class="tl-emoji">'+(r.emoji||"")+'</span><span class="tl-text"></span>';
         row.querySelector(".tl-text").textContent=r.text;
+        if(r.onTimeEdit){ (function(rr){ var tEl=row.querySelector(".tl-time"); if(tEl){ tEl.classList.add("tl-time-ed"); tEl.setAttribute("title","Tocca per correggere l'ora"); tEl.onclick=function(){ var inp=document.createElement("input"); inp.type="time"; inp.className="tl-time-edit"; inp.value=hhmm(new Date(rr.ts)); Array.prototype.forEach.call(row.children,function(c){ if(c!==tEl) c.style.display="none"; }); tEl.replaceWith(inp); try{ inp.focus(); }catch(e){} var done=false; function commit(){ if(done) return; done=true; rr.onTimeEdit(inp.value||null); } inp.addEventListener("change", commit); inp.addEventListener("blur", function(){ setTimeout(commit,150); }); }; } })(r); }
         if(r.onPhoto){ var ph=document.createElement("button"); ph.className="tl-edit"; ph.textContent="📷"; ph.setAttribute("aria-label","Vedi foto"); (function(rr){ ph.onclick=function(){ rr.onPhoto(); }; })(r); row.appendChild(ph); }
         if(r.onEdit){ var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi"); (function(rr){ ed.onclick=function(){ rr.onEdit(); }; })(r); row.appendChild(ed); }
         if(r.onDelete){ var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina"); (function(rr){ del.onclick=function(){ rr.onDelete(); }; })(r); row.appendChild(del); }
@@ -4175,6 +4178,7 @@
     var q=document.getElementById("sessoQuick");
     if(q){ q.innerHTML=""; SESSO_ORDER.forEach(function(t){ var b=document.createElement("button"); b.className="qbtn"; b.type="button"; b.style.setProperty("--c", SESSO_TIPI[t].c); b.innerHTML='<span class="qlab">'+SESSO_TIPI[t].label+'</span><span class="qadd">+1 · oggi '+(cnt[t]||0)+'</span>'; b.onclick=function(){ sessoAdd(t); }; q.appendChild(b); }); }
     var rows=sessoLog.map(function(x){ return { ts:x.ts, emoji:"🛏️", text:(SESSO_TIPI[x.tipo]?SESSO_TIPI[x.tipo].label:x.tipo)+(x.nota?" — "+x.nota:""),
+      onTimeEdit:(function(xx){ return function(v){ if(v){ var p=String(v).split(":"); var d=new Date(xx.ts); d.setHours(parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0, 0); xx.ts=+d; saveSessoLog(); } renderSesso(); }; })(x),
       onDelete:(function(xx){ return function(){ sessoLog=sessoLog.filter(function(y){return y.id!==xx.id;}); saveSessoLog(); renderSesso(); }; })(x) }; });
     renderStorico("sessoStorico", rows, sessoStorOpen, {empty:"Ancora niente. Usa i pulsanti qui sopra."});
   }
