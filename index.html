@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 118; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 119; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -427,6 +427,7 @@
   .tl-row.missed .tl-time, .tl-row.missed .tl-emoji{color:var(--lvl-high);}
   .tl-missed-sum{margin:2px 0 8px; padding:8px 11px; border-radius:11px; background:color-mix(in srgb, var(--lvl-high) 10%, var(--surface)); border:1px solid color-mix(in srgb, var(--lvl-high) 30%, var(--line)); color:var(--lvl-high); font-size:13.5px; font-weight:800; overflow-wrap:anywhere;}
   #cicloNote, #notaGiornata, #dietaPiano, #saluteNota, #raccontoTxt{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
+  #saluteNota{font-size:18px; line-height:1.45;}
   #raccontoTxt{min-height:150px; font-size:16px; line-height:1.5;}
   #raccontoReco{border-top:1px dashed var(--line); padding-top:12px;}
   .reco-sec{margin:0 0 14px;}
@@ -476,6 +477,7 @@
   .field{display:flex; flex-direction:column; gap:7px;}
   .field > label{font-size:14px; font-weight:700; color:var(--ink-soft);
     letter-spacing:.01em;}
+  .field > label.nota-label{font-size:18.5px; font-weight:800; color:var(--accent); letter-spacing:0;}
   .grid2{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;}
   input[type=date],input[type=time],input[type=text],input[type=number]{font-family:inherit; font-size:16px;
     color:var(--ink); background:var(--surface-2); border:1px solid var(--line); box-sizing:border-box;
@@ -496,7 +498,7 @@
   .chips{display:flex; flex-wrap:wrap; gap:9px; margin-top:6px;}
   .chips[hidden]{display:none;} /* l'attributo hidden deve vincere su display:flex (scomparsa «Sfoglia tutti») */
   /* suggerimenti nota: riga in linea SOPRA il textarea, scorrevole in orizzontale */
-  .nota-sug{display:flex; flex-wrap:nowrap; gap:6px; align-items:center; margin:6px 0 4px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px;}
+  .nota-sug{display:flex; flex-wrap:wrap; gap:6px 7px; margin:6px 0 6px;}
   .nota-sug[hidden]{display:none;}
   .nota-sug .nota-sug-chip{flex:0 0 auto; font-size:14px; padding:6px 12px; white-space:nowrap;}
   .chip-sel{appearance:none; cursor:pointer; font-family:inherit; font-size:16px; font-weight:700;
@@ -1149,7 +1151,7 @@
           <div id="psicoManage" class="chip-manage"></div>
         </div>
       </div>
-      <div class="field" style="margin-top:14px"><label for="saluteNota">Note e sensazioni</label><div id="saluteNotaSug" class="nota-sug" hidden></div><textarea id="saluteNota" rows="4" placeholder="Descrivi come ti senti: sensazioni, dove, da quando, cosa lo scatena…"></textarea></div>
+      <div class="field" style="margin-top:14px"><label for="saluteNota" class="nota-label">📝 Note e sensazioni</label><div id="saluteNotaSug" class="nota-sug" hidden></div><textarea id="saluteNota" rows="4" placeholder="Descrivi come ti senti: sensazioni, dove, da quando, cosa lo scatena…"></textarea></div>
       <button class="link-btn" id="saluteWhenToggle" style="margin-top:8px">＋ cambia data e ora (invece di adesso)</button>
       <div class="grid2" id="saluteWhen" hidden>
         <div class="field"><label for="saluteData">Data</label><input type="date" id="saluteData"></div>
@@ -1515,7 +1517,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v118</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v119</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2715,7 +2717,7 @@
       if(!box) return; var frag=fragInfo().frag, fl=frag.toLowerCase(); box.innerHTML="";
       if(fl.length<2){ box.hidden=true; return; }
       var seen={}, n=0, exact=false;
-      [fastidiG, psicoG].forEach(function(g){ g.opts().forEach(function(term){ var tl=String(term).toLowerCase(); if(tl===fl) exact=true; if(n>=6) return; if(seen[tl]) return; if(g.selected().indexOf(term)>=0) return; if(new RegExp("(^|\\s)"+reEsc(fl)).test(tl)){ seen[tl]=1; n++; addChip(term, term, g); } }); });
+      [fastidiG, psicoG].forEach(function(g){ g.opts().forEach(function(term){ var tl=String(term).toLowerCase(); if(tl===fl) exact=true; if(n>=5) return; if(seen[tl]) return; if(g.selected().indexOf(term)>=0) return; if(new RegExp("(^|\\s)"+reEsc(fl)).test(tl)){ seen[tl]=1; n++; addChip(term, term, g); } }); });
       if(fl.length>=3 && !exact){ var cap=frag.charAt(0).toUpperCase()+frag.slice(1); addChip("➕ "+cap, cap, fastidiG); n++; }
       box.hidden=(n===0);
     }
