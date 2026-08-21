@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 117; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 118; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -624,6 +624,9 @@
   .day-head.mal1{background:color-mix(in srgb, var(--lvl-yellow) 16%, transparent);}
   .day-head.mal2{background:color-mix(in srgb, var(--lvl-mid) 15%, transparent);}
   .day-head.mal3{background:color-mix(in srgb, var(--lvl-high) 18%, transparent);}
+  .day-head.done-ok, .day-head.done-miss{border-bottom:none; border-radius:9px; padding:5px 10px 6px;}
+  .day-head.done-ok{background:color-mix(in srgb, var(--lvl-low) 15%, transparent);}
+  .day-head.done-miss{background:color-mix(in srgb, var(--lvl-high) 15%, transparent);}
   .day-head .dmal{font-size:12.5px; font-weight:800; white-space:nowrap;}
   .day-head.mal1 .dmal{color:var(--lvl-yellow);}
   .day-head.mal2 .dmal{color:var(--lvl-mid);}
@@ -1512,7 +1515,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v117</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v118</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2039,7 +2042,7 @@
       var open = (g.dk in openState) ? openState[g.dk] : (g.dk===todayK);
       var mlClass="", dmalHtml="";
       if(opts.malessere){ var cnt=dayMalessere(g.dk), sc=dayScore(g.dk), ml=malLevel(sc); if(ml){ mlClass=" mal"+ml; var iw=cnt?(" · "+INT_LBL[Math.max(1,Math.min(3,Math.round(sc/cnt)))]):""; dmalHtml='<span class="dmal">'+MAL_LBL[ml]+' ('+cnt+iw+')</span>'; } }
-      var h=document.createElement("div"); h.className="day-head day-toggle"+mlClass;
+      var h=document.createElement("div"); h.className="day-head day-toggle"+mlClass+(opts.dayClass?" "+(opts.dayClass(g)||""):"");
       h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+dmalHtml;
       if(opts.headExtra){ try{ var ex=opts.headExtra(g); if(ex) h.appendChild(ex); }catch(e){} }
       var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
@@ -2133,7 +2136,12 @@
         var stRows=[], nmeById={}; defs.forEach(function(p){ nmeById[p.id]=p.nome; });
         Object.keys(taken).forEach(function(k){ var tv=taken[k]; if(typeof tv!=="number") return; var parts=k.split("|"); var nm=nmeById[parts[1]]||"Pillola", ora=parts[2];
           stRows.push({ ts:tv, emoji:"💊", text:nm+(ora?" · programmata "+ora:""), onDelete:(function(key){ return function(){ if(confirm("Togliere questa presa dallo storico?")){ delete taken[key]; saveTaken(); render(); } }; })(k) }); });
-        renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora."});
+        var _tdk=dayKey(new Date()), _nm=new Date().getHours()*60+new Date().getMinutes();
+        function pillDayStat(dk){ var isT=(dk===_tdk), sc=0, tk=0; defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; (p.orari||[]).forEach(function(o){ if(isT && oraMin(o)>_nm) return; sc++; if(taken[dk+"|"+p.id+"|"+o]) tk++; }); }); return {sched:sc, taken:tk}; }
+        renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora.",
+          dayClass:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return ""; return s.taken>=s.sched?"done-ok":"done-miss"; },
+          headExtra:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return null; var sp=document.createElement("span"); sp.className="dmal"; if(s.taken>=s.sched){ sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutte prese"; } else { var m=s.sched-s.taken; sp.style.color="var(--lvl-high)"; sp.textContent="⚠ "+m+(m===1?" saltata":" saltate"); } return sp; }
+        });
       }
     }
     function oraRow(val){
@@ -3056,7 +3064,11 @@
         onPhoto:(x.foto?(function(f){ return function(){ docView(f); }; })(x.foto):null),
         onEdit:(function(xx){ return function(){ startEditAttiv(xx); }; })(x),
         onDelete:(function(xx){ return function(){ attivLog=attivLog.filter(function(y){return y.id!==xx.id;}); if(editingAttivId===xx.id) cancelEditAttiv(); saveAttivLog(); renderAttiv(); }; })(x) }; });
-    renderStorico("eserLog", rows, storOpen.attiv, {empty:"Nessuna attività registrata."});
+    function exerDayStat(dk){ var isT=(dk===dayKey(new Date())), nm=new Date().getHours()*60+new Date().getMinutes(); var d=new Date(dk+"T12:00:00"), sc=0, dn=0; programma.forEach(function(it){ if(it.tipo!=="eser") return; if(!itemAppliesToDate(it,d)) return; if(it.createdTs && dayKey(new Date(it.createdTs))>dk) return; if(isT && it.ora && hhmmToMin(it.ora)>nm) return; sc++; if(progFattoRecForDate(it.id,d)) dn++; }); return {sched:sc, done:dn}; }
+    renderStorico("eserLog", rows, storOpen.attiv, {empty:"Nessuna attività registrata.",
+      dayClass:function(g){ var s=exerDayStat(g.dk); if(!s.sched) return ""; return s.done>=s.sched?"done-ok":"done-miss"; },
+      headExtra:function(g){ var s=exerDayStat(g.dk); if(!s.sched) return null; var sp=document.createElement("span"); sp.className="dmal"; if(s.done>=s.sched){ sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutti fatti"; } else { var m=s.sched-s.done; sp.style.color="var(--lvl-high)"; sp.textContent="⚠ "+m+(m===1?" saltato":" saltati"); } return sp; }
+    });
     var es=document.getElementById("eserSummary");
     if(attivRunning){ es.textContent="in corso…"; es.style.color="var(--good)"; }
     else if(today.length){ var tot=0; today.forEach(function(x){tot+=x.dur;}); es.textContent=today.length+" · "+fmtDur(tot); es.style.color="var(--ink-soft)"; }
