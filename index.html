@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 119; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 120; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -788,6 +788,7 @@
       <button class="menu-card" type="button" data-mod="parametri" style="--mc:#DC2626"><span class="mc-emoji">❤️</span><span class="mc-text"><span class="mc-name">Parametri vitali</span><span class="mc-st" id="st-parametri">pressione · saturazione · battiti</span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="ciclo" style="--mc:#DB2777"><span class="mc-emoji">🌸</span><span class="mc-text"><span class="mc-name">Ciclo</span><span class="mc-st" id="st-ciclo">inizio · fine · previsione</span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="sonno" style="--mc:#6366F1"><span class="mc-emoji">😴</span><span class="mc-text"><span class="mc-name">Sonno</span><span class="mc-st" id="st-sonno">ore e qualità</span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="sesso" style="--mc:#DB2777"><span class="mc-emoji">🛏️</span><span class="mc-text"><span class="mc-name">Sesso</span><span class="mc-st" id="st-sesso"></span></span><span class="mc-chev">›</span></button>
     </div>
     <datalist id="dlPatologie">
       <option>Ipertensione</option><option>Diabete tipo 2</option><option>Diabete tipo 1</option>
@@ -927,6 +928,7 @@
   <section class="card">
     <h2 class="section-title">Aggiungi adesso</h2>
     <div class="quick" id="quick"></div>
+    <div class="field" style="margin-top:10px"><label for="fQuickNota">Sensazioni o fastidi (facoltativa)</label><input type="text" id="fQuickNota" placeholder="Scrivi una nota, poi tocca un pulsante qui sopra…" autocomplete="off"></div>
     <button class="link-btn" id="toggleDetail">＋ Aggiungi con data e ora</button>
     <div class="detail" id="detail" hidden>
       <div class="grid2">
@@ -988,6 +990,29 @@
     <p class="fineprint">Esporta le sigarette in Excel. Il <b>backup di tutta l'app</b> è nella Home, in fondo.</p>
   </section>
   </section><!-- /mod-fumo -->
+
+  <!-- ===== SESSO ===== -->
+  <section id="mod-sesso" class="screen" hidden>
+  <header class="top">
+    <button class="back-btn" type="button" data-back>‹ Menu</button>
+    <span class="mark">🛏️</span>
+    <div class="brandtext"><h1>Sesso</h1><p class="sub" id="sessoDate"></p></div>
+  </header>
+  <section class="card">
+    <div class="row-between"><h2 class="section-title" style="margin:0">Aggiungi adesso</h2><span id="sessoSummary" class="stat-summary"></span></div>
+    <div class="quick" id="sessoQuick" style="margin-top:12px"></div>
+    <div class="field" style="margin-top:12px"><label for="sessoNota">Sensazioni o fastidi (facoltativa)</label><input type="text" id="sessoNota" placeholder="Scrivi una nota, poi tocca un pulsante qui sopra…" autocomplete="off"></div>
+    <button class="link-btn" id="sessoWhenToggle" style="margin-top:6px">＋ cambia data e ora (invece di adesso)</button>
+    <div class="grid2" id="sessoWhen" hidden>
+      <div class="field"><label for="sessoData">Data</label><input type="date" id="sessoData"></div>
+      <div class="field"><label for="sessoOra">Ora</label><input type="time" id="sessoOra"></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2 class="section-title">Storico</h2>
+    <div id="sessoStorico"></div>
+  </section>
+  </section>
 
   <!-- ===== PILLOLE ===== -->
   <section id="mod-pillole" class="screen" hidden>
@@ -1517,7 +1542,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v119</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v120</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1778,7 +1803,7 @@
       var b=document.createElement("button"); b.className="qbtn"; b.type="button";
       b.style.setProperty("--c","var("+TIPI[t].cvar+")");
       b.innerHTML=cigIcon()+'<span class="qlab">'+TIPI[t].label+'</span><span class="qadd">+1 adesso</span>';
-      b.onclick=function(){ addEntry(t,1,new Date()); };
+      b.onclick=function(){ var qn=document.getElementById("fQuickNota"); var nota=qn?(qn.value||"").trim():""; addEntry(t,1,new Date(),nota); if(qn) qn.value=""; };
       q.appendChild(b);
     });
   })();
@@ -3577,6 +3602,7 @@
     var ss=document.getElementById("st-salute");
     if(saluteLog.length){ var last=saluteLog.slice().sort(function(a,b){return b.ts-a.ts;})[0], vv=last.voci||[]; ss.textContent=vv.length>2?(vv.slice(0,2).join(", ")+"…"):vv.join(", "); ss.style.color="var(--ink-soft)"; }
     else { ss.textContent="come ti senti?"; ss.style.color="var(--muted)"; }
+    try{ var _sx={sega:0,scopata:0}; sessoLog.forEach(function(x){ if(dayKey(new Date(x.ts))===dK) _sx[x.tipo]=(_sx[x.tipo]||0)+1; }); var _sxt=_sx.sega+_sx.scopata, _sxel=document.getElementById("st-sesso"); if(_sxel){ if(_sxt){ _sxel.textContent="oggi "+_sxt; _sxel.style.color="var(--ink-soft)"; } else { _sxel.textContent="registra"; _sxel.style.color="var(--muted)"; } } }catch(e){}
     var ec=evacCounts(), se2=document.getElementById("st-evac");
     se2.textContent=ec.tot?("💧"+ec.u+" 💩"+ec.f):"0 oggi"; se2.style.color=ec.tot?"var(--ink-soft)":"var(--muted)";
     try{ var ps=progTodayStatus(), sp2=document.getElementById("st-prog"); if(sp2){ if(ps.total){ sp2.textContent=ps.done+"/"+ps.total+" fatte oggi"; sp2.style.color=(ps.done>=ps.total)?"var(--lvl-low)":"var(--ink-soft)"; } else { sp2.textContent="pianifica la giornata"; sp2.style.color="var(--muted)"; } } setCardBadge("programma", Math.max(0,(ps.total||0)-(ps.done||0))); }catch(e){}
@@ -4131,6 +4157,29 @@
   function malLevel(sc){ return sc<=0?0:(sc<=10?1:(sc<=20?2:3)); } // soglie sul punteggio (con tutto Medio = tue bande 1-5/6-10/11+)
   var MAL_LBL=["","qualche fastidio","giornata difficile","giornata pesante"];
 
+  // ---- Sesso (tracciamento tipo Fumo: Sega / Scopata, con nota) ----
+  var SESSO_TIPI={ sega:{label:"Sega", c:"#7C3AED"}, scopata:{label:"Scopata", c:"#DB2777"} };
+  var SESSO_ORDER=["sega","scopata"];
+  var sessoLog=[]; try{ var _sxl=JSON.parse(localStorage.getItem("salute-sesso")); if(Array.isArray(_sxl)) sessoLog=_sxl; }catch(e){}
+  function saveSessoLog(){ try{ localStorage.setItem("salute-sesso", JSON.stringify(sessoLog)); }catch(e){} }
+  var sessoStorOpen={};
+  function sessoWhenTs(){ var w=document.getElementById("sessoWhen"); if(w && !w.hidden){ var d=document.getElementById("sessoData").value, t=document.getElementById("sessoOra").value; if(d&&t){ var ts=new Date(d+"T"+t).getTime(); if(!isNaN(ts)) return ts; } } return Date.now(); }
+  function sessoAdd(tipo){ var nt=document.getElementById("sessoNota"), nota=nt?(nt.value||"").trim():""; sessoLog.push({id:uid(), ts:sessoWhenTs(), tipo:tipo, nota:nota}); saveSessoLog(); if(nt) nt.value=""; var w=document.getElementById("sessoWhen"); if(w) w.hidden=true; renderSesso(); toast(SESSO_TIPI[tipo].label+" registrato ✓"); }
+  function renderSesso(){
+    if(!document.getElementById("sessoDate")) return;
+    document.getElementById("sessoDate").textContent=fmtDayLong(new Date());
+    var dK=dayKey(new Date()), cnt={sega:0, scopata:0};
+    sessoLog.forEach(function(x){ if(dayKey(new Date(x.ts))===dK) cnt[x.tipo]=(cnt[x.tipo]||0)+1; });
+    var tot=cnt.sega+cnt.scopata, sm=document.getElementById("sessoSummary");
+    if(sm){ sm.textContent=tot?(tot+" oggi"):""; sm.style.color="var(--ink-soft)"; }
+    var q=document.getElementById("sessoQuick");
+    if(q){ q.innerHTML=""; SESSO_ORDER.forEach(function(t){ var b=document.createElement("button"); b.className="qbtn"; b.type="button"; b.style.setProperty("--c", SESSO_TIPI[t].c); b.innerHTML='<span class="qlab">'+SESSO_TIPI[t].label+'</span><span class="qadd">+1 · oggi '+(cnt[t]||0)+'</span>'; b.onclick=function(){ sessoAdd(t); }; q.appendChild(b); }); }
+    var rows=sessoLog.map(function(x){ return { ts:x.ts, emoji:"🛏️", text:(SESSO_TIPI[x.tipo]?SESSO_TIPI[x.tipo].label:x.tipo)+(x.nota?" — "+x.nota:""),
+      onDelete:(function(xx){ return function(){ sessoLog=sessoLog.filter(function(y){return y.id!==xx.id;}); saveSessoLog(); renderSesso(); }; })(x) }; });
+    renderStorico("sessoStorico", rows, sessoStorOpen, {empty:"Ancora niente. Usa i pulsanti qui sopra."});
+  }
+  (function(){ var b=document.getElementById("sessoWhenToggle"); if(b) b.onclick=function(){ var w=document.getElementById("sessoWhen"); w.hidden=!w.hidden; if(!w.hidden){ var n=new Date(); document.getElementById("sessoData").value=ymd(n); document.getElementById("sessoOra").value=hhmm(n); } }; })();
+
   function collectDiarioEvents(all){
     var dK=dayKey(new Date()), ev=[];
     function ok(ts){ return all || dayKey(new Date(ts))===dK; }
@@ -4141,6 +4190,7 @@
     try{ var pd=Pillole.data(), tk=pd.taken||{}, nById={}; (pd.defs||[]).forEach(function(d){ nById[d.id]=d.nome; }); Object.keys(tk).forEach(function(k){ var parts=k.split("|"); var tv=tk[k], t=(typeof tv==="number"?tv:null); if(t && ok(t)){ ev.push({ts:t, emoji:"💊", text:(nById[parts[1]]||"Medicina"), kind:"pill", id:k}); } }); }catch(e){}
     try{ diarioEventi.forEach(function(d){ if(ok(d.ts)){ ev.push({ts:d.ts, emoji:"⏰", text:d.testo, kind:"diario", id:d.id}); } }); }catch(e){}
     try{ evac.forEach(function(x){ if(ok(x.ts)){ ev.push({ts:x.ts, emoji:(x.tipo==="feci"?"💩":"💧"), text:evacLabel(x).replace(/^\S+\s+/,""), kind:"evac", id:x.id}); } }); }catch(e){}
+    try{ sessoLog.forEach(function(x){ if(ok(x.ts)){ ev.push({ts:x.ts, emoji:"🛏️", text:(SESSO_TIPI[x.tipo]?SESSO_TIPI[x.tipo].label:x.tipo)+(x.nota?" — "+x.nota:""), kind:"sesso", id:x.id}); } }); }catch(e){}
     try{ parametri.forEach(function(p){ if(ok(p.ts)){ var pn={pressione:"Pressione", saturazione:"Saturazione", battiti:"Battiti"}[p.tipo]||"Parametro", pu={pressione:" mmHg", saturazione:"%", battiti:" bpm"}[p.tipo]||""; ev.push({ts:p.ts, emoji:"❤️", text:pn+" "+p.valore+pu, kind:"param", id:p.id, noEdit:true}); } }); }catch(e){}
     try{ sonno.forEach(function(s){ if(ok(s.ts)){ ev.push({ts:s.ts, emoji:"😴", text:(s.ore?String(s.ore).replace(".",",")+" ore di sonno":"Sonno")+(s.qualita?" · "+s.qualita:"")+(s.nota?" — "+s.nota:""), kind:"sonno", id:s.id, noEdit:true}); } }); }catch(e){}
     try{ cicli.forEach(function(c){ if(c.inizio && ok(c.inizio)) ev.push({ts:c.inizio, emoji:"🌸", text:"Inizio ciclo", kind:"ciclo", id:c.id, readonly:true}); if(c.fine && ok(c.fine)) ev.push({ts:c.fine, emoji:"🌸", text:"Fine ciclo", kind:"ciclo", id:c.id, readonly:true}); }); }catch(e){}
@@ -4190,6 +4240,7 @@
     else if(e.kind==="pill"){ Pillole.checkAt(e.id, null); }
     else if(e.kind==="diario"){ diarioEventi=diarioEventi.filter(function(x){return x.id!==e.id;}); saveDiarioEventi(); }
     else if(e.kind==="evac"){ evac=evac.filter(function(x){return x.id!==e.id;}); saveEvac(); }
+    else if(e.kind==="sesso"){ sessoLog=sessoLog.filter(function(x){return x.id!==e.id;}); saveSessoLog(); }
     else if(e.kind==="param"){ parametri=parametri.filter(function(x){return x.id!==e.id;}); saveParam(); try{ renderParametri(); }catch(e2){} }
     else if(e.kind==="sonno"){ sonno=sonno.filter(function(x){return x.id!==e.id;}); saveSonno(); try{ renderSonno(); }catch(e2){} }
     else if(e.kind==="racconto"){ racconti=racconti.filter(function(x){return x.id!==e.id;}); saveRacconti(); if(raccontoEditId===e.id) raccontoEditId=null; renderRacconto(); }
@@ -4253,7 +4304,7 @@
   function showMod(m){
     currentMod=m; lastDay=dayKey(new Date());
     if(attivInterval){ clearInterval(attivInterval); attivInterval=null; }
-    ["fumo","pillole","esercizio","alimentazione","salute","evac","programma","diario","parametri","ciclo","sonno"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
+    ["fumo","sesso","pillole","esercizio","alimentazione","salute","evac","programma","diario","parametri","ciclo","sonno"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
     document.getElementById("menu").hidden=(m!=="menu");
     try{ window.scrollTo(0,0); }catch(e){}
     if(m==="menu"){ renderMenu(); try{ checkBackupReminder(); }catch(e){} }
@@ -4263,6 +4314,7 @@
     else if(m==="salute"){ renderSalute(); try{ syncMaggiori(); }catch(e){} }
     else if(m==="evac") renderEvac();
     else if(m==="fumo") render();
+    else if(m==="sesso") renderSesso();
     else if(m==="programma") renderProgramma();
     else if(m==="diario"){ renderDiario(); try{ renderRacconto(); }catch(e){} }
     else if(m==="parametri"){ try{ renderParametri(); }catch(e){} }
@@ -4275,7 +4327,7 @@
   Array.prototype.forEach.call(document.querySelectorAll("[data-back]"), function(b){ b.onclick=function(){ showMod("menu"); }; });
   // Scorrimento (swipe) tra le funzioni: dito a destra → funzione successiva, a sinistra → precedente
   (function(){
-    var ORDER=["diario","programma","fumo","salute","pillole","esercizio","alimentazione","evac","parametri","ciclo","sonno"];
+    var ORDER=["diario","programma","fumo","salute","pillole","esercizio","alimentazione","evac","parametri","ciclo","sonno","sesso"];
     var sx=0, sy=0, track=false;
     function scrollableX(el){ while(el && el.nodeType===1 && el!==document.body){ if(el.scrollWidth>el.clientWidth+6){ var ov=getComputedStyle(el).overflowX; if(ov==="auto"||ov==="scroll") return true; } el=el.parentElement; } return false; }
     document.addEventListener("touchstart", function(e){ if(e.touches.length!==1){ track=false; return; } var t=e.touches[0]; sx=t.clientX; sy=t.clientY; track=!scrollableX(e.target); }, {passive:true});
