@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 127; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 128; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1149,17 +1149,20 @@
       </div>
     </section>
     <section class="card">
-      <h2 class="section-title">Cosa hai mangiato</h2>
+      <div class="food-cat" id="collapCibo">
+        <button type="button" class="fc-head" id="headCibo"><span>🍽️ Cosa hai mangiato</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyCibo" hidden>
       <p class="fineprint" style="margin:2px 0 12px">Tocca <b>più alimenti</b> (anche da categorie diverse): si aggiungono <b>tutti insieme</b> al <b>pasto</b> qui sotto, dove metti tipo e quantità. In ogni categoria puoi aggiungerne a mano.</p>
       <div id="foodCats"></div>
       <div id="pastoBuilder" class="pasto-builder"></div>
       <div class="field" style="margin-top:14px"><label for="ciboNota">Nota (facoltativa)</label><input type="text" id="ciboNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
-      <button class="link-btn" id="ciboWhenToggle" style="margin-top:8px">＋ cambia data e ora (invece di adesso)</button>
       <div class="grid2" id="ciboWhen" hidden>
         <div class="field"><label for="ciboData">Data</label><input type="date" id="ciboData"></div>
         <div class="field"><label for="ciboOra">Ora</label><input type="time" id="ciboOra"></div>
       </div>
       <button class="primary" id="ciboSave" style="margin-top:14px">Registra pasto</button>
+        </div>
+      </div>
     </section>
     <section class="card">
       <h2 class="section-title">Storico</h2>
@@ -1609,7 +1612,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v127</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v128</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2549,11 +2552,12 @@
     editingMealId=x.id;
     pasto=(x.items||[]).map(function(it){ return {nome:it.nome, typed:isTyped(it.nome), tipo:it.tipo||"", qta:it.qta||"", kcal:(it.kcal||it.kcal===0)?it.kcal:"", kcalManual:false}; });
     document.getElementById("ciboNota").value=x.nota||"";
+    var _bc=document.getElementById("bodyCibo"); if(_bc){ _bc.hidden=false; document.getElementById("collapCibo").classList.add("open"); }
     whenShow("ciboWhen","ciboData","ciboOra", x.ts);
     renderPasto(); document.getElementById("ciboSave").textContent="Salva modifiche";
     scrollToEl(document.getElementById("ciboSave"));
   }
-  document.getElementById("ciboWhenToggle").onclick=function(){ whenToggle("ciboWhen","ciboData","ciboOra"); };
+  // In Alimentazione la data/ora si cambia solo in modifica (✏️): niente toggle in registrazione (sempre adesso).
   document.getElementById("ciboSave").onclick=function(){
     var nota=(document.getElementById("ciboNota").value||"").trim();
     if(!pasto.length && !nota){ toast("Tocca cosa hai mangiato o scrivi una nota"); return; }
@@ -2889,6 +2893,7 @@
   saluteCollapWire("headAttiv","bodyAttiv","collapAttiv");
   saluteCollapWire("headRacconto","bodyRacconto","collapRacconto");
   saluteCollapWire("headDiarioAdd","bodyDiarioAdd","collapDiarioAdd");
+  saluteCollapWire("headCibo","bodyCibo","collapCibo");
   function updateSaluteCount(){
     var nf=fastidiG.selected().length, np=psicoG.selected().length;
     var lf=document.getElementById("lblFastidi"), lp=document.getElementById("lblPsico");
