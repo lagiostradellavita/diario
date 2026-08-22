@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 122; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 123; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -424,6 +424,17 @@
   .tl-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:8px; width:30px; height:30px; font-size:17px; cursor:pointer; touch-action:manipulation;}
   .tl-edit{flex:0 0 auto; appearance:none; border:none; background:var(--surface-2); color:var(--ink-soft); border-radius:8px; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation;}
   .tl-check{flex:0 0 auto; appearance:none; border:2px solid var(--lvl-low); background:transparent; color:var(--lvl-low); border-radius:50%; width:30px; height:30px; font-size:16px; font-weight:800; line-height:1; cursor:pointer; touch-action:manipulation;}
+  .tl-row.param-ok{ background:color-mix(in srgb, var(--lvl-low) 12%, transparent); border-left:4px solid var(--lvl-low); padding-left:8px; border-radius:8px; }
+  .tl-row.param-warn{ background:color-mix(in srgb, var(--lvl-mid) 14%, transparent); border-left:4px solid var(--lvl-mid); padding-left:8px; border-radius:8px; }
+  .tl-row.param-bad{ background:color-mix(in srgb, var(--lvl-high) 14%, transparent); border-left:4px solid var(--lvl-high); padding-left:8px; border-radius:8px; }
+  .param-legend{ margin:8px 0 2px; font-size:13.5px; color:var(--ink-soft); }
+  .param-legend .pl-row{ display:flex; align-items:center; gap:8px; margin:3px 0; font-weight:700; }
+  .param-legend .pl-dot{ width:14px; height:14px; border-radius:50%; flex:0 0 auto; }
+  .param-legend .pl-dot.ok{ background:var(--lvl-low); }
+  .param-legend .pl-dot.warn{ background:var(--lvl-mid); }
+  .param-legend .pl-dot.bad{ background:var(--lvl-high); }
+  .param-legend .pl-ranges{ margin-top:6px; font-size:12.5px; line-height:1.55; color:var(--muted); font-weight:600; }
+  .param-legend .pl-note{ margin-top:6px; font-size:12px; font-style:italic; color:var(--muted); }
   .tl-row.planned{opacity:.72;}
   .magg-row{background:color-mix(in srgb, var(--accent) 8%, transparent); border-radius:10px;}
   .magg-row .tl-text{color:var(--accent); font-weight:800;}
@@ -1216,6 +1227,17 @@
         <div class="field"><label for="paramOra">Ora</label><input type="time" id="paramOra"></div>
       </div>
       <h2 class="section-title" style="margin:16px 0 0">Storico</h2>
+      <div class="param-legend">
+        <div class="pl-row"><span class="pl-dot ok"></span>Verde = nella norma</div>
+        <div class="pl-row"><span class="pl-dot warn"></span>Arancione = da tenere d'occhio</div>
+        <div class="pl-row"><span class="pl-dot bad"></span>Rosso = fuori norma</div>
+        <div class="pl-ranges">
+          🩸 <b>Pressione</b>: verde 90–129 / 60–84 · arancione fino a 159 / 99 · rosso da 160 / 100 in su, o sotto 90 / 60 (mmHg)<br>
+          🫁 <b>Saturazione</b>: verde 95% o più · arancione 90–94% · rosso sotto 90%<br>
+          ❤️ <b>Battiti</b>: verde 60–100 · arancione 50–59 o 101–120 · rosso sotto 50 o oltre 120 (bpm)
+        </div>
+        <div class="pl-note">Valori indicativi per un adulto a riposo, non sono un consiglio medico.</div>
+      </div>
       <div id="parametriStorico" style="margin-top:12px"></div>
         </div>
       </div>
@@ -1546,7 +1568,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v122</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v123</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2913,13 +2935,27 @@
     toast("Modifica "+(PARAM_LBL[x.tipo]||"")+": cambia e tocca Registra");
     scrollToEl(document.getElementById("parametriCard"));
   }
+  // livello di un parametro rispetto ai valori di riferimento (adulto a riposo): "ok"=verde, "warn"=arancione, "bad"=rosso, null=non valutabile
+  function paramLevel(tipo, valore){
+    var v=String(valore==null?"":valore);
+    if(tipo==="pressione"){
+      var p=v.split("/"), s=parseInt(p[0],10), d=parseInt((p[1]||"").replace(/[^\d]/g,""),10);
+      if(isNaN(s)||isNaN(d)) return null;
+      function bp(x,sys){ if(sys){ if(x<85||x>=160) return 2; if(x<90||x>=130) return 1; return 0; } else { if(x<55||x>=100) return 2; if(x<60||x>=85) return 1; return 0; } }
+      var lv=Math.max(bp(s,true), bp(d,false));
+      return lv===2?"bad":(lv===1?"warn":"ok");
+    }
+    if(tipo==="saturazione"){ var x=parseInt(v.replace(/[^\d]/g,""),10); if(isNaN(x)) return null; if(x>=95) return "ok"; if(x>=90) return "warn"; return "bad"; }
+    if(tipo==="battiti"){ var b=parseInt(v.replace(/[^\d]/g,""),10); if(isNaN(b)) return null; if(b>=60&&b<=100) return "ok"; if((b>=50&&b<=59)||(b>=101&&b<=120)) return "warn"; return "bad"; }
+    return null;
+  }
   function renderParametri(){
     if(!document.getElementById("parametriCard")) return;
     var last={}; parametri.slice().sort(function(a,b){return a.ts-b.ts;}).forEach(function(x){ last[x.tipo]=x.valore; });
     var sp=[]; if(last.pressione)sp.push("🩸"+last.pressione); if(last.saturazione)sp.push("🫁"+last.saturazione+"%"); if(last.battiti)sp.push("❤️"+last.battiti);
     var sum=document.getElementById("parametriSummary"); sum.textContent=sp.join("  "); sum.style.color="var(--ink-soft)";
     var pEmo={pressione:"🩸", saturazione:"🫁", battiti:"❤️"}, pNam={pressione:"Pressione", saturazione:"Saturazione", battiti:"Battiti"};
-    var rows=parametri.map(function(x){ return { ts:x.ts, emoji:(pEmo[x.tipo]||"❤️"), text:(pNam[x.tipo]||x.tipo)+" "+String(x.valore)+" "+(PARAM_UNIT[x.tipo]||''),
+    var rows=parametri.map(function(x){ var _lv=paramLevel(x.tipo,x.valore); return { ts:x.ts, emoji:(pEmo[x.tipo]||"❤️"), text:(pNam[x.tipo]||x.tipo)+" "+String(x.valore)+" "+(PARAM_UNIT[x.tipo]||''), rowClass:(_lv?("param-"+_lv):""),
       onEdit:(function(xx){ return function(){ startEditParam(xx); }; })(x),
       onDelete:(function(xx){ return function(){ parametri=parametri.filter(function(y){return y.id!==xx.id;}); if(editingParamId===xx.id) editingParamCancel(); saveParam(); renderParametri(); }; })(x) }; });
     renderStorico("parametriStorico", rows, storOpen.param, {empty:"Nessun parametro registrato."});
