@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 129; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 130; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1187,7 +1187,9 @@
       <div class="brandtext"><h1>Salute</h1><p class="sub" id="saluteDate"></p></div>
     </header>
     <section class="card">
-      <h2 class="section-title">Come ti senti adesso</h2>
+      <div class="food-cat" id="collapSalute">
+        <button type="button" class="fc-head" id="headSalute"><span>🩺 Come ti senti adesso</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodySalute" hidden>
       <div class="food-cat" id="collapFastidi">
         <button type="button" class="fc-head" id="headFastidi"><span id="lblFastidi">🤕 Fastidi fisici</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodyFastidi" hidden>
@@ -1234,6 +1236,8 @@
         <div class="field"><label for="saluteOra">Ora</label><input type="time" id="saluteOra"></div>
       </div>
       <button class="primary" id="saluteReg" style="margin-top:14px">Registra adesso</button>
+        </div>
+      </div>
     </section>
     <section class="card" id="parametriCard">
       <div class="food-cat" id="collapParam">
@@ -1633,7 +1637,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v129</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v130</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2918,6 +2922,7 @@
   saluteCollapWire("headProgOggi","bodyProgOggi","collapProgOggi");
   saluteCollapWire("headProgList","bodyProgList","collapProgList");
   saluteCollapWire("headVerifica","bodyVerifica","collapVerifica");
+  saluteCollapWire("headSalute","bodySalute","collapSalute");
   function updateSaluteCount(){
     var nf=fastidiG.selected().length, np=psicoG.selected().length;
     var lf=document.getElementById("lblFastidi"), lp=document.getElementById("lblPsico");
@@ -2930,6 +2935,7 @@
   var saluteDayOpen={}; // dk -> aperto/chiuso (default: oggi aperto, passati chiusi) — come il Diario
   function renderSalute(){
     document.getElementById("saluteDate").textContent=fmtDayLong(new Date());
+    if(!editingSaluteId){ try{ whenHide("saluteWhen"); }catch(e){} }
     try{ renderNoteG(); }catch(e){}
     var host=document.getElementById("saluteList"); host.innerHTML="";
     var maggKeys=Object.keys(fastidiMaggiori).filter(function(k){ return (fastidiMaggiori[k]||[]).length; });
@@ -2968,6 +2974,7 @@
   var editingSaluteId=null;
   function startEditSalute(x){
     editingSaluteId=x.id;
+    var _bs=document.getElementById("bodySalute"); if(_bs){ _bs.hidden=false; document.getElementById("collapSalute").classList.add("open"); }
     var fo=fastidiG.opts();
     fastIntens={}; if(x.intens){ Object.keys(x.intens).forEach(function(k){ fastIntens[k]=x.intens[k]; }); }
     fastidiG.set((x.voci||[]).filter(function(v){ return fo.indexOf(v)>=0; }));
