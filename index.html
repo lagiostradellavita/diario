@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 123; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 124; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -644,6 +644,12 @@
   .day-head.done-ok, .day-head.done-miss{border-bottom:none; border-radius:9px; padding:5px 10px 6px;}
   .day-head.done-ok{background:color-mix(in srgb, var(--lvl-low) 15%, transparent);}
   .day-head.done-miss{background:color-mix(in srgb, var(--lvl-high) 15%, transparent);}
+  .day-head.pday-ok, .day-head.pday-warn, .day-head.pday-bad, .day-head.ev-ok, .day-head.ev-miss{border-bottom:none; border-radius:9px; padding:5px 10px 6px;}
+  .day-head.pday-ok{background:color-mix(in srgb, var(--lvl-low) 15%, transparent);}
+  .day-head.pday-warn{background:color-mix(in srgb, var(--lvl-mid) 15%, transparent);}
+  .day-head.pday-bad{background:color-mix(in srgb, var(--lvl-high) 15%, transparent);}
+  .day-head.ev-ok{background:color-mix(in srgb, var(--lvl-low) 15%, transparent);}
+  .day-head.ev-miss{background:color-mix(in srgb, var(--lvl-high) 15%, transparent);}
   .day-head .dmal{font-size:12.5px; font-weight:800; white-space:nowrap;}
   .day-head.mal1 .dmal{color:var(--lvl-yellow);}
   .day-head.mal2 .dmal{color:var(--lvl-mid);}
@@ -1041,8 +1047,12 @@
       <div id="pilToday" style="margin-top:12px"></div>
     </section>
     <section class="card">
-      <h2 class="section-title">Le mie pillole</h2>
-      <div id="pilList"></div>
+      <div class="food-cat" id="collapPilList">
+        <button type="button" class="fc-head" id="headPilList"><span>💊 Le mie pillole</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyPilList" hidden>
+          <div id="pilList"></div>
+        </div>
+      </div>
       <button class="link-btn" id="pilAddBtn">＋ Aggiungi medicina</button>
       <div class="detail" id="pilForm" hidden>
         <div class="field"><label for="pilNome">Nome</label><input type="text" id="pilNome" placeholder="es. Xanax 0,25"></div>
@@ -1191,8 +1201,13 @@
           <div id="psicoManage" class="chip-manage"></div>
         </div>
       </div>
-      <div class="field" style="margin-top:14px"><label for="saluteNota" class="nota-label">📝 Note e sensazioni</label><div id="saluteNotaSug" class="nota-sug" hidden></div><textarea id="saluteNota" rows="4" placeholder="Descrivi come ti senti: sensazioni, dove, da quando, cosa lo scatena…"></textarea></div>
-      <button class="link-btn" id="saluteWhenToggle" style="margin-top:8px">＋ cambia data e ora (invece di adesso)</button>
+      <div class="food-cat" id="collapNota">
+        <button type="button" class="fc-head" id="headNota"><span>📝 Note e sensazioni</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyNota" hidden>
+          <div id="saluteNotaSug" class="nota-sug" hidden></div>
+          <textarea id="saluteNota" rows="4" placeholder="Descrivi come ti senti: sensazioni, dove, da quando, cosa lo scatena…"></textarea>
+        </div>
+      </div>
       <div class="grid2" id="saluteWhen" hidden>
         <div class="field"><label for="saluteData">Data</label><input type="date" id="saluteData"></div>
         <div class="field"><label for="saluteOra">Ora</label><input type="time" id="saluteOra"></div>
@@ -1227,6 +1242,9 @@
         <div class="field"><label for="paramOra">Ora</label><input type="time" id="paramOra"></div>
       </div>
       <h2 class="section-title" style="margin:16px 0 0">Storico</h2>
+      <div class="food-cat" id="collapLegend" style="margin-top:8px">
+        <button type="button" class="fc-head" id="headLegend"><span>ℹ️ Cosa significano i colori</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyLegend" hidden>
       <div class="param-legend">
         <div class="pl-row"><span class="pl-dot ok"></span>Verde = nella norma</div>
         <div class="pl-row"><span class="pl-dot warn"></span>Arancione = da tenere d'occhio</div>
@@ -1237,6 +1255,8 @@
           ❤️ <b>Battiti</b>: verde 60–100 · arancione 50–59 o 101–120 · rosso sotto 50 o oltre 120 (bpm)
         </div>
         <div class="pl-note">Valori indicativi per un adulto a riposo, non sono un consiglio medico.</div>
+      </div>
+        </div>
       </div>
       <div id="parametriStorico" style="margin-top:12px"></div>
         </div>
@@ -1293,10 +1313,14 @@
       <div id="sonnoStorico" style="margin-top:4px"></div>
     </section>
     <section class="card" id="noteGiornataCard">
-      <h2 class="section-title">📝 Nota di fine giornata</h2>
-      <p class="fineprint" style="margin:2px 0 8px">Un riassunto libero della giornata. Se ne salvi una nuova nello stesso giorno, aggiorna quella.</p>
-      <textarea id="notaGiornata" rows="3" placeholder="Com'è andata oggi…"></textarea>
-      <button class="primary" id="notaGiornataSave" style="margin-top:10px">Salva nota di oggi</button>
+      <div class="food-cat" id="collapNotaG">
+        <button type="button" class="fc-head" id="headNotaG"><span>📝 Nota di fine giornata</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyNotaG" hidden>
+          <p class="fineprint" style="margin:2px 0 8px">Un riassunto libero della giornata. Se ne salvi una nuova nello stesso giorno, aggiorna quella.</p>
+          <textarea id="notaGiornata" rows="3" placeholder="Com'è andata oggi…"></textarea>
+          <button class="primary" id="notaGiornataSave" style="margin-top:10px">Salva nota di oggi</button>
+        </div>
+      </div>
       <div id="notaGiornataStorico" style="margin-top:10px"></div>
     </section>
     <section class="card">
@@ -1568,7 +1592,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v123</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v124</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2830,6 +2854,10 @@
   saluteCollapWire("headPsico","bodyPsico","collapPsico");
   saluteCollapWire("headMaggiori","bodyMaggiori","collapMaggiori");
   saluteCollapWire("headParam","bodyParam","collapParam");
+  saluteCollapWire("headNota","bodyNota","collapNota");
+  saluteCollapWire("headNotaG","bodyNotaG","collapNotaG");
+  saluteCollapWire("headLegend","bodyLegend","collapLegend");
+  saluteCollapWire("headPilList","bodyPilList","collapPilList");
   function updateSaluteCount(){
     var nf=fastidiG.selected().length, np=psicoG.selected().length;
     var lf=document.getElementById("lblFastidi"), lp=document.getElementById("lblPsico");
@@ -2886,6 +2914,7 @@
     psicoG.set((x.voci||[]).filter(function(v){ return fo.indexOf(v)<0; }));
     doveG.set(x.dove||[]);
     document.getElementById("saluteNota").value=x.nota||"";
+    document.getElementById("bodyNota").hidden=false; document.getElementById("collapNota").classList.add("open");
     document.getElementById("bodyFastidi").hidden=false; document.getElementById("collapFastidi").classList.add("open");
     document.getElementById("bodyPsico").hidden=false; document.getElementById("collapPsico").classList.add("open");
     whenShow("saluteWhen","saluteData","saluteOra", x.ts);
@@ -2894,7 +2923,7 @@
     scrollToEl(document.getElementById("saluteReg").parentNode);
   }
   function cancelEditSalute(){ editingSaluteId=null; var b=document.getElementById("saluteReg"); if(b) b.textContent="Registra adesso"; whenHide("saluteWhen"); }
-  document.getElementById("saluteWhenToggle").onclick=function(){ whenToggle("saluteWhen","saluteData","saluteOra"); };
+  // In «Come ti senti» la data/ora si cambia solo in modifica (✏️): niente toggle in registrazione (sempre adesso).
   document.getElementById("saluteReg").onclick=function(){
     var v=fastidiG.selected().concat(psicoG.selected());
     var dove=doveG.selected();
@@ -2958,7 +2987,7 @@
     var rows=parametri.map(function(x){ var _lv=paramLevel(x.tipo,x.valore); return { ts:x.ts, emoji:(pEmo[x.tipo]||"❤️"), text:(pNam[x.tipo]||x.tipo)+" "+String(x.valore)+" "+(PARAM_UNIT[x.tipo]||''), rowClass:(_lv?("param-"+_lv):""),
       onEdit:(function(xx){ return function(){ startEditParam(xx); }; })(x),
       onDelete:(function(xx){ return function(){ parametri=parametri.filter(function(y){return y.id!==xx.id;}); if(editingParamId===xx.id) editingParamCancel(); saveParam(); renderParametri(); }; })(x) }; });
-    renderStorico("parametriStorico", rows, storOpen.param, {empty:"Nessun parametro registrato."});
+    renderStorico("parametriStorico", rows, storOpen.param, {empty:"Nessun parametro registrato.", dayClass:function(g){ var worst=0; (g.items||[]).forEach(function(r){ var c=r.rowClass||""; if(c.indexOf("param-bad")>=0) worst=Math.max(worst,3); else if(c.indexOf("param-warn")>=0) worst=Math.max(worst,2); else if(c.indexOf("param-ok")>=0) worst=Math.max(worst,1); }); return worst===3?"pday-bad":(worst===2?"pday-warn":(worst===1?"pday-ok":"")); }});
   }
   renderParametri();
 
