@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 126; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 127; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1081,12 +1081,18 @@
       <div class="brandtext"><h1>Attività Fisiche</h1><p class="sub" id="eserDate"></p></div>
     </header>
     <section class="card">
-      <h2 class="section-title">📋 Esercizi programmati</h2>
-      <p class="fineprint" style="margin:2px 0 10px">Tocca un titolo per aprire il blocco: <b>spunta</b> gli esercizi che hai fatto, aggiungi una <b>nota</b>, poi <b>«Registra»</b> (finisce nel diario).</p>
-      <div id="eserConsigliati"></div>
+      <div class="food-cat" id="collapEserProg">
+        <button type="button" class="fc-head" id="headEserProg"><span>📋 Esercizi programmati</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyEserProg" hidden>
+          <p class="fineprint" style="margin:2px 0 10px">Tocca un titolo per aprire il blocco: <b>spunta</b> gli esercizi che hai fatto, aggiungi una <b>nota</b>, poi <b>«Registra»</b> (finisce nel diario).</p>
+          <div id="eserConsigliati"></div>
+        </div>
+      </div>
     </section>
     <section class="card">
-      <div class="row-between"><h2 class="section-title" style="margin:0">Attività</h2><span id="eserSummary" class="stat-summary"></span></div>
+      <div class="food-cat" id="collapAttiv">
+        <button type="button" class="fc-head" id="headAttiv"><span>🏃 Attività</span><span id="eserSummary" class="stat-summary" style="margin-left:auto"></span><span class="fc-arrow" style="margin-left:10px">›</span></button>
+        <div class="fc-body" id="bodyAttiv" hidden>
       <p class="fineprint" style="margin:2px 0 10px">Tocca <b>Avvia</b> quando inizi e <b>Termina</b> quando finisci: segno durata e ora.</p>
       <div id="eserList"></div>
       <button type="button" id="eserToProgBtn" hidden style="width:100%; margin-top:8px; appearance:none; cursor:pointer; font-family:inherit; font-weight:800; font-size:14.5px; background:color-mix(in srgb, var(--accent) 12%, var(--surface)); border:1.5px solid color-mix(in srgb, var(--accent) 40%, var(--line)); color:var(--accent); border-radius:12px; padding:12px; touch-action:manipulation;">➕ Aggiungi al programma</button>
@@ -1111,6 +1117,8 @@
         <div class="panel-actions">
           <button class="primary" id="attivFotoSave">Registra attività</button>
           <button class="link-btn" id="attivFotoCancel">Annulla</button>
+        </div>
+      </div>
         </div>
       </div>
     </section>
@@ -1515,15 +1523,21 @@
       <div class="brandtext"><h1>Diario di oggi</h1><p class="sub" id="diarioDate"></p></div>
     </header>
     <section class="card">
-      <div class="row-between" style="flex-wrap:wrap; gap:2px 10px"><h2 class="section-title" style="margin:0">📖 Scrivi una nota</h2><span id="raccontoStato" class="stat-summary"></span></div>
+      <div class="food-cat" id="collapRacconto">
+        <button type="button" class="fc-head" id="headRacconto"><span>📖 Scrivi una nota</span><span id="raccontoStato" class="stat-summary" style="margin-left:auto"></span><span class="fc-arrow" style="margin-left:10px">›</span></button>
+        <div class="fc-body" id="bodyRacconto" hidden>
       <p class="fineprint" style="margin:4px 0 8px">Scrivi com'è andata, con parole tue. <b>Ogni nota resta nel diario col suo orario</b> (non sovrascrive le precedenti). Poi tocca <b>«Trova nel testo»</b> per salvare medicine, orari e fastidi come dati.</p>
       <textarea id="raccontoTxt" rows="7" placeholder="Es. Dopo una giornata di stare male, verso le 2.30 capogiri, stanchezza, dispnea, tachicardia… Alle 6 doccia e preso Xanax."></textarea>
       <div id="raccontoEditNota" class="fineprint" hidden style="margin:6px 0 0; color:var(--accent); font-weight:700"></div>
       <div class="panel-actions" style="margin-top:10px"><button class="primary" id="raccontoSave">Salva nota</button><button class="link-btn" id="raccontoFind">🔎 Trova nel testo</button><button class="link-btn" id="raccontoAnnulla" hidden>Annulla modifica</button></div>
       <div id="raccontoReco" hidden style="margin-top:12px"></div>
+        </div>
+      </div>
     </section>
     <section class="card">
-      <h2 class="section-title" style="margin:0 0 4px">➕ Aggiungi un dato a mano</h2>
+      <div class="food-cat" id="collapDiarioAdd">
+        <button type="button" class="fc-head" id="headDiarioAdd"><span>➕ Aggiungi un dato a mano</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyDiarioAdd" hidden>
       <p class="fineprint" style="margin:0 0 10px">Per ciò che il racconto non prende: scegli il tipo, metti l'ora e aggiungi. Finisce nello storico della sua funzione.</p>
       <div class="seg" id="diarioTipoSeg" style="grid-template-columns:1fr 1fr; --c:#6366F1">
         <button type="button" data-dt="sigaretta" class="on">🚬 Sigaretta</button>
@@ -1586,6 +1600,8 @@
         <div class="field"><label for="diarioOra">Ora</label><input type="time" id="diarioOra"></div>
       </div>
       <div class="panel-actions" style="margin-top:12px"><button class="primary" id="diarioAdd">Aggiungi alla giornata</button><button class="link-btn" id="diarioCancel" hidden>Annulla modifica</button></div>
+        </div>
+      </div>
     </section>
     <section class="card">
       <div class="row-between" style="flex-wrap:wrap; gap:2px 10px"><h2 class="section-title" style="margin:0">Il tuo diario</h2><span id="diarioCount" class="stat-summary"></span></div>
@@ -1593,7 +1609,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v126</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v127</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2869,6 +2885,10 @@
   saluteCollapWire("headNotaG","bodyNotaG","collapNotaG");
   saluteCollapWire("headLegend","bodyLegend","collapLegend");
   saluteCollapWire("headPilList","bodyPilList","collapPilList");
+  saluteCollapWire("headEserProg","bodyEserProg","collapEserProg");
+  saluteCollapWire("headAttiv","bodyAttiv","collapAttiv");
+  saluteCollapWire("headRacconto","bodyRacconto","collapRacconto");
+  saluteCollapWire("headDiarioAdd","bodyDiarioAdd","collapDiarioAdd");
   function updateSaluteCount(){
     var nf=fastidiG.selected().length, np=psicoG.selected().length;
     var lf=document.getElementById("lblFastidi"), lp=document.getElementById("lblPsico");
@@ -4079,7 +4099,7 @@
   function diarioCancelEdit(){ diarioEditing=null; var b=document.getElementById("diarioAdd"); if(b) b.textContent="Aggiungi alla giornata"; var c=document.getElementById("diarioCancel"); if(c) c.hidden=true; }
   function diarioResetForm(){ diarioCiboItems=[{nome:"",qta:""}]; renderDiarioCiboItems(); document.getElementById("diarioData").value=dayKey(new Date()); document.getElementById("diarioOra").value=hhmm(new Date()); ["diarioSigQ","diarioEserNome","diarioEserDur","diarioFastNome","diarioFastDove","diarioFastNota","diarioNotaTxt","diarioEvacNota"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=(id==="diarioSigQ"?"1":""); }); }
   function diarioStartEdit(e){
-    if(e.kind==="racconto"){ raccontoEditId=e.id; renderRacconto(); try{ var rt=document.getElementById("raccontoTxt"); scrollToEl(rt); rt.focus(); }catch(e2){} return; }
+    if(e.kind==="racconto"){ raccontoEditId=e.id; var _brc=document.getElementById("bodyRacconto"); if(_brc){ _brc.hidden=false; document.getElementById("collapRacconto").classList.add("open"); } renderRacconto(); try{ var rt=document.getElementById("raccontoTxt"); scrollToEl(rt); rt.focus(); }catch(e2){} return; }
     diarioEditing={kind:e.kind, id:e.id}; var d=new Date(e.ts);
     document.getElementById("diarioData").value=dayKey(d); document.getElementById("diarioOra").value=hhmm(d);
     if(e.kind==="fumo"){ var it=null; entries.forEach(function(x){ if(x.id===e.id) it=x; }); diarioShowTipo("sigaretta"); if(it){ diarioSigTipo=it.tipo; Array.prototype.forEach.call(document.querySelectorAll("#diarioSigTipo button"), function(b){ b.className=(b.dataset.st===it.tipo)?"on":""; }); document.getElementById("diarioSigQ").value=it.q||1; } }
@@ -4089,6 +4109,7 @@
     else if(e.kind==="pill"){ diarioShowTipo("medicina"); var parts=String(e.id).split("|"); diarioMedSel=parts[1]; renderDiarioMedChips(); }
     else if(e.kind==="diario"){ var dv=null; diarioEventi.forEach(function(x){ if(x.id===e.id) dv=x; }); diarioShowTipo("sveglia"); document.getElementById("diarioNotaTxt").value=dv?dv.testo:""; }
     else if(e.kind==="evac"){ var ex=null; evac.forEach(function(x){ if(x.id===e.id) ex=x; }); diarioShowTipo("evac"); diarioEvacTipo=(ex&&ex.tipo)||"urina"; Array.prototype.forEach.call(document.querySelectorAll("#diarioEvacSeg button"), function(b){ b.className=(b.dataset.ev===diarioEvacTipo)?"on":""; }); document.getElementById("diarioEvacNota").value=(ex&&ex.nota)||""; }
+    var _bda=document.getElementById("bodyDiarioAdd"); if(_bda){ _bda.hidden=false; document.getElementById("collapDiarioAdd").classList.add("open"); }
     document.getElementById("diarioAdd").textContent="Salva modifiche"; document.getElementById("diarioCancel").hidden=false;
     scrollToEl(document.getElementById("diarioAdd").parentNode);
   }
