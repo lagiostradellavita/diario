@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 131; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 132; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1346,9 +1346,10 @@
       <div class="food-cat" id="collapNotaG">
         <button type="button" class="fc-head" id="headNotaG"><span>📝 Nota di fine giornata</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodyNotaG" hidden>
-          <p class="fineprint" style="margin:2px 0 8px">Un riassunto libero della giornata. Se ne salvi una nuova nello stesso giorno, aggiorna quella.</p>
-          <textarea id="notaGiornata" rows="3" placeholder="Com'è andata oggi…"></textarea>
-          <button class="primary" id="notaGiornataSave" style="margin-top:10px">Salva nota di oggi</button>
+          <p class="fineprint" style="margin:2px 0 8px">Un riassunto libero della giornata. Se ne salvi una nuova nello stesso giorno, aggiorna quella. Puoi scegliere anche un <b>giorno passato</b> (es. ieri).</p>
+          <div class="field" style="margin-bottom:8px"><label for="notaGiornataData">Giorno</label><input type="date" id="notaGiornataData"></div>
+          <textarea id="notaGiornata" rows="3" placeholder="Com'è andata…"></textarea>
+          <button class="primary" id="notaGiornataSave" style="margin-top:10px">Salva nota</button>
         </div>
       </div>
       <div id="notaGiornataStorico" style="margin-top:10px"></div>
@@ -1642,7 +1643,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v131</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v132</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2804,9 +2805,11 @@
   // ---- Nota di fine giornata (una per giorno) ----
   var noteGiornata={}; try{ var _ng=JSON.parse(localStorage.getItem("salute-note-giornata")); if(_ng && typeof _ng==="object") noteGiornata=_ng; }catch(e){}
   function saveNoteG(){ try{ localStorage.setItem("salute-note-giornata", JSON.stringify(noteGiornata)); }catch(e){} }
+  function noteGDayKey(){ var el=document.getElementById("notaGiornataData"); return (el&&el.value) ? el.value : dayKey(new Date()); }
   function renderNoteG(){
     if(!document.getElementById("noteGiornataCard")) return;
-    var dK=dayKey(new Date()), ta=document.getElementById("notaGiornata");
+    var dEl=document.getElementById("notaGiornataData"); if(dEl && !dEl.value){ dEl.value=dayKey(new Date()); }
+    var dK=noteGDayKey(), ta=document.getElementById("notaGiornata");
     if(document.activeElement!==ta) ta.value=noteGiornata[dK]||"";
     var host=document.getElementById("notaGiornataStorico"); host.innerHTML="";
     var keys=Object.keys(noteGiornata).filter(function(k){return (noteGiornata[k]||"").trim();}).sort().reverse();
@@ -2820,10 +2823,11 @@
     });
   }
   document.getElementById("notaGiornataSave").onclick=function(){
-    var dK=dayKey(new Date()), v=(document.getElementById("notaGiornata").value||"").trim();
+    var dK=noteGDayKey(), v=(document.getElementById("notaGiornata").value||"").trim();
     if(!v){ toast("Scrivi la nota"); return; }
-    noteGiornata[dK]=v; saveNoteG(); renderNoteG(); toast("Nota salvata ✓");
+    noteGiornata[dK]=v; saveNoteG(); renderNoteG(); toast("Nota salvata ✓"+(dK!==dayKey(new Date())?" (per il "+ddmm(new Date(dK+"T12:00:00"))+")":""));
   };
+  (function(){ var dEl=document.getElementById("notaGiornataData"); if(dEl) dEl.onchange=function(){ renderNoteG(); }; })();
   renderSonno(); renderNoteG();
 
   // ---- Salute: fastidi fisici + stato psicologico ----
