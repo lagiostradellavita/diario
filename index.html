@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 128; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 129; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -402,6 +402,15 @@
   .ver-row .ver-bar{flex:1; min-width:0; height:12px; border-radius:999px; background:var(--track); overflow:hidden;}
   .ver-row .ver-fill{height:100%; border-radius:999px; background:linear-gradient(90deg, var(--lvl-mid), var(--lvl-low));}
   .ver-row .ver-num{flex:0 0 auto; font-size:13.5px; font-weight:800; color:var(--muted); font-variant-numeric:tabular-nums; width:44px; text-align:right;}
+  .ver-row.ver-ok, .ver-row.ver-warn, .ver-row.ver-bad{border-radius:9px; padding-left:8px; padding-right:8px;}
+  .ver-row.ver-ok{background:color-mix(in srgb, var(--lvl-low) 12%, transparent);}
+  .ver-row.ver-warn{background:color-mix(in srgb, var(--lvl-mid) 12%, transparent);}
+  .ver-row.ver-bad{background:color-mix(in srgb, var(--lvl-high) 12%, transparent);}
+  .ver-row.ver-ok .ver-fill{background:var(--lvl-low);} .ver-row.ver-warn .ver-fill{background:var(--lvl-mid);} .ver-row.ver-bad .ver-fill{background:var(--lvl-high);}
+  .ver-row.ver-ok .ver-num{color:var(--lvl-low);} .ver-row.ver-warn .ver-num{color:var(--lvl-mid);} .ver-row.ver-bad .ver-num{color:var(--lvl-high);}
+  .prog-pend{flex:0 0 auto; font-size:13px; font-weight:800; color:#fff; background:var(--lvl-high); border-radius:999px; padding:2px 10px; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .prog-pend:empty{display:none;}
+  .prog-pend.done{background:transparent; color:var(--lvl-low); padding:2px 0;}
   .pasto-row .pr-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:9px; width:34px; height:34px; font-size:18px; cursor:pointer; touch-action:manipulation;}
   .prog-flabel{display:block; font-size:14px; font-weight:800; color:var(--ink-soft); margin:2px 0 4px;}
   .chip-manage{margin-top:8px;}
@@ -1437,11 +1446,17 @@
       <div class="brandtext"><h1>Programma</h1><p class="sub" id="progDate"></p></div>
     </header>
     <section class="card">
-      <div class="row-between"><h2 class="section-title" style="margin:0">Oggi da fare</h2><span id="progOggiSum" class="stat-summary"></span></div>
-      <div id="progAgenda" style="margin-top:8px"></div>
+      <div class="food-cat" id="collapProgOggi">
+        <button type="button" class="fc-head" id="headProgOggi"><span>📋 Oggi da fare</span><span id="progOggiSum" class="stat-summary" style="margin-left:auto"></span><span class="fc-arrow" style="margin-left:10px">›</span></button>
+        <div class="fc-body" id="bodyProgOggi" hidden>
+          <div id="progAgenda" style="margin-top:8px"></div>
+        </div>
+      </div>
     </section>
     <section class="card">
-      <h2 class="section-title">Il tuo programma</h2>
+      <div class="food-cat" id="collapProgList">
+        <button type="button" class="fc-head" id="headProgList"><span>📋 Il tuo programma</span><span id="progPendBadge" class="prog-pend" style="margin-left:auto"></span><span class="fc-arrow" style="margin-left:10px">›</span></button>
+        <div class="fc-body" id="bodyProgList" hidden>
       <p class="fineprint" style="margin:0 0 8px">Aggiungi cosa vuoi fare ogni giorno. Toccando ✓ nell'agenda, la cosa viene registrata da sé nella sua funzione.</p>
       <button class="link-btn" id="progAddBtn">＋ Aggiungi al programma</button>
       <div class="detail" id="progForm" hidden>
@@ -1511,11 +1526,17 @@
       <div id="progList" style="margin-top:10px"></div>
       <button type="button" id="badgeToggle" style="width:100%; margin-top:14px; appearance:none; cursor:pointer; font-family:inherit; font-weight:800; font-size:15.5px; background:color-mix(in srgb, var(--accent) 12%, var(--surface)); border:1.5px solid color-mix(in srgb, var(--accent) 40%, var(--line)); color:var(--accent); border-radius:13px; padding:14px; min-height:52px; touch-action:manipulation;">🔴 Segnalino sull'icona</button>
       <p class="fineprint" style="margin:7px 2px 0">Mostra sull'icona dell'app <b>quante cose ti restano da fare oggi</b> (il pallino col numero, come le altre app). Funziona su iPhone recenti; chiede il permesso una volta. <b>Si aggiorna quando apri l'app.</b></p>
+        </div>
+      </div>
     </section>
     <section class="card" id="verificaCard">
-      <div class="row-between" style="flex-wrap:wrap; gap:2px 10px"><h2 class="section-title" style="margin:0">📊 Verifica</h2><span id="verificaSum" class="stat-summary"></span></div>
+      <div class="food-cat" id="collapVerifica">
+        <button type="button" class="fc-head" id="headVerifica"><span>📊 Verifica</span><span id="verificaSum" class="stat-summary" style="margin-left:auto"></span><span class="fc-arrow" style="margin-left:10px">›</span></button>
+        <div class="fc-body" id="bodyVerifica" hidden>
       <p class="fineprint" style="margin:2px 0 6px">Quanto hai rispettato il programma negli ultimi 7 giorni (calcolato sul programma di adesso).</p>
       <div id="verificaBody"></div>
+        </div>
+      </div>
     </section>
     <p class="fineprint" style="text-align:center; margin:0">L'avviso è <b>in-app</b> (agenda + suggerimenti in Home): l'app non può far squillare una notifica. Per un promemoria che suona, usa una Sveglia/Promemoria iOS.</p>
   </section>
@@ -1612,7 +1633,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v128</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v129</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2894,6 +2915,9 @@
   saluteCollapWire("headRacconto","bodyRacconto","collapRacconto");
   saluteCollapWire("headDiarioAdd","bodyDiarioAdd","collapDiarioAdd");
   saluteCollapWire("headCibo","bodyCibo","collapCibo");
+  saluteCollapWire("headProgOggi","bodyProgOggi","collapProgOggi");
+  saluteCollapWire("headProgList","bodyProgList","collapProgList");
+  saluteCollapWire("headVerifica","bodyVerifica","collapVerifica");
   function updateSaluteCount(){
     var nf=fastidiG.selected().length, np=psicoG.selected().length;
     var lf=document.getElementById("lblFastidi"), lp=document.getElementById("lblPsico");
@@ -3831,7 +3855,7 @@
   function progRipetiLabel(it){ var r=it.ripeti||"ogni"; if(r==="ogni") return "ogni giorno"; if(r==="sett"){ var g=(it.giorni||[]).slice().sort(function(a,b){ return ((a+6)%7)-((b+6)%7); }); return g.length? g.map(function(d){return GIORNI_MAP[d];}).join(", ") : "nessun giorno"; } if(r==="mese") return "il "+it.giornoMese+" del mese"; if(r==="data"){ if(!it.data) return "una data"; var p=String(it.data).split("-"); return "il "+p[2]+"/"+p[1]+"/"+p[0]; } if(r==="range"){ var a=String(it.dataDa||"").split("-"), b=String(it.dataA||"").split("-"); return "dal "+(a[2]||"?")+"/"+(a[1]||"")+" al "+(b[2]||"?")+"/"+(b[1]||""); } return ""; }
   function itemAppliesToDate(it, d){ var r=it.ripeti||"ogni"; if(r==="ogni") return true; if(r==="sett") return (it.giorni||[]).indexOf(d.getDay())>=0; if(r==="mese") return d.getDate()===(parseInt(it.giornoMese,10)||0); if(r==="data") return dayKey(d)===it.data; if(r==="range"){ var k=dayKey(d); return !!(it.dataDa && it.dataA && k>=it.dataDa && k<=it.dataA); } return true; }
   function itemAppliesToday(it){ return itemAppliesToDate(it, new Date()); }
-  function progPlannedForDate(d){ var n=0; programma.forEach(function(it){ if(it.tipo==="fumo") return; if(itemAppliesToDate(it,d)) n++; }); try{ var pd=Pillole.data(); (pd.defs||[]).forEach(function(p){ n+=(p.orari||[]).length; }); }catch(e){} return n; }
+  function progPlannedForDate(d){ var _dK=dayKey(d), isTd=(_dK===dayKey(new Date())), nm=new Date().getHours()*60+new Date().getMinutes(); function due(o){ return !isTd || !o || hhmmToMin(o)<=nm; } var n=0; programma.forEach(function(it){ if(it.tipo==="fumo") return; if(itemAppliesToDate(it,d) && due(it.ora)) n++; }); try{ var pd=Pillole.data(); (pd.defs||[]).forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>_dK) return; (p.orari||[]).forEach(function(o){ if(due(o)) n++; }); }); }catch(e){} return n; }
   function progDoneForDate(d){ var dK=dayKey(d), n=0; if(progFatti[dK]) n+=Object.keys(progFatti[dK]).length; try{ var pd=Pillole.data(), tk=pd.taken||{}; Object.keys(tk).forEach(function(k){ if(k.indexOf(dK+"|")===0) n++; }); }catch(e){} return n; }
   function renderVerifica(){
     var host=document.getElementById("verificaBody"); if(!host) return; host.innerHTML="";
@@ -3843,9 +3867,10 @@
     if(!totP){ host.innerHTML='<div class="empty">Nessun programma da verificare.</div>'; return; }
     var WD=["Dom","Lun","Mar","Mer","Gio","Ven","Sab"];
     days.forEach(function(x){
-      var row=document.createElement("div"); row.className="ver-row";
       var pct=x.p?Math.round(x.done/x.p*100):0;
-      row.innerHTML='<span class="ver-day">'+WD[x.d.getDay()]+' '+pad2(x.d.getDate())+'/'+pad2(x.d.getMonth()+1)+'</span><span class="ver-bar"><span class="ver-fill" style="width:'+pct+'%"></span></span><span class="ver-num">'+x.done+'/'+x.p+'</span>';
+      var cls = !x.p ? "" : (pct>=70?"ver-ok":(pct>=40?"ver-warn":"ver-bad"));
+      var row=document.createElement("div"); row.className="ver-row"+(cls?" "+cls:"");
+      row.innerHTML='<span class="ver-day">'+WD[x.d.getDay()]+' '+pad2(x.d.getDate())+'/'+pad2(x.d.getMonth()+1)+'</span><span class="ver-bar"><span class="ver-fill" style="width:'+pct+'%"></span></span><span class="ver-num">'+(x.p?(x.done+'/'+x.p):'—')+'</span>';
       host.appendChild(row);
     });
   }
@@ -3920,6 +3945,8 @@
       row.appendChild(chk); row.appendChild(nm); row.appendChild(tm); row.appendChild(cok); row.appendChild(del); host.appendChild(row);
     });
     document.getElementById("progOggiSum").textContent = ent.length? (doneN+"/"+ent.length+" fatte") : "";
+    var _pend=Math.max(0, ent.length-doneN), _pb=document.getElementById("progPendBadge");
+    if(_pb){ if(_pend>0){ _pb.textContent=_pend+(_pend===1?" da fare":" da fare"); _pb.classList.remove("done"); } else if(ent.length){ _pb.textContent="✓ tutto fatto"; _pb.classList.add("done"); } else { _pb.textContent=""; _pb.classList.remove("done"); } }
     renderVerifica();
     try{ updateAppBadge(); }catch(e){}
     var plist=document.getElementById("progList"); plist.innerHTML="";
