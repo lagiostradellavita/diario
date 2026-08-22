@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 130; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 131; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -660,6 +660,11 @@
   .day-head.pday-bad{background:color-mix(in srgb, var(--lvl-high) 15%, transparent);}
   .day-head.ev-ok{background:color-mix(in srgb, var(--lvl-low) 15%, transparent);}
   .day-head.ev-miss{background:color-mix(in srgb, var(--lvl-high) 15%, transparent);}
+  .day-head.fumo-low, .day-head.fumo-yellow, .day-head.fumo-mid, .day-head.fumo-high{border-bottom:none; border-radius:9px; padding:5px 10px 6px;}
+  .day-head.fumo-low{background:color-mix(in srgb, var(--lvl-low) 15%, transparent);}
+  .day-head.fumo-yellow{background:color-mix(in srgb, var(--lvl-yellow) 17%, transparent);}
+  .day-head.fumo-mid{background:color-mix(in srgb, var(--lvl-mid) 15%, transparent);}
+  .day-head.fumo-high{background:color-mix(in srgb, var(--lvl-high) 15%, transparent);}
   .day-head .dmal{font-size:12.5px; font-weight:800; white-space:nowrap;}
   .day-head.mal1 .dmal{color:var(--lvl-yellow);}
   .day-head.mal2 .dmal{color:var(--lvl-mid);}
@@ -1637,7 +1642,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v130</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v131</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1887,6 +1892,7 @@
         onEdit:(function(ee){ return function(){ startEditFumo(ee); }; })(e),
         onDelete:(function(ee){ return function(){ deleteEntry(ee.id); }; })(e) }; });
     renderStorico("history", rows, storOpen.fumo, {empty:'Ancora niente.<br>Tocca un pulsante qui sopra per iniziare.',
+      dayClass:function(g){ var tot=g.items.reduce(function(s,r){ return s+(r.q||0); },0); return "fumo-"+levelOf(tot); },
       headExtra:function(g){ var tot=g.items.reduce(function(s,r){ return s+(r.q||0); },0); var sp=document.createElement("span"); sp.className="dmal"; sp.style.color="var("+lvlVar(levelOf(tot))+")"; sp.textContent=num(tot)+(tot===1?" sigaretta":" sigarette"); return sp; }});
   }
 
