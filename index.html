@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 133; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 134; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -425,6 +425,10 @@
   .tl-time{flex:0 0 auto; font-size:14px; font-weight:800; color:var(--ink-soft); font-variant-numeric:tabular-nums; min-width:46px; padding-top:2px;}
   .tl-row input.tl-time-edit{flex:1 1 auto; font-family:inherit; font-size:14px; line-height:1.2; padding:4px 6px; min-height:0; height:30px; box-sizing:border-box; border:1.5px solid var(--accent); border-radius:8px; background:var(--surface); color:var(--ink); min-width:0; max-width:100%;}
   .tl-timebtn{font-size:16px;}
+  .tl-row.salute-row{gap:7px;}
+  .tl-row.salute-row .tl-time{min-width:38px; font-size:13px;}
+  .tl-row.salute-row .tl-edit, .tl-row.salute-row .tl-del{width:26px; height:26px;}
+  .tl-row.salute-row .tl-del{font-size:15px;}
   .tl-time-ok{flex:0 0 auto; appearance:none; border:none; background:var(--accent); color:#fff; border-radius:8px; width:36px; height:30px; font-size:18px; font-weight:800; line-height:1; cursor:pointer; touch-action:manipulation;}
   .tl-time-cancel{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:8px; width:30px; height:30px; font-size:15px; cursor:pointer; touch-action:manipulation;}
   .tl-emoji{flex:0 0 auto; font-size:18px; line-height:1.25;}
@@ -452,6 +456,7 @@
   .tl-row.missed .tl-time, .tl-row.missed .tl-emoji{color:var(--lvl-high);}
   .tl-missed-sum{margin:2px 0 8px; padding:8px 11px; border-radius:11px; background:color-mix(in srgb, var(--lvl-high) 10%, var(--surface)); border:1px solid color-mix(in srgb, var(--lvl-high) 30%, var(--line)); color:var(--lvl-high); font-size:13.5px; font-weight:800; overflow-wrap:anywhere;}
   #cicloNote, #notaGiornata, #dietaPiano, #saluteNota, #raccontoTxt{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font-family:inherit; font-size:15.5px; line-height:1.4; resize:vertical; margin-top:2px;}
+  #saluteNota{font-size:17px;}
   #saluteNota{font-size:18px; line-height:1.45;}
   #raccontoTxt{min-height:150px; font-size:16px; line-height:1.5;}
   #raccontoReco{border-top:1px dashed var(--line); padding-top:12px;}
@@ -1195,6 +1200,13 @@
       <div class="food-cat" id="collapSalute">
         <button type="button" class="fc-head" id="headSalute"><span>🩺 Come ti senti adesso</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodySalute" hidden>
+      <div class="food-cat" id="collapNota">
+        <button type="button" class="fc-head" id="headNota"><span style="font-size:19px; color:var(--accent); font-weight:800">📝 Note e sensazioni</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyNota" hidden>
+          <div id="saluteNotaSug" class="nota-sug" hidden></div>
+          <textarea id="saluteNota" rows="4" placeholder="Descrivi come ti senti: sensazioni, dove, da quando, cosa lo scatena…"></textarea>
+        </div>
+      </div>
       <div class="food-cat" id="collapFastidi">
         <button type="button" class="fc-head" id="headFastidi"><span id="lblFastidi">🤕 Fastidi fisici</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodyFastidi" hidden>
@@ -1228,17 +1240,6 @@
           </div>
           <div id="psicoManage" class="chip-manage"></div>
         </div>
-      </div>
-      <div class="food-cat" id="collapNota">
-        <button type="button" class="fc-head" id="headNota"><span>📝 Note e sensazioni</span><span class="fc-arrow">›</span></button>
-        <div class="fc-body" id="bodyNota" hidden>
-          <div id="saluteNotaSug" class="nota-sug" hidden></div>
-          <textarea id="saluteNota" rows="4" placeholder="Descrivi come ti senti: sensazioni, dove, da quando, cosa lo scatena…"></textarea>
-        </div>
-      </div>
-      <div class="grid2" id="saluteWhen" hidden>
-        <div class="field"><label for="saluteData">Data</label><input type="date" id="saluteData"></div>
-        <div class="field"><label for="saluteOra">Ora</label><input type="time" id="saluteOra"></div>
       </div>
       <button class="primary" id="saluteReg" style="margin-top:14px">Registra adesso</button>
         </div>
@@ -1643,7 +1644,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v133</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v134</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2970,13 +2971,14 @@
         var d=new Date(x.ts);
         var _nl=(x.nota||"").toLowerCase(); var _voci=(x.voci||[]).filter(function(v){ return _nl.indexOf(String(v).toLowerCase())<0; });
         var stxt=_voci.join(", "); if(x.dove && x.dove.length){ stxt += (stxt?" · ":"") + "📍 "+x.dove.join(", "); } if(x.nota){ stxt += (stxt?' — ':'') + x.nota; }
-        var row=document.createElement("div"); row.className="tl-row";
+        var row=document.createElement("div"); row.className="tl-row salute-row";
         row.innerHTML='<span class="tl-time">'+hhmm(d)+'</span><span class="tl-emoji">🤕</span><span class="tl-text"></span>';
         row.querySelector(".tl-text").textContent=stxt;
         var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi"); ed.onclick=function(){ startEditSalute(x); };
+        var te=document.createElement("button"); te.className="tl-edit tl-timebtn"; te.textContent="🕐"; te.setAttribute("aria-label","Correggi l'ora"); te.title="Correggi l'ora"; (function(xx,rowEl,btn){ btn.onclick=function(){ Array.prototype.forEach.call(rowEl.children,function(c){ c.style.display="none"; }); var inp=document.createElement("input"); inp.type="time"; inp.className="tl-time-edit"; inp.value=hhmm(new Date(xx.ts)); var ok=document.createElement("button"); ok.className="tl-time-ok"; ok.textContent="✓"; ok.setAttribute("aria-label","Conferma ora"); var cx=document.createElement("button"); cx.className="tl-time-cancel"; cx.textContent="✕"; cx.setAttribute("aria-label","Annulla"); rowEl.appendChild(inp); rowEl.appendChild(ok); rowEl.appendChild(cx); try{ inp.focus(); }catch(e){} var done=false; ok.onclick=function(){ if(done) return; done=true; if(inp.value){ var p=String(inp.value).split(":"); var nd=new Date(xx.ts); nd.setHours(parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0, 0); xx.ts=+nd; saveSaluteLog(); } renderSalute(); }; cx.onclick=function(){ if(done) return; done=true; renderSalute(); }; }; })(x,row,te);
         var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina");
         del.onclick=function(){ saluteLog=saluteLog.filter(function(y){return y.id!==x.id;}); if(editingSaluteId===x.id) cancelEditSalute(); saveSaluteLog(); renderSalute(); };
-        row.appendChild(ed); row.appendChild(del); body.appendChild(row);
+        row.appendChild(ed); row.appendChild(te); row.appendChild(del); body.appendChild(row);
       });
       h.onclick=function(){ var willOpen=body.hidden; body.hidden=!willOpen; saluteDayOpen[g.dk]=willOpen; var chev=h.querySelector(".dchev"); if(chev) chev.textContent=willOpen?"▾":"▸"; };
       host.appendChild(h); host.appendChild(body);
@@ -2995,7 +2997,6 @@
     document.getElementById("bodyNota").hidden=false; document.getElementById("collapNota").classList.add("open");
     document.getElementById("bodyFastidi").hidden=false; document.getElementById("collapFastidi").classList.add("open");
     document.getElementById("bodyPsico").hidden=false; document.getElementById("collapPsico").classList.add("open");
-    whenShow("saluteWhen","saluteData","saluteOra", x.ts);
     updateSaluteCount();
     document.getElementById("saluteReg").textContent="Salva modifiche";
     scrollToEl(document.getElementById("saluteReg").parentNode);
@@ -3007,11 +3008,10 @@
     var dove=doveG.selected();
     var nota=(document.getElementById("saluteNota").value||"").trim();
     if(!v.length && !nota){ toast("Seleziona un fastidio o scrivi una nota"); return; }
-    var ts=whenTs("saluteWhen","saluteData","saluteOra");
     var intens={}; fastidiG.selected().forEach(function(f){ intens[f]=fastIntens[f]||2; });
-    if(editingSaluteId){ var it=null; saluteLog.forEach(function(y){ if(y.id===editingSaluteId) it=y; }); if(it){ it.voci=v; it.nota=nota; it.ts=ts; it.dove=dove; it.intens=intens; } cancelEditSalute(); toast("Modifica salvata ✓"); }
-    else { saluteLog.push({id:uid(), ts:ts, voci:v, nota:nota, dove:dove, intens:intens}); toast("Registrato ✓"); }
-    saveSaluteLog(); whenHide("saluteWhen"); fastidiG.clear(); psicoG.clear(); doveG.clear(); fastIntens={}; document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
+    if(editingSaluteId){ var it=null; saluteLog.forEach(function(y){ if(y.id===editingSaluteId) it=y; }); if(it){ it.voci=v; it.nota=nota; it.dove=dove; it.intens=intens; } cancelEditSalute(); toast("Modifica salvata ✓"); }
+    else { saluteLog.push({id:uid(), ts:Date.now(), voci:v, nota:nota, dove:dove, intens:intens}); toast("Registrato ✓"); }
+    saveSaluteLog(); fastidiG.clear(); psicoG.clear(); doveG.clear(); fastIntens={}; document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
   };
 
   // ---- Parametri: pressione arteriosa, saturazione, battiti cardiaci ----
