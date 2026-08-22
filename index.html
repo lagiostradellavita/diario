@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 125; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 126; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -435,6 +435,7 @@
   .param-legend .pl-dot.bad{ background:var(--lvl-high); }
   .param-legend .pl-ranges{ margin-top:6px; font-size:12.5px; line-height:1.55; color:var(--muted); font-weight:600; }
   .param-legend .pl-note{ margin-top:6px; font-size:12px; font-style:italic; color:var(--muted); }
+  .pil-nightnote{background:color-mix(in srgb, var(--accent) 12%, transparent); border:1px solid color-mix(in srgb, var(--accent) 35%, transparent); border-radius:10px; padding:8px 11px; font-size:13px; font-weight:650; color:var(--ink-soft); margin-bottom:10px;}
   .tl-row.planned{opacity:.72;}
   .magg-row{background:color-mix(in srgb, var(--accent) 8%, transparent); border-radius:10px;}
   .magg-row .tl-text{color:var(--accent); font-weight:800;}
@@ -1592,7 +1593,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v125</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v126</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1641,6 +1642,8 @@
   // ---- date helpers ----
   function pad(n){ return (n<10?"0":"")+n; }
   function dayKey(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  // Giornata "pillole": confine alle 5:00. Una dose spuntata fra mezzanotte e le 5 conta per il giorno prima (la si prende prima di dormire).
+  function pillDayKey(d){ var t=(d&&d.getTime)?d.getTime():d; return dayKey(new Date(t - 5*3600000)); }
   function fmtTime(d){ return pad(d.getHours())+":"+pad(d.getMinutes()); }
   function fmtDayLong(d){
     return d.toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"});
@@ -2152,7 +2155,7 @@
     function saveTaken(){ try{ localStorage.setItem(cfg.takenKey, JSON.stringify(taken)); }catch(e){} }
     var storicoOpen={};
     function today(){
-      var now=new Date(), dK=dayKey(now), nowMin=now.getHours()*60+now.getMinutes(), doses=[];
+      var now=new Date(), realDK=dayKey(now), dK=pillDayKey(now), nowMin=(dK===realDK)?(now.getHours()*60+now.getMinutes()):(24*60), doses=[];
       defs.forEach(function(p){ (p.orari||[]).forEach(function(o){
         var k=dK+"|"+p.id+"|"+o, tv=taken[k], tk=!!tv;
         doses.push({id:p.id, nome:p.nome, ora:o, key:k, taken:tk, takenAt:(typeof tv==="number"?tv:null), late:(!tk && nowMin>oraMin(o))});
@@ -2163,8 +2166,10 @@
     }
     function render(){
       document.getElementById(I.date).textContent=fmtDayLong(new Date());
+      var _pdk=pillDayKey(new Date()), _isPrevDay=(_pdk!==dayKey(new Date()));
       var t=today(), host=document.getElementById(I.today); host.innerHTML="";
       if(!t.total){ host.innerHTML='<div class="empty">'+L.empty+'</div>'; }
+      else if(_isPrevDay){ var nb=document.createElement("div"); nb.className="pil-nightnote"; nb.textContent="🌙 Dopo mezzanotte: queste sono le dosi di "+fmtDayLong(new Date(_pdk+"T12:00:00"))+", che prendi prima di dormire. Alle 5 si passa a oggi."; host.appendChild(nb); }
       t.doses.forEach(function(d){
         var row=document.createElement("div"); row.className="dose"+(d.taken?" done":"")+(d.late?" late":"");
         row.innerHTML='<span class="dcheck">✓</span><span class="dname">'+esc(d.nome)+(d.late?' <span class="badge-late">in ritardo</span>':'')+(d.taken&&d.takenAt?' <button type="button" class="taken-at">presa '+hhmm(new Date(d.takenAt))+' ✎</button>':'')+'</span><span class="dtime">'+d.ora+'</span>';
@@ -2182,7 +2187,7 @@
       if(t.total){ s.textContent=t.taken+"/"+t.total+" "+L.done; s.style.color=t.late?"var(--lvl-high)":(t.taken===t.total?"var(--lvl-low)":"var(--lvl-mid)"); }
       else s.textContent="";
       var list=document.getElementById(I.list); list.innerHTML="";
-      var todayDK=dayKey(new Date());
+      var todayDK=pillDayKey(new Date());
       var listDefs=defs.slice().sort(function(a,b){ var ao=(a.orari&&a.orari.length)?a.orari[0]:"99:99", bo=(b.orari&&b.orari.length)?b.orari[0]:"99:99"; return ao<bo?-1:(ao>bo?1:0); });
       listDefs.forEach(function(p){
         var os=(p.orari||[]);
@@ -2220,7 +2225,7 @@
         var takenEff={};
         Object.keys(taken).forEach(function(k){ var tv=taken[k]; if(typeof tv!=="number") return; var parts=k.split("|"); var nm=nmeById[parts[1]]||"Pillola", ora=parts[2]; var ed=effPillDay(ora, tv); (takenEff[ed]||(takenEff[ed]={}))[parts[1]+"|"+ora]=true;
           stRows.push({ ts:tv, dayKeyOverride:ed, emoji:"💊", text:nm+(ora?" · programmata "+ora:""), onDelete:(function(key){ return function(){ if(confirm("Togliere questa presa dallo storico?")){ delete taken[key]; saveTaken(); render(); } }; })(k) }); });
-        var _tdk=dayKey(new Date()), _nm=new Date().getHours()*60+new Date().getMinutes();
+        var _rdk=dayKey(new Date()), _tdk=pillDayKey(new Date()), _nm=(_tdk===_rdk)?(new Date().getHours()*60+new Date().getMinutes()):(24*60);
         function pillDayStat(dk){ var isT=(dk===_tdk), sc=0, tk=0; defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; (p.orari||[]).forEach(function(o){ if(isT && oraMin(o)>_nm) return; sc++; if(takenEff[dk] && takenEff[dk][p.id+"|"+o]) tk++; }); }); return {sched:sc, taken:tk}; }
         renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora.",
           dayClass:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return ""; return s.taken>=s.sched?"done-ok":"done-miss"; },
@@ -4107,7 +4112,7 @@
       if(!diarioMedSel){ toast("Scegli la medicina"); return; }
       var defs=Pillole.data().defs||[], def=null; defs.forEach(function(d){ if(d.id===diarioMedSel) def=d; });
       if(!def){ toast("Scegli la medicina"); return; }
-      var dK=dayKey(new Date()), taken=Pillole.data().taken||{}, orari=def.orari||[], key=null, i;
+      var dK=pillDayKey(new Date(ts)), taken=Pillole.data().taken||{}, orari=def.orari||[], key=null, i;
       for(i=0;i<orari.length;i++){ var k=dK+"|"+def.id+"|"+orari[i]; if(!taken[k]){ key=k; break; } }
       if(!key && orari.length) key=dK+"|"+def.id+"|"+orari[0];
       if(!key){ toast("Questa medicina non ha orari — impostali in «Pillole»"); return; }
