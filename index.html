@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 132; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 133; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1643,7 +1643,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v132</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v133</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2933,6 +2933,7 @@
   saluteCollapWire("headProgList","bodyProgList","collapProgList");
   saluteCollapWire("headVerifica","bodyVerifica","collapVerifica");
   saluteCollapWire("headSalute","bodySalute","collapSalute");
+  (function(){ var h=document.getElementById("headSalute"); if(h){ var prev=h.onclick; h.onclick=function(){ if(prev) prev.call(this); if(!editingSaluteId){ var sw=document.getElementById("saluteWhen"); if(sw) sw.hidden=true; } }; } })();
   function updateSaluteCount(){
     var nf=fastidiG.selected().length, np=psicoG.selected().length;
     var lf=document.getElementById("lblFastidi"), lp=document.getElementById("lblPsico");
@@ -2945,7 +2946,7 @@
   var saluteDayOpen={}; // dk -> aperto/chiuso (default: oggi aperto, passati chiusi) — come il Diario
   function renderSalute(){
     document.getElementById("saluteDate").textContent=fmtDayLong(new Date());
-    if(!editingSaluteId){ try{ whenHide("saluteWhen"); }catch(e){} }
+    try{ var _sw0=document.getElementById("saluteWhen"); if(_sw0) _sw0.hidden = !editingSaluteId; }catch(e){}
     try{ renderNoteG(); }catch(e){}
     var host=document.getElementById("saluteList"); host.innerHTML="";
     var maggKeys=Object.keys(fastidiMaggiori).filter(function(k){ return (fastidiMaggiori[k]||[]).length; });
