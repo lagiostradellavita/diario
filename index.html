@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 137; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 138; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1651,7 +1651,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v137</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v138</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3001,11 +3001,13 @@
       if(magg.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">⭐</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+magg.join(", "); body.appendChild(mr); }
       g.items.forEach(function(x){
         var d=new Date(x.ts);
-        var _nl=(x.nota||"").toLowerCase(); var _parts=[];
-        (x.voci||[]).forEach(function(v){ if(_nl.indexOf(String(v).toLowerCase())>=0) return; var dv=(x.dovePer && x.dovePer[v])?x.dovePer[v]:[]; var lv=(x.intens && x.intens[v])||2; _parts.push(v+(lv!==2?" ("+INT_LBL[lv]+")":"")+((dv&&dv.length)?" 📍"+dv.join("/"):"")); });
+        var _parts=(x.voci||[]).map(function(v){ var dv=(x.dovePer && x.dovePer[v])?x.dovePer[v]:[]; var lv=(x.intens && x.intens[v])||2; return v+" ("+INT_LBL[lv]+")"+((dv&&dv.length)?" 📍"+dv.join("/"):""); });
         var stxt=_parts.join(", ");
         if(!x.dovePer && x.dove && x.dove.length){ stxt += (stxt?" · ":"") + "📍 "+x.dove.join(", "); }
-        if(x.nota){ stxt += (stxt?' — ':'') + x.nota; }
+        var _rem=(x.nota||"");
+        (x.voci||[]).forEach(function(v){ try{ var _e=String(v).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); _rem=_rem.replace(new RegExp("(^|[^0-9a-zàèéìòùáéíóúüç])"+_e+"([^0-9a-zàèéìòùáéíóúüç]|$)","gi"), "$1$2"); }catch(e){} });
+        _rem=_rem.replace(/\s{2,}/g," ").replace(/^[\s.,;:·—-]+/,"").replace(/[\s.,;:·—-]+$/,"").trim();
+        if(_rem){ stxt += (stxt?' — ':'') + _rem; }
         var row=document.createElement("div"); row.className="tl-row salute-row";
         row.innerHTML='<span class="tl-time">'+hhmm(d)+'</span><span class="tl-emoji">🤕</span><span class="tl-text"></span>';
         row.querySelector(".tl-text").textContent=stxt;
