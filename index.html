@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 135; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 136; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1651,7 +1651,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v135</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v136</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2383,8 +2383,14 @@
       preset.forEach(function(p){ if(hidden.indexOf(p)<0) items.push({label:(renames[p]||p), preset:true, orig:p}); });
       custom.forEach(function(c){ items.push({label:c, preset:false}); });
       if(!items.length) return;
-      var tog=document.createElement("button"); tog.type="button"; tog.className="link-btn"; tog.style.cssText="text-align:left;padding:6px 2px;margin-top:4px"; tog.textContent=(manageOpen?"▾":"▸")+" ⚙️ Gestisci le voci (correggi o elimina)"; tog.onclick=function(){ manageOpen=!manageOpen; renderManager(); }; m.appendChild(tog);
+      var tog=document.createElement("button"); tog.type="button"; tog.className="link-btn"; tog.style.cssText="text-align:left;padding:6px 2px;margin-top:4px"; tog.textContent=(manageOpen?"▾":"▸")+" ⚙️ Gestisci le voci (aggiungi, correggi o elimina)"; tog.onclick=function(){ manageOpen=!manageOpen; renderManager(); }; m.appendChild(tog);
       if(!manageOpen) return;
+      var addRow=document.createElement("div"); addRow.className="chip-add"; addRow.style.margin="6px 0 10px";
+      var ai=document.createElement("input"); ai.type="text"; ai.placeholder="Aggiungi una nuova voce…"; ai.autocomplete="off";
+      var ab=document.createElement("button"); ab.type="button"; ab.textContent="＋"; ab.setAttribute("aria-label","Aggiungi");
+      function doAdd(){ var v=(ai.value||"").trim(); if(!v) return; if(all().indexOf(v)>=0){ toast("«"+v+"» esiste già"); return; } if(opt.addSelects){ selectOne(v); } else { add(v); } }
+      ab.onclick=doAdd; ai.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); doAdd(); } });
+      addRow.appendChild(ai); addRow.appendChild(ab); m.appendChild(addRow);
       items.forEach(function(it){
         var row=document.createElement("div"); row.className="manage-row";
         var nm=document.createElement("span"); nm.className="manage-name"; nm.textContent=it.label;
@@ -2407,9 +2413,9 @@
     render();
     return { selected:function(){ return Object.keys(sel); }, value:function(){ var k=Object.keys(sel); return k.length?k[0]:""; }, clear:function(){ sel={}; render(); fire(); }, add:add, set:set, selectOne:selectOne, opts:opts, removeCustom:removeCustom, renameCustom:renameCustom, customList:function(){ return custom.slice(); } };
   }
-  function wireAdd(inputId, btnId, group){
+  function wireAdd(inputId, btnId, group, selectOnAdd){
     var inp=document.getElementById(inputId), btn=document.getElementById(btnId); if(!inp||!btn) return;
-    btn.onclick=function(){ var v=inp.value; if(group.add(v)){ inp.value=""; } else if((v||"").trim()){ toast("Già presente"); } };
+    btn.onclick=function(){ var v=(inp.value||"").trim(); if(!v) return; if(selectOnAdd){ group.selectOne(v); inp.value=""; } else if(group.add(v)){ inp.value=""; } else { toast("Già presente"); } };
     inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); btn.click(); } });
   }
 
@@ -2841,11 +2847,11 @@
   // ---- Salute: fastidi fisici + stato psicologico ----
   var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Cefalea","Emicrania","Vertigini","Nausea","Vomito","Stanchezza","Debolezza","Malessere","Fiato corto","Dispnea","Tosse","Mal di gola","Difficoltà a deglutire","Naso chiuso","Bruciore di stomaco","Reflusso","Dolori addominali","Gonfiore addominale","Stitichezza","Diarrea","Dolori muscolari","Crampi","Spasmi muscolari","Mal di schiena","Lombalgia","Sciatica","Dolori articolari","Tensione al collo","Torcicollo","Dolore cervicale","Dolore al petto","Fascicolazioni","Formicolii","Intorpidimento","Acufene","Ronzio auricolare","Vista offuscata","Occhi stanchi","Nebbia mentale","Palpitazioni","Tachicardia","Extrasistoli","Caviglie gonfie","Sudorazione","Sudorazione notturna","Prurito","Insonnia","Inappetenza","Fastidio vescica"];
   var PSICO=["Ansia","Stress","Attacco di panico","Tristezza","Umore basso","Depressione","Agitazione","Pensieri ossessivi","Irritabilità"];
-  var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts", false, {sortAlpha:true, onChange:onFastidiChange, manageId:"fastidiManage"});
-  var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts", false, {manageId:"psicoManage", onChange:onPsicoChange});
+  var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts", false, {sortAlpha:true, onChange:onFastidiChange, manageId:"fastidiManage", addSelects:true});
+  var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts", false, {manageId:"psicoManage", onChange:onPsicoChange, addSelects:true});
   var doveG=makeChipGroup("doveChips", ["Dx (destro)","Sx (sinistro)","Bilaterale"], "salute-dove-opts", false, {manageId:"doveManage", onChange:function(){ try{ renderFastidiSel(); }catch(e){} }});
-  wireAdd("fastidiAddInput","fastidiAddBtn", fastidiG);
-  wireAdd("psicoAddInput","psicoAddBtn", psicoG);
+  wireAdd("fastidiAddInput","fastidiAddBtn", fastidiG, true);
+  wireAdd("psicoAddInput","psicoAddBtn", psicoG, true);
   // Fastidi maggiori del giorno: selezione libera a parte, mostrata in cima alla giornata nello Storico
   var fastidiMaggiori={}; try{ var _fm=JSON.parse(localStorage.getItem("salute-fastidi-maggiori")); if(_fm && typeof _fm==="object") fastidiMaggiori=_fm; }catch(e){}
   function saveFastidiMaggiori(){ try{ localStorage.setItem("salute-fastidi-maggiori", JSON.stringify(fastidiMaggiori)); }catch(e){} }
