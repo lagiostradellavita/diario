@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 134; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 135; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -486,6 +486,13 @@
   .fi-seg button.on[data-lv="2"]{background:var(--lvl-mid); color:#fff;}
   .fi-seg button.on[data-lv="3"]{background:var(--lvl-high); color:#fff;}
   .fi-x{appearance:none; border:none; background:var(--track); color:var(--muted); width:26px; height:26px; border-radius:7px; font-size:15px; line-height:1; cursor:pointer; touch-action:manipulation; flex:0 0 auto;}
+  .fast-card{padding:8px 0; border-bottom:1px solid var(--line);}
+  .fast-card:last-child{border-bottom:none;}
+  .fast-card > .fast-int-row{border-bottom:none; padding:2px 0;}
+  .fi-dove{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:6px; padding-left:2px;}
+  .fi-dove .fi-dove-lbl{font-size:13px; color:var(--muted); font-weight:800; margin-right:1px;}
+  .fi-dove-chip{appearance:none; border:1.5px solid var(--line); background:var(--surface); color:var(--ink-soft); font-family:inherit; font-size:12.5px; font-weight:700; padding:5px 10px; border-radius:999px; cursor:pointer; touch-action:manipulation;}
+  .fi-dove-chip.on{background:var(--accent); border-color:var(--accent); color:#fff;}
   .ciclo-prev{margin:10px 0 2px; padding:12px 14px; border-radius:14px; background:var(--surface-2); border:1px solid var(--line); font-size:15.5px; font-weight:700; color:var(--ink-soft); line-height:1.45;}
   .ciclo-prev b{color:var(--ink); font-weight:850;}
   .ciclo-prev.late{background:color-mix(in srgb, #E11D48 12%, var(--surface)); border-color:color-mix(in srgb,#E11D48 40%, var(--line)); color:#E11D48;}
@@ -1219,10 +1226,10 @@
             <button type="button" id="fastidiAddBtn">＋</button>
           </div>
           <div id="fastidiManage" class="chip-manage"></div>
-          <div class="prog-flabel" style="margin-top:14px">📍 Dove (per fastidi localizzati, es. acufene)</div>
-          <div id="doveChips" class="chips"></div>
+          <div class="prog-flabel" style="margin-top:14px">📍 Luoghi — il «dove» si assegna a <b>ogni fastidio</b> qui sopra. Qui aggiungi i luoghi nuovi:</div>
+          <div id="doveChips" class="chips" hidden></div>
           <div class="chip-add" style="margin-top:8px">
-            <input type="text" id="doveAddInput" placeholder="Scrivi dove (es. gamba destra)…">
+            <input type="text" id="doveAddInput" placeholder="Aggiungi un luogo (es. gamba destra)…">
             <button type="button" id="doveAddBtn">＋</button>
           </div>
           <div id="doveManage" class="chip-manage"></div>
@@ -1644,7 +1651,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v134</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v135</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2836,7 +2843,7 @@
   var PSICO=["Ansia","Stress","Attacco di panico","Tristezza","Umore basso","Depressione","Agitazione","Pensieri ossessivi","Irritabilità"];
   var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts", false, {sortAlpha:true, onChange:onFastidiChange, manageId:"fastidiManage"});
   var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts", false, {manageId:"psicoManage", onChange:onPsicoChange});
-  var doveG=makeChipGroup("doveChips", ["Dx (destro)","Sx (sinistro)","Bilaterale"], "salute-dove-opts", false, {manageId:"doveManage"});
+  var doveG=makeChipGroup("doveChips", ["Dx (destro)","Sx (sinistro)","Bilaterale"], "salute-dove-opts", false, {manageId:"doveManage", onChange:function(){ try{ renderFastidiSel(); }catch(e){} }});
   wireAdd("fastidiAddInput","fastidiAddBtn", fastidiG);
   wireAdd("psicoAddInput","psicoAddBtn", psicoG);
   // Fastidi maggiori del giorno: selezione libera a parte, mostrata in cima alla giornata nello Storico
@@ -2877,19 +2884,32 @@
     dl.innerHTML=""; fastidiG.opts().forEach(function(o){ var op=document.createElement("option"); op.value=o; dl.appendChild(op); });
   }
   var fastIntens={}; // nome fastidio -> intensità 1(Lieve)/2(Medio)/3(Forte)
+  var fastDove={};   // nome fastidio -> [luoghi]
+  var psicoIntens={};// nome voce psico -> intensità
   var INT_LBL=["","Lieve","Medio","Forte"];
   function renderFastidiSel(){
     var host=document.getElementById("fastidiSelected"); if(!host) return; host.innerHTML="";
     var sel=fastidiG.selected();
     Object.keys(fastIntens).forEach(function(k){ if(sel.indexOf(k)<0) delete fastIntens[k]; });
+    Object.keys(fastDove).forEach(function(k){ if(sel.indexOf(k)<0) delete fastDove[k]; });
+    var places=doveG.opts();
     sel.forEach(function(v){
       if(!fastIntens[v]) fastIntens[v]=2;
+      var card=document.createElement("div"); card.className="fast-card";
       var row=document.createElement("div"); row.className="fast-int-row";
       var nm=document.createElement("span"); nm.className="fi-name"; nm.textContent=v;
       var seg=document.createElement("div"); seg.className="fi-seg";
       [1,2,3].forEach(function(lv){ var b=document.createElement("button"); b.type="button"; b.setAttribute("data-lv",lv); b.textContent=INT_LBL[lv]; if(fastIntens[v]===lv) b.className="on"; b.onclick=function(){ fastIntens[v]=lv; renderFastidiSel(); }; seg.appendChild(b); });
       var x=document.createElement("button"); x.type="button"; x.className="fi-x"; x.textContent="×"; x.setAttribute("aria-label","Togli"); x.onclick=function(){ fastidiG.set(sel.filter(function(y){return y!==v;})); };
-      row.appendChild(nm); row.appendChild(seg); row.appendChild(x); host.appendChild(row);
+      row.appendChild(nm); row.appendChild(seg); row.appendChild(x); card.appendChild(row);
+      if(places.length){
+        var dv=document.createElement("div"); dv.className="fi-dove";
+        var lbl=document.createElement("span"); lbl.className="fi-dove-lbl"; lbl.textContent="📍"; dv.appendChild(lbl);
+        var cur=fastDove[v]||[];
+        places.forEach(function(p){ var c=document.createElement("button"); c.type="button"; c.className="fi-dove-chip"+(cur.indexOf(p)>=0?" on":""); c.textContent=p; (function(vv,pp){ c.onclick=function(){ var arr=fastDove[vv]||[]; var i=arr.indexOf(pp); if(i>=0) arr.splice(i,1); else arr.push(pp); fastDove[vv]=arr; renderFastidiSel(); }; })(v,p); dv.appendChild(c); });
+        card.appendChild(dv);
+      }
+      host.appendChild(card);
     });
   }
   function onFastidiChange(){ renderFastidiSel(); updateFastidiDatalist(); if(typeof updateSaluteCount==="function") updateSaluteCount(); }
@@ -2904,10 +2924,16 @@
   // Stato psicologico: selezionati sempre visibili + elenco completo a scomparsa (come i Fastidi fisici)
   function renderPsicoSel(){
     var host=document.getElementById("psicoSelected"); if(!host) return; host.innerHTML="";
-    psicoG.selected().forEach(function(v){
-      var chip=document.createElement("button"); chip.type="button"; chip.className="chip-sel on"; chip.textContent=v+"  ×"; chip.setAttribute("aria-label","Togli "+v);
-      chip.onclick=function(){ psicoG.set(psicoG.selected().filter(function(y){return y!==v;})); };
-      host.appendChild(chip);
+    var sel=psicoG.selected();
+    Object.keys(psicoIntens).forEach(function(k){ if(sel.indexOf(k)<0) delete psicoIntens[k]; });
+    sel.forEach(function(v){
+      if(!psicoIntens[v]) psicoIntens[v]=2;
+      var row=document.createElement("div"); row.className="fast-int-row";
+      var nm=document.createElement("span"); nm.className="fi-name"; nm.textContent=v;
+      var seg=document.createElement("div"); seg.className="fi-seg";
+      [1,2,3].forEach(function(lv){ var b=document.createElement("button"); b.type="button"; b.setAttribute("data-lv",lv); b.textContent=INT_LBL[lv]; if(psicoIntens[v]===lv) b.className="on"; b.onclick=function(){ psicoIntens[v]=lv; renderPsicoSel(); }; seg.appendChild(b); });
+      var x=document.createElement("button"); x.type="button"; x.className="fi-x"; x.textContent="×"; x.setAttribute("aria-label","Togli "+v); x.onclick=function(){ psicoG.set(sel.filter(function(y){return y!==v;})); };
+      row.appendChild(nm); row.appendChild(seg); row.appendChild(x); host.appendChild(row);
     });
   }
   function onPsicoChange(){ renderPsicoSel(); if(typeof updateSaluteCount==="function") updateSaluteCount(); }
@@ -2969,8 +2995,11 @@
       if(magg.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">⭐</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+magg.join(", "); body.appendChild(mr); }
       g.items.forEach(function(x){
         var d=new Date(x.ts);
-        var _nl=(x.nota||"").toLowerCase(); var _voci=(x.voci||[]).filter(function(v){ return _nl.indexOf(String(v).toLowerCase())<0; });
-        var stxt=_voci.join(", "); if(x.dove && x.dove.length){ stxt += (stxt?" · ":"") + "📍 "+x.dove.join(", "); } if(x.nota){ stxt += (stxt?' — ':'') + x.nota; }
+        var _nl=(x.nota||"").toLowerCase(); var _parts=[];
+        (x.voci||[]).forEach(function(v){ var dv=(x.dovePer && x.dovePer[v])?x.dovePer[v]:[]; var inNota=_nl.indexOf(String(v).toLowerCase())>=0; if(inNota && !(dv&&dv.length)) return; var lv=(x.intens && x.intens[v])||2; _parts.push(v+(lv!==2?" ("+INT_LBL[lv]+")":"")+((dv&&dv.length)?" 📍"+dv.join("/"):"")); });
+        var stxt=_parts.join(", ");
+        if(!x.dovePer && x.dove && x.dove.length){ stxt += (stxt?" · ":"") + "📍 "+x.dove.join(", "); }
+        if(x.nota){ stxt += (stxt?' — ':'') + x.nota; }
         var row=document.createElement("div"); row.className="tl-row salute-row";
         row.innerHTML='<span class="tl-time">'+hhmm(d)+'</span><span class="tl-emoji">🤕</span><span class="tl-text"></span>';
         row.querySelector(".tl-text").textContent=stxt;
@@ -2989,10 +3018,12 @@
     editingSaluteId=x.id;
     var _bs=document.getElementById("bodySalute"); if(_bs){ _bs.hidden=false; document.getElementById("collapSalute").classList.add("open"); }
     var fo=fastidiG.opts();
-    fastIntens={}; if(x.intens){ Object.keys(x.intens).forEach(function(k){ fastIntens[k]=x.intens[k]; }); }
-    fastidiG.set((x.voci||[]).filter(function(v){ return fo.indexOf(v)>=0; }));
-    psicoG.set((x.voci||[]).filter(function(v){ return fo.indexOf(v)<0; }));
-    doveG.set(x.dove||[]);
+    var _fv=(x.voci||[]).filter(function(v){ return fo.indexOf(v)>=0; });
+    var _pv=(x.voci||[]).filter(function(v){ return fo.indexOf(v)<0; });
+    fastIntens={}; psicoIntens={}; if(x.intens){ Object.keys(x.intens).forEach(function(k){ if(fo.indexOf(k)>=0) fastIntens[k]=x.intens[k]; else psicoIntens[k]=x.intens[k]; }); }
+    fastDove={}; if(x.dovePer){ Object.keys(x.dovePer).forEach(function(k){ fastDove[k]=(x.dovePer[k]||[]).slice(); }); }
+    fastidiG.set(_fv);
+    psicoG.set(_pv);
     document.getElementById("saluteNota").value=x.nota||"";
     document.getElementById("bodyNota").hidden=false; document.getElementById("collapNota").classList.add("open");
     document.getElementById("bodyFastidi").hidden=false; document.getElementById("collapFastidi").classList.add("open");
@@ -3004,14 +3035,15 @@
   function cancelEditSalute(){ editingSaluteId=null; var b=document.getElementById("saluteReg"); if(b) b.textContent="Registra adesso"; whenHide("saluteWhen"); }
   // In «Come ti senti» la data/ora si cambia solo in modifica (✏️): niente toggle in registrazione (sempre adesso).
   document.getElementById("saluteReg").onclick=function(){
-    var v=fastidiG.selected().concat(psicoG.selected());
-    var dove=doveG.selected();
+    var fsel=fastidiG.selected(), psel=psicoG.selected();
+    var v=fsel.concat(psel);
     var nota=(document.getElementById("saluteNota").value||"").trim();
     if(!v.length && !nota){ toast("Seleziona un fastidio o scrivi una nota"); return; }
-    var intens={}; fastidiG.selected().forEach(function(f){ intens[f]=fastIntens[f]||2; });
-    if(editingSaluteId){ var it=null; saluteLog.forEach(function(y){ if(y.id===editingSaluteId) it=y; }); if(it){ it.voci=v; it.nota=nota; it.dove=dove; it.intens=intens; } cancelEditSalute(); toast("Modifica salvata ✓"); }
-    else { saluteLog.push({id:uid(), ts:Date.now(), voci:v, nota:nota, dove:dove, intens:intens}); toast("Registrato ✓"); }
-    saveSaluteLog(); fastidiG.clear(); psicoG.clear(); doveG.clear(); fastIntens={}; document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
+    var intens={}; fsel.forEach(function(f){ intens[f]=fastIntens[f]||2; }); psel.forEach(function(p){ intens[p]=psicoIntens[p]||2; });
+    var dovePer={}, doveAll=[]; fsel.forEach(function(f){ var d=(fastDove[f]||[]).slice(); if(d.length){ dovePer[f]=d; d.forEach(function(p){ if(doveAll.indexOf(p)<0) doveAll.push(p); }); } });
+    if(editingSaluteId){ var it=null; saluteLog.forEach(function(y){ if(y.id===editingSaluteId) it=y; }); if(it){ it.voci=v; it.nota=nota; it.dove=doveAll; it.dovePer=dovePer; it.intens=intens; } cancelEditSalute(); toast("Modifica salvata ✓"); }
+    else { saluteLog.push({id:uid(), ts:Date.now(), voci:v, nota:nota, dove:doveAll, dovePer:dovePer, intens:intens}); toast("Registrato ✓"); }
+    saveSaluteLog(); fastidiG.clear(); psicoG.clear(); doveG.clear(); fastIntens={}; psicoIntens={}; fastDove={}; document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
   };
 
   // ---- Parametri: pressione arteriosa, saturazione, battiti cardiaci ----
