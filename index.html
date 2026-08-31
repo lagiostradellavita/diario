@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 147; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 148; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1436,66 +1436,70 @@
   <section id="mod-storia" class="screen" hidden>
     <header class="top"><button class="back-btn" type="button" data-back>‹ Menu</button><span class="mark">🗂️</span><div class="brandtext"><h1>Storia clinica</h1><p class="sub">privata, solo su questo telefono</p></div></header>
 
-    <section class="card">
-      <p class="storia-privacy">🔒 Tutto quello che scrivi qui resta <b>solo su questo telefono</b> e non finisce su internet. Salva ogni tanto un backup dalla Home.</p>
-    </section>
+    <p class="storia-privacy">🔒 Quello che scrivi qui resta <b>sul tuo telefono</b> (e sul cloud, se hai fatto l'accesso). Salva ogni tanto un backup dalla Home.</p>
 
-    <section class="card">
-      <h2 class="section-title">In breve</h2>
-      <p class="fineprint" style="margin:0 0 8px">Un riassunto da leggere o mostrare al volo: diagnosi principali e cosa stai facendo ora.</p>
-      <textarea id="storiaSintesi" rows="5" placeholder="Es. Diagnosi principale (dal …). In cura con … presso …. In breve la situazione di oggi…"></textarea>
-    </section>
+    <div class="food-cat open" id="collapStEsami">
+      <button type="button" class="fc-head" id="headStEsami"><span>🔗 Esami e referti</span><span class="fc-arrow">›</span></button>
+      <div class="fc-body" id="bodyStEsami">
+        <p class="fineprint" style="margin:0 0 8px">I file dei referti restano su Dropbox. Qui tieni l'elenco e i collegamenti che si aprono con un tocco.</p>
+        <button class="primary" id="storiaDropboxOpen" style="width:100%">📁 Apri i referti su Dropbox</button>
+        <button class="link-btn" id="storiaDropboxSet">🔧 Imposta / cambia il link della cartella Dropbox</button>
+        <div id="storiaDropboxRow" hidden style="margin:4px 0 6px">
+          <input type="url" id="storiaDropboxInput" inputmode="url" placeholder="Incolla qui il link condiviso della cartella Dropbox">
+          <div class="panel-actions" style="margin-top:8px"><button class="primary" id="storiaDropboxSave">Salva link</button></div>
+          <p class="fineprint" style="margin:6px 0 0">Su Dropbox: tieni premuto sulla cartella dei referti → «Copia link» → incollalo qui. Chi ha il link può aprirlo, quindi non pubblicarlo.</p>
+        </div>
+        <hr style="border:none; border-top:1px solid var(--line); margin:14px 0">
+        <p class="group-lbl" style="margin-top:0">Aggiungi un esame all'elenco</p>
+        <div class="field"><label>Data</label><input type="date" id="storiaEsameData"></div>
+        <input type="text" id="storiaEsameTipo" placeholder="Tipo / nome (es. Emocromo, RMN encefalo)" style="margin-top:8px">
+        <input type="text" id="storiaEsameEsito" placeholder="Esito in breve (facoltativo)" style="margin-top:8px">
+        <input type="text" id="storiaEsameFile" placeholder="Nome del file su Dropbox (es. 2025 09 04 - Referto biopsia midollare.pdf)" style="margin-top:8px">
+        <input type="url" id="storiaEsameLink" inputmode="url" placeholder="Oppure un link diretto (facoltativo)" style="margin-top:8px">
+        <p class="fineprint" style="margin:6px 0 0">Se scrivi il <b>nome del file</b> e hai impostato il link della cartella qui sopra, l'app apre il referto da sola con un tocco.</p>
+        <p class="group-lbl" style="margin-top:10px">Categoria (facoltativa)</p>
+        <div id="storiaEsameCat" class="chips"></div>
+        <div class="panel-actions" style="margin-top:10px">
+          <button class="primary" id="storiaEsameAdd">Aggiungi esame</button>
+          <button class="link-btn" id="storiaEsameCancel" hidden>Annulla</button>
+        </div>
+        <div id="storiaEsameView" class="rep-seg" style="margin:12px 0 8px">
+          <button type="button" class="chip-sel on" data-v="data">Per data</button>
+          <button type="button" class="chip-sel" data-v="cat">Per categoria</button>
+        </div>
+        <div id="storiaEsameList" style="margin-top:2px"></div>
+        <button type="button" class="link-btn" id="storiaImportToggle" style="margin-top:12px">📥 Importa un elenco di esami (incolla)</button>
+        <div id="storiaImportRow" hidden style="margin-top:6px">
+          <textarea id="storiaImportTxt" rows="4" placeholder="Incolla qui l'elenco preparato — una riga per esame"></textarea>
+          <div class="panel-actions" style="margin-top:8px"><button class="primary" id="storiaImportBtn">Importa</button></div>
+          <p class="fineprint" style="margin:6px 0 0">Ogni riga: <b>data | tipo | esito | nome file</b>. Gli esami già presenti non vengono raddoppiati.</p>
+        </div>
+      </div>
+    </div>
 
-    <section class="card">
-      <h2 class="section-title">Diagnosi, terapie, eventi</h2>
-      <p class="fineprint" style="margin:0 0 8px">Aggiungi una voce alla volta. La data è facoltativa; se la metti, l'elenco si ordina dalla più recente.</p>
-      <div class="field"><label>Data (facoltativa)</label><input type="date" id="storiaVoceData"></div>
-      <p class="group-lbl">Tipo</p>
-      <div id="storiaVoceCat" class="chips"></div>
-      <textarea id="storiaVoceTxt" rows="2" placeholder="Es. Diagnosi …; iniziata terapia …; ricovero per …; visita …"></textarea>
-      <div class="panel-actions" style="margin-top:10px">
-        <button class="primary" id="storiaVoceAdd">Aggiungi</button>
-        <button class="link-btn" id="storiaVoceCancel" hidden>Annulla</button>
+    <div class="food-cat" id="collapStSintesi">
+      <button type="button" class="fc-head" id="headStSintesi"><span>📝 In breve</span><span class="fc-arrow">›</span></button>
+      <div class="fc-body" id="bodyStSintesi" hidden>
+        <p class="fineprint" style="margin:0 0 8px">Un riassunto da leggere o mostrare al volo: diagnosi principali e cosa stai facendo ora.</p>
+        <textarea id="storiaSintesi" rows="5" placeholder="Es. Diagnosi principale (dal …). In cura con … presso …. In breve la situazione di oggi…"></textarea>
       </div>
-      <div id="storiaVoceList" style="margin-top:8px"></div>
-    </section>
+    </div>
 
-    <section class="card">
-      <h2 class="section-title">Esami e referti</h2>
-      <p class="fineprint" style="margin:0 0 8px">I file dei referti restano su Dropbox. Qui tieni l'elenco e i collegamenti che si aprono con un tocco.</p>
-      <button class="primary" id="storiaDropboxOpen" style="width:100%">📁 Apri i referti su Dropbox</button>
-      <button class="link-btn" id="storiaDropboxSet">🔧 Imposta / cambia il link della cartella Dropbox</button>
-      <div id="storiaDropboxRow" hidden style="margin:4px 0 6px">
-        <input type="url" id="storiaDropboxInput" inputmode="url" placeholder="Incolla qui il link condiviso della cartella Dropbox">
-        <div class="panel-actions" style="margin-top:8px"><button class="primary" id="storiaDropboxSave">Salva link</button></div>
-        <p class="fineprint" style="margin:6px 0 0">Su Dropbox: tieni premuto sulla cartella dei referti → «Copia link» → incollalo qui. Chi ha il link può aprirlo, quindi non pubblicarlo.</p>
+    <div class="food-cat" id="collapStVoci">
+      <button type="button" class="fc-head" id="headStVoci"><span>🩺 Diagnosi, terapie, eventi</span><span class="fc-arrow">›</span></button>
+      <div class="fc-body" id="bodyStVoci" hidden>
+        <p class="fineprint" style="margin:0 0 8px">Aggiungi una voce alla volta. La data è facoltativa; se la metti, l'elenco si ordina dalla più recente.</p>
+        <div class="field"><label>Data (facoltativa)</label><input type="date" id="storiaVoceData"></div>
+        <p class="group-lbl">Tipo</p>
+        <div id="storiaVoceCat" class="chips"></div>
+        <textarea id="storiaVoceTxt" rows="2" placeholder="Es. Diagnosi …; iniziata terapia …; ricovero per …; visita …"></textarea>
+        <div class="panel-actions" style="margin-top:10px">
+          <button class="primary" id="storiaVoceAdd">Aggiungi</button>
+          <button class="link-btn" id="storiaVoceCancel" hidden>Annulla</button>
+        </div>
+        <div id="storiaVoceList" style="margin-top:8px"></div>
       </div>
-      <hr style="border:none; border-top:1px solid var(--line); margin:14px 0">
-      <p class="group-lbl" style="margin-top:0">Aggiungi un esame all'elenco</p>
-      <div class="field"><label>Data</label><input type="date" id="storiaEsameData"></div>
-      <input type="text" id="storiaEsameTipo" placeholder="Tipo / nome (es. Emocromo, RMN encefalo)" style="margin-top:8px">
-      <input type="text" id="storiaEsameEsito" placeholder="Esito in breve (facoltativo)" style="margin-top:8px">
-      <input type="text" id="storiaEsameFile" placeholder="Nome del file su Dropbox (es. 2025 09 04 - Referto biopsia midollare.pdf)" style="margin-top:8px">
-      <input type="url" id="storiaEsameLink" inputmode="url" placeholder="Oppure un link diretto (facoltativo)" style="margin-top:8px">
-      <p class="fineprint" style="margin:6px 0 0">Se scrivi il <b>nome del file</b> e hai impostato il link della cartella qui sopra, l'app apre il referto da sola con un tocco.</p>
-      <p class="group-lbl" style="margin-top:10px">Categoria (facoltativa)</p>
-      <div id="storiaEsameCat" class="chips"></div>
-      <div class="panel-actions" style="margin-top:10px">
-        <button class="primary" id="storiaEsameAdd">Aggiungi esame</button>
-        <button class="link-btn" id="storiaEsameCancel" hidden>Annulla</button>
-      </div>
-      <div id="storiaEsameView" class="rep-seg" style="margin:12px 0 8px">
-        <button type="button" class="chip-sel on" data-v="data">Per data</button>
-        <button type="button" class="chip-sel" data-v="cat">Per categoria</button>
-      </div>
-      <div id="storiaEsameList" style="margin-top:2px"></div>
-      <button type="button" class="link-btn" id="storiaImportToggle" style="margin-top:12px">📥 Importa un elenco di esami (incolla)</button>
-      <div id="storiaImportRow" hidden style="margin-top:6px">
-        <textarea id="storiaImportTxt" rows="4" placeholder="Incolla qui l'elenco preparato — una riga per esame"></textarea>
-        <div class="panel-actions" style="margin-top:8px"><button class="primary" id="storiaImportBtn">Importa</button></div>
-        <p class="fineprint" style="margin:6px 0 0">Ogni riga: <b>data | tipo | esito | nome file</b>. Gli esami già presenti non vengono raddoppiati.</p>
-      </div>
-    </section>
+    </div>
   </section>
 
   <!-- ===== EVACUAZIONI ===== -->
@@ -1752,7 +1756,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v147</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v148</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4885,6 +4889,7 @@
     refreshDropboxBtn(); renderStoriaVoci(); renderStoriaEsami();
   }
   (function(){
+    try{ saluteCollapWire("headStEsami","bodyStEsami","collapStEsami"); saluteCollapWire("headStSintesi","bodyStSintesi","collapStSintesi"); saluteCollapWire("headStVoci","bodyStVoci","collapStVoci"); }catch(e){}
     var s=document.getElementById("storiaSintesi"); if(s) s.oninput=function(){ storia.sintesi=this.value; saveStoria(); };
     var va=document.getElementById("storiaVoceAdd"); if(va) va.onclick=function(){
       var testo=(document.getElementById("storiaVoceTxt").value||"").trim();
