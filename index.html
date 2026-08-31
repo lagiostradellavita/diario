@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 139; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 140; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -448,6 +448,18 @@
   .param-legend .pl-dot.bad{ background:var(--lvl-high); }
   .param-legend .pl-ranges{ margin-top:6px; font-size:12.5px; line-height:1.55; color:var(--muted); font-weight:600; }
   .param-legend .pl-note{ margin-top:6px; font-size:12px; font-style:italic; color:var(--muted); }
+  #mod-storia input, #mod-storia textarea{ width:100%; box-sizing:border-box; }
+  #mod-storia textarea{ resize:vertical; }
+  .storia-privacy{ font-size:13.5px; color:var(--ink-soft); background:color-mix(in srgb, var(--good) 9%, var(--surface)); border:1px solid color-mix(in srgb, var(--good) 30%, var(--line)); border-radius:12px; padding:11px 13px; }
+  .storia-row{ display:flex; align-items:flex-start; gap:8px; padding:9px 2px; border-bottom:1px solid var(--line); }
+  .storia-main{ flex:1; min-width:0; }
+  .storia-meta{ font-size:13.5px; color:var(--ink-soft); display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+  .storia-tag{ display:inline-block; background:var(--surface-2); border:1px solid var(--line); border-radius:6px; padding:1px 7px; font-size:12.5px; font-weight:800; color:var(--ink-soft); }
+  .storia-txt{ font-size:15px; color:var(--ink); margin-top:3px; overflow-wrap:anywhere; white-space:pre-wrap; line-height:1.4; }
+  .storia-btns{ flex:none; display:flex; align-items:center; gap:5px; }
+  .storia-row button{ appearance:none; border:1.5px solid var(--line); background:var(--surface); border-radius:9px; padding:5px 8px; font-size:14px; cursor:pointer; line-height:1; touch-action:manipulation; }
+  .storia-link{ color:var(--accent) !important; font-weight:800; white-space:nowrap; }
+  .storia-x{ color:var(--danger) !important; font-weight:900; }
   .pil-nightnote{background:color-mix(in srgb, var(--accent) 12%, transparent); border:1px solid color-mix(in srgb, var(--accent) 35%, transparent); border-radius:10px; padding:8px 11px; font-size:13px; font-weight:650; color:var(--ink-soft); margin-bottom:10px;}
   .tl-row.planned{opacity:.72;}
   .magg-row{background:color-mix(in srgb, var(--accent) 8%, transparent); border-radius:10px;}
@@ -906,6 +918,8 @@
       <p class="fineprint">Si apre l'anteprima; poi <b>«Stampa / Salva PDF»</b> → su iPhone «Salva in file».</p>
       </div>
     </section>
+    <h2 class="menu-grid-title">Storia clinica</h2>
+    <button class="menu-card" type="button" data-mod="storia" style="--mc:#475569"><span class="mc-emoji">🗂️</span><span class="mc-text"><span class="mc-name">Storia clinica</span><span class="mc-st" id="st-storia">diagnosi, terapie, referti</span></span><span class="mc-chev">›</span></button>
     <h2 class="menu-grid-title">Collegamenti</h2>
     <section class="card">
       <button class="link-btn" id="linkToggle">🔗 Collegamenti (entro 48 h)</button>
@@ -1405,6 +1419,58 @@
     <header class="top"><button class="back-btn" type="button" data-back>‹ Menu</button><span class="mark">😴</span><div class="brandtext"><h1>Sonno</h1><p class="sub" id="sonnoDate"></p></div></header>
   </section>
 
+  <!-- ===== STORIA CLINICA ===== -->
+  <section id="mod-storia" class="screen" hidden>
+    <header class="top"><button class="back-btn" type="button" data-back>‹ Menu</button><span class="mark">🗂️</span><div class="brandtext"><h1>Storia clinica</h1><p class="sub">privata, solo su questo telefono</p></div></header>
+
+    <section class="card">
+      <p class="storia-privacy">🔒 Tutto quello che scrivi qui resta <b>solo su questo telefono</b> e non finisce su internet. Salva ogni tanto un backup dalla Home.</p>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">In breve</h2>
+      <p class="fineprint" style="margin:0 0 8px">Un riassunto da leggere o mostrare al volo: diagnosi principali e cosa stai facendo ora.</p>
+      <textarea id="storiaSintesi" rows="5" placeholder="Es. Diagnosi principale (dal …). In cura con … presso …. In breve la situazione di oggi…"></textarea>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Diagnosi, terapie, eventi</h2>
+      <p class="fineprint" style="margin:0 0 8px">Aggiungi una voce alla volta. La data è facoltativa; se la metti, l'elenco si ordina dalla più recente.</p>
+      <div class="field"><label>Data (facoltativa)</label><input type="date" id="storiaVoceData"></div>
+      <p class="group-lbl">Tipo</p>
+      <div id="storiaVoceCat" class="chips"></div>
+      <textarea id="storiaVoceTxt" rows="2" placeholder="Es. Diagnosi …; iniziata terapia …; ricovero per …; visita …"></textarea>
+      <div class="panel-actions" style="margin-top:10px">
+        <button class="primary" id="storiaVoceAdd">Aggiungi</button>
+        <button class="link-btn" id="storiaVoceCancel" hidden>Annulla</button>
+      </div>
+      <div id="storiaVoceList" style="margin-top:8px"></div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Esami e referti</h2>
+      <p class="fineprint" style="margin:0 0 8px">I file dei referti restano su Dropbox. Qui tieni l'elenco e i collegamenti che si aprono con un tocco.</p>
+      <button class="primary" id="storiaDropboxOpen" style="width:100%">📁 Apri i referti su Dropbox</button>
+      <button class="link-btn" id="storiaDropboxSet">🔧 Imposta / cambia il link della cartella Dropbox</button>
+      <div id="storiaDropboxRow" hidden style="margin:4px 0 6px">
+        <input type="url" id="storiaDropboxInput" inputmode="url" placeholder="Incolla qui il link condiviso della cartella Dropbox">
+        <div class="panel-actions" style="margin-top:8px"><button class="primary" id="storiaDropboxSave">Salva link</button></div>
+        <p class="fineprint" style="margin:6px 0 0">Su Dropbox: tieni premuto sulla cartella dei referti → «Copia link» → incollalo qui. Chi ha il link può aprirlo, quindi non pubblicarlo.</p>
+      </div>
+      <hr style="border:none; border-top:1px solid var(--line); margin:14px 0">
+      <p class="group-lbl" style="margin-top:0">Aggiungi un esame all'elenco</p>
+      <div class="field"><label>Data</label><input type="date" id="storiaEsameData"></div>
+      <input type="text" id="storiaEsameTipo" placeholder="Tipo / nome (es. Emocromo, RMN encefalo)" style="margin-top:8px">
+      <input type="text" id="storiaEsameEsito" placeholder="Esito in breve (facoltativo)" style="margin-top:8px">
+      <input type="url" id="storiaEsameLink" inputmode="url" placeholder="Link al referto su Dropbox (facoltativo)" style="margin-top:8px">
+      <div class="panel-actions" style="margin-top:10px">
+        <button class="primary" id="storiaEsameAdd">Aggiungi esame</button>
+        <button class="link-btn" id="storiaEsameCancel" hidden>Annulla</button>
+      </div>
+      <div id="storiaEsameList" style="margin-top:8px"></div>
+    </section>
+  </section>
+
   <!-- ===== EVACUAZIONI ===== -->
   <section id="mod-evac" class="screen" hidden>
     <header class="top">
@@ -1659,7 +1725,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v139</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v140</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4586,10 +4652,106 @@
   diarioShowTipo("sigaretta");
 
   var currentMod="menu", lastDay="";
+  // ===== Storia clinica (privata: solo su questo telefono) =====
+  var storia={sintesi:"", dropbox:"", voci:[], esami:[]};
+  try{ var _sto=JSON.parse(localStorage.getItem("salute-storia")); if(_sto && typeof _sto==="object"){ storia.sintesi=_sto.sintesi||""; storia.dropbox=_sto.dropbox||""; storia.voci=Array.isArray(_sto.voci)?_sto.voci:[]; storia.esami=Array.isArray(_sto.esami)?_sto.esami:[]; } }catch(e){}
+  function saveStoria(){ try{ localStorage.setItem("salute-storia", JSON.stringify(storia)); }catch(e){} }
+  var STORIA_CAT=["Diagnosi","Terapia/Farmaco","Intervento","Ricovero/PS","Visita","Medico/contatto","Altro"];
+  var storiaCatG=makeChipGroup("storiaVoceCat", STORIA_CAT, "salute-storia-cat-opts", true, {});
+  var editVoceId=null, editEsameId=null;
+  function storiaDT(d){ if(!d) return ""; var p=String(d).split("-"); return (p.length===3)? (p[2]+"/"+p[1]+"/"+p[0]) : d; }
+  function catSel(){ try{ var s=storiaCatG.selected(); return s&&s.length?s[0]:""; }catch(e){ return ""; } }
+  function normUrl(u){ u=(u||"").trim(); if(u && !/^https?:\/\//i.test(u)) u="https://"+u; return u; }
+  function storiaSortRows(arr){ return arr.slice().sort(function(a,b){ var da=a.data||"", db=b.data||""; if(da&&db) return db<da?-1:(db>da?1:0); if(da&&!db) return -1; if(!da&&db) return 1; return (b.ts||0)-(a.ts||0); }); }
+
+  function renderStoriaVoci(){
+    var host=document.getElementById("storiaVoceList"); if(!host) return; host.innerHTML="";
+    var rows=storiaSortRows(storia.voci);
+    if(!rows.length){ host.innerHTML='<div class="empty">Ancora niente. Aggiungi la prima voce qui sopra.</div>'; return; }
+    rows.forEach(function(v){
+      var row=document.createElement("div"); row.className="storia-row";
+      var meta=(v.data?('<b>'+storiaDT(v.data)+'</b>'):'')+(v.cat?('<span class="storia-tag">'+esc(v.cat)+'</span>'):'');
+      row.innerHTML='<div class="storia-main"><div class="storia-meta">'+(meta||'<span style="color:var(--muted)">senza data</span>')+'</div><div class="storia-txt">'+esc(v.testo||"")+'</div></div><div class="storia-btns"><button class="storia-e" type="button" aria-label="Modifica">✏️</button><button class="storia-x" type="button" aria-label="Elimina">×</button></div>';
+      row.querySelector(".storia-e").onclick=function(){ startEditVoce(v); };
+      row.querySelector(".storia-x").onclick=function(){ if(confirm("Eliminare questa voce?")){ storia.voci=storia.voci.filter(function(y){return y.id!==v.id;}); saveStoria(); renderStoriaVoci(); } };
+      host.appendChild(row);
+    });
+  }
+  function startEditVoce(v){
+    editVoceId=v.id;
+    document.getElementById("storiaVoceData").value=v.data||"";
+    document.getElementById("storiaVoceTxt").value=v.testo||"";
+    try{ if(v.cat) storiaCatG.selectOne(v.cat); else storiaCatG.clear(); }catch(e){}
+    document.getElementById("storiaVoceAdd").textContent="Salva modifica";
+    document.getElementById("storiaVoceCancel").hidden=false;
+    try{ document.getElementById("storiaVoceTxt").focus(); }catch(e){}
+  }
+  function resetVoceForm(){ editVoceId=null; document.getElementById("storiaVoceData").value=""; document.getElementById("storiaVoceTxt").value=""; try{ storiaCatG.clear(); }catch(e){} document.getElementById("storiaVoceAdd").textContent="Aggiungi"; document.getElementById("storiaVoceCancel").hidden=true; }
+
+  function renderStoriaEsami(){
+    var host=document.getElementById("storiaEsameList"); if(!host) return; host.innerHTML="";
+    var rows=storiaSortRows(storia.esami);
+    if(!rows.length){ host.innerHTML='<div class="empty">Nessun esame in elenco. Aggiungine uno qui sopra.</div>'; return; }
+    rows.forEach(function(x){
+      var row=document.createElement("div"); row.className="storia-row";
+      var meta=(x.data?('<b>'+storiaDT(x.data)+'</b>'):'')+(x.tipo?('<span>'+esc(x.tipo)+'</span>'):'');
+      var esito=x.esito?('<div class="storia-txt">'+esc(x.esito)+'</div>'):'';
+      var link=x.link?'<button class="storia-link" type="button" aria-label="Apri referto">🔗 Apri</button>':'';
+      row.innerHTML='<div class="storia-main"><div class="storia-meta">'+(meta||'<span style="color:var(--muted)">esame</span>')+'</div>'+esito+'</div><div class="storia-btns">'+link+'<button class="storia-e" type="button" aria-label="Modifica">✏️</button><button class="storia-x" type="button" aria-label="Elimina">×</button></div>';
+      if(x.link){ row.querySelector(".storia-link").onclick=function(){ try{ window.open(x.link, "_blank"); }catch(e){} }; }
+      row.querySelector(".storia-e").onclick=function(){ startEditEsame(x); };
+      row.querySelector(".storia-x").onclick=function(){ if(confirm("Togliere questo esame dall'elenco? (il file su Dropbox non viene toccato)")){ storia.esami=storia.esami.filter(function(y){return y.id!==x.id;}); saveStoria(); renderStoriaEsami(); } };
+      host.appendChild(row);
+    });
+  }
+  function startEditEsame(x){
+    editEsameId=x.id;
+    document.getElementById("storiaEsameData").value=x.data||"";
+    document.getElementById("storiaEsameTipo").value=x.tipo||"";
+    document.getElementById("storiaEsameEsito").value=x.esito||"";
+    document.getElementById("storiaEsameLink").value=x.link||"";
+    document.getElementById("storiaEsameAdd").textContent="Salva modifica";
+    document.getElementById("storiaEsameCancel").hidden=false;
+    try{ document.getElementById("storiaEsameTipo").focus(); }catch(e){}
+  }
+  function resetEsameForm(){ editEsameId=null; ["storiaEsameData","storiaEsameTipo","storiaEsameEsito","storiaEsameLink"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); document.getElementById("storiaEsameAdd").textContent="Aggiungi esame"; document.getElementById("storiaEsameCancel").hidden=true; }
+
+  function refreshDropboxBtn(){ var b=document.getElementById("storiaDropboxOpen"); if(!b) return; b.textContent= storia.dropbox ? "📁 Apri i referti su Dropbox" : "📁 Imposta il link dei referti"; }
+  function renderStoria(){
+    var s=document.getElementById("storiaSintesi"); if(s) s.value=storia.sintesi||"";
+    refreshDropboxBtn(); renderStoriaVoci(); renderStoriaEsami();
+  }
+  (function(){
+    var s=document.getElementById("storiaSintesi"); if(s) s.oninput=function(){ storia.sintesi=this.value; saveStoria(); };
+    var va=document.getElementById("storiaVoceAdd"); if(va) va.onclick=function(){
+      var testo=(document.getElementById("storiaVoceTxt").value||"").trim();
+      var data=document.getElementById("storiaVoceData").value||"";
+      if(!testo){ toast("Scrivi il testo della voce"); return; }
+      if(editVoceId){ storia.voci.forEach(function(v){ if(v.id===editVoceId){ v.data=data; v.cat=catSel(); v.testo=testo; } }); toast("Modifica salvata ✓"); }
+      else { storia.voci.push({id:uid(), ts:Date.now(), data:data, cat:catSel(), testo:testo}); toast("Voce aggiunta ✓"); }
+      saveStoria(); resetVoceForm(); renderStoriaVoci();
+    };
+    var vc=document.getElementById("storiaVoceCancel"); if(vc) vc.onclick=resetVoceForm;
+    var ea=document.getElementById("storiaEsameAdd"); if(ea) ea.onclick=function(){
+      var tipo=(document.getElementById("storiaEsameTipo").value||"").trim();
+      var data=document.getElementById("storiaEsameData").value||"";
+      var esito=(document.getElementById("storiaEsameEsito").value||"").trim();
+      var link=normUrl(document.getElementById("storiaEsameLink").value);
+      if(!tipo && !data){ toast("Metti almeno il tipo o la data"); return; }
+      if(editEsameId){ storia.esami.forEach(function(x){ if(x.id===editEsameId){ x.data=data; x.tipo=tipo; x.esito=esito; x.link=link; } }); toast("Modifica salvata ✓"); }
+      else { storia.esami.push({id:uid(), ts:Date.now(), data:data, tipo:tipo, esito:esito, link:link}); toast("Esame aggiunto ✓"); }
+      saveStoria(); resetEsameForm(); renderStoriaEsami();
+    };
+    var ec=document.getElementById("storiaEsameCancel"); if(ec) ec.onclick=resetEsameForm;
+    var dOpen=document.getElementById("storiaDropboxOpen"); if(dOpen) dOpen.onclick=function(){ if(storia.dropbox){ try{ window.open(storia.dropbox, "_blank"); }catch(e){} } else { var r=document.getElementById("storiaDropboxRow"); r.hidden=false; document.getElementById("storiaDropboxInput").value=storia.dropbox||""; try{ document.getElementById("storiaDropboxInput").focus(); }catch(e){} } };
+    var dSet=document.getElementById("storiaDropboxSet"); if(dSet) dSet.onclick=function(){ var r=document.getElementById("storiaDropboxRow"); r.hidden=!r.hidden; if(!r.hidden){ document.getElementById("storiaDropboxInput").value=storia.dropbox||""; try{ document.getElementById("storiaDropboxInput").focus(); }catch(e){} } };
+    var dSave=document.getElementById("storiaDropboxSave"); if(dSave) dSave.onclick=function(){ storia.dropbox=normUrl(document.getElementById("storiaDropboxInput").value); saveStoria(); document.getElementById("storiaDropboxRow").hidden=true; refreshDropboxBtn(); toast(storia.dropbox?"Link salvato ✓":"Link rimosso"); };
+  })();
+
   function showMod(m){
     currentMod=m; lastDay=dayKey(new Date());
     if(attivInterval){ clearInterval(attivInterval); attivInterval=null; }
-    ["fumo","sesso","pillole","esercizio","alimentazione","salute","evac","programma","diario","parametri","ciclo","sonno"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
+    ["fumo","sesso","pillole","esercizio","alimentazione","salute","evac","programma","diario","parametri","ciclo","sonno","storia"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
     document.getElementById("menu").hidden=(m!=="menu");
     try{ window.scrollTo(0,0); }catch(e){}
     if(m==="menu"){ renderMenu(); try{ checkBackupReminder(); }catch(e){} }
@@ -4605,6 +4767,7 @@
     else if(m==="parametri"){ try{ renderParametri(); }catch(e){} }
     else if(m==="ciclo"){ try{ renderCiclo(); }catch(e){} }
     else if(m==="sonno"){ try{ renderSonno(); }catch(e){} }
+    else if(m==="storia"){ try{ renderStoria(); }catch(e){} }
     if(m==="menu"){ renderDocList(); } else if(modDocRender[m]){ modDocRender[m](); }
     try{ updateAppBadge(); }catch(e){}
   }
