@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 150; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 151; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1766,7 +1766,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v150</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v151</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4857,7 +4857,16 @@
 
   function esameUrl(x){
     if(x.link) return x.link;
-    if(x.file && storia.dropbox){ var f=encodeURIComponent(x.file).replace(/%20/g,"+"); return storia.dropbox + (storia.dropbox.indexOf("?")>=0?"&":"?") + "preview=" + f; }
+    if(x.file && storia.dropbox){
+      // Costruisce il link diretto al file tenendo SOLO rlkey (chiave persistente) e
+      // scartando st/dl/e/preview: il token "st" scade e, se presente, Dropbox butta via
+      // il "preview" e mostra la cartella invece del file.
+      var d=storia.dropbox, qi=d.indexOf("?");
+      var pathPart=qi>=0?d.slice(0,qi):d, query=qi>=0?d.slice(qi+1):"";
+      var rlkey=""; query.split("&").forEach(function(p){ if(/^rlkey=/i.test(p)) rlkey=p; });
+      var f=encodeURIComponent(x.file).replace(/%20/g,"+");
+      return pathPart + "?" + (rlkey?rlkey+"&":"") + "preview=" + f;
+    }
     return "";
   }
   function importEsami(txt){
