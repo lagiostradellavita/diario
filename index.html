@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 141; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 142; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1463,12 +1463,20 @@
       <div class="field"><label>Data</label><input type="date" id="storiaEsameData"></div>
       <input type="text" id="storiaEsameTipo" placeholder="Tipo / nome (es. Emocromo, RMN encefalo)" style="margin-top:8px">
       <input type="text" id="storiaEsameEsito" placeholder="Esito in breve (facoltativo)" style="margin-top:8px">
-      <input type="url" id="storiaEsameLink" inputmode="url" placeholder="Link al referto su Dropbox (facoltativo)" style="margin-top:8px">
+      <input type="text" id="storiaEsameFile" placeholder="Nome del file su Dropbox (es. 2025 09 04 - Referto biopsia midollare.pdf)" style="margin-top:8px">
+      <input type="url" id="storiaEsameLink" inputmode="url" placeholder="Oppure un link diretto (facoltativo)" style="margin-top:8px">
+      <p class="fineprint" style="margin:6px 0 0">Se scrivi il <b>nome del file</b> e hai impostato il link della cartella qui sopra, l'app apre il referto da sola con un tocco.</p>
       <div class="panel-actions" style="margin-top:10px">
         <button class="primary" id="storiaEsameAdd">Aggiungi esame</button>
         <button class="link-btn" id="storiaEsameCancel" hidden>Annulla</button>
       </div>
       <div id="storiaEsameList" style="margin-top:8px"></div>
+      <button type="button" class="link-btn" id="storiaImportToggle" style="margin-top:12px">📥 Importa un elenco di esami (incolla)</button>
+      <div id="storiaImportRow" hidden style="margin-top:6px">
+        <textarea id="storiaImportTxt" rows="4" placeholder="Incolla qui l'elenco preparato — una riga per esame"></textarea>
+        <div class="panel-actions" style="margin-top:8px"><button class="primary" id="storiaImportBtn">Importa</button></div>
+        <p class="fineprint" style="margin:6px 0 0">Ogni riga: <b>data | tipo | esito | nome file</b>. Gli esami già presenti non vengono raddoppiati.</p>
+      </div>
     </section>
   </section>
 
@@ -1726,7 +1734,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v141</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v142</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3748,7 +3756,7 @@
     if(esami.length){
       h+='<div class="rep-doc-cat">Esami e referti</div>';
       h+='<table><tr><th>Data</th><th>Esame</th><th>Esito</th><th>Referto</th></tr>';
-      esami.forEach(function(x){ var lk=x.link?('<a href="'+e2(x.link)+'">apri</a>'):''; h+='<tr><td>'+(x.data?storiaDT(x.data):'—')+'</td><td>'+e2(x.tipo||'')+'</td><td>'+e2(x.esito||'')+'</td><td>'+lk+'</td></tr>'; });
+      esami.forEach(function(x){ var _u=esameUrl(x); var lk=_u?('<a href="'+e2(_u)+'">apri</a>'):''; h+='<tr><td>'+(x.data?storiaDT(x.data):'—')+'</td><td>'+e2(x.tipo||'')+'</td><td>'+e2(x.esito||'')+'</td><td>'+lk+'</td></tr>'; });
       h+='</table>';
     }
     if(st.dropbox){ h+='<p class="rep-sum">📁 Cartella referti (Dropbox): <a href="'+e2(st.dropbox)+'">'+e2(st.dropbox)+'</a></p>'; }
@@ -4712,17 +4720,38 @@
   }
   function resetVoceForm(){ editVoceId=null; document.getElementById("storiaVoceData").value=""; document.getElementById("storiaVoceTxt").value=""; try{ storiaCatG.clear(); }catch(e){} document.getElementById("storiaVoceAdd").textContent="Aggiungi"; document.getElementById("storiaVoceCancel").hidden=true; }
 
+  function esameUrl(x){
+    if(x.link) return x.link;
+    if(x.file && storia.dropbox){ var f=encodeURIComponent(x.file).replace(/%20/g,"+"); return storia.dropbox + (storia.dropbox.indexOf("?")>=0?"&":"?") + "preview=" + f; }
+    return "";
+  }
+  function importEsami(txt){
+    var lines=String(txt||"").split(/\r?\n/), added=0;
+    lines.forEach(function(ln){
+      ln=ln.trim(); if(!ln || ln.charAt(0)==="#") return;
+      var p=ln.split("|"); for(var i=0;i<p.length;i++){ p[i]=(p[i]||"").trim(); }
+      var data=p[0]||"", tipo=p[1]||"", esito=p[2]||"", file=p[3]||"";
+      if(!tipo && !data) return;
+      var dup=storia.esami.some(function(e){ return (e.data||"")===data && (e.tipo||"")===tipo; });
+      if(dup) return;
+      storia.esami.push({id:uid(), ts:Date.now()+added, data:data, tipo:tipo, esito:esito, file:file, link:""});
+      added++;
+    });
+    if(added) saveStoria();
+    return added;
+  }
   function renderStoriaEsami(){
     var host=document.getElementById("storiaEsameList"); if(!host) return; host.innerHTML="";
     var rows=storiaSortRows(storia.esami);
-    if(!rows.length){ host.innerHTML='<div class="empty">Nessun esame in elenco. Aggiungine uno qui sopra.</div>'; return; }
+    if(!rows.length){ host.innerHTML='<div class="empty">Nessun esame in elenco. Aggiungine uno o importali qui sotto.</div>'; return; }
     rows.forEach(function(x){
       var row=document.createElement("div"); row.className="storia-row";
       var meta=(x.data?('<b>'+storiaDT(x.data)+'</b>'):'')+(x.tipo?('<span>'+esc(x.tipo)+'</span>'):'');
       var esito=x.esito?('<div class="storia-txt">'+esc(x.esito)+'</div>'):'';
-      var link=x.link?'<button class="storia-link" type="button" aria-label="Apri referto">🔗 Apri</button>':'';
+      var u=esameUrl(x);
+      var link=u?'<button class="storia-link" type="button" aria-label="Apri referto">🔗 Apri</button>':(x.file?'<span style="opacity:.45;font-size:15px" title="Imposta il link della cartella Dropbox per aprirlo">📄</span>':'');
       row.innerHTML='<div class="storia-main"><div class="storia-meta">'+(meta||'<span style="color:var(--muted)">esame</span>')+'</div>'+esito+'</div><div class="storia-btns">'+link+'<button class="storia-e" type="button" aria-label="Modifica">✏️</button><button class="storia-x" type="button" aria-label="Elimina">×</button></div>';
-      if(x.link){ row.querySelector(".storia-link").onclick=function(){ try{ window.open(x.link, "_blank"); }catch(e){} }; }
+      if(u){ var lb=row.querySelector(".storia-link"); if(lb) lb.onclick=function(){ try{ window.open(u, "_blank"); }catch(e){} }; }
       row.querySelector(".storia-e").onclick=function(){ startEditEsame(x); };
       row.querySelector(".storia-x").onclick=function(){ if(confirm("Togliere questo esame dall'elenco? (il file su Dropbox non viene toccato)")){ storia.esami=storia.esami.filter(function(y){return y.id!==x.id;}); saveStoria(); renderStoriaEsami(); } };
       host.appendChild(row);
@@ -4733,12 +4762,13 @@
     document.getElementById("storiaEsameData").value=x.data||"";
     document.getElementById("storiaEsameTipo").value=x.tipo||"";
     document.getElementById("storiaEsameEsito").value=x.esito||"";
+    document.getElementById("storiaEsameFile").value=x.file||"";
     document.getElementById("storiaEsameLink").value=x.link||"";
     document.getElementById("storiaEsameAdd").textContent="Salva modifica";
     document.getElementById("storiaEsameCancel").hidden=false;
     try{ document.getElementById("storiaEsameTipo").focus(); }catch(e){}
   }
-  function resetEsameForm(){ editEsameId=null; ["storiaEsameData","storiaEsameTipo","storiaEsameEsito","storiaEsameLink"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); document.getElementById("storiaEsameAdd").textContent="Aggiungi esame"; document.getElementById("storiaEsameCancel").hidden=true; }
+  function resetEsameForm(){ editEsameId=null; ["storiaEsameData","storiaEsameTipo","storiaEsameEsito","storiaEsameFile","storiaEsameLink"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); document.getElementById("storiaEsameAdd").textContent="Aggiungi esame"; document.getElementById("storiaEsameCancel").hidden=true; }
 
   function refreshDropboxBtn(){ var b=document.getElementById("storiaDropboxOpen"); if(!b) return; b.textContent= storia.dropbox ? "📁 Apri i referti su Dropbox" : "📁 Imposta il link dei referti"; }
   function renderStoria(){
@@ -4760,16 +4790,19 @@
       var tipo=(document.getElementById("storiaEsameTipo").value||"").trim();
       var data=document.getElementById("storiaEsameData").value||"";
       var esito=(document.getElementById("storiaEsameEsito").value||"").trim();
+      var file=(document.getElementById("storiaEsameFile").value||"").trim();
       var link=normUrl(document.getElementById("storiaEsameLink").value);
       if(!tipo && !data){ toast("Metti almeno il tipo o la data"); return; }
-      if(editEsameId){ storia.esami.forEach(function(x){ if(x.id===editEsameId){ x.data=data; x.tipo=tipo; x.esito=esito; x.link=link; } }); toast("Modifica salvata ✓"); }
-      else { storia.esami.push({id:uid(), ts:Date.now(), data:data, tipo:tipo, esito:esito, link:link}); toast("Esame aggiunto ✓"); }
+      if(editEsameId){ storia.esami.forEach(function(x){ if(x.id===editEsameId){ x.data=data; x.tipo=tipo; x.esito=esito; x.file=file; x.link=link; } }); toast("Modifica salvata ✓"); }
+      else { storia.esami.push({id:uid(), ts:Date.now(), data:data, tipo:tipo, esito:esito, file:file, link:link}); toast("Esame aggiunto ✓"); }
       saveStoria(); resetEsameForm(); renderStoriaEsami();
     };
     var ec=document.getElementById("storiaEsameCancel"); if(ec) ec.onclick=resetEsameForm;
     var dOpen=document.getElementById("storiaDropboxOpen"); if(dOpen) dOpen.onclick=function(){ if(storia.dropbox){ try{ window.open(storia.dropbox, "_blank"); }catch(e){} } else { var r=document.getElementById("storiaDropboxRow"); r.hidden=false; document.getElementById("storiaDropboxInput").value=storia.dropbox||""; try{ document.getElementById("storiaDropboxInput").focus(); }catch(e){} } };
     var dSet=document.getElementById("storiaDropboxSet"); if(dSet) dSet.onclick=function(){ var r=document.getElementById("storiaDropboxRow"); r.hidden=!r.hidden; if(!r.hidden){ document.getElementById("storiaDropboxInput").value=storia.dropbox||""; try{ document.getElementById("storiaDropboxInput").focus(); }catch(e){} } };
-    var dSave=document.getElementById("storiaDropboxSave"); if(dSave) dSave.onclick=function(){ storia.dropbox=normUrl(document.getElementById("storiaDropboxInput").value); saveStoria(); document.getElementById("storiaDropboxRow").hidden=true; refreshDropboxBtn(); toast(storia.dropbox?"Link salvato ✓":"Link rimosso"); };
+    var dSave=document.getElementById("storiaDropboxSave"); if(dSave) dSave.onclick=function(){ storia.dropbox=normUrl(document.getElementById("storiaDropboxInput").value); saveStoria(); document.getElementById("storiaDropboxRow").hidden=true; refreshDropboxBtn(); renderStoriaEsami(); toast(storia.dropbox?"Link salvato ✓":"Link rimosso"); };
+    var iTog=document.getElementById("storiaImportToggle"); if(iTog) iTog.onclick=function(){ var r=document.getElementById("storiaImportRow"); r.hidden=!r.hidden; if(!r.hidden){ try{ document.getElementById("storiaImportTxt").focus(); }catch(e){} } };
+    var iBtn=document.getElementById("storiaImportBtn"); if(iBtn) iBtn.onclick=function(){ var n=importEsami(document.getElementById("storiaImportTxt").value||""); if(n>0){ toast(n+(n===1?" esame aggiunto ✓":" esami aggiunti ✓")); document.getElementById("storiaImportTxt").value=""; document.getElementById("storiaImportRow").hidden=true; renderStoriaEsami(); } else { toast("Nessun esame nuovo da aggiungere"); } };
   })();
 
   function showMod(m){
