@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 152; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 153; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -460,6 +460,14 @@
   .param-legend .pl-note{ margin-top:6px; font-size:12px; font-style:italic; color:var(--muted); }
   #mod-storia input, #mod-storia textarea{ width:100%; box-sizing:border-box; }
   #mod-storia textarea{ resize:vertical; }
+  /* La casella di ricerca degli esami: grande e ben visibile (type=search non
+     eredita lo stile base degli altri input). */
+  #storiaEsameSearch{ font-family:inherit; font-size:18px; color:var(--ink);
+    background:var(--surface-2); border:1px solid var(--line); border-radius:13px;
+    padding:15px 16px; width:100%; box-sizing:border-box; min-height:56px;
+    -webkit-appearance:none; appearance:none; }
+  #storiaEsameSearch::placeholder{ color:var(--muted,#9aa0a6); }
+  #storiaEsameSearch:focus{ outline:none; border-color:var(--accent,#2563EB); }
   .storia-privacy{ font-size:13.5px; color:var(--ink-soft); background:color-mix(in srgb, var(--good) 9%, var(--surface)); border:1px solid color-mix(in srgb, var(--good) 30%, var(--line)); border-radius:12px; padding:11px 13px; }
   .storia-row{ display:flex; align-items:flex-start; gap:8px; padding:9px 2px; border-bottom:1px solid var(--line); }
   .storia-main{ flex:1; min-width:0; }
@@ -1500,6 +1508,12 @@
               <div class="panel-actions" style="margin-top:8px"><button class="primary" id="storiaImportBtn">Importa</button></div>
               <p class="fineprint" style="margin:6px 0 0">Ogni riga: <b>data | tipo | esito | nome file</b>. Gli esami già presenti non vengono raddoppiati.</p>
             </div>
+            <button type="button" class="link-btn" id="storiaLinkToggle" style="margin-top:12px">🔗 Applica i link diretti dei referti (incolla)</button>
+            <div id="storiaLinkRow" hidden style="margin-top:6px">
+              <textarea id="storiaLinkTxt" rows="4" placeholder="Incolla qui il blocco dei link diretti — un indirizzo per riga"></textarea>
+              <div class="panel-actions" style="margin-top:8px"><button class="primary" id="storiaLinkBtn">Applica i link</button></div>
+              <p class="fineprint" style="margin:6px 0 0">Collega ogni referto al suo file su Dropbox, così <b>si apre con un tocco anche sul telefono</b>. Da incollare una volta sola.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -1784,7 +1798,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v152</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v153</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4922,6 +4936,21 @@
     var hay=((x.tipo||"")+" "+(x.esito||"")+" "+(x.file||"")+" "+(x.cat||"")+" "+d+" "+dm).toLowerCase();
     return hay.indexOf(q)>=0;
   }
+  // Ricava il nome del file dall'ultimo pezzo di un link diretto Dropbox
+  // (.../scl/fo/<cartella>/<hash>/<NOME FILE>?...), per abbinarlo agli esami.
+  function esameFileFromUrl(u){
+    try{ var m=u.split("?")[0].match(/\/scl\/f[io]\/[^/]+\/[^/]+\/([^/]+)$/); return m?decodeURIComponent(m[1]):""; }catch(e){ return ""; }
+  }
+  // Incolla un blocco di link diretti (uno per riga): abbina ogni link all'esame
+  // col nome-file uguale e imposta esame.link. Torna quanti ne ha collegati.
+  function applyDirectLinks(txt){
+    var map={};
+    (txt||"").split(/\r?\n/).forEach(function(l){ l=l.trim(); if(!/^https?:\/\//i.test(l)) return; var fn=esameFileFromUrl(l); if(fn) map[fn]=l; });
+    var n=0;
+    storia.esami.forEach(function(x){ if(x.file && map[x.file] && x.link!==map[x.file]){ x.link=map[x.file]; n++; } });
+    if(n>0){ saveStoria(); renderStoriaEsami(); }
+    return n;
+  }
   function renderStoriaEsami(){
     var host=document.getElementById("storiaEsameList"); if(!host) return; host.innerHTML="";
     var view=(storia.esamiView==="cat")?"cat":"data";
@@ -4999,6 +5028,8 @@
     var iBtn=document.getElementById("storiaImportBtn"); if(iBtn) iBtn.onclick=function(){ var n=importEsami(document.getElementById("storiaImportTxt").value||""); if(n>0){ toast(n+(n===1?" esame aggiunto ✓":" esami aggiunti ✓")); document.getElementById("storiaImportTxt").value=""; document.getElementById("storiaImportRow").hidden=true; renderStoriaEsami(); } else { toast("Nessun esame nuovo da aggiungere"); } };
     Array.prototype.forEach.call(document.querySelectorAll("#storiaEsameView .chip-sel"), function(b){ b.onclick=function(){ storia.esamiView=(b.dataset.v==="cat")?"cat":"data"; saveStoria(); renderStoriaEsami(); }; });
     var sSearch=document.getElementById("storiaEsameSearch"); if(sSearch) sSearch.oninput=function(){ _esameQ=sSearch.value||""; renderStoriaEsami(); };
+    var lTog=document.getElementById("storiaLinkToggle"); if(lTog) lTog.onclick=function(){ var r=document.getElementById("storiaLinkRow"); r.hidden=!r.hidden; if(!r.hidden){ try{ document.getElementById("storiaLinkTxt").focus(); }catch(e){} } };
+    var lBtn=document.getElementById("storiaLinkBtn"); if(lBtn) lBtn.onclick=function(){ var n=applyDirectLinks(document.getElementById("storiaLinkTxt").value||""); if(n>0){ toast(n+(n===1?" referto collegato ✓":" referti collegati ✓")); document.getElementById("storiaLinkTxt").value=""; document.getElementById("storiaLinkRow").hidden=true; } else { toast("Nessun collegamento: controlla di aver incollato i link"); } };
   })();
 
   function showMod(m){
