@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 144; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 145; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -146,6 +146,12 @@
     padding:max(16px,env(safe-area-inset-top)) max(15px,env(safe-area-inset-right))
             max(34px,env(safe-area-inset-bottom)) max(15px,env(safe-area-inset-left));
     display:flex; flex-direction:column; gap:13px;}
+  /* Sul PC/tablet lo zoom 1.7 rende tutto enorme: su schermi larghi si riduce e
+     si tiene una colonna stretta e centrata, come un telefono. Il telefono (schermi
+     piccoli) resta invariato. */
+  @media (min-width:760px){
+    .wrap{ zoom:1.12; max-width:430px; }
+  }
 
   /* header */
   .top{display:flex; align-items:center; gap:12px; padding:4px 2px 2px;}
@@ -1744,7 +1750,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v144</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v145</p>
 </div>
 
 <div id="reportView" hidden>
