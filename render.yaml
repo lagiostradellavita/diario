@@ -1,0 +1,17 @@
+# Blueprint per il deploy su Render (https://render.com) del backend del Diario Salute.
+# Il database e' Neon (PostgreSQL): la sua stringa di connessione va incollata
+# a mano in DATABASE_URL dal pannello di Render.
+services:
+  - type: web
+    name: diario-salute-api
+    runtime: docker
+    rootDir: backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false            # da incollare a mano (stringa di connessione di Neon)
+      - key: SECRET_KEY
+        generateValue: true    # generata automaticamente da Render
+      - key: FRONTEND_ORIGIN
+        value: https://lagiostradellavita.github.io
