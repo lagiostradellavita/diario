@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 143; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 144; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -951,6 +951,8 @@
       <p class="fineprint">I documenti restano sul telefono, in questo browser. Tieni sempre gli <b>originali</b> al sicuro (email, cartella medica): questa è una copia comoda, non l'unico posto.</p>
       </div>
     </section>
+    <h2 class="menu-grid-title">Account e sincronizzazione</h2>
+    <section class="card" id="cloudCard"></section>
     <h2 class="menu-grid-title">Dati e backup</h2>
     <section class="card">
       <p id="backupHint" class="backup-hint" hidden></p>
@@ -1742,7 +1744,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v143</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v144</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4695,7 +4697,86 @@
   // ===== Storia clinica (privata: solo su questo telefono) =====
   var storia={sintesi:"", dropbox:"", voci:[], esami:[], esamiView:"data"};
   try{ var _sto=JSON.parse(localStorage.getItem("salute-storia")); if(_sto && typeof _sto==="object"){ storia.sintesi=_sto.sintesi||""; storia.dropbox=_sto.dropbox||""; storia.voci=Array.isArray(_sto.voci)?_sto.voci:[]; storia.esami=Array.isArray(_sto.esami)?_sto.esami:[]; storia.esamiView=(_sto.esamiView==="cat")?"cat":"data"; } }catch(e){}
-  function saveStoria(){ try{ localStorage.setItem("salute-storia", JSON.stringify(storia)); }catch(e){} }
+  function saveStoriaLocal(){ try{ localStorage.setItem("salute-storia", JSON.stringify(storia)); }catch(e){} }
+  function saveStoria(){ saveStoriaLocal(); try{ cloudPushStoria(); }catch(e){} }
+
+  // ===== Cloud: login e sincronizzazione (Tappa 0: la Storia clinica) =====
+  var API_BASE = "https://diario-salute-api.onrender.com";
+  var cloudToken=null, cloudEmail=null;
+  try{ cloudToken=localStorage.getItem("diario-cloud-token")||null; cloudEmail=localStorage.getItem("diario-cloud-email")||null; }catch(e){}
+  function cloudMark(msg){ var el=document.getElementById("cloudStatus"); if(el) el.textContent=msg||""; }
+  function apiFetch(path, opts){
+    opts=opts||{}; opts.headers=opts.headers||{};
+    if(cloudToken) opts.headers["Authorization"]="Bearer "+cloudToken;
+    if(opts.body && typeof opts.body!=="string"){ opts.body=JSON.stringify(opts.body); opts.headers["Content-Type"]="application/json"; }
+    return fetch(API_BASE+path, opts).then(function(r){
+      if(r.status===401){ cloudLogout(true); return Promise.reject(new Error("Sessione scaduta: rientra")); }
+      return r.text().then(function(t){ var j=null; try{ j=t?JSON.parse(t):null; }catch(e){} if(!r.ok){ return Promise.reject(new Error((j&&j.detail)||("Errore "+r.status))); } return j; });
+    });
+  }
+  function applyStoria(o){ o=o||{}; storia.sintesi=o.sintesi||""; storia.dropbox=o.dropbox||""; storia.voci=Array.isArray(o.voci)?o.voci:[]; storia.esami=Array.isArray(o.esami)?o.esami:[]; storia.esamiView=(o.esamiView==="cat")?"cat":"data"; }
+  var _cloudPushTimer=null;
+  function cloudPushStoria(){
+    if(!cloudToken) return;
+    clearTimeout(_cloudPushTimer);
+    _cloudPushTimer=setTimeout(function(){
+      apiFetch("/dati/salute-storia", {method:"PUT", body:storia})
+        .then(function(){ cloudMark("Sincronizzato ✓ "+hhmm(new Date())); })
+        .catch(function(e){ cloudMark("Non sincronizzato: "+(e&&e.message||"")); });
+    }, 1200);
+  }
+  function cloudSyncStoria(){
+    if(!cloudToken) return Promise.resolve();
+    cloudMark("Sincronizzo…");
+    return apiFetch("/dati", {method:"GET"}).then(function(data){
+      data=data||{};
+      if(data["salute-storia"]!=null){
+        applyStoria(data["salute-storia"]); saveStoriaLocal();
+        try{ if(currentMod==="storia") renderStoria(); }catch(e){}
+        cloudMark("Dati aggiornati dal cloud ✓");
+      } else {
+        var hasLocal=(storia.sintesi&&storia.sintesi.trim())||(storia.voci&&storia.voci.length)||(storia.esami&&storia.esami.length)||storia.dropbox;
+        if(hasLocal){ return apiFetch("/dati/salute-storia", {method:"PUT", body:storia}).then(function(){ cloudMark("Storia locale caricata sul cloud ✓"); }); }
+        cloudMark("Connesso ✓");
+      }
+    }).catch(function(e){ cloudMark("Cloud non raggiungibile: "+(e&&e.message||"")+" — i dati restano sul telefono"); });
+  }
+  function cloudLogout(silent){ cloudToken=null; cloudEmail=null; try{ localStorage.removeItem("diario-cloud-token"); localStorage.removeItem("diario-cloud-email"); }catch(e){} try{ renderCloudCard(); }catch(e){} }
+  function renderCloudCard(){
+    var host=document.getElementById("cloudCard"); if(!host) return;
+    if(cloudToken){
+      host.innerHTML='<p class="rep-sum">☁️ Connesso: <b>'+esc(cloudEmail||"")+'</b></p>'
+        +'<p class="fineprint" style="margin:0 0 8px">La <b>Storia clinica</b> si sincronizza tra telefono e PC. Gli altri moduli arriveranno.</p>'
+        +'<div class="panel-actions"><button class="primary" id="cloudSyncNow">Sincronizza ora</button> <button class="link-btn" id="cloudLogoutBtn">Esci</button></div>'
+        +'<p id="cloudStatus" class="fineprint" style="margin-top:6px"></p>';
+      document.getElementById("cloudSyncNow").onclick=function(){ cloudSyncStoria(); };
+      document.getElementById("cloudLogoutBtn").onclick=function(){ if(confirm("Uscire dal cloud su questo dispositivo? I dati restano comunque sul telefono.")) cloudLogout(); };
+    } else {
+      host.innerHTML='<p class="fineprint" style="margin:0 0 8px">Accedi per tenere i dati sincronizzati tra telefono e PC. Per ora sincronizza la <b>Storia clinica</b>; gli altri moduli seguiranno.</p>'
+        +'<input id="cloudEmailIn" type="email" inputmode="email" autocomplete="username" placeholder="La tua email" style="margin-bottom:8px">'
+        +'<input id="cloudPassIn" type="password" autocomplete="current-password" placeholder="Password (almeno 8 caratteri)">'
+        +'<div class="panel-actions" style="margin-top:10px"><button class="primary" id="cloudAuthBtn">Accedi</button></div>'
+        +'<p id="cloudStatus" class="fineprint" style="margin-top:6px"></p>';
+      var btn=document.getElementById("cloudAuthBtn");
+      var isReg=false;
+      apiFetch("/auth/stato",{method:"GET"}).then(function(s){ isReg=!(s&&s.configurato); btn.textContent=isReg?"Crea accesso":"Entra"; })
+        .catch(function(e){ cloudMark("Il backend si sta svegliando o non risponde ("+(e&&e.message||"")+"). Riprova tra un minuto."); });
+      btn.onclick=function(){
+        var em=(document.getElementById("cloudEmailIn").value||"").trim();
+        var pw=document.getElementById("cloudPassIn").value||"";
+        if(!em||!pw){ cloudMark("Metti email e password"); return; }
+        if(isReg && pw.length<8){ cloudMark("La password deve avere almeno 8 caratteri"); return; }
+        btn.disabled=true; cloudMark(isReg?"Creo l'accesso…":"Entro…");
+        apiFetch(isReg?"/auth/register":"/auth/login",{method:"POST", body:{email:em, password:pw}}).then(function(j){
+          cloudToken=j.access_token; cloudEmail=j.email;
+          try{ localStorage.setItem("diario-cloud-token", cloudToken); localStorage.setItem("diario-cloud-email", cloudEmail); }catch(e){}
+          renderCloudCard(); cloudSyncStoria();
+        }).catch(function(e){ btn.disabled=false; cloudMark("Non riuscito: "+(e&&e.message||"")); });
+      };
+    }
+  }
+  try{ renderCloudCard(); }catch(e){}
+  if(cloudToken){ try{ cloudSyncStoria(); }catch(e){} }
   var STORIA_CAT=["Diagnosi","Terapia/Farmaco","Intervento","Ricovero/PS","Visita","Medico/contatto","Altro"];
   var storiaCatG=makeChipGroup("storiaVoceCat", STORIA_CAT, "salute-storia-cat-opts", true, {});
   var EXAM_CATS=["Sangue e midollo","Cuore e circolazione","Testa e neuro","Ecografie","Radiologia","Pelle","Urologia","Ossa e muscoli","Apparato digerente","Mente","Ricoveri ed eventi","Altro"];
