@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 151; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 152; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -71,8 +71,10 @@
           }).catch(function(){});
       }catch(e){}
     }
-    if(document.readyState!=="loading") check();
-    else window.addEventListener("DOMContentLoaded", check);
+    function setBadge(){ try{ var vb=document.getElementById("verBadge"); if(vb) vb.textContent="v"+RUNNING; }catch(e){} }
+    function boot(){ check(); setBadge(); }
+    if(document.readyState!=="loading") boot();
+    else window.addEventListener("DOMContentLoaded", boot);
   })();
 </script>
 <script>
@@ -786,8 +788,22 @@
   }
 
   @media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
+
+  /* Numero versione, sempre visibile in alto a destra: serve a verificare a colpo
+     d'occhio che l'aggiornamento sia entrato. Fuori da .wrap, cosi' NON viene
+     ingrandito dallo zoom. Il testo lo scrive lo script (da RUNNING). */
+  #verBadge{ position:fixed; top:calc(5px + env(safe-area-inset-top,0px)); right:8px; z-index:40;
+    font:700 11px/1 -apple-system,system-ui,sans-serif; color:#334155;
+    background:rgba(255,255,255,.94); border:1px solid rgba(0,0,0,.14); border-radius:8px;
+    padding:4px 7px; letter-spacing:.02em; pointer-events:none;
+    box-shadow:0 1px 3px rgba(0,0,0,.12);
+    -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
+  #verBadge:empty{ display:none; }
+  @media (prefers-color-scheme: dark){
+    #verBadge{ background:rgba(28,28,30,.9); color:#cbd5e1; border-color:rgba(255,255,255,.18); box-shadow:0 1px 3px rgba(0,0,0,.4); } }
 </style>
 
+<div id="verBadge" aria-hidden="true"></div>
 <div class="wrap">
   <!-- ===== MENU (home) ===== -->
   <section id="menu" class="screen">
@@ -1457,6 +1473,8 @@
               <button type="button" class="chip-sel on" data-v="data">Per data</button>
               <button type="button" class="chip-sel" data-v="cat">Per categoria</button>
             </div>
+            <input type="search" id="storiaEsameSearch" inputmode="search" autocomplete="off"
+                   placeholder="🔎 Cerca (nome esame, esito, data…)" style="margin:0 0 8px">
             <div id="storiaEsameList" style="margin-top:2px"></div>
           </div>
         </div>
@@ -1766,7 +1784,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v151</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v152</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4896,25 +4914,37 @@
     row.querySelector(".storia-x").onclick=function(){ if(confirm("Togliere questo esame dall'elenco? (il file su Dropbox non viene toccato)")){ storia.esami=storia.esami.filter(function(y){return y.id!==x.id;}); saveStoria(); renderStoriaEsami(); } };
     return row;
   }
+  var _esameQ="";
+  function esameMatch(x,q){
+    if(!q) return true;
+    var d=x.data||"", dm="";
+    if(/^\d{4}-\d{2}-\d{2}$/.test(d)) dm=d.slice(8,10)+"/"+d.slice(5,7)+"/"+d.slice(0,4);
+    var hay=((x.tipo||"")+" "+(x.esito||"")+" "+(x.file||"")+" "+(x.cat||"")+" "+d+" "+dm).toLowerCase();
+    return hay.indexOf(q)>=0;
+  }
   function renderStoriaEsami(){
     var host=document.getElementById("storiaEsameList"); if(!host) return; host.innerHTML="";
     var view=(storia.esamiView==="cat")?"cat":"data";
     try{ Array.prototype.forEach.call(document.querySelectorAll("#storiaEsameView .chip-sel"), function(b){ b.classList.toggle("on", b.dataset.v===view); }); }catch(e){}
     if(!storia.esami.length){ host.innerHTML='<div class="empty">Nessun esame in elenco. Aggiungine uno o importali qui sotto.</div>'; return; }
+    var q=(_esameQ||"").trim().toLowerCase();
+    var list=q ? storia.esami.filter(function(x){ return esameMatch(x,q); }) : storia.esami;
+    if(!list.length){ host.innerHTML='<div class="empty">Nessun esame trovato per «'+esc(_esameQ.trim())+'».</div>'; return; }
     if(view==="cat"){
-      var byCat={}; storia.esami.forEach(function(x){ var c=(x.cat||"").trim()||"Altro"; (byCat[c]=byCat[c]||[]).push(x); });
+      var openAll=!!q;
+      var byCat={}; list.forEach(function(x){ var c=(x.cat||"").trim()||"Altro"; (byCat[c]=byCat[c]||[]).push(x); });
       var order=EXAM_CATS.slice(); Object.keys(byCat).forEach(function(c){ if(order.indexOf(c)<0) order.push(c); });
       order.forEach(function(c){ var arr=byCat[c]; if(!arr||!arr.length) return;
-        var cat=document.createElement("div"); cat.className="food-cat"; cat.style.marginTop="8px";
+        var cat=document.createElement("div"); cat.className="food-cat"+(openAll?" open":""); cat.style.marginTop="8px";
         var head=document.createElement("button"); head.type="button"; head.className="fc-head";
         head.innerHTML='<span>'+esc(c)+' <span style="opacity:.55;font-weight:700">('+arr.length+')</span></span><span class="fc-arrow">›</span>';
-        var body=document.createElement("div"); body.className="fc-body"; body.hidden=true;
+        var body=document.createElement("div"); body.className="fc-body"; body.hidden=!openAll;
         storiaSortRows(arr).forEach(function(x){ body.appendChild(storiaEsameRow(x)); });
         head.onclick=function(){ var show=body.hidden; body.hidden=!show; cat.classList.toggle("open", show); };
         cat.appendChild(head); cat.appendChild(body); host.appendChild(cat);
       });
     } else {
-      storiaSortRows(storia.esami).forEach(function(x){ host.appendChild(storiaEsameRow(x)); });
+      storiaSortRows(list).forEach(function(x){ host.appendChild(storiaEsameRow(x)); });
     }
   }
   function startEditEsame(x){
@@ -4968,6 +4998,7 @@
     var iTog=document.getElementById("storiaImportToggle"); if(iTog) iTog.onclick=function(){ var r=document.getElementById("storiaImportRow"); r.hidden=!r.hidden; if(!r.hidden){ try{ document.getElementById("storiaImportTxt").focus(); }catch(e){} } };
     var iBtn=document.getElementById("storiaImportBtn"); if(iBtn) iBtn.onclick=function(){ var n=importEsami(document.getElementById("storiaImportTxt").value||""); if(n>0){ toast(n+(n===1?" esame aggiunto ✓":" esami aggiunti ✓")); document.getElementById("storiaImportTxt").value=""; document.getElementById("storiaImportRow").hidden=true; renderStoriaEsami(); } else { toast("Nessun esame nuovo da aggiungere"); } };
     Array.prototype.forEach.call(document.querySelectorAll("#storiaEsameView .chip-sel"), function(b){ b.onclick=function(){ storia.esamiView=(b.dataset.v==="cat")?"cat":"data"; saveStoria(); renderStoriaEsami(); }; });
+    var sSearch=document.getElementById("storiaEsameSearch"); if(sSearch) sSearch.oninput=function(){ _esameQ=sSearch.value||""; renderStoriaEsami(); };
   })();
 
   function showMod(m){
