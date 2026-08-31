@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 140; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 141; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -896,6 +896,7 @@
       <p class="group-lbl">Cosa includere</p>
       <div id="repModules" class="rep-seg">
         <button type="button" class="chip-sel on" data-m="profilo">Dati personali</button>
+        <button type="button" class="chip-sel on" data-m="storia">Storia clinica</button>
         <button type="button" class="chip-sel on" data-m="fumo">Fumo</button>
         <button type="button" class="chip-sel on" data-m="salute">Salute</button>
         <button type="button" class="chip-sel on" data-m="parametri">Parametri</button>
@@ -1725,7 +1726,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v140</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v141</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3730,12 +3731,35 @@
     rows.forEach(function(x){ var when=(typeof x.ts==="number")?dmt(x.ts):(x.day?dkDisp(x.day):''); h+='<div class="rep-doc"><div class="rep-doc-name">'+e2(when)+'</div><div style="font-size:14px; line-height:1.5; white-space:pre-wrap">'+e2(x.testo||'')+'</div></div>'; });
     return h;
   }
+  function repStoria(s,e){
+    var h='<h2>🗂️ Storia clinica</h2>';
+    var st=(typeof storia==="object"&&storia)?storia:{};
+    var has=(st.sintesi&&st.sintesi.trim())||(st.voci&&st.voci.length)||(st.esami&&st.esami.length)||st.dropbox;
+    if(!has) return h+'<p class="rep-empty">Storia clinica non ancora compilata.</p>';
+    if(st.sintesi&&st.sintesi.trim()){ h+='<p class="rep-sum" style="white-space:pre-wrap">'+e2(st.sintesi.trim())+'</p>'; }
+    var voci=storiaSortRows(st.voci||[]);
+    if(voci.length){
+      h+='<div class="rep-doc-cat">Diagnosi, terapie, eventi</div>';
+      h+='<table><tr><th>Data</th><th>Tipo</th><th>Descrizione</th></tr>';
+      voci.forEach(function(v){ h+='<tr><td>'+(v.data?storiaDT(v.data):'—')+'</td><td>'+e2(v.cat||'')+'</td><td>'+e2(v.testo||'')+'</td></tr>'; });
+      h+='</table>';
+    }
+    var esami=storiaSortRows(st.esami||[]);
+    if(esami.length){
+      h+='<div class="rep-doc-cat">Esami e referti</div>';
+      h+='<table><tr><th>Data</th><th>Esame</th><th>Esito</th><th>Referto</th></tr>';
+      esami.forEach(function(x){ var lk=x.link?('<a href="'+e2(x.link)+'">apri</a>'):''; h+='<tr><td>'+(x.data?storiaDT(x.data):'—')+'</td><td>'+e2(x.tipo||'')+'</td><td>'+e2(x.esito||'')+'</td><td>'+lk+'</td></tr>'; });
+      h+='</table>';
+    }
+    if(st.dropbox){ h+='<p class="rep-sum">📁 Cartella referti (Dropbox): <a href="'+e2(st.dropbox)+'">'+e2(st.dropbox)+'</a></p>'; }
+    return h;
+  }
   function genReport(){
     var mods=[]; Array.prototype.forEach.call(document.querySelectorAll("#repModules .chip-sel.on"), function(b){ mods.push(b.dataset.m); });
     if(!mods.length){ toast("Scegli almeno un modulo"); return; }
     var r=repRange(repPeriod);
-    var B={fumo:repFumo, salute:repSalute, parametri:repParametri, pillole:repPillole, esercizio:repEser, alimentazione:repAlim, sonno:repSonno, evac:repEvac, ciclo:repCiclo, sesso:repSesso, programma:repProgramma, diario:repDiario};
-    var order=["fumo","salute","parametri","pillole","esercizio","alimentazione","sonno","evac","ciclo","sesso","programma","diario"];
+    var B={storia:repStoria, fumo:repFumo, salute:repSalute, parametri:repParametri, pillole:repPillole, esercizio:repEser, alimentazione:repAlim, sonno:repSonno, evac:repEvac, ciclo:repCiclo, sesso:repSesso, programma:repProgramma, diario:repDiario};
+    var order=["storia","fumo","salute","parametri","pillole","esercizio","alimentazione","sonno","evac","ciclo","sesso","programma","diario"];
     var body='<h1>Diario Salute — Report '+r.lbl+'</h1>';
     body+='<p class="rep-meta">Periodo: '+(repPeriod==="giorno"?dmy(r.sd):dmy(r.sd)+" – "+dmy(r.ed))+' · generato il '+dmy(new Date())+'</p>';
     if(mods.indexOf("profilo")>=0){ try{ body+=repProfilo(); }catch(e){} }
