@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 148; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 149; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1449,30 +1449,40 @@
           <div class="panel-actions" style="margin-top:8px"><button class="primary" id="storiaDropboxSave">Salva link</button></div>
           <p class="fineprint" style="margin:6px 0 0">Su Dropbox: tieni premuto sulla cartella dei referti → «Copia link» → incollalo qui. Chi ha il link può aprirlo, quindi non pubblicarlo.</p>
         </div>
-        <hr style="border:none; border-top:1px solid var(--line); margin:14px 0">
-        <p class="group-lbl" style="margin-top:0">Aggiungi un esame all'elenco</p>
-        <div class="field"><label>Data</label><input type="date" id="storiaEsameData"></div>
-        <input type="text" id="storiaEsameTipo" placeholder="Tipo / nome (es. Emocromo, RMN encefalo)" style="margin-top:8px">
-        <input type="text" id="storiaEsameEsito" placeholder="Esito in breve (facoltativo)" style="margin-top:8px">
-        <input type="text" id="storiaEsameFile" placeholder="Nome del file su Dropbox (es. 2025 09 04 - Referto biopsia midollare.pdf)" style="margin-top:8px">
-        <input type="url" id="storiaEsameLink" inputmode="url" placeholder="Oppure un link diretto (facoltativo)" style="margin-top:8px">
-        <p class="fineprint" style="margin:6px 0 0">Se scrivi il <b>nome del file</b> e hai impostato il link della cartella qui sopra, l'app apre il referto da sola con un tocco.</p>
-        <p class="group-lbl" style="margin-top:10px">Categoria (facoltativa)</p>
-        <div id="storiaEsameCat" class="chips"></div>
-        <div class="panel-actions" style="margin-top:10px">
-          <button class="primary" id="storiaEsameAdd">Aggiungi esame</button>
-          <button class="link-btn" id="storiaEsameCancel" hidden>Annulla</button>
+
+        <div class="food-cat open" id="collapStElenco" style="margin-top:12px">
+          <button type="button" class="fc-head" id="headStElenco"><span>📋 L'elenco</span><span class="fc-arrow">›</span></button>
+          <div class="fc-body" id="bodyStElenco">
+            <div id="storiaEsameView" class="rep-seg" style="margin:2px 0 8px">
+              <button type="button" class="chip-sel on" data-v="data">Per data</button>
+              <button type="button" class="chip-sel" data-v="cat">Per categoria</button>
+            </div>
+            <div id="storiaEsameList" style="margin-top:2px"></div>
+          </div>
         </div>
-        <div id="storiaEsameView" class="rep-seg" style="margin:12px 0 8px">
-          <button type="button" class="chip-sel on" data-v="data">Per data</button>
-          <button type="button" class="chip-sel" data-v="cat">Per categoria</button>
-        </div>
-        <div id="storiaEsameList" style="margin-top:2px"></div>
-        <button type="button" class="link-btn" id="storiaImportToggle" style="margin-top:12px">📥 Importa un elenco di esami (incolla)</button>
-        <div id="storiaImportRow" hidden style="margin-top:6px">
-          <textarea id="storiaImportTxt" rows="4" placeholder="Incolla qui l'elenco preparato — una riga per esame"></textarea>
-          <div class="panel-actions" style="margin-top:8px"><button class="primary" id="storiaImportBtn">Importa</button></div>
-          <p class="fineprint" style="margin:6px 0 0">Ogni riga: <b>data | tipo | esito | nome file</b>. Gli esami già presenti non vengono raddoppiati.</p>
+
+        <div class="food-cat" id="collapStAggiungi" style="margin-top:10px">
+          <button type="button" class="fc-head" id="headStAggiungi"><span>➕ Aggiungi un esame</span><span class="fc-arrow">›</span></button>
+          <div class="fc-body" id="bodyStAggiungi" hidden>
+            <div class="field"><label>Data</label><input type="date" id="storiaEsameData"></div>
+            <input type="text" id="storiaEsameTipo" placeholder="Tipo / nome (es. Emocromo, RMN encefalo)" style="margin-top:8px">
+            <input type="text" id="storiaEsameEsito" placeholder="Esito in breve (facoltativo)" style="margin-top:8px">
+            <input type="text" id="storiaEsameFile" placeholder="Nome del file su Dropbox (es. 2025 09 04 - Referto biopsia midollare.pdf)" style="margin-top:8px">
+            <input type="url" id="storiaEsameLink" inputmode="url" placeholder="Oppure un link diretto (facoltativo)" style="margin-top:8px">
+            <p class="fineprint" style="margin:6px 0 0">Se scrivi il <b>nome del file</b> e hai impostato il link della cartella qui sopra, l'app apre il referto da sola con un tocco.</p>
+            <p class="group-lbl" style="margin-top:10px">Categoria (facoltativa)</p>
+            <div id="storiaEsameCat" class="chips"></div>
+            <div class="panel-actions" style="margin-top:10px">
+              <button class="primary" id="storiaEsameAdd">Aggiungi esame</button>
+              <button class="link-btn" id="storiaEsameCancel" hidden>Annulla</button>
+            </div>
+            <button type="button" class="link-btn" id="storiaImportToggle" style="margin-top:12px">📥 Importa un elenco di esami (incolla)</button>
+            <div id="storiaImportRow" hidden style="margin-top:6px">
+              <textarea id="storiaImportTxt" rows="4" placeholder="Incolla qui l'elenco preparato — una riga per esame"></textarea>
+              <div class="panel-actions" style="margin-top:8px"><button class="primary" id="storiaImportBtn">Importa</button></div>
+              <p class="fineprint" style="margin:6px 0 0">Ogni riga: <b>data | tipo | esito | nome file</b>. Gli esami già presenti non vengono raddoppiati.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1756,7 +1766,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v148</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v149</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4864,7 +4874,15 @@
     if(view==="cat"){
       var byCat={}; storia.esami.forEach(function(x){ var c=(x.cat||"").trim()||"Altro"; (byCat[c]=byCat[c]||[]).push(x); });
       var order=EXAM_CATS.slice(); Object.keys(byCat).forEach(function(c){ if(order.indexOf(c)<0) order.push(c); });
-      order.forEach(function(c){ var arr=byCat[c]; if(!arr||!arr.length) return; var hd=document.createElement("div"); hd.className="storia-cat-hd"; hd.textContent=c; host.appendChild(hd); storiaSortRows(arr).forEach(function(x){ host.appendChild(storiaEsameRow(x)); }); });
+      order.forEach(function(c){ var arr=byCat[c]; if(!arr||!arr.length) return;
+        var cat=document.createElement("div"); cat.className="food-cat"; cat.style.marginTop="8px";
+        var head=document.createElement("button"); head.type="button"; head.className="fc-head";
+        head.innerHTML='<span>'+esc(c)+' <span style="opacity:.55;font-weight:700">('+arr.length+')</span></span><span class="fc-arrow">›</span>';
+        var body=document.createElement("div"); body.className="fc-body"; body.hidden=true;
+        storiaSortRows(arr).forEach(function(x){ body.appendChild(storiaEsameRow(x)); });
+        head.onclick=function(){ var show=body.hidden; body.hidden=!show; cat.classList.toggle("open", show); };
+        cat.appendChild(head); cat.appendChild(body); host.appendChild(cat);
+      });
     } else {
       storiaSortRows(storia.esami).forEach(function(x){ host.appendChild(storiaEsameRow(x)); });
     }
@@ -4879,6 +4897,7 @@
     try{ if(x.cat) storiaEsameCatG.selectOne(x.cat); else storiaEsameCatG.clear(); }catch(e){}
     document.getElementById("storiaEsameAdd").textContent="Salva modifica";
     document.getElementById("storiaEsameCancel").hidden=false;
+    try{ var cA=document.getElementById("collapStAggiungi"), bA=document.getElementById("bodyStAggiungi"); if(cA&&bA){ bA.hidden=false; cA.classList.add("open"); document.getElementById("headStAggiungi").scrollIntoView({block:"center"}); } }catch(e){}
     try{ document.getElementById("storiaEsameTipo").focus(); }catch(e){}
   }
   function resetEsameForm(){ editEsameId=null; ["storiaEsameData","storiaEsameTipo","storiaEsameEsito","storiaEsameFile","storiaEsameLink"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); try{ storiaEsameCatG.clear(); }catch(e){} document.getElementById("storiaEsameAdd").textContent="Aggiungi esame"; document.getElementById("storiaEsameCancel").hidden=true; }
@@ -4889,7 +4908,7 @@
     refreshDropboxBtn(); renderStoriaVoci(); renderStoriaEsami();
   }
   (function(){
-    try{ saluteCollapWire("headStEsami","bodyStEsami","collapStEsami"); saluteCollapWire("headStSintesi","bodyStSintesi","collapStSintesi"); saluteCollapWire("headStVoci","bodyStVoci","collapStVoci"); }catch(e){}
+    try{ saluteCollapWire("headStEsami","bodyStEsami","collapStEsami"); saluteCollapWire("headStSintesi","bodyStSintesi","collapStSintesi"); saluteCollapWire("headStVoci","bodyStVoci","collapStVoci"); saluteCollapWire("headStElenco","bodyStElenco","collapStElenco"); saluteCollapWire("headStAggiungi","bodyStAggiungi","collapStAggiungi"); }catch(e){}
     var s=document.getElementById("storiaSintesi"); if(s) s.oninput=function(){ storia.sintesi=this.value; saveStoria(); };
     var va=document.getElementById("storiaVoceAdd"); if(va) va.onclick=function(){
       var testo=(document.getElementById("storiaVoceTxt").value||"").trim();
