@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 149; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 150; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1766,7 +1766,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v149</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v150</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4720,12 +4720,22 @@
   var storia={sintesi:"", dropbox:"", voci:[], esami:[], esamiView:"data"};
   try{ var _sto=JSON.parse(localStorage.getItem("salute-storia")); if(_sto && typeof _sto==="object"){ storia.sintesi=_sto.sintesi||""; storia.dropbox=_sto.dropbox||""; storia.voci=Array.isArray(_sto.voci)?_sto.voci:[]; storia.esami=Array.isArray(_sto.esami)?_sto.esami:[]; storia.esamiView=(_sto.esamiView==="cat")?"cat":"data"; } }catch(e){}
   function saveStoriaLocal(){ try{ localStorage.setItem("salute-storia", JSON.stringify(storia)); }catch(e){} }
-  function saveStoria(){ saveStoriaLocal(); try{ cloudPushStoria(); }catch(e){} }
+  function saveStoria(){ saveStoriaLocal(); }
 
-  // ===== Cloud: login e sincronizzazione (Tappa 0: la Storia clinica) =====
+  // ===== Cloud: login e sincronizzazione di TUTTI i moduli =====
   var API_BASE = "https://diario-salute-api.onrender.com";
   var cloudToken=null, cloudEmail=null;
   try{ cloudToken=localStorage.getItem("diario-cloud-token")||null; cloudEmail=localStorage.getItem("diario-cloud-email")||null; }catch(e){}
+  var SYNC_KEYS=/^(salute-|diario-fumo:)/;
+  var _cloudReady=false, _pushTimers={};
+  var _origSet=(window.Storage&&Storage.prototype.setItem)||null;
+  // Ogni salvataggio locale (di QUALUNQUE modulo) viene spinto sul cloud: cosi'
+  // non serve modificare le decine di funzioni saveXxx. Si spinge solo quando
+  // siamo pronti (dopo la prima sincronizzazione), loggati, e la chiave e' dei dati.
+  try{ if(_origSet){ Storage.prototype.setItem=function(k,v){ _origSet.call(this,k,v); try{ if(this===window.localStorage && _cloudReady && cloudToken && SYNC_KEYS.test(k)){ cloudPushKey(k); } }catch(e){} }; } }catch(e){}
+  // Confronto SEMANTICO (le chiavi JSON possono tornare dal cloud con ordine diverso):
+  function _canon(v){ if(v===null||typeof v!=="object") return v; if(Array.isArray(v)) return v.map(_canon); var o={}; Object.keys(v).sort().forEach(function(k){ o[k]=_canon(v[k]); }); return o; }
+  function jsonEq(a,b){ try{ return JSON.stringify(_canon(a))===JSON.stringify(_canon(b)); }catch(e){ return false; } }
   function cloudMark(msg){ var el=document.getElementById("cloudStatus"); if(el) el.textContent=msg||""; }
   function apiFetch(path, opts){
     opts=opts||{}; opts.headers=opts.headers||{};
@@ -4736,45 +4746,56 @@
       return r.text().then(function(t){ var j=null; try{ j=t?JSON.parse(t):null; }catch(e){} if(!r.ok){ return Promise.reject(new Error((j&&j.detail)||("Errore "+r.status))); } return j; });
     });
   }
-  function applyStoria(o){ o=o||{}; storia.sintesi=o.sintesi||""; storia.dropbox=o.dropbox||""; storia.voci=Array.isArray(o.voci)?o.voci:[]; storia.esami=Array.isArray(o.esami)?o.esami:[]; storia.esamiView=(o.esamiView==="cat")?"cat":"data"; }
-  var _cloudPushTimer=null;
-  function cloudPushStoria(){
+  function cloudPushKey(k){
     if(!cloudToken) return;
-    clearTimeout(_cloudPushTimer);
-    _cloudPushTimer=setTimeout(function(){
-      apiFetch("/dati/salute-storia", {method:"PUT", body:storia})
+    clearTimeout(_pushTimers[k]);
+    _pushTimers[k]=setTimeout(function(){
+      var raw=null; try{ raw=localStorage.getItem(k); }catch(e){}
+      if(raw==null) return;
+      try{ JSON.parse(raw); }catch(e){ return; } // solo valori JSON
+      apiFetch("/dati/"+encodeURIComponent(k), {method:"PUT", body:raw, headers:{"Content-Type":"application/json"}})
         .then(function(){ cloudMark("Sincronizzato ✓ "+hhmm(new Date())); })
         .catch(function(e){ cloudMark("Non sincronizzato: "+(e&&e.message||"")); });
-    }, 1200);
+    }, 900);
   }
-  function cloudSyncStoria(){
-    if(!cloudToken) return Promise.resolve();
+  function cloudPushAllLocal(){
+    var keys=[]; try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k && SYNC_KEYS.test(k)){ var r=localStorage.getItem(k); try{ JSON.parse(r); keys.push(k); }catch(e){} } } }catch(e){}
+    if(!keys.length){ cloudMark("Connesso ✓"); return Promise.resolve(); }
+    cloudMark("Carico i tuoi dati sul cloud…");
+    return Promise.all(keys.map(function(k){ var raw=localStorage.getItem(k); return apiFetch("/dati/"+encodeURIComponent(k), {method:"PUT", body:raw, headers:{"Content-Type":"application/json"}}).catch(function(){}); }))
+      .then(function(){ cloudMark("Dati caricati sul cloud ✓ ("+keys.length+" moduli)"); });
+  }
+  function cloudPullAll(){
+    if(!cloudToken){ return Promise.resolve(); }
     cloudMark("Sincronizzo…");
+    var justPulled=false; try{ justPulled=(sessionStorage.getItem("_diarioJustPulled")==="1"); sessionStorage.removeItem("_diarioJustPulled"); }catch(e){}
     return apiFetch("/dati", {method:"GET"}).then(function(data){
       data=data||{};
-      if(data["salute-storia"]!=null){
-        applyStoria(data["salute-storia"]); saveStoriaLocal();
-        try{ if(currentMod==="storia") renderStoria(); }catch(e){}
-        cloudMark("Dati aggiornati dal cloud ✓");
-      } else {
-        var hasLocal=(storia.sintesi&&storia.sintesi.trim())||(storia.voci&&storia.voci.length)||(storia.esami&&storia.esami.length)||storia.dropbox;
-        if(hasLocal){ return apiFetch("/dati/salute-storia", {method:"PUT", body:storia}).then(function(){ cloudMark("Storia locale caricata sul cloud ✓"); }); }
-        cloudMark("Connesso ✓");
-      }
-    }).catch(function(e){ cloudMark("Cloud non raggiungibile: "+(e&&e.message||"")+" — i dati restano sul telefono"); });
+      var keys=Object.keys(data);
+      if(!keys.length){ return cloudPushAllLocal().then(function(){ _cloudReady=true; }); }
+      var changed=0;
+      keys.forEach(function(k){ try{ var local=null; try{ local=JSON.parse(localStorage.getItem(k)); }catch(e){} if(!jsonEq(data[k], local)){ var s=JSON.stringify(data[k]); if(_origSet) _origSet.call(localStorage,k,s); else localStorage.setItem(k,s); changed++; } }catch(e){} });
+      // chiavi locali che il cloud non ha ancora (moduli mai sincronizzati) → spingile su
+      try{ for(var j=0;j<localStorage.length;j++){ var lk=localStorage.key(j); if(lk && SYNC_KEYS.test(lk) && !(lk in data)){ try{ JSON.parse(localStorage.getItem(lk)); cloudPushKey(lk); }catch(e){} } } }catch(e){}
+      if(changed && !justPulled){
+        try{ sessionStorage.setItem("_diarioJustPulled","1"); }catch(e){}
+        cloudMark("Aggiorno dal cloud… ricarico");
+        setTimeout(function(){ try{ location.reload(); }catch(e){} }, 500);
+      } else { _cloudReady=true; cloudMark(changed?("Dati aggiornati dal cloud ✓"):("Tutto già aggiornato ✓")); }
+    }).catch(function(e){ _cloudReady=true; cloudMark("Cloud non raggiungibile: "+(e&&e.message||"")+" — i dati restano sul dispositivo"); });
   }
-  function cloudLogout(silent){ cloudToken=null; cloudEmail=null; try{ localStorage.removeItem("diario-cloud-token"); localStorage.removeItem("diario-cloud-email"); }catch(e){} try{ renderCloudCard(); }catch(e){} }
+  function cloudLogout(silent){ cloudToken=null; cloudEmail=null; _cloudReady=false; try{ localStorage.removeItem("diario-cloud-token"); localStorage.removeItem("diario-cloud-email"); }catch(e){} try{ renderCloudCard(); }catch(e){} }
   function renderCloudCard(){
     var host=document.getElementById("cloudCard"); if(!host) return;
     if(cloudToken){
       host.innerHTML='<p class="rep-sum">☁️ Connesso: <b>'+esc(cloudEmail||"")+'</b></p>'
-        +'<p class="fineprint" style="margin:0 0 8px">La <b>Storia clinica</b> si sincronizza tra telefono e PC. Gli altri moduli arriveranno.</p>'
+        +'<p class="fineprint" style="margin:0 0 8px">I tuoi dati (tutti i moduli) si sincronizzano tra telefono e PC — di casa e della cooperativa.</p>'
         +'<div class="panel-actions"><button class="primary" id="cloudSyncNow">Sincronizza ora</button> <button class="link-btn" id="cloudLogoutBtn">Esci</button></div>'
         +'<p id="cloudStatus" class="fineprint" style="margin-top:6px"></p>';
-      document.getElementById("cloudSyncNow").onclick=function(){ cloudSyncStoria(); };
-      document.getElementById("cloudLogoutBtn").onclick=function(){ if(confirm("Uscire dal cloud su questo dispositivo? I dati restano comunque sul telefono.")) cloudLogout(); };
+      document.getElementById("cloudSyncNow").onclick=function(){ cloudPullAll(); };
+      document.getElementById("cloudLogoutBtn").onclick=function(){ if(confirm("Uscire dal cloud su questo dispositivo? I dati restano comunque su questo dispositivo.")) cloudLogout(); };
     } else {
-      host.innerHTML='<p class="fineprint" style="margin:0 0 8px">Accedi per tenere i dati sincronizzati tra telefono e PC. Per ora sincronizza la <b>Storia clinica</b>; gli altri moduli seguiranno.</p>'
+      host.innerHTML='<p class="fineprint" style="margin:0 0 8px">Accedi per tenere i dati sincronizzati su tutti i tuoi dispositivi (telefono, PC di casa e della cooperativa).</p>'
         +'<input id="cloudEmailIn" type="email" inputmode="email" autocomplete="username" placeholder="La tua email" style="margin-bottom:8px">'
         +'<input id="cloudPassIn" type="password" autocomplete="current-password" placeholder="Password (almeno 8 caratteri)">'
         +'<div class="panel-actions" style="margin-top:10px"><button class="primary" id="cloudAuthBtn">Accedi</button></div>'
@@ -4792,13 +4813,13 @@
         apiFetch(isReg?"/auth/register":"/auth/login",{method:"POST", body:{email:em, password:pw}}).then(function(j){
           cloudToken=j.access_token; cloudEmail=j.email;
           try{ localStorage.setItem("diario-cloud-token", cloudToken); localStorage.setItem("diario-cloud-email", cloudEmail); }catch(e){}
-          renderCloudCard(); cloudSyncStoria();
+          renderCloudCard(); cloudPullAll();
         }).catch(function(e){ btn.disabled=false; cloudMark("Non riuscito: "+(e&&e.message||"")); });
       };
     }
   }
   try{ renderCloudCard(); }catch(e){}
-  if(cloudToken){ try{ cloudSyncStoria(); }catch(e){} }
+  if(cloudToken){ try{ cloudPullAll(); }catch(e){} }
   var STORIA_CAT=["Diagnosi","Terapia/Farmaco","Intervento","Ricovero/PS","Visita","Medico/contatto","Altro"];
   var storiaCatG=makeChipGroup("storiaVoceCat", STORIA_CAT, "salute-storia-cat-opts", true, {});
   var EXAM_CATS=["Sangue e midollo","Cuore e circolazione","Testa e neuro","Ecografie","Radiologia","Pelle","Urologia","Ossa e muscoli","Apparato digerente","Mente","Ricoveri ed eventi","Altro"];
