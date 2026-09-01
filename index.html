@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 153; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 154; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -955,8 +955,8 @@
     </section>
     <h2 class="menu-grid-title">Storia clinica</h2>
     <button class="menu-card" type="button" data-mod="storia" style="--mc:#475569"><span class="mc-emoji">🗂️</span><span class="mc-text"><span class="mc-name">Storia clinica</span><span class="mc-st" id="st-storia">diagnosi, terapie, referti</span></span><span class="mc-chev">›</span></button>
-    <h2 class="menu-grid-title">Collegamenti</h2>
-    <section class="card">
+    <h2 class="menu-grid-title" style="display:none">Collegamenti</h2>
+    <section class="card" style="display:none">
       <button class="link-btn" id="linkToggle">🔗 Collegamenti (entro 48 h)</button>
       <div id="linkPanel" hidden>
         <p class="fineprint" style="margin-top:8px">Mostra cosa c'era nelle <b>48 ore prima</b> di ogni fastidio che hai segnato in «Salute». Sono <b>coincidenze, non cause</b>, e servono <b>settimane</b> di dati perché dicano qualcosa. <b>Non è un consiglio medico</b> — semmai uno spunto per il tuo medico.</p>
@@ -964,8 +964,8 @@
         <button class="link-btn" id="linkClose" style="margin-top:6px">Chiudi</button>
       </div>
     </section>
-    <h2 class="menu-grid-title">Referti e documenti</h2>
-    <section class="card">
+    <h2 class="menu-grid-title" style="display:none">Referti e documenti</h2>
+    <section class="card" style="display:none">
       <button class="link-btn" id="docToggle">📁 Referti e documenti</button>
       <div id="docPanel" hidden>
       <p class="group-lbl" style="margin-top:6px">Tipo di documento</p>
@@ -1798,7 +1798,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v153</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v154</p>
 </div>
 
 <div id="reportView" hidden>
