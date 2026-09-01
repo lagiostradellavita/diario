@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 154; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 155; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1462,6 +1462,9 @@
 
     <p class="storia-privacy">🔒 Quello che scrivi qui resta <b>sul tuo telefono</b> (e sul cloud, se hai fatto l'accesso). Salva ogni tanto un backup dalla Home.</p>
 
+    <button class="primary" id="storiaReportBtn" style="width:100%; margin:2px 0 4px">📄 Crea un report della storia clinica</button>
+    <p class="fineprint" style="margin:0 0 12px">Un foglio unico — sintesi, diagnosi/terapie/eventi e l'elenco degli esami con i collegamenti — da stampare o salvare in <b>PDF</b> (per il medico).</p>
+
     <div class="food-cat open" id="collapStEsami">
       <button type="button" class="fc-head" id="headStEsami"><span>🔗 Esami e referti</span><span class="fc-arrow">›</span></button>
       <div class="fc-body" id="bodyStEsami">
@@ -1798,7 +1801,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v154</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v155</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3826,6 +3829,15 @@
     if(st.dropbox){ h+='<p class="rep-sum">📁 Cartella referti (Dropbox): <a href="'+e2(st.dropbox)+'">'+e2(st.dropbox)+'</a></p>'; }
     return h;
   }
+  // Report della sola Storia clinica, generato dal pulsante dentro quella pagina.
+  function genStoriaReport(){
+    var body='<h1>Storia clinica</h1>';
+    body+='<p class="rep-meta">Generato il '+dmy(new Date())+'</p>';
+    try{ body+=repStoria(0, new Date().getTime()); }catch(e){ body+='<p class="rep-empty">Non è stato possibile generare il report.</p>'; }
+    document.getElementById("reportBody").innerHTML=body;
+    document.getElementById("reportView").hidden=false;
+    try{ window.scrollTo(0,0); }catch(e){}
+  }
   function genReport(){
     var mods=[]; Array.prototype.forEach.call(document.querySelectorAll("#repModules .chip-sel.on"), function(b){ mods.push(b.dataset.m); });
     if(!mods.length){ toast("Scegli almeno un modulo"); return; }
@@ -3874,6 +3886,7 @@
   document.getElementById("repGen").onclick=genReport;
   document.getElementById("repPrint").onclick=function(){ try{ window.print(); }catch(e){ toast("Usa Condividi → Stampa"); } };
   document.getElementById("repClose").onclick=function(){ document.getElementById("reportView").hidden=true; };
+  (function(){ var b=document.getElementById("storiaReportBtn"); if(b) b.onclick=genStoriaReport; })();
 
   // ---- Referti e documenti (IndexedDB) ----
   var DOC_CATS=["Rx","Analisi del sangue","RMN","Tac","Ecografia","Visita","Ricetta"];
