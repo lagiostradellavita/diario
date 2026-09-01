@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 156; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 158; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -72,7 +72,8 @@
       }catch(e){}
     }
     function setBadge(){ try{ var vb=document.getElementById("verBadge"); if(vb) vb.textContent="v"+RUNNING; }catch(e){} }
-    function boot(){ check(); setBadge(); }
+    function wireRefresh(){ try{ var rb=document.getElementById("verRefresh"); if(rb) rb.onclick=function(){ var base=location.href.split("#")[0].split("?")[0]; location.replace(base + "?r=" + (new Date().getTime())); }; }catch(e){} }
+    function boot(){ check(); setBadge(); wireRefresh(); }
     if(document.readyState!=="loading") boot();
     else window.addEventListener("DOMContentLoaded", boot);
   })();
@@ -184,7 +185,8 @@
   .back-btn:active{background:var(--track);}
   .menu-hdr{display:flex; align-items:center; gap:12px; padding:6px 2px 2px;}
   .mark-h{line-height:0; filter:drop-shadow(0 2px 6px rgba(5,150,105,.35));}
-  .menu-hdr h1{margin:0; font-size:33px; font-weight:860; letter-spacing:-.03em; line-height:1.06;}
+  .menu-hdr h1{margin:0; font-size:33px; font-weight:860; letter-spacing:-.03em; line-height:1.06;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .menu-hdr .sub{margin:3px 0 0; font-size:15px; color:var(--muted); text-transform:capitalize;}
   .menu-grid-title{margin:6px 2px 0; font-size:13.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted);}
   .menu-grid{display:flex; flex-direction:column; gap:12px;}
@@ -797,27 +799,28 @@
 
   @media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
 
-  /* Numero versione, sempre visibile in alto a destra: serve a verificare a colpo
-     d'occhio che l'aggiornamento sia entrato. Fuori da .wrap, cosi' NON viene
-     ingrandito dallo zoom. Il testo lo scrive lo script (da RUNNING). */
-  #verBadge{ position:fixed; top:calc(5px + env(safe-area-inset-top,0px)); right:8px; z-index:40;
-    font:700 11px/1 -apple-system,system-ui,sans-serif; color:#334155;
-    background:rgba(255,255,255,.94); border:1px solid rgba(0,0,0,.14); border-radius:8px;
-    padding:4px 7px; letter-spacing:.02em; pointer-events:none;
-    box-shadow:0 1px 3px rgba(0,0,0,.12);
-    -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
+  /* Numero versione + pulsante di aggiornamento, nell'header a destra dell'avatar.
+     Il testo della versione lo scrive lo script (da RUNNING). */
+  .hdr-ver{ flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  #verBadge{ font:800 13px/1 -apple-system,system-ui,sans-serif; color:#334155;
+    background:rgba(255,255,255,.92); border:1px solid rgba(0,0,0,.12); border-radius:7px;
+    padding:3px 6px; letter-spacing:.02em; white-space:nowrap; }
   #verBadge:empty{ display:none; }
+  .ver-refresh{ -webkit-appearance:none; appearance:none; cursor:pointer; padding:0;
+    width:32px; height:27px; border-radius:8px; font-size:17px; line-height:1; color:#334155;
+    background:rgba(255,255,255,.92); border:1px solid rgba(0,0,0,.12);
+    display:flex; align-items:center; justify-content:center; }
+  .ver-refresh:active{ transform:scale(.93); }
   @media (prefers-color-scheme: dark){
-    #verBadge{ background:rgba(28,28,30,.9); color:#cbd5e1; border-color:rgba(255,255,255,.18); box-shadow:0 1px 3px rgba(0,0,0,.4); } }
+    #verBadge, .ver-refresh{ background:rgba(28,28,30,.9); color:#cbd5e1; border-color:rgba(255,255,255,.18); } }
 </style>
 
-<div id="verBadge" aria-hidden="true"></div>
 <div class="wrap">
   <!-- ===== MENU (home) ===== -->
   <section id="menu" class="screen">
     <header class="menu-hdr">
       <span class="mark-h"><svg viewBox="0 0 24 24" width="36" height="36" fill="#059669" aria-hidden="true"><path d="M12 21.4S3.6 15.7 3.6 9.9A4.6 4.6 0 0 1 12 7.2a4.6 4.6 0 0 1 8.4 2.7c0 5.8-8.4 11.5-8.4 11.5z"/></svg></span>
-      <div style="min-width:0">
+      <div style="min-width:0; overflow:hidden">
         <h1>Diario Salute</h1>
         <p class="sub" id="menuDate"></p>
       </div>
@@ -825,6 +828,10 @@
         <img id="pfAvatarImg" alt="" hidden>
         <span class="pf-avatar-place" id="pfAvatarPlace" aria-hidden="true">👤</span>
       </button>
+      <div class="hdr-ver">
+        <span id="verBadge"></span>
+        <button type="button" id="verRefresh" class="ver-refresh" aria-label="Aggiorna la app" title="Aggiorna">⟳</button>
+      </div>
     </header>
     <section class="card pf-card" id="pfPanel" hidden>
       <div class="pf-photo-row">
@@ -1801,7 +1808,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v156</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v158</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3133,19 +3140,22 @@
     try{ renderNoteG(); }catch(e){}
     var host=document.getElementById("saluteList"); host.innerHTML="";
     var maggKeys=Object.keys(fastidiMaggiori).filter(function(k){ return (fastidiMaggiori[k]||[]).length; });
-    if(!saluteLog.length && !maggKeys.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Seleziona i fastidi e tocca «Registra adesso».</div>'; return; }
+    var noteKeys=Object.keys(noteGiornata).filter(function(k){ return (noteGiornata[k]||"").trim(); });
+    if(!saluteLog.length && !maggKeys.length && !noteKeys.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Seleziona i fastidi e tocca «Registra adesso».</div>'; return; }
     var sorted=saluteLog.slice().sort(function(a,b){ return b.ts-a.ts; });
     var todayK=dayKey(new Date());
     // Raggruppa per giorno, stessa impaginazione del Diario (a scomparsa + colore malessere + righe timeline)
     var groups=[], byDay={};
     sorted.forEach(function(x){ var dk=dayKey(new Date(x.ts)); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(x.ts), items:[]}; groups.push(byDay[dk]); } byDay[dk].items.push(x); });
     maggKeys.forEach(function(dk){ if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } });
+    noteKeys.forEach(function(dk){ if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } });
     groups.sort(function(a,b){ return b.d-a.d; });
     groups.forEach(function(g){
       var open = (g.dk in saluteDayOpen) ? saluteDayOpen[g.dk] : (g.dk===todayK);
       var cnt=dayMalessere(g.dk), sc=dayScore(g.dk), ml=malLevel(sc); var iw=cnt?(" · "+INT_LBL[Math.max(1,Math.min(3,Math.round(sc/cnt)))]):"";
       var h=document.createElement("div"); h.className="day-head day-toggle"+(ml?" mal"+ml:"");
-      h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+(ml?'<span class="dmal">'+MAL_LBL[ml]+' ('+cnt+iw+')</span>':'');
+      var _dayNote=!!(noteGiornata[g.dk]||"").trim();
+      h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+(_dayNote?' <span class="dh-note" title="Nota di fine giornata">📝</span>':'')+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+(ml?'<span class="dmal">'+MAL_LBL[ml]+' ('+cnt+iw+')</span>':'');
       var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
       var magg=(fastidiMaggiori[g.dk]||[]);
       if(magg.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">⭐</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+magg.join(", "); body.appendChild(mr); }
@@ -3167,6 +3177,8 @@
         del.onclick=function(){ saluteLog=saluteLog.filter(function(y){return y.id!==x.id;}); if(editingSaluteId===x.id) cancelEditSalute(); saveSaluteLog(); renderSalute(); };
         row.appendChild(ed); row.appendChild(te); row.appendChild(del); body.appendChild(row);
       });
+      var _ng=(noteGiornata[g.dk]||"").trim();
+      if(_ng){ var nr=document.createElement("div"); nr.className="tl-row notag-row"; nr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">📝</span><span class="tl-text"></span>'; var _tn=nr.querySelector(".tl-text"); _tn.textContent=_ng; _tn.style.whiteSpace="pre-wrap"; _tn.style.fontStyle="italic"; body.appendChild(nr); }
       h.onclick=function(){ var willOpen=body.hidden; body.hidden=!willOpen; saluteDayOpen[g.dk]=willOpen; var chev=h.querySelector(".dchev"); if(chev) chev.textContent=willOpen?"▾":"▸"; };
       host.appendChild(h); host.appendChild(body);
     });
