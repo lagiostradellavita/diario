@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 155; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 156; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -914,6 +914,8 @@
       <option>Levotiroxina (Eutirox)</option><option>Vitamina D</option><option>Vitamina B12</option>
       <option>Omega 3</option><option>Magnesio</option>
     </datalist>
+    <h2 class="menu-grid-title">Storia clinica</h2>
+    <button class="menu-card" type="button" data-mod="storia" style="--mc:#475569"><span class="mc-emoji">🗂️</span><span class="mc-text"><span class="mc-name">Storia clinica</span><span class="mc-st" id="st-storia">diagnosi, terapie, referti</span></span><span class="mc-chev">›</span></button>
     <h2 class="menu-grid-title">Report PDF</h2>
     <section class="card">
       <button class="link-btn" id="repToggle">📄 Crea un report PDF</button>
@@ -953,8 +955,6 @@
       <p class="fineprint">Si apre l'anteprima; poi <b>«Stampa / Salva PDF»</b> → su iPhone «Salva in file».</p>
       </div>
     </section>
-    <h2 class="menu-grid-title">Storia clinica</h2>
-    <button class="menu-card" type="button" data-mod="storia" style="--mc:#475569"><span class="mc-emoji">🗂️</span><span class="mc-text"><span class="mc-name">Storia clinica</span><span class="mc-st" id="st-storia">diagnosi, terapie, referti</span></span><span class="mc-chev">›</span></button>
     <h2 class="menu-grid-title" style="display:none">Collegamenti</h2>
     <section class="card" style="display:none">
       <button class="link-btn" id="linkToggle">🔗 Collegamenti (entro 48 h)</button>
@@ -1801,7 +1801,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v155</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v156</p>
 </div>
 
 <div id="reportView" hidden>
