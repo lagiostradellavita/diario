@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 158; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 159; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1808,7 +1808,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v158</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v159</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4786,10 +4786,20 @@
   var SYNC_KEYS=/^(salute-|diario-fumo:)/;
   var _cloudReady=false, _pushTimers={};
   var _origSet=(window.Storage&&Storage.prototype.setItem)||null;
+  // Chiavi cambiate localmente e non ancora confermate sul cloud ("sporche").
+  // Persistite in localStorage, così sopravvivono a un reload: servono a impedire
+  // che il "tiro giù" dal cloud sovrascriva una modifica locale appena fatta
+  // (es. una sigaretta toccata mentre la app sta ancora sincronizzando).
+  var DIRTY_KEY="diario-cloud-dirty";
+  function _dirtyGet(){ try{ var a=JSON.parse(localStorage.getItem(DIRTY_KEY)); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+  function _dirtyWrite(a){ try{ var s=JSON.stringify(a); if(_origSet) _origSet.call(localStorage,DIRTY_KEY,s); else localStorage.setItem(DIRTY_KEY,s); }catch(e){} }
+  function _dirtyAdd(k){ var a=_dirtyGet(); if(a.indexOf(k)<0){ a.push(k); _dirtyWrite(a); } }
+  function _dirtyClear(k){ var a=_dirtyGet(), i=a.indexOf(k); if(i>=0){ a.splice(i,1); _dirtyWrite(a); } }
+  function _isDirty(k){ return _dirtyGet().indexOf(k)>=0; }
   // Ogni salvataggio locale (di QUALUNQUE modulo) viene spinto sul cloud: cosi'
   // non serve modificare le decine di funzioni saveXxx. Si spinge solo quando
   // siamo pronti (dopo la prima sincronizzazione), loggati, e la chiave e' dei dati.
-  try{ if(_origSet){ Storage.prototype.setItem=function(k,v){ _origSet.call(this,k,v); try{ if(this===window.localStorage && _cloudReady && cloudToken && SYNC_KEYS.test(k)){ cloudPushKey(k); } }catch(e){} }; } }catch(e){}
+  try{ if(_origSet){ Storage.prototype.setItem=function(k,v){ _origSet.call(this,k,v); try{ if(this===window.localStorage && cloudToken && SYNC_KEYS.test(k)){ _dirtyAdd(k); if(_cloudReady) cloudPushKey(k); } }catch(e){} }; } }catch(e){}
   // Confronto SEMANTICO (le chiavi JSON possono tornare dal cloud con ordine diverso):
   function _canon(v){ if(v===null||typeof v!=="object") return v; if(Array.isArray(v)) return v.map(_canon); var o={}; Object.keys(v).sort().forEach(function(k){ o[k]=_canon(v[k]); }); return o; }
   function jsonEq(a,b){ try{ return JSON.stringify(_canon(a))===JSON.stringify(_canon(b)); }catch(e){ return false; } }
@@ -4811,7 +4821,7 @@
       if(raw==null) return;
       try{ JSON.parse(raw); }catch(e){ return; } // solo valori JSON
       apiFetch("/dati/"+encodeURIComponent(k), {method:"PUT", body:raw, headers:{"Content-Type":"application/json"}})
-        .then(function(){ cloudMark("Sincronizzato ✓ "+hhmm(new Date())); })
+        .then(function(){ try{ if(localStorage.getItem(k)===raw) _dirtyClear(k); }catch(e){} cloudMark("Sincronizzato ✓ "+hhmm(new Date())); })
         .catch(function(e){ cloudMark("Non sincronizzato: "+(e&&e.message||"")); });
     }, 900);
   }
@@ -4819,7 +4829,7 @@
     var keys=[]; try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k && SYNC_KEYS.test(k)){ var r=localStorage.getItem(k); try{ JSON.parse(r); keys.push(k); }catch(e){} } } }catch(e){}
     if(!keys.length){ cloudMark("Connesso ✓"); return Promise.resolve(); }
     cloudMark("Carico i tuoi dati sul cloud…");
-    return Promise.all(keys.map(function(k){ var raw=localStorage.getItem(k); return apiFetch("/dati/"+encodeURIComponent(k), {method:"PUT", body:raw, headers:{"Content-Type":"application/json"}}).catch(function(){}); }))
+    return Promise.all(keys.map(function(k){ var raw=localStorage.getItem(k); return apiFetch("/dati/"+encodeURIComponent(k), {method:"PUT", body:raw, headers:{"Content-Type":"application/json"}}).then(function(){ _dirtyClear(k); }).catch(function(){}); }))
       .then(function(){ cloudMark("Dati caricati sul cloud ✓ ("+keys.length+" moduli)"); });
   }
   function cloudPullAll(){
@@ -4831,7 +4841,11 @@
       var keys=Object.keys(data);
       if(!keys.length){ return cloudPushAllLocal().then(function(){ _cloudReady=true; }); }
       var changed=0;
-      keys.forEach(function(k){ try{ var local=null; try{ local=JSON.parse(localStorage.getItem(k)); }catch(e){} if(!jsonEq(data[k], local)){ var s=JSON.stringify(data[k]); if(_origSet) _origSet.call(localStorage,k,s); else localStorage.setItem(k,s); changed++; } }catch(e){} });
+      keys.forEach(function(k){ try{
+        if(_isDirty(k)){ if(cloudToken) cloudPushKey(k); return; } // locale più recente e non ancora sincronizzato: NON sovrascrivere, spingi il locale sul cloud
+        var local=null; try{ local=JSON.parse(localStorage.getItem(k)); }catch(e){}
+        if(!jsonEq(data[k], local)){ var s=JSON.stringify(data[k]); if(_origSet) _origSet.call(localStorage,k,s); else localStorage.setItem(k,s); changed++; }
+      }catch(e){} });
       // chiavi locali che il cloud non ha ancora (moduli mai sincronizzati) → spingile su
       try{ for(var j=0;j<localStorage.length;j++){ var lk=localStorage.key(j); if(lk && SYNC_KEYS.test(lk) && !(lk in data)){ try{ JSON.parse(localStorage.getItem(lk)); cloudPushKey(lk); }catch(e){} } } }catch(e){}
       if(changed && !justPulled){
