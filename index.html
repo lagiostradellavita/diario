@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 160; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 161; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -806,6 +806,26 @@
     background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px;
     resize:vertical; min-height:68px; }
 
+  /* Schermata "Scegli le tue funzioni" (primo avvio o da ⚙️) */
+  #fnChooser{ position:fixed; inset:0; z-index:400; background:var(--bg); overflow:auto;
+    padding:max(20px,env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom)); }
+  #fnChooser[hidden]{ display:none; }
+  .fnc-box{ max-width:600px; margin:0 auto; }
+  .fnc-title{ font-size:25px; font-weight:860; letter-spacing:-.02em; margin:6px 0 4px; color:var(--ink); }
+  .fnc-sub{ color:var(--muted); font-size:15px; line-height:1.45; margin:0 0 16px; }
+  .fnc-list{ display:flex; flex-direction:column; gap:8px; }
+  .fnc-item{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; cursor:pointer;
+    background:var(--surface); border:2px solid var(--line); border-radius:14px; padding:12px 14px;
+    font-family:inherit; font-size:17px; color:var(--ink); -webkit-tap-highlight-color:transparent; }
+  .fnc-emoji{ font-size:23px; line-height:1; }
+  .fnc-name{ flex:1; font-weight:700; }
+  .fnc-check{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; border:2px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:15px; color:transparent; }
+  .fnc-item[aria-pressed="true"]{ border-color:var(--accent); }
+  .fnc-item[aria-pressed="true"] .fnc-check{ background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+  .fnc-actions{ position:sticky; bottom:0; margin-top:16px; padding:12px 0 4px; background:var(--bg); }
+  .fnc-actions .primary{ width:100%; }
+
   /* Numero versione + pulsante di aggiornamento, nell'header a destra dell'avatar.
      Il testo della versione lo scrive lo script (da RUNNING). */
   .hdr-ver{ flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:3px; }
@@ -885,7 +905,7 @@
     </section>
     <button class="menu-card" type="button" data-mod="diario" style="--mc:#0EA5E9"><span class="mc-emoji">📔</span><span class="mc-text"><span class="mc-name">Diario di oggi</span><span class="mc-st" id="st-diario">scrivi la giornata</span></span><span class="mc-chev">›</span></button>
     <button class="menu-card" type="button" data-mod="programma" style="--mc:#6366F1"><span class="mc-emoji">📋</span><span class="mc-text"><span class="mc-name">Programma</span><span class="mc-st" id="st-prog">pianifica la giornata</span></span><span class="mc-chev">›</span></button>
-    <h2 class="menu-grid-title">Le tue funzioni</h2>
+    <h2 class="menu-grid-title" id="hdrFunzioni">Le tue funzioni</h2>
     <div class="menu-grid">
       <button class="menu-card" type="button" data-mod="fumo" style="--mc:#C2410C"><span class="mc-emoji">🚬</span><span class="mc-text"><span class="mc-name">Fumo</span><span class="mc-st" id="st-fumo"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="salute" style="--mc:#E11D48"><span class="mc-emoji">🩺</span><span class="mc-text"><span class="mc-name">Salute</span><span class="mc-st" id="st-salute"></span></span><span class="mc-chev">›</span></button>
@@ -928,8 +948,9 @@
       <option>Levotiroxina (Eutirox)</option><option>Vitamina D</option><option>Vitamina B12</option>
       <option>Omega 3</option><option>Magnesio</option>
     </datalist>
-    <h2 class="menu-grid-title">Storia clinica</h2>
+    <h2 class="menu-grid-title" id="hdrStoria">Storia clinica</h2>
     <button class="menu-card" type="button" data-mod="storia" style="--mc:#475569"><span class="mc-emoji">🗂️</span><span class="mc-text"><span class="mc-name">Storia clinica</span><span class="mc-st" id="st-storia">diagnosi, terapie, referti</span></span><span class="mc-chev">›</span></button>
+    <button class="link-btn" id="chooseFnBtn" type="button" style="margin:10px 2px 0;text-align:left;font-weight:650">⚙️ Scegli le funzioni da mostrare</button>
     <h2 class="menu-grid-title">Report PDF</h2>
     <section class="card">
       <button class="link-btn" id="repToggle">📄 Crea un report PDF</button>
@@ -1815,7 +1836,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v160</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v161</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1824,6 +1845,15 @@
     <button class="link-btn" type="button" id="repClose">Chiudi</button>
   </div>
   <div id="reportBody"></div>
+</div>
+
+<div id="fnChooser" hidden>
+  <div class="fnc-box">
+    <h1 class="fnc-title">Scegli le tue funzioni</h1>
+    <p class="fnc-sub">Attiva solo quello che ti serve: comparirà nella schermata principale. Puoi cambiare quando vuoi (⚙️ «Scegli le funzioni da mostrare»).</p>
+    <div id="fnChooserList" class="fnc-list"></div>
+    <div class="fnc-actions"><button class="primary" id="fnChooserDone" type="button">Inizia</button></div>
+  </div>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -5167,5 +5197,66 @@
 
   render();
   showMod("menu");
+})();
+</script>
+
+<script>
+/* «Scegli le tue funzioni»: al primo avvio (telefono nuovo, nessun dato) mostra una
+   schermata per attivare solo le funzioni volute; le altre restano nascoste dalla Home.
+   Chi ha già dati (es. Gianluca) NON vede la schermata: tutto resta attivo. Modificabile
+   in seguito col pulsante ⚙️. Blocco a parte: nasconde solo le card, non tocca il resto. */
+(function(){
+  "use strict";
+  var FN=[
+    {id:"diario", e:"📔", n:"Diario di oggi"},
+    {id:"programma", e:"📋", n:"Programma"},
+    {id:"fumo", e:"🚬", n:"Fumo"},
+    {id:"salute", e:"🩺", n:"Salute"},
+    {id:"pillole", e:"💊", n:"Pillole"},
+    {id:"esercizio", e:"🏃", n:"Attività fisiche"},
+    {id:"alimentazione", e:"🍎", n:"Alimentazione"},
+    {id:"evac", e:"🚽", n:"Evacuazioni"},
+    {id:"parametri", e:"❤️", n:"Parametri vitali"},
+    {id:"ciclo", e:"🌸", n:"Ciclo"},
+    {id:"sonno", e:"😴", n:"Sonno"},
+    {id:"sesso", e:"🛏️", n:"Sesso"},
+    {id:"storia", e:"🗂️", n:"Storia clinica"}
+  ];
+  var ALL=FN.map(function(f){ return f.id; });
+  var GRID=["fumo","salute","pillole","esercizio","alimentazione","evac","parametri","ciclo","sonno","sesso"];
+  var KEY="salute-funzioni-attive";
+  function getActive(){ try{ var a=JSON.parse(localStorage.getItem(KEY)); return Array.isArray(a)?a:null; }catch(e){ return null; } }
+  function setActive(a){ try{ localStorage.setItem(KEY, JSON.stringify(a)); }catch(e){} }
+  function apply(){
+    var act=getActive()||ALL;
+    ALL.forEach(function(id){ var c=document.querySelector('.menu-card[data-mod="'+id+'"]'); if(c) c.style.display=(act.indexOf(id)<0)?"none":""; });
+    var hF=document.getElementById("hdrFunzioni"); if(hF) hF.style.display=GRID.some(function(id){return act.indexOf(id)>=0;})?"":"none";
+    var hS=document.getElementById("hdrStoria"); if(hS) hS.style.display=(act.indexOf("storia")>=0)?"":"none";
+  }
+  function hasData(){
+    var keys=["salute-log","diario-fumo:v1","salute-racconti","salute-cibo-log","salute-attiv-log","salute-parametri","salute-evac","salute-sonno","salute-ciclo","salute-sesso","salute-programma","salute-pil-defs"];
+    for(var i=0;i<keys.length;i++){ try{ var v=JSON.parse(localStorage.getItem(keys[i])); if(Array.isArray(v)&&v.length) return true; if(v&&typeof v==="object"&&Object.keys(v).length) return true; }catch(e){} }
+    try{ var st=JSON.parse(localStorage.getItem("salute-storia")); if(st&&((st.esami&&st.esami.length)||(st.voci&&st.voci.length)||(st.sintesi&&(""+st.sintesi).trim()))) return true; }catch(e){}
+    return false;
+  }
+  var overlay=document.getElementById("fnChooser"), listEl=document.getElementById("fnChooserList"), doneBtn=document.getElementById("fnChooserDone");
+  var sel={};
+  function buildList(){
+    if(!listEl) return; listEl.innerHTML="";
+    var base=getActive()||ALL; sel={}; base.forEach(function(id){ sel[id]=true; });
+    FN.forEach(function(f){
+      var b=document.createElement("button"); b.type="button"; b.className="fnc-item"; b.setAttribute("aria-pressed", sel[f.id]?"true":"false");
+      b.innerHTML='<span class="fnc-emoji"></span><span class="fnc-name"></span><span class="fnc-check">✓</span>';
+      b.querySelector(".fnc-emoji").textContent=f.e; b.querySelector(".fnc-name").textContent=f.n;
+      b.onclick=function(){ sel[f.id]=!sel[f.id]; b.setAttribute("aria-pressed", sel[f.id]?"true":"false"); };
+      listEl.appendChild(b);
+    });
+  }
+  function open(first){ buildList(); if(doneBtn) doneBtn.textContent=first?"Inizia":"Salva"; if(overlay){ overlay.hidden=false; try{ window.scrollTo(0,0); }catch(e){} } }
+  if(doneBtn) doneBtn.onclick=function(){ setActive(ALL.filter(function(id){ return sel[id]; })); apply(); if(overlay) overlay.hidden=true; };
+  var cb=document.getElementById("chooseFnBtn"); if(cb) cb.onclick=function(){ open(false); };
+  if(getActive()){ apply(); }
+  else if(hasData()){ setActive(ALL); apply(); }
+  else { apply(); open(true); }
 })();
 </script>
