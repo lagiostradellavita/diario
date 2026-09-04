@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 161; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 162; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1149,6 +1149,8 @@
       <div class="field"><label for="sessoData">Data</label><input type="date" id="sessoData"></div>
       <div class="field"><label for="sessoOra">Ora</label><input type="time" id="sessoOra"></div>
     </div>
+    <button class="link-btn" id="sessoManageToggle" style="margin-top:8px;text-align:left">⚙️ Gestisci le voci (mostra o nascondi)</button>
+    <div id="sessoManage" hidden style="margin-top:4px"></div>
   </section>
   <section class="card">
     <h2 class="section-title">Storico</h2>
@@ -1836,7 +1838,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v161</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v162</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4698,6 +4700,20 @@
   var SESSO_ORDER=["sega","scopata"];
   var sessoLog=[]; try{ var _sxl=JSON.parse(localStorage.getItem("salute-sesso")); if(Array.isArray(_sxl)) sessoLog=_sxl; }catch(e){}
   function saveSessoLog(){ try{ localStorage.setItem("salute-sesso", JSON.stringify(sessoLog)); }catch(e){} }
+  // Voci nascoste SOLO su questo dispositivo (es. nascondere «Sega» sul telefono di un altro).
+  var sessoHidden=[]; try{ var _shx=JSON.parse(localStorage.getItem("salute-sesso-hidden")); if(Array.isArray(_shx)) sessoHidden=_shx; }catch(e){}
+  function saveSessoHidden(){ try{ localStorage.setItem("salute-sesso-hidden", JSON.stringify(sessoHidden)); }catch(e){} }
+  function renderSessoManage(){
+    var host=document.getElementById("sessoManage"); if(!host) return; host.innerHTML="";
+    SESSO_ORDER.forEach(function(t){
+      var hid=sessoHidden.indexOf(t)>=0;
+      var row=document.createElement("div"); row.className="manage-row";
+      var nm=document.createElement("span"); nm.className="manage-name"; nm.textContent=SESSO_TIPI[t].label+(hid?" — nascosta":"");
+      var btn=document.createElement("button"); btn.type="button"; btn.className="link-btn"; btn.style.padding="4px 10px"; btn.textContent=hid?"Mostra":"Nascondi";
+      btn.onclick=function(){ if(hid){ sessoHidden=sessoHidden.filter(function(x){return x!==t;}); } else if(sessoHidden.indexOf(t)<0){ sessoHidden.push(t); } saveSessoHidden(); renderSesso(); toast(hid?"«"+SESSO_TIPI[t].label+"» mostrata":"«"+SESSO_TIPI[t].label+"» nascosta (solo su questo telefono)"); };
+      row.appendChild(nm); row.appendChild(btn); host.appendChild(row);
+    });
+  }
   var sessoStorOpen={};
   function sessoWhenTs(){ var w=document.getElementById("sessoWhen"); if(w && !w.hidden){ var d=document.getElementById("sessoData").value, t=document.getElementById("sessoOra").value; if(d&&t){ var ts=new Date(d+"T"+t).getTime(); if(!isNaN(ts)) return ts; } } return Date.now(); }
   function sessoAdd(tipo){ var nt=document.getElementById("sessoNota"), nota=nt?(nt.value||"").trim():""; sessoLog.push({id:uid(), ts:sessoWhenTs(), tipo:tipo, nota:nota}); saveSessoLog(); if(nt) nt.value=""; var w=document.getElementById("sessoWhen"); if(w) w.hidden=true; renderSesso(); toast(SESSO_TIPI[tipo].label+" registrato ✓"); }
@@ -4709,7 +4725,8 @@
     var tot=cnt.sega+cnt.scopata, sm=document.getElementById("sessoSummary");
     if(sm){ sm.textContent=tot?(tot+" oggi"):""; sm.style.color="var(--ink-soft)"; }
     var q=document.getElementById("sessoQuick");
-    if(q){ q.innerHTML=""; SESSO_ORDER.forEach(function(t){ var b=document.createElement("button"); b.className="qbtn"; b.type="button"; b.style.setProperty("--c", SESSO_TIPI[t].c); b.innerHTML='<span class="qlab">'+SESSO_TIPI[t].label+'</span><span class="qadd">+1 · oggi '+(cnt[t]||0)+'</span>'; b.onclick=function(){ sessoAdd(t); }; q.appendChild(b); }); }
+    if(q){ q.innerHTML=""; SESSO_ORDER.filter(function(t){ return sessoHidden.indexOf(t)<0; }).forEach(function(t){ var b=document.createElement("button"); b.className="qbtn"; b.type="button"; b.style.setProperty("--c", SESSO_TIPI[t].c); b.innerHTML='<span class="qlab">'+SESSO_TIPI[t].label+'</span><span class="qadd">+1 · oggi '+(cnt[t]||0)+'</span>'; b.onclick=function(){ sessoAdd(t); }; q.appendChild(b); }); }
+    try{ if(!document.getElementById("sessoManage").hidden) renderSessoManage(); }catch(e){}
     var rows=sessoLog.map(function(x){ return { ts:x.ts, emoji:"🛏️", text:(SESSO_TIPI[x.tipo]?SESSO_TIPI[x.tipo].label:x.tipo)+(x.nota?" — "+x.nota:""),
       onTimeEdit:(function(xx){ return function(v){ if(v){ var p=String(v).split(":"); var d=new Date(xx.ts); d.setHours(parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0, 0); xx.ts=+d; saveSessoLog(); } renderSesso(); }; })(x),
       onDelete:(function(xx){ return function(){ sessoLog=sessoLog.filter(function(y){return y.id!==xx.id;}); saveSessoLog(); renderSesso(); }; })(x) }; });
@@ -4720,6 +4737,7 @@
       headExtra:function(g){ var l=sessoDayLvl(g.dk); var sp=document.createElement("span"); sp.className="dmal"; if(l==="ok"){ sp.style.color="var(--lvl-low)"; sp.textContent="scopata"; } else if(l==="warn"){ sp.style.color="var(--lvl-mid)"; sp.textContent="sega"; } else { sp.style.color="var(--lvl-high)"; sp.textContent="niente"; } return sp; } });
   }
   (function(){ var b=document.getElementById("sessoWhenToggle"); if(b) b.onclick=function(){ var w=document.getElementById("sessoWhen"); w.hidden=!w.hidden; if(!w.hidden){ var n=new Date(); document.getElementById("sessoData").value=ymd(n); document.getElementById("sessoOra").value=hhmm(n); } }; })();
+  (function(){ var b=document.getElementById("sessoManageToggle"); if(b) b.onclick=function(){ var m=document.getElementById("sessoManage"); m.hidden=!m.hidden; if(!m.hidden) renderSessoManage(); }; })();
 
   function collectDiarioEvents(all){
     var dK=dayKey(new Date()), ev=[];
