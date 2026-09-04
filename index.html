@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 162; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 163; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1446,18 +1446,6 @@
       <h2 class="section-title" style="margin:16px 0 0">Storico</h2>
       <div id="sonnoStorico" style="margin-top:4px"></div>
     </section>
-    <section class="card" id="noteGiornataCard">
-      <div class="food-cat" id="collapNotaG">
-        <button type="button" class="fc-head" id="headNotaG"><span>📝 Nota di fine giornata</span><span class="fc-arrow">›</span></button>
-        <div class="fc-body" id="bodyNotaG" hidden>
-          <p class="fineprint" style="margin:2px 0 8px">Un riassunto libero della giornata. Se ne salvi una nuova nello stesso giorno, aggiorna quella. Puoi scegliere anche un <b>giorno passato</b> (es. ieri).</p>
-          <div class="field" style="margin-bottom:8px"><label for="notaGiornataData">Giorno</label><input type="date" id="notaGiornataData"></div>
-          <textarea id="notaGiornata" rows="3" placeholder="Com'è andata…"></textarea>
-          <button class="primary" id="notaGiornataSave" style="margin-top:10px">Salva nota</button>
-        </div>
-      </div>
-      <div id="notaGiornataStorico" style="margin-top:10px"></div>
-    </section>
     <section class="card">
       <div class="food-cat" id="collapMaggiori">
         <button type="button" class="fc-head" id="headMaggiori"><span id="lblMaggiori">⭐ Fastidi maggiori di oggi</span><span class="fc-arrow">›</span></button>
@@ -1838,7 +1826,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v162</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v163</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3032,11 +3020,11 @@
       row.appendChild(del); host.appendChild(row);
     });
   }
-  document.getElementById("notaGiornataSave").onclick=function(){
+  (function(){ var _ngs=document.getElementById("notaGiornataSave"); if(_ngs) _ngs.onclick=function(){
     var dK=noteGDayKey(), v=(document.getElementById("notaGiornata").value||"").trim();
     if(!v){ toast("Scrivi la nota"); return; }
     noteGiornata[dK]=v; saveNoteG(); renderNoteG(); toast("Nota salvata ✓"+(dK!==dayKey(new Date())?" (per il "+ddmm(new Date(dK+"T12:00:00"))+")":""));
-  };
+  }; })();
   (function(){ var dEl=document.getElementById("notaGiornataData"); if(dEl) dEl.onchange=function(){ renderNoteG(); }; })();
   renderSonno(); renderNoteG();
 
@@ -3213,7 +3201,6 @@
     var host=document.getElementById("saluteList"); host.innerHTML="";
     var maggKeys=Object.keys(fastidiMaggiori).filter(function(k){ return (fastidiMaggiori[k]||[]).length; });
     var noteKeys=Object.keys(noteGiornata).filter(function(k){ return (noteGiornata[k]||"").trim(); });
-    if(!saluteLog.length && !maggKeys.length && !noteKeys.length){ host.innerHTML='<div class="empty">Ancora niente.<br>Seleziona i fastidi e tocca «Registra adesso».</div>'; return; }
     var sorted=saluteLog.slice().sort(function(a,b){ return b.ts-a.ts; });
     var todayK=dayKey(new Date());
     // Raggruppa per giorno, stessa impaginazione del Diario (a scomparsa + colore malessere + righe timeline)
@@ -3221,6 +3208,7 @@
     sorted.forEach(function(x){ var dk=dayKey(new Date(x.ts)); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(x.ts), items:[]}; groups.push(byDay[dk]); } byDay[dk].items.push(x); });
     maggKeys.forEach(function(dk){ if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } });
     noteKeys.forEach(function(dk){ if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } });
+    if(!byDay[todayK]){ byDay[todayK]={dk:todayK, d:new Date(), items:[]}; groups.push(byDay[todayK]); } // oggi c'è sempre: così puoi aggiungere la nota di fine giornata anche senza fastidi
     groups.sort(function(a,b){ return b.d-a.d; });
     groups.forEach(function(g){
       var open = (g.dk in saluteDayOpen) ? saluteDayOpen[g.dk] : (g.dk===todayK);
