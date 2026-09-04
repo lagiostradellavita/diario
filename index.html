@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 164; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 165; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1534,11 +1534,11 @@
             <div id="storiaEsameValori"></div>
             <div class="panel-actions" style="margin-top:6px">
               <button type="button" class="link-btn" id="storiaValoreAdd">＋ aggiungi un valore</button>
-              <button type="button" class="link-btn" id="storiaOcrBtn">📷 Leggi da foto</button>
+              <button type="button" class="link-btn" id="storiaOcrBtn">📷 Foto: leggi e salva</button>
             </div>
             <input type="file" id="storiaOcrFile" accept="image/*" hidden>
             <div id="storiaOcrBox" hidden style="margin-top:4px"></div>
-            <p class="fineprint" style="margin:2px 0 0">La lettura da foto è un <b>aiuto</b>: leggi tu i numeri e <b>controllali sempre</b> prima di salvare. La foto serve solo a leggere, non viene salvata.</p>
+            <p class="fineprint" style="margin:2px 0 0">La lettura da foto è un <b>aiuto</b>: leggi tu i numeri e <b>controllali sempre</b> prima di salvare. Dopo la foto puoi anche <b>salvarla con un nome</b> (su Dropbox, File o PC). Nell'app la foto non resta conservata.</p>
             <div class="panel-actions" style="margin-top:10px">
               <button class="primary" id="storiaEsameAdd">Aggiungi esame</button>
               <button class="link-btn" id="storiaEsameCancel" hidden>Annulla</button>
@@ -1839,7 +1839,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v164</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v165</p>
 </div>
 
 <div id="reportView" hidden>
@@ -5112,7 +5112,7 @@
     document.getElementById("storiaEsameLink").value=x.link||"";
     try{ if(x.cat) storiaEsameCatG.selectOne(x.cat); else storiaEsameCatG.clear(); }catch(e){}
     esameValori=((x.valori||[]).map(function(r){ return {n:r.n||"",v:r.v||"",u:r.u||""}; })); renderEsameValori();
-    var _ob=document.getElementById("storiaOcrBox"); if(_ob){ _ob.hidden=true; _ob.innerHTML=""; }
+    var _ob=document.getElementById("storiaOcrBox"); if(_ob){ _ob.hidden=true; _ob.innerHTML=""; } ocrLastFile=null;
     document.getElementById("storiaEsameAdd").textContent="Salva modifica";
     document.getElementById("storiaEsameCancel").hidden=false;
     try{ var cA=document.getElementById("collapStAggiungi"), bA=document.getElementById("bodyStAggiungi"); if(cA&&bA){ bA.hidden=false; cA.classList.add("open"); document.getElementById("headStAggiungi").scrollIntoView({block:"center"}); } }catch(e){}
@@ -5160,16 +5160,59 @@
       box.appendChild(b);
     });
   }
+  var ocrLastFile=null;
   function ocrHandleFile(file){
+    ocrLastFile=file||null;
     var box=document.getElementById("storiaOcrBox"); if(box){ box.hidden=false; box.innerHTML='<p class="fineprint" style="margin:0">Leggo la foto… può volerci qualche secondo (la prima volta scarica il lettore).</p>'; }
     var fr=new FileReader();
     fr.onload=function(){ var dataUrl=fr.result;
       ocrLoad().then(function(){ return window.Tesseract.recognize(dataUrl,"ita"); })
-        .then(function(r){ var text=(r&&r.data&&r.data.text)||""; ocrShowCandidates(ocrParse(text)); })
-        .catch(function(){ if(box) box.innerHTML='<p class="fineprint" style="margin:0">Non riesco a leggere la foto (la prima volta serve la connessione a internet). Puoi inserire i valori a mano.</p>'; });
+        .then(function(r){ var text=(r&&r.data&&r.data.text)||""; ocrShowCandidates(ocrParse(text)); ocrShowSaveScan(); })
+        .catch(function(){ if(box) box.innerHTML='<p class="fineprint" style="margin:0">Non sono riuscito a leggere i valori (la prima volta serve internet). Puoi metterli a mano — la scansione la puoi comunque salvare qui sotto.</p>'; ocrShowSaveScan(); });
     };
     fr.onerror=function(){ if(box) box.innerHTML='<p class="fineprint" style="margin:0">Foto non leggibile. Riprova o inserisci a mano.</p>'; };
     fr.readAsDataURL(file);
+  }
+  // ---- Salvare la scansione con un nome scelto (Dropbox/File su iPhone, download su PC) ----
+  function scanBaseName(){
+    var d=((document.getElementById("storiaEsameData")||{}).value)||"";
+    var t=(((document.getElementById("storiaEsameTipo")||{}).value)||"").trim();
+    var datePart=""; var m=d.match(/^(\d{4})-(\d{2})-(\d{2})$/); if(m){ datePart=m[1]+" "+m[2]+" "+m[3]; }
+    var name=(datePart?(datePart+" - "):"")+(t||"Referto");
+    return name.replace(/[\\\/:*?"<>|]+/g,"-").replace(/\s{2,}/g," ").trim();
+  }
+  function scanExt(file){
+    var ty=((file&&file.type)||"").toLowerCase();
+    if(ty.indexOf("png")>=0) return ".png";
+    if(ty.indexOf("webp")>=0) return ".webp";
+    if(ty.indexOf("heic")>=0||ty.indexOf("heif")>=0) return ".heic";
+    if(ty.indexOf("jpeg")>=0||ty.indexOf("jpg")>=0) return ".jpg";
+    var mm=((file&&file.name)||"").match(/\.([a-z0-9]{2,5})$/i); return mm?("."+mm[1].toLowerCase()):".jpg";
+  }
+  function ocrShowSaveScan(){
+    var box=document.getElementById("storiaOcrBox"); if(!box||!ocrLastFile) return;
+    if(document.getElementById("scanName")) return;
+    var wrap=document.createElement("div"); wrap.style.marginTop="10px"; wrap.style.paddingTop="10px"; wrap.style.borderTop="1px solid var(--line)";
+    var lbl=document.createElement("p"); lbl.className="group-lbl"; lbl.style.margin="0 0 4px"; lbl.textContent="📎 Salva questa scansione";
+    var nm=document.createElement("input"); nm.type="text"; nm.id="scanName"; nm.placeholder="nome del file"; nm.value=scanBaseName(); nm.style.width="100%";
+    var btn=document.createElement("button"); btn.type="button"; btn.className="primary"; btn.textContent="Salva / Condividi la scansione"; btn.style.width="100%"; btn.style.marginTop="6px"; btn.onclick=saveScan;
+    var fp=document.createElement("p"); fp.className="fineprint"; fp.style.margin="6px 0 0"; fp.textContent="Su iPhone si apre «Condividi»: scegli Dropbox o File e lo salvi con questo nome. Sul PC viene scaricato.";
+    wrap.appendChild(lbl); wrap.appendChild(nm); wrap.appendChild(btn); wrap.appendChild(fp); box.appendChild(wrap);
+  }
+  function saveScan(){
+    if(!ocrLastFile){ toast("Prima scatta o scegli una foto"); return; }
+    var inp=document.getElementById("scanName"); var base=((inp&&inp.value)||"").trim(); if(!base) base=scanBaseName();
+    base=base.replace(/[\\\/:*?"<>|]+/g,"-").replace(/\s{2,}/g," ").trim(); if(!base) base="Referto";
+    base=base.replace(/\.(jpe?g|png|webp|heic|heif|gif|bmp|pdf)$/i,"").trim(); if(!base) base="Referto";
+    var fname=base+scanExt(ocrLastFile), f2;
+    try{ f2=new File([ocrLastFile], fname, {type:ocrLastFile.type||"image/jpeg"}); }catch(e){ f2=ocrLastFile; }
+    var canShare=false; try{ canShare=!!(navigator.canShare && navigator.canShare({files:[f2]})); }catch(e){ canShare=false; }
+    if(canShare){ navigator.share({files:[f2], title:fname}).then(function(){ toast("Scansione pronta ✓"); }).catch(function(err){ if(err && err.name!=="AbortError") ocrDownload(f2,fname); }); }
+    else { ocrDownload(f2,fname); }
+  }
+  function ocrDownload(f2,fname){
+    try{ var url=URL.createObjectURL(f2); var a=document.createElement("a"); a.href=url; a.download=fname; document.body.appendChild(a); a.click(); setTimeout(function(){ try{ URL.revokeObjectURL(url); a.remove(); }catch(e){} },1500); toast("Scansione salvata ✓"); }
+    catch(e){ toast("Non riesco a salvare il file"); }
   }
 
   function refreshDropboxBtn(){ var b=document.getElementById("storiaDropboxOpen"); if(!b) return; b.textContent= storia.dropbox ? "📁 Apri i referti su Dropbox" : "📁 Imposta il link dei referti"; }
