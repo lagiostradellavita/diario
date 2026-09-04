@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 163; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 164; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -579,6 +579,10 @@
   .chip-sel.on{background:linear-gradient(140deg, var(--c,var(--accent)), color-mix(in srgb, var(--c,var(--accent)) 80%, #000)); color:var(--on-c); border-color:transparent;
     box-shadow:0 4px 12px -3px color-mix(in srgb,var(--c,var(--accent)) 52%,transparent), inset 0 1px 0 color-mix(in srgb,#fff 22%,transparent);}
   .group-lbl{font-size:15px; font-weight:750; color:var(--ink-soft); margin:16px 0 0;}
+  .val-row{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:6px 0;}
+  .val-row input{font-family:inherit; font-size:15px; padding:9px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink);}
+  .val-row .vn{flex:1 1 100%;} .val-row .vv{flex:1 1 90px; min-width:0;} .val-row .vu{flex:1 1 70px; min-width:0;}
+  .val-row .val-x{flex:0 0 auto; appearance:none; cursor:pointer; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); width:40px; height:40px; border-radius:10px; font-size:20px; line-height:1;}
   .pf-avatar{margin-left:auto; flex:0 0 auto; width:46px; height:46px; border-radius:50%; padding:0; cursor:pointer;
     overflow:hidden; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;
     border:2px solid color-mix(in srgb, var(--accent) 45%, var(--line)); background:var(--surface-2); box-shadow:var(--shadow-lg);}
@@ -1526,6 +1530,15 @@
             <p class="fineprint" style="margin:6px 0 0">Se scrivi il <b>nome del file</b> e hai impostato il link della cartella qui sopra, l'app apre il referto da sola con un tocco.</p>
             <p class="group-lbl" style="margin-top:10px">Categoria (facoltativa)</p>
             <div id="storiaEsameCat" class="chips"></div>
+            <p class="group-lbl" style="margin-top:10px">Valori (facoltativi) — compaiono nel report</p>
+            <div id="storiaEsameValori"></div>
+            <div class="panel-actions" style="margin-top:6px">
+              <button type="button" class="link-btn" id="storiaValoreAdd">＋ aggiungi un valore</button>
+              <button type="button" class="link-btn" id="storiaOcrBtn">📷 Leggi da foto</button>
+            </div>
+            <input type="file" id="storiaOcrFile" accept="image/*" hidden>
+            <div id="storiaOcrBox" hidden style="margin-top:4px"></div>
+            <p class="fineprint" style="margin:2px 0 0">La lettura da foto è un <b>aiuto</b>: leggi tu i numeri e <b>controllali sempre</b> prima di salvare. La foto serve solo a leggere, non viene salvata.</p>
             <div class="panel-actions" style="margin-top:10px">
               <button class="primary" id="storiaEsameAdd">Aggiungi esame</button>
               <button class="link-btn" id="storiaEsameCancel" hidden>Annulla</button>
@@ -1826,7 +1839,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v163</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v164</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3894,7 +3907,7 @@
     if(esami.length){
       h+='<div class="rep-doc-cat">Esami e referti</div>';
       h+='<table><tr><th>Data</th><th>Esame</th><th>Esito</th><th>Referto</th></tr>';
-      esami.forEach(function(x){ var _u=esameUrl(x); var lk=_u?('<a href="'+e2(_u)+'">apri</a>'):''; h+='<tr><td>'+(x.data?storiaDT(x.data):'—')+'</td><td>'+e2(x.tipo||'')+'</td><td>'+e2(x.esito||'')+'</td><td>'+lk+'</td></tr>'; });
+      esami.forEach(function(x){ var _u=esameUrl(x); var lk=_u?('<a href="'+e2(_u)+'">apri</a>'):''; var _vt=esameValoriText(x); var _ec=e2(x.esito||'')+(_vt?('<div style="color:#475569;font-size:11px;margin-top:2px">'+e2(_vt)+'</div>'):''); h+='<tr><td>'+(x.data?storiaDT(x.data):'—')+'</td><td>'+e2(x.tipo||'')+'</td><td>'+_ec+'</td><td>'+lk+'</td></tr>'; });
       h+='</table>';
     }
     if(st.dropbox){ h+='<p class="rep-sum">📁 Cartella referti (Dropbox): <a href="'+e2(st.dropbox)+'">'+e2(st.dropbox)+'</a></p>'; }
@@ -5098,12 +5111,66 @@
     document.getElementById("storiaEsameFile").value=x.file||"";
     document.getElementById("storiaEsameLink").value=x.link||"";
     try{ if(x.cat) storiaEsameCatG.selectOne(x.cat); else storiaEsameCatG.clear(); }catch(e){}
+    esameValori=((x.valori||[]).map(function(r){ return {n:r.n||"",v:r.v||"",u:r.u||""}; })); renderEsameValori();
+    var _ob=document.getElementById("storiaOcrBox"); if(_ob){ _ob.hidden=true; _ob.innerHTML=""; }
     document.getElementById("storiaEsameAdd").textContent="Salva modifica";
     document.getElementById("storiaEsameCancel").hidden=false;
     try{ var cA=document.getElementById("collapStAggiungi"), bA=document.getElementById("bodyStAggiungi"); if(cA&&bA){ bA.hidden=false; cA.classList.add("open"); document.getElementById("headStAggiungi").scrollIntoView({block:"center"}); } }catch(e){}
     try{ document.getElementById("storiaEsameTipo").focus(); }catch(e){}
   }
-  function resetEsameForm(){ editEsameId=null; ["storiaEsameData","storiaEsameTipo","storiaEsameEsito","storiaEsameFile","storiaEsameLink"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); try{ storiaEsameCatG.clear(); }catch(e){} document.getElementById("storiaEsameAdd").textContent="Aggiungi esame"; document.getElementById("storiaEsameCancel").hidden=true; }
+  function resetEsameForm(){ editEsameId=null; ["storiaEsameData","storiaEsameTipo","storiaEsameEsito","storiaEsameFile","storiaEsameLink"].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=""; }); try{ storiaEsameCatG.clear(); }catch(e){} esameValori=[]; try{ renderEsameValori(); }catch(e){} var _ob=document.getElementById("storiaOcrBox"); if(_ob){ _ob.hidden=true; _ob.innerHTML=""; } document.getElementById("storiaEsameAdd").textContent="Aggiungi esame"; document.getElementById("storiaEsameCancel").hidden=true; }
+  // ---- Valori di un esame (con lettura da foto / OCR) ----
+  var esameValori=[];
+  function esameValoriText(x){ return ((x&&x.valori)||[]).filter(function(r){return r&&(r.n||r.v);}).map(function(r){ return ((r.n||"")+" "+(r.v||"")+(r.u?(" "+r.u):"")).trim(); }).join(" · "); }
+  function renderEsameValori(){
+    var host=document.getElementById("storiaEsameValori"); if(!host) return; host.innerHTML="";
+    esameValori.forEach(function(r,i){
+      var row=document.createElement("div"); row.className="val-row";
+      var n=document.createElement("input"); n.type="text"; n.className="vn"; n.placeholder="analisi (es. Glicemia)"; n.value=r.n||""; n.oninput=function(){ r.n=n.value; };
+      var v=document.createElement("input"); v.type="text"; v.className="vv"; v.inputMode="decimal"; v.placeholder="valore"; v.value=r.v||""; v.oninput=function(){ r.v=v.value; };
+      var u=document.createElement("input"); u.type="text"; u.className="vu"; u.placeholder="unità"; u.value=r.u||""; u.oninput=function(){ r.u=u.value; };
+      var x=document.createElement("button"); x.type="button"; x.className="val-x"; x.textContent="×"; x.setAttribute("aria-label","Togli"); x.onclick=function(){ esameValori.splice(i,1); renderEsameValori(); };
+      row.appendChild(n); row.appendChild(v); row.appendChild(u); row.appendChild(x); host.appendChild(row);
+    });
+  }
+  function esameValoreAdd(n,v,u){ esameValori.push({n:n||"",v:v||"",u:u||""}); renderEsameValori(); }
+  var _ocrLoading=false;
+  function ocrLoad(){ return new Promise(function(res,rej){
+    if(window.Tesseract) return res();
+    var s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+    s.onload=function(){ res(); }; s.onerror=function(){ rej(new Error("no-load")); };
+    document.head.appendChild(s);
+  }); }
+  function ocrParse(text){
+    var out=[], seen={};
+    (text||"").split(/\r?\n/).forEach(function(ln){
+      if(/\b\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}\b/.test(ln)) return; // salta le righe che sono una data
+      var m=ln.match(/^\s*([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 .()\/'\-]{1,38}?)[\s:.\-]+([<>]?\d{1,4}(?:[.,]\d{1,3})?)\s*([%a-zA-Zµ\/]{1,10})?/);
+      if(m){ var n=m[1].replace(/\s{2,}/g," ").trim(), v=m[2], u=(m[3]||"").trim(); if(u==="/") u=""; var k=(n+"|"+v).toLowerCase(); if(n.length>=3 && !seen[k]){ seen[k]=1; out.push({n:n,v:v,u:u}); } }
+    });
+    return out.slice(0,30);
+  }
+  function ocrShowCandidates(cands){
+    var box=document.getElementById("storiaOcrBox"); if(!box) return; box.hidden=false; box.innerHTML="";
+    if(!cands.length){ box.innerHTML='<p class="fineprint" style="margin:0">Non ho trovato valori riconoscibili nella foto. Aggiungili a mano con «＋ aggiungi un valore».</p>'; return; }
+    var lbl=document.createElement("p"); lbl.className="fineprint"; lbl.style.margin="0 0 6px"; lbl.textContent="Tocca per aggiungere (poi controlla i numeri):"; box.appendChild(lbl);
+    cands.forEach(function(c){
+      var b=document.createElement("button"); b.type="button"; b.className="chip-sel"; b.style.margin="0 6px 6px 0"; b.textContent="＋ "+c.n+" "+c.v+(c.u?(" "+c.u):"");
+      b.onclick=function(){ esameValoreAdd(c.n,c.v,c.u); b.disabled=true; b.style.opacity=".45"; };
+      box.appendChild(b);
+    });
+  }
+  function ocrHandleFile(file){
+    var box=document.getElementById("storiaOcrBox"); if(box){ box.hidden=false; box.innerHTML='<p class="fineprint" style="margin:0">Leggo la foto… può volerci qualche secondo (la prima volta scarica il lettore).</p>'; }
+    var fr=new FileReader();
+    fr.onload=function(){ var dataUrl=fr.result;
+      ocrLoad().then(function(){ return window.Tesseract.recognize(dataUrl,"ita"); })
+        .then(function(r){ var text=(r&&r.data&&r.data.text)||""; ocrShowCandidates(ocrParse(text)); })
+        .catch(function(){ if(box) box.innerHTML='<p class="fineprint" style="margin:0">Non riesco a leggere la foto (la prima volta serve la connessione a internet). Puoi inserire i valori a mano.</p>'; });
+    };
+    fr.onerror=function(){ if(box) box.innerHTML='<p class="fineprint" style="margin:0">Foto non leggibile. Riprova o inserisci a mano.</p>'; };
+    fr.readAsDataURL(file);
+  }
 
   function refreshDropboxBtn(){ var b=document.getElementById("storiaDropboxOpen"); if(!b) return; b.textContent= storia.dropbox ? "📁 Apri i referti su Dropbox" : "📁 Imposta il link dei referti"; }
   function renderStoria(){
@@ -5129,9 +5196,10 @@
       var file=(document.getElementById("storiaEsameFile").value||"").trim();
       var link=normUrl(document.getElementById("storiaEsameLink").value);
       var ecat=esCatSel();
+      var vals=esameValori.filter(function(r){ return r && (r.n||r.v); }).map(function(r){ return {n:(r.n||"").trim(), v:(r.v||"").trim(), u:(r.u||"").trim()}; });
       if(!tipo && !data){ toast("Metti almeno il tipo o la data"); return; }
-      if(editEsameId){ storia.esami.forEach(function(x){ if(x.id===editEsameId){ x.data=data; x.tipo=tipo; x.esito=esito; x.file=file; x.cat=ecat; x.link=link; } }); toast("Modifica salvata ✓"); }
-      else { storia.esami.push({id:uid(), ts:Date.now(), data:data, tipo:tipo, esito:esito, file:file, cat:ecat, link:link}); toast("Esame aggiunto ✓"); }
+      if(editEsameId){ storia.esami.forEach(function(x){ if(x.id===editEsameId){ x.data=data; x.tipo=tipo; x.esito=esito; x.file=file; x.cat=ecat; x.link=link; x.valori=vals; } }); toast("Modifica salvata ✓"); }
+      else { storia.esami.push({id:uid(), ts:Date.now(), data:data, tipo:tipo, esito:esito, file:file, cat:ecat, link:link, valori:vals}); toast("Esame aggiunto ✓"); }
       saveStoria(); resetEsameForm(); renderStoriaEsami();
     };
     var ec=document.getElementById("storiaEsameCancel"); if(ec) ec.onclick=resetEsameForm;
@@ -5144,6 +5212,10 @@
     var sSearch=document.getElementById("storiaEsameSearch"); if(sSearch) sSearch.oninput=function(){ _esameQ=sSearch.value||""; renderStoriaEsami(); };
     var lTog=document.getElementById("storiaLinkToggle"); if(lTog) lTog.onclick=function(){ var r=document.getElementById("storiaLinkRow"); r.hidden=!r.hidden; if(!r.hidden){ try{ document.getElementById("storiaLinkTxt").focus(); }catch(e){} } };
     var lBtn=document.getElementById("storiaLinkBtn"); if(lBtn) lBtn.onclick=function(){ var n=applyDirectLinks(document.getElementById("storiaLinkTxt").value||""); if(n>0){ toast(n+(n===1?" referto collegato ✓":" referti collegati ✓")); document.getElementById("storiaLinkTxt").value=""; document.getElementById("storiaLinkRow").hidden=true; } else { toast("Nessun collegamento: controlla di aver incollato i link"); } };
+    var vAdd=document.getElementById("storiaValoreAdd"); if(vAdd) vAdd.onclick=function(){ esameValoreAdd("","",""); var host=document.getElementById("storiaEsameValori"); if(host){ var ins=host.querySelectorAll(".vn"); if(ins.length){ try{ ins[ins.length-1].focus(); }catch(e){} } } };
+    var oBtn=document.getElementById("storiaOcrBtn"); if(oBtn) oBtn.onclick=function(){ var f=document.getElementById("storiaOcrFile"); if(f) f.click(); };
+    var oFile=document.getElementById("storiaOcrFile"); if(oFile) oFile.onchange=function(){ var f=oFile.files&&oFile.files[0]; if(f) ocrHandleFile(f); oFile.value=""; };
+    renderEsameValori();
   })();
 
   function showMod(m){
