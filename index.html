@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 159; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 160; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -798,6 +798,13 @@
   }
 
   @media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
+
+  /* Nota di fine giornata dentro un giorno dello Storico di Salute */
+  .notag-sec{ margin-top:2px; }
+  .notag-add{ text-align:left; padding:6px 2px; font-weight:650; }
+  .notag-ta{ width:100%; box-sizing:border-box; font-family:inherit; font-size:16px; color:var(--ink);
+    background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px;
+    resize:vertical; min-height:68px; }
 
   /* Numero versione + pulsante di aggiornamento, nell'header a destra dell'avatar.
      Il testo della versione lo scrive lo script (da RUNNING). */
@@ -1808,7 +1815,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v159</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v160</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3134,6 +3141,39 @@
   var saluteLog=[]; try{ var _sl=JSON.parse(localStorage.getItem("salute-log")); if(Array.isArray(_sl)) saluteLog=_sl; }catch(e){}
   function saveSaluteLog(){ try{ localStorage.setItem("salute-log", JSON.stringify(saluteLog)); }catch(e){} }
   var saluteDayOpen={}; // dk -> aperto/chiuso (default: oggi aperto, passati chiusi) — come il Diario
+  // Sezione «nota di fine giornata» di un singolo giorno dello Storico:
+  // mostra la nota con ✏️ se c'è, altrimenti un pulsante per aggiungerla; editor in linea.
+  function noteGSection(dk){
+    var wrap=document.createElement("div"); wrap.className="notag-sec";
+    function show(){
+      wrap.innerHTML="";
+      var val=(noteGiornata[dk]||"").trim();
+      if(val){
+        var row=document.createElement("div"); row.className="tl-row notag-row";
+        row.innerHTML='<span class="tl-time"></span><span class="tl-emoji">📝</span><span class="tl-text"></span>';
+        var tn=row.querySelector(".tl-text"); tn.textContent=val; tn.style.whiteSpace="pre-wrap"; tn.style.fontStyle="italic";
+        var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi la nota di fine giornata"); ed.onclick=function(){ edit(val); };
+        row.appendChild(ed); wrap.appendChild(row);
+      } else {
+        var add=document.createElement("button"); add.type="button"; add.className="link-btn notag-add"; add.textContent="📝 Aggiungi la nota di fine giornata"; add.onclick=function(){ edit(""); };
+        wrap.appendChild(add);
+      }
+    }
+    function edit(cur){
+      wrap.innerHTML="";
+      var ta=document.createElement("textarea"); ta.className="notag-ta"; ta.rows=3; ta.value=cur; ta.placeholder="Com'è andata la giornata…";
+      var acts=document.createElement("div"); acts.className="panel-actions"; acts.style.marginTop="6px";
+      var sv=document.createElement("button"); sv.className="primary"; sv.type="button"; sv.textContent="Salva la nota";
+      var cx=document.createElement("button"); cx.className="link-btn"; cx.type="button"; cx.textContent="Annulla";
+      sv.onclick=function(){ var v=(ta.value||"").trim(); if(v) noteGiornata[dk]=v; else delete noteGiornata[dk]; saveNoteG(); renderSalute(); toast(v?"Nota salvata ✓":"Nota rimossa"); };
+      cx.onclick=function(){ show(); };
+      acts.appendChild(sv); acts.appendChild(cx);
+      wrap.appendChild(ta); wrap.appendChild(acts);
+      try{ ta.focus(); }catch(e){}
+    }
+    show();
+    return wrap;
+  }
   function renderSalute(){
     document.getElementById("saluteDate").textContent=fmtDayLong(new Date());
     try{ var _sw0=document.getElementById("saluteWhen"); if(_sw0) _sw0.hidden = !editingSaluteId; }catch(e){}
@@ -3177,8 +3217,7 @@
         del.onclick=function(){ saluteLog=saluteLog.filter(function(y){return y.id!==x.id;}); if(editingSaluteId===x.id) cancelEditSalute(); saveSaluteLog(); renderSalute(); };
         row.appendChild(ed); row.appendChild(te); row.appendChild(del); body.appendChild(row);
       });
-      var _ng=(noteGiornata[g.dk]||"").trim();
-      if(_ng){ var nr=document.createElement("div"); nr.className="tl-row notag-row"; nr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">📝</span><span class="tl-text"></span>'; var _tn=nr.querySelector(".tl-text"); _tn.textContent=_ng; _tn.style.whiteSpace="pre-wrap"; _tn.style.fontStyle="italic"; body.appendChild(nr); }
+      body.appendChild(noteGSection(g.dk));
       h.onclick=function(){ var willOpen=body.hidden; body.hidden=!willOpen; saluteDayOpen[g.dk]=willOpen; var chev=h.querySelector(".dchev"); if(chev) chev.textContent=willOpen?"▾":"▸"; };
       host.appendChild(h); host.appendChild(body);
     });
