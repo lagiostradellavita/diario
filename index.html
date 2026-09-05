@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 168; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 169; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1079,7 +1079,7 @@
   <section class="card">
     <h2 class="section-title">Aggiungi adesso</h2>
     <div class="quick" id="quick"></div>
-    <div class="field" style="margin-top:10px"><label for="fQuickNota">Sensazioni o fastidi (facoltativa)</label><input type="text" id="fQuickNota" placeholder="Scrivi una nota, poi tocca un pulsante qui sopra…" autocomplete="off"></div>
+    <div class="field" style="margin-top:10px"><label for="fQuickNota">Nota (facoltativa)</label><input type="text" id="fQuickNota" placeholder="Es. capogiri, mal di testa, dopo pranzo…" autocomplete="off"><p class="fineprint" style="margin:4px 0 0">Vale per il pulsante rapido, per «con data e ora» e per la modifica. Se è un fastidio, dallo storico con 🩺 la porti in Salute.</p></div>
     <button class="link-btn" id="toggleDetail">＋ Aggiungi con data e ora</button>
     <div class="detail" id="detail" hidden>
       <div class="grid2">
@@ -1094,7 +1094,6 @@
           <button id="qPlus" aria-label="Aumenta">+</button>
         </div>
       </div>
-      <div class="field"><label for="fNota">Nota (facoltativa)</label><input type="text" id="fNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
       <button class="primary" id="saveDetail">Salva</button>
     </div>
   </section>
@@ -1856,7 +1855,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v168</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v169</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2174,7 +2173,7 @@
       document.getElementById("fData").value=dayKey(now);
       document.getElementById("fOra").value=fmtTime(now);
       d.hidden=false; btn.textContent="− Nascondi";
-    } else { d.hidden=true; btn.textContent="＋ Aggiungi con data e ora"; }
+    } else { d.hidden=true; btn.textContent="＋ Aggiungi con data e ora"; if(editingFumoId){ var qn=document.getElementById("fQuickNota"); if(qn) qn.value=""; cancelEditFumo(); } }
   };
 
   function setDetailTipo(t){ detailTipo=t; var seg=document.getElementById("fTipoSeg"); Array.prototype.forEach.call(seg.children, function(c){ c.className=(c.dataset.tipo===t)?"on":""; }); }
@@ -2184,10 +2183,10 @@
     editingFumoId=e.id; var d=new Date(e.ts);
     document.getElementById("fData").value=dayKey(d); document.getElementById("fOra").value=fmtTime(d);
     setDetailTipo(e.tipo); setQ(e.q||1);
-    var fn=document.getElementById("fNota"); if(fn) fn.value=e.nota||"";
+    var fn=document.getElementById("fQuickNota"); if(fn) fn.value=e.nota||"";
     document.getElementById("detail").hidden=false; document.getElementById("toggleDetail").textContent="− Nascondi";
     document.getElementById("saveDetail").textContent="Salva modifiche";
-    scrollToEl(document.getElementById("detail"));
+    scrollToEl(document.getElementById("fQuickNota"));
   }
   document.getElementById("saveDetail").onclick=function(){
     var dv=document.getElementById("fData").value;
@@ -2195,7 +2194,7 @@
     var when;
     if(dv){ when=new Date(dv+"T"+(tv||"12:00")); if(isNaN(when.getTime())) when=new Date(); }
     else when=new Date();
-    var fn=document.getElementById("fNota"), nota=fn?(fn.value||"").trim():"";
+    var fn=document.getElementById("fQuickNota"), nota=fn?(fn.value||"").trim():"";
     if(editingFumoId){
       var it=null; entries.forEach(function(y){ if(y.id===editingFumoId) it=y; });
       if(it){ it.ts=when.toISOString(); it.tipo=detailTipo; it.q=Math.max(1,detailQ|0); it.nota=nota; }
