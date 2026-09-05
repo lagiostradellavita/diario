@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 167; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 168; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1856,7 +1856,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v167</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v168</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2112,6 +2112,7 @@
     document.getElementById("histCount").textContent = entries.length ? num(total)+" in totale" : "";
     var rows=entries.map(function(e){ var meta=TIPI[e.tipo]||{label:e.tipo};
       return { ts:+new Date(e.ts), q:e.q, emoji:"🚬", text:(e.q>1?num(e.q)+" ":"")+meta.label+(e.nota?" — "+e.nota:""),
+        onToSalute:(e.nota?(function(ee,lbl){ return function(){ pushToSalute(ee.nota, "dopo sigaretta ("+lbl+")", +new Date(ee.ts)); }; })(e, meta.label):null),
         onEdit:(function(ee){ return function(){ startEditFumo(ee); }; })(e),
         onDelete:(function(ee){ return function(){ deleteEntry(ee.id); }; })(e) }; });
     renderStorico("history", rows, storOpen.fumo, {empty:'Ancora niente.<br>Tocca un pulsante qui sopra per iniziare.',
@@ -2423,6 +2424,7 @@
           }; })(r,row);
           row.appendChild(nb);
         }
+        if(r.onToSalute){ var sb=document.createElement("button"); sb.className="tl-edit tl-salutebtn"; sb.textContent="🩺"; sb.setAttribute("aria-label","Anche in Salute"); sb.title="Metti anche in Salute (come fastidio)"; (function(rr,btn){ btn.onclick=function(){ rr.onToSalute(); btn.disabled=true; btn.style.opacity=".45"; btn.textContent="✓"; }; })(r,sb); row.appendChild(sb); }
         if(r.onTimeEdit){ var te=document.createElement("button"); te.className="tl-edit tl-timebtn"; te.textContent="🕐"; te.setAttribute("aria-label","Correggi l'ora"); te.title="Correggi l'ora"; (function(rr,rowEl,btn){ btn.onclick=function(){ Array.prototype.forEach.call(rowEl.children,function(c){ c.style.display="none"; }); var inp=document.createElement("input"); inp.type="time"; inp.className="tl-time-edit"; inp.value=hhmm(new Date(rr.ts)); var ok=document.createElement("button"); ok.className="tl-time-ok"; ok.textContent="✓"; ok.setAttribute("aria-label","Conferma ora"); var cx=document.createElement("button"); cx.className="tl-time-cancel"; cx.textContent="✕"; cx.setAttribute("aria-label","Annulla"); rowEl.appendChild(inp); rowEl.appendChild(ok); rowEl.appendChild(cx); try{ inp.focus(); }catch(e){} var done=false; ok.onclick=function(){ if(done) return; done=true; rr.onTimeEdit(inp.value||null); }; cx.onclick=function(){ if(done) return; done=true; rr.onTimeEdit(null); }; }; })(r,row,te); row.appendChild(te); }
         if(r.onDelete){ var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina"); (function(rr){ del.onclick=function(){ rr.onDelete(); }; })(r); row.appendChild(del); }
         body.appendChild(row);
@@ -2546,7 +2548,7 @@
         var stRows=[], nmeById={}; defs.forEach(function(p){ nmeById[p.id]=p.nome; });
         var takenEff={};
         Object.keys(taken).forEach(function(k){ var tv=taken[k]; if(typeof tv!=="number") return; var parts=k.split("|"); var nm=nmeById[parts[1]]||"Pillola", ora=parts[2]; var ed=effPillDay(ora, tv); (takenEff[ed]||(takenEff[ed]={}))[parts[1]+"|"+ora]=true;
-          stRows.push({ ts:tv, dayKeyOverride:ed, emoji:"💊", text:nm+(ora?" · programmata "+ora:""), note:(notes[k]||""), onNote:(function(key){ return function(v){ v=(v||"").trim(); if(v) notes[key]=v; else delete notes[key]; saveNotes(); render(); }; })(k), onDelete:(function(key){ return function(){ if(confirm("Togliere questa presa dallo storico?")){ delete taken[key]; delete notes[key]; saveTaken(); saveNotes(); render(); } }; })(k) }); });
+          stRows.push({ ts:tv, dayKeyOverride:ed, emoji:"💊", text:nm+(ora?" · programmata "+ora:""), note:(notes[k]||""), onNote:(function(key){ return function(v){ v=(v||"").trim(); if(v) notes[key]=v; else delete notes[key]; saveNotes(); render(); }; })(k), onToSalute:((notes[k]||"")?(function(key,nmm){ return function(){ pushToSalute(notes[key], "da Pillole ("+nmm+")", taken[key]); }; })(k,nm):null), onDelete:(function(key){ return function(){ if(confirm("Togliere questa presa dallo storico?")){ delete taken[key]; delete notes[key]; saveTaken(); saveNotes(); render(); } }; })(k) }); });
         var _rdk=dayKey(new Date()), _tdk=pillDayKey(new Date()), _nm=(_tdk===_rdk)?(new Date().getHours()*60+new Date().getMinutes()):(24*60);
         function pillDayStat(dk){ var isT=(dk===_tdk), sc=0, tk=0; defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.dal && dk<p.dal) return; if(p.al && dk>p.al) return; (p.orari||[]).forEach(function(o){ if(isT && oraMin(o)>_nm) return; sc++; if(takenEff[dk] && takenEff[dk][p.id+"|"+o]) tk++; }); }); return {sched:sc, taken:tk}; }
         renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora.",
@@ -3272,6 +3274,13 @@
   // (conteggio dello stato psicologico ora aggiornato da onPsicoChange)
   var saluteLog=[]; try{ var _sl=JSON.parse(localStorage.getItem("salute-log")); if(Array.isArray(_sl)) saluteLog=_sl; }catch(e){}
   function saveSaluteLog(){ try{ localStorage.setItem("salute-log", JSON.stringify(saluteLog)); }catch(e){} }
+  // Porta una nota di un'altra funzione dentro Salute, come fastidio, con la stessa ora
+  function pushToSalute(sintomo, contesto, ts){
+    sintomo=(sintomo||"").trim(); if(!sintomo){ toast("Nessuna nota da portare in Salute"); return; }
+    saluteLog.push({id:uid(), ts:(ts||Date.now()), voci:[sintomo], dove:[], nota:(contesto||"")});
+    saveSaluteLog(); try{ renderSalute(); }catch(e){}
+    toast("🩺 «"+sintomo+"» aggiunto in Salute");
+  }
   var saluteDayOpen={}; // dk -> aperto/chiuso (default: oggi aperto, passati chiusi) — come il Diario
   // Sezione «nota di fine giornata» di un singolo giorno dello Storico:
   // mostra la nota con ✏️ se c'è, altrimenti un pulsante per aggiungerla; editor in linea.
@@ -3437,6 +3446,7 @@
     var pEmo={pressione:"🩸", saturazione:"🫁", battiti:"❤️"}, pNam={pressione:"Pressione", saturazione:"Saturazione", battiti:"Battiti"};
     var rows=parametri.map(function(x){ var _lv=paramLevel(x.tipo,x.valore); return { ts:x.ts, emoji:(pEmo[x.tipo]||"❤️"), text:(pNam[x.tipo]||x.tipo)+" "+String(x.valore)+" "+(PARAM_UNIT[x.tipo]||''), rowClass:(_lv?("param-"+_lv):""), note:(x.nota||""),
       onNote:(function(xx){ return function(v){ v=(v||"").trim(); parametri.forEach(function(y){ if(y.id===xx.id){ if(v) y.nota=v; else delete y.nota; } }); saveParam(); renderParametri(); }; })(x),
+      onToSalute:(x.nota?(function(xx){ return function(){ pushToSalute(xx.nota, "da Parametri ("+(pNam[xx.tipo]||xx.tipo)+" "+xx.valore+")", xx.ts); }; })(x):null),
       onEdit:(function(xx){ return function(){ startEditParam(xx); }; })(x),
       onDelete:(function(xx){ return function(){ parametri=parametri.filter(function(y){return y.id!==xx.id;}); if(editingParamId===xx.id) editingParamCancel(); saveParam(); renderParametri(); }; })(x) }; });
     renderStorico("parametriStorico", rows, storOpen.param, {empty:"Nessun parametro registrato.", dayClass:function(g){ var worst=0; (g.items||[]).forEach(function(r){ var c=r.rowClass||""; if(c.indexOf("param-bad")>=0) worst=Math.max(worst,3); else if(c.indexOf("param-warn")>=0) worst=Math.max(worst,2); else if(c.indexOf("param-ok")>=0) worst=Math.max(worst,1); }); return worst===3?"pday-bad":(worst===2?"pday-warn":(worst===1?"pday-ok":"")); }});
