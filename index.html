@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 165; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 166; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -233,6 +233,9 @@
   .pilrow .pn{flex:1; font-size:16px; font-weight:650; min-width:0;}
   .pilrow .po{font-size:13.5px; color:var(--muted); font-variant-numeric:tabular-nums; margin-right:4px; flex:0 0 auto;}
   .pilrow .pil-taken-badge{font-size:12.5px; font-weight:800; color:var(--lvl-low); flex:0 0 auto; white-space:nowrap; margin-right:2px;}
+  .pil-period{display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
+  .pil-period .pp-lbl{display:flex; align-items:center; gap:6px; font-size:14px; color:var(--ink-soft);}
+  .pil-period input[type=date]{padding:8px 10px; min-width:0;}
   .dose{display:flex; align-items:center; gap:12px; padding:13px 2px; border-bottom:1px solid var(--line);}
   .dose:last-child{border-bottom:none;}
   .dose .dcheck{width:32px; height:32px; flex:none; border-radius:50%; border:2px solid var(--line); background:var(--surface-2);
@@ -1187,11 +1190,23 @@
           <div id="pilOrari" class="pil-orari"></div>
           <button class="link-btn" id="pilAddOra" style="text-align:left;padding:8px 2px">＋ aggiungi orario</button>
         </div>
+        <div class="field"><label>Periodo (facoltativo)</label>
+          <div class="pil-period">
+            <span class="pp-lbl">dal <input type="date" id="pilDal"></span>
+            <span class="pp-lbl">al <input type="date" id="pilAl"></span>
+          </div>
+          <p class="fineprint" style="margin:4px 0 0">Se metti una <b>fine</b>, dopo quella data la pillola smette da sola ma <b>resta nello storico</b>. Lascia vuoto per una cura senza fine.</p>
+        </div>
         <div class="panel-actions">
           <button class="primary" id="pilSave">Salva medicina</button>
           <button class="link-btn" id="pilCancel">Annulla</button>
         </div>
+        <div id="pilEditActions" style="display:none; margin-top:6px; border-top:1px solid var(--line); padding-top:8px; flex-wrap:wrap; gap:8px">
+          <button type="button" class="link-btn" id="pilFinish" style="width:auto">🏁 Segna come finita</button>
+          <button type="button" class="link-btn" id="pilDelete" style="width:auto; color:var(--lvl-high)">🗑 Elimina del tutto</button>
+        </div>
       </div>
+      <div id="pilFiniteWrap" style="margin-top:8px"></div>
     </section>
     <section class="card">
       <h2 class="section-title">Storico</h2>
@@ -1839,7 +1854,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v165</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v166</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2410,9 +2425,14 @@
     function saveDefs(){ try{ localStorage.setItem(cfg.defsKey, JSON.stringify(defs)); }catch(e){} }
     function saveTaken(){ try{ localStorage.setItem(cfg.takenKey, JSON.stringify(taken)); }catch(e){} }
     var storicoOpen={};
+    var editId=null, finiteOpen=false;
+    function defActive(p){ if(!p||p.attivo===false) return false; var tdk=pillDayKey(new Date()); if(p.dal && tdk<p.dal) return false; if(p.al && tdk>p.al) return false; return true; }
+    function defFinished(p){ if(!p) return false; if(p.attivo===false) return true; var tdk=pillDayKey(new Date()); return !!(p.al && tdk>p.al); }
+    function defUpcoming(p){ if(!p||p.attivo===false) return false; var tdk=pillDayKey(new Date()); return !!(p.dal && tdk<p.dal); }
+    function periodLabel(p){ var a=[]; if(p&&p.dal) a.push("dal "+dmy(new Date(p.dal+"T12:00:00"))); if(p&&p.al) a.push("al "+dmy(new Date(p.al+"T12:00:00"))); return a.join(" "); }
     function today(){
       var now=new Date(), realDK=dayKey(now), dK=pillDayKey(now), nowMin=(dK===realDK)?(now.getHours()*60+now.getMinutes()):(24*60), doses=[];
-      defs.forEach(function(p){ (p.orari||[]).forEach(function(o){
+      defs.forEach(function(p){ if(!defActive(p)) return; (p.orari||[]).forEach(function(o){
         var k=dK+"|"+p.id+"|"+o, tv=taken[k], tk=!!tv;
         doses.push({id:p.id, nome:p.nome, ora:o, key:k, taken:tk, takenAt:(typeof tv==="number"?tv:null), late:(!tk && nowMin>oraMin(o))});
       }); });
@@ -2444,26 +2464,30 @@
       else s.textContent="";
       var list=document.getElementById(I.list); list.innerHTML="";
       var todayDK=pillDayKey(new Date());
-      var listDefs=defs.slice().sort(function(a,b){ var ao=(a.orari&&a.orari.length)?a.orari[0]:"99:99", bo=(b.orari&&b.orari.length)?b.orari[0]:"99:99"; return ao<bo?-1:(ao>bo?1:0); });
+      var activeDefs=defs.filter(function(p){ return !defFinished(p); });
+      var finiteDefs=defs.filter(function(p){ return defFinished(p); });
+      var listDefs=activeDefs.slice().sort(function(a,b){ var ao=(a.orari&&a.orari.length)?a.orari[0]:"99:99", bo=(b.orari&&b.orari.length)?b.orari[0]:"99:99"; return ao<bo?-1:(ao>bo?1:0); });
+      if(!listDefs.length){ var em=document.createElement("div"); em.className="empty"; em.style.padding="8px"; em.textContent="Nessuna pillola attiva. Aggiungine una qui sotto."; list.appendChild(em); }
       listDefs.forEach(function(p){
         var os=(p.orari||[]);
+        var upcoming=defUpcoming(p);
         var doneCount=0; os.forEach(function(o){ if(taken[todayDK+"|"+p.id+"|"+o]) doneCount++; });
         var allDone=os.length>0 && doneCount===os.length;
         var r=document.createElement("div"); r.className="pilrow"+(allDone?" presa-oggi":"");
         var nm=document.createElement("span"); nm.className="pn"; nm.textContent=p.nome;
-        var po=document.createElement("span"); po.className="po"; po.textContent=os.join(" · ");
+        var po=document.createElement("span"); po.className="po"; po.textContent=os.join(" · ")+(periodLabel(p)?("  ·  "+periodLabel(p)):"");
         r.appendChild(nm); r.appendChild(po);
-        if(doneCount>0){ var bg=document.createElement("span"); bg.className="pil-taken-badge";
+        if(upcoming){ var ub=document.createElement("span"); ub.className="pil-taken-badge"; ub.style.color="var(--muted)"; ub.textContent="programmata"; r.appendChild(ub); }
+        else if(doneCount>0){ var bg=document.createElement("span"); bg.className="pil-taken-badge";
           if(allDone){ var _tt=[]; os.forEach(function(o){ var tv=taken[todayDK+"|"+p.id+"|"+o]; if(typeof tv==="number") _tt.push(hhmm(new Date(tv))); }); bg.textContent="✓ presa"+(_tt.length?" "+_tt.join(", "):""); }
           else { bg.textContent="✓ "+doneCount+"/"+os.length; }
           r.appendChild(bg); }
-        var del=document.createElement("button"); del.className="del"; del.setAttribute("aria-label","Elimina");
-        del.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
-        del.onclick=function(ev){ ev.stopPropagation(); if(confirm("Eliminare «"+p.nome+"»?")){ defs=defs.filter(function(x){return x.id!==p.id;}); saveDefs(); render(); } };
-        r.appendChild(del);
-        // Tocco sulla riga = segna presa oggi (la prima dose non ancora presa); se tutte prese, annulla l'ultima
+        var ed=document.createElement("button"); ed.className="del"; ed.setAttribute("aria-label","Modifica"); ed.innerHTML=PENCIL;
+        ed.onclick=function(ev){ ev.stopPropagation(); openEditForm(p); };
+        r.appendChild(ed);
         r.setAttribute("title","Tocca per segnarla presa oggi");
         r.onclick=function(ev){ if(ev.target.closest(".del")) return;
+          if(upcoming){ toast("Inizia il "+dmy(new Date(p.dal+"T12:00:00"))); return; }
           var keys=os.map(function(o){ return todayDK+"|"+p.id+"|"+o; });
           if(!keys.length) return;
           var firstUndone=null; for(var i=0;i<keys.length;i++){ if(!taken[keys[i]]){ firstUndone=keys[i]; break; } }
@@ -2473,6 +2497,29 @@
         };
         list.appendChild(r);
       });
+      // Cure finite (archiviate): restano nello storico, si possono riprendere
+      var fw=document.getElementById(I.finite);
+      if(fw){ fw.innerHTML="";
+        if(finiteDefs.length){
+          var cw=document.createElement("div"); cw.className="food-cat";
+          var head=document.createElement("button"); head.type="button"; head.className="fc-head"+(finiteOpen?" open":""); head.innerHTML='<span>🏁 Cure finite ('+finiteDefs.length+')</span><span class="fc-arrow">›</span>';
+          var body=document.createElement("div"); body.className="fc-body"; body.hidden=!finiteOpen;
+          head.onclick=function(){ finiteOpen=!finiteOpen; body.hidden=!finiteOpen; head.classList.toggle("open", finiteOpen); };
+          finiteDefs.slice().sort(function(a,b){ return (b.al||"")<(a.al||"")?-1:1; }).forEach(function(p){
+            var r=document.createElement("div"); r.className="pilrow";
+            var nm=document.createElement("span"); nm.className="pn"; nm.textContent=p.nome;
+            var det=periodLabel(p)||(p.fine?("finita "+dmy(new Date(p.fine))):"");
+            var po=document.createElement("span"); po.className="po"; po.textContent=(p.orari||[]).join(" · ")+(det?("  ·  "+det):"");
+            r.appendChild(nm); r.appendChild(po);
+            var rb=document.createElement("button"); rb.type="button"; rb.className="link-btn"; rb.style.cssText="width:auto; padding:6px 8px; flex:0 0 auto"; rb.textContent="riprendi";
+            rb.onclick=function(ev){ ev.stopPropagation(); reactivateDef(p.id); toast("«"+p.nome+"» ripresa"); };
+            var ed2=document.createElement("button"); ed2.className="del"; ed2.setAttribute("aria-label","Modifica"); ed2.innerHTML=PENCIL; ed2.onclick=function(ev){ ev.stopPropagation(); openEditForm(p); };
+            r.appendChild(rb); r.appendChild(ed2);
+            body.appendChild(r);
+          });
+          cw.appendChild(head); cw.appendChild(body); fw.appendChild(cw);
+        }
+      }
       // Storico: dosi effettivamente prese (con l'ora reale), per giorno, a scomparsa
       if(document.getElementById(I.storico)){
         // Una dose serale spuntata dopo mezzanotte va attribuita al giorno PROGRAMMATO più vicino (non al giorno di spunta)
@@ -2482,7 +2529,7 @@
         Object.keys(taken).forEach(function(k){ var tv=taken[k]; if(typeof tv!=="number") return; var parts=k.split("|"); var nm=nmeById[parts[1]]||"Pillola", ora=parts[2]; var ed=effPillDay(ora, tv); (takenEff[ed]||(takenEff[ed]={}))[parts[1]+"|"+ora]=true;
           stRows.push({ ts:tv, dayKeyOverride:ed, emoji:"💊", text:nm+(ora?" · programmata "+ora:""), onDelete:(function(key){ return function(){ if(confirm("Togliere questa presa dallo storico?")){ delete taken[key]; saveTaken(); render(); } }; })(k) }); });
         var _rdk=dayKey(new Date()), _tdk=pillDayKey(new Date()), _nm=(_tdk===_rdk)?(new Date().getHours()*60+new Date().getMinutes()):(24*60);
-        function pillDayStat(dk){ var isT=(dk===_tdk), sc=0, tk=0; defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; (p.orari||[]).forEach(function(o){ if(isT && oraMin(o)>_nm) return; sc++; if(takenEff[dk] && takenEff[dk][p.id+"|"+o]) tk++; }); }); return {sched:sc, taken:tk}; }
+        function pillDayStat(dk){ var isT=(dk===_tdk), sc=0, tk=0; defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.dal && dk<p.dal) return; if(p.al && dk>p.al) return; (p.orari||[]).forEach(function(o){ if(isT && oraMin(o)>_nm) return; sc++; if(takenEff[dk] && takenEff[dk][p.id+"|"+o]) tk++; }); }); return {sched:sc, taken:tk}; }
         renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora.",
           dayClass:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return ""; return s.taken>=s.sched?"done-ok":"done-miss"; },
           headExtra:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return null; var sp=document.createElement("span"); sp.className="dmal"; if(s.taken>=s.sched){ sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutte prese"; } else { var m=s.sched-s.taken; sp.style.color="var(--lvl-high)"; sp.textContent="⚠ "+m+(m===1?" saltata":" saltate"); } return sp; }
@@ -2498,31 +2545,64 @@
       row.appendChild(inp); row.appendChild(rm); wrap.appendChild(row);
     }
     document.getElementById(I.addBtn).onclick=function(){
+      editId=null;
       var f=document.getElementById(I.form); f.hidden=false;
       document.getElementById(I.nome).value=""; document.getElementById(I.orari).innerHTML=""; oraRow(hhmm(new Date()));
+      var dEl=document.getElementById(I.dal), aEl=document.getElementById(I.al); if(dEl) dEl.value=""; if(aEl) aEl.value="";
+      var ea=document.getElementById(I.editActions); if(ea) ea.style.display="none";
+      var sv=document.getElementById(I.save); if(sv) sv.textContent="Salva medicina";
       document.getElementById(I.nome).focus();
     };
     document.getElementById(I.addOra).onclick=function(){ oraRow(hhmm(new Date())); };
-    document.getElementById(I.cancel).onclick=function(){ document.getElementById(I.form).hidden=true; };
+    document.getElementById(I.cancel).onclick=function(){ editId=null; document.getElementById(I.form).hidden=true; };
     document.getElementById(I.save).onclick=function(){
       var nome=(document.getElementById(I.nome).value||"").trim();
       if(!nome){ toast(L.needName); return; }
       var orari=Array.prototype.map.call(document.querySelectorAll("#"+I.orari+" input[type=time]"), function(i){ return i.value; }).filter(Boolean);
       orari.sort();
       if(!orari.length){ toast("Aggiungi almeno un orario"); return; }
-      defs.push({id:uid(), nome:nome, orari:orari, createdTs:Date.now()}); saveDefs();
-      document.getElementById(I.form).hidden=true; render(); toast(L.added);
+      var dal=((document.getElementById(I.dal)||{}).value)||"", al=((document.getElementById(I.al)||{}).value)||"";
+      if(dal && al && al<dal){ toast("La fine è prima dell'inizio"); return; }
+      if(editId){ defs.forEach(function(p){ if(p.id===editId){ p.nome=nome; p.orari=orari; p.dal=dal||null; p.al=al||null; if(p.attivo===false && (!al || pillDayKey(new Date())<=al)){ p.attivo=true; p.fine=null; } } }); toast("Modifica salvata ✓"); }
+      else { defs.push({id:uid(), nome:nome, orari:orari, dal:dal||null, al:al||null, attivo:true, createdTs:Date.now()}); toast(L.added); }
+      editId=null; saveDefs();
+      document.getElementById(I.form).hidden=true; render();
     };
-    return {render:render, today:today, data:function(){ return {defs:defs, taken:taken}; },
+    function openEditForm(p){
+      if(!p) return; editId=p.id;
+      var f=document.getElementById(I.form); f.hidden=false;
+      document.getElementById(I.nome).value=p.nome||"";
+      var wrap=document.getElementById(I.orari); wrap.innerHTML=""; (p.orari||[]).forEach(function(o){ oraRow(o); }); if(!(p.orari||[]).length) oraRow(hhmm(new Date()));
+      var dEl=document.getElementById(I.dal), aEl=document.getElementById(I.al); if(dEl) dEl.value=p.dal||""; if(aEl) aEl.value=p.al||"";
+      var ea=document.getElementById(I.editActions); if(ea) ea.style.display="flex";
+      var sv=document.getElementById(I.save); if(sv) sv.textContent="Salva modifiche";
+      try{ document.getElementById(I.nome).focus(); }catch(e){}
+      try{ f.scrollIntoView({block:"center"}); }catch(e){}
+    }
+    function finishDef(id){ defs.forEach(function(p){ if(p.id===id){ p.attivo=false; if(!p.al) p.fine=Date.now(); } }); saveDefs(); render(); }
+    function reactivateDef(id){ defs.forEach(function(p){ if(p.id===id){ p.attivo=true; if(p.al && pillDayKey(new Date())>p.al) p.al=null; p.fine=null; } }); saveDefs(); render(); }
+    function deleteDef(id){ defs=defs.filter(function(x){return x.id!==id;}); Object.keys(taken).forEach(function(k){ if(k.split("|")[1]===id) delete taken[k]; }); saveDefs(); saveTaken(); render(); }
+    (function(){
+      var fb=document.getElementById(I.finish);
+      if(fb) fb.onclick=function(){ if(!editId) return; var nm=""; defs.forEach(function(x){ if(x.id===editId) nm=x.nome; }); finishDef(editId); editId=null; document.getElementById(I.form).hidden=true; render(); toast("🏁 «"+nm+"» finita — resta nello storico"); };
+      var db=document.getElementById(I.del);
+      if(db) db.onclick=function(){ if(!editId) return; var p=null; defs.forEach(function(x){ if(x.id===editId) p=x; }); if(!p) return;
+        var hasHist=false; Object.keys(taken).forEach(function(k){ if(k.split("|")[1]===editId && typeof taken[k]==="number") hasHist=true; });
+        var msg=hasHist?("Eliminare «"+p.nome+"» del tutto? Spariranno anche le prese dallo storico. Se hai solo finito la cura usa «🏁 Segna come finita»."):("Eliminare «"+p.nome+"»?");
+        if(confirm(msg)){ deleteDef(editId); editId=null; document.getElementById(I.form).hidden=true; render(); toast("Eliminata"); }
+      };
+    })();
+    return {render:render, today:today, data:function(){ return {defs:defs, taken:taken}; }, activeDefs:function(){ return defs.filter(defActive); },
       check:function(key){ if(taken[key]) delete taken[key]; else taken[key]=Date.now(); saveTaken(); render(); },
       checkAt:function(key, ts){ if(ts==null){ delete taken[key]; } else { taken[key]=ts; } saveTaken(); render(); },
-      addDef:function(nome, orari){ nome=(nome||"").trim(); if(!nome) return false; var os=(orari||[]).filter(Boolean); os.sort(); defs.push({id:uid(), nome:nome, orari:os, createdTs:Date.now()}); saveDefs(); render(); return true; },
-      removeDef:function(id){ defs=defs.filter(function(x){return x.id!==id;}); saveDefs(); render(); }};
+      addDef:function(nome, orari, opts){ nome=(nome||"").trim(); if(!nome) return false; var os=(orari||[]).filter(Boolean); os.sort(); opts=opts||{}; defs.push({id:uid(), nome:nome, orari:os, dal:opts.dal||null, al:opts.al||null, attivo:true, createdTs:Date.now()}); saveDefs(); render(); return true; },
+      finishDef:finishDef, reactivateDef:reactivateDef, deleteDef:deleteDef, editDef:function(id){ var p=null; defs.forEach(function(x){ if(x.id===id) p=x; }); if(p) openEditForm(p); },
+      removeDef:function(id){ finishDef(id); }};
   }
 
   var Pillole=makeScheduler({
     defsKey:"salute-pil-defs", takenKey:"salute-pil-taken", defaultOra:"08:00",
-    ids:{date:"pilDate", summary:"pilSummary", today:"pilToday", list:"pilList", storico:"pilStorico", addBtn:"pilAddBtn", form:"pilForm", nome:"pilNome", orari:"pilOrari", addOra:"pilAddOra", save:"pilSave", cancel:"pilCancel"},
+    ids:{date:"pilDate", summary:"pilSummary", today:"pilToday", list:"pilList", storico:"pilStorico", addBtn:"pilAddBtn", form:"pilForm", nome:"pilNome", orari:"pilOrari", addOra:"pilAddOra", save:"pilSave", cancel:"pilCancel", dal:"pilDal", al:"pilAl", editActions:"pilEditActions", finish:"pilFinish", del:"pilDelete", finite:"pilFiniteWrap"},
     labels:{done:"prese", empty:"Nessuna medicina impostata.<br>Aggiungila qui sotto con i suoi orari.", needName:"Scrivi il nome della medicina", added:"Medicina aggiunta ✓"}
   });
   // ---- helper condivisi ----
@@ -4336,7 +4416,7 @@
       else { nm.textContent=progItemLabel(e.item); chk.onclick=function(){ if(e.done) progUndoItem(e.item); else progDoItem(e.item); }; applyOra=function(){ if(!tm.value) return; progSetTime(e.item, todayAtHHMM(tm.value)); renderProgramma(); }; }
       var del=document.createElement("button"); del.className="prow-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina");
       del.onclick=function(){
-        if(e.kind==="pill"){ if(confirm("Eliminare la medicina «"+e.pill.nome+"»? La togli anche da «Le mie pillole».")){ Pillole.removeDef(e.pill.id); renderProgramma(); } }
+        if(e.kind==="pill"){ if(confirm("Segnare «"+e.pill.nome+"» come finita? Esce da oggi ma resta nello storico (in «Pillole» puoi riprenderla o eliminarla del tutto).")){ Pillole.finishDef(e.pill.id); renderProgramma(); } }
         else { if(confirm("Eliminare «"+progItemLabel(e.item).replace(/^\S+\s+/,"")+"» dal programma?")){ programma=programma.filter(function(y){return y.id!==e.item.id;}); if(editingProgId===e.item.id) cancelEditProg(); saveProgramma(); renderProgramma(); } }
       };
       // L'ora non si applica da sola: quando la cambi compare ✓ da toccare per confermare
@@ -4506,8 +4586,8 @@
   }
   function renderDiarioMedChips(){
     var host=document.getElementById("diarioMedChips"); if(!host) return; host.innerHTML="";
-    var defs=[]; try{ defs=Pillole.data().defs||[]; }catch(e){}
-    if(!defs.length){ host.innerHTML='<div class="empty" style="padding:8px">Nessuna medicina salvata. Aggiungile in «Pillole».</div>'; diarioMedSel=null; return; }
+    var defs=[]; try{ defs=Pillole.activeDefs?Pillole.activeDefs():(Pillole.data().defs||[]); }catch(e){}
+    if(!defs.length){ host.innerHTML='<div class="empty" style="padding:8px">Nessuna medicina attiva. Aggiungile in «Pillole».</div>'; diarioMedSel=null; return; }
     defs.forEach(function(d){
       var b=document.createElement("button"); b.type="button"; b.className="chip-sel"+(diarioMedSel===d.id?" on":""); b.textContent=d.nome;
       b.onclick=function(){ diarioMedSel=(diarioMedSel===d.id?null:d.id); renderDiarioMedChips(); };
