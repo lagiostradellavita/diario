@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 170; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 171; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -538,7 +538,7 @@
   .ciclo-prev.late b{color:#E11D48;}
   .ciclo-chart-box{background:#fff; border-radius:12px; padding:8px 4px 4px; margin-top:4px;}
   .ciclo-chart-box .cc-cap{font-size:13px; font-weight:700; color:#555; padding:2px 8px 0;}
-  .ciclo-row{position:relative; padding:11px 64px 11px 0; border-top:1px solid var(--line);}
+  .ciclo-row{position:relative; padding:11px 128px 11px 0; border-top:1px solid var(--line);}
   .ciclo-row .cr-edit{position:absolute; top:9px; right:32px; appearance:none; border:none; background:none; color:var(--muted); cursor:pointer; padding:2px; touch-action:manipulation;}
   .ciclo-row .cr-main{font-weight:800; color:var(--ink); font-size:15.5px;}
   .ciclo-row .cr-sub{color:var(--muted); font-size:14px; margin-top:2px; line-height:1.45;}
@@ -1238,7 +1238,6 @@
       <p class="fineprint" style="margin:2px 0 10px">Tocca <b>Avvia</b> quando inizi e <b>Termina</b> quando finisci: segno durata e ora.</p>
       <div id="eserList"></div>
       <button type="button" id="eserToProgBtn" hidden style="width:100%; margin-top:8px; appearance:none; cursor:pointer; font-family:inherit; font-weight:800; font-size:14.5px; background:color-mix(in srgb, var(--accent) 12%, var(--surface)); border:1.5px solid color-mix(in srgb, var(--accent) 40%, var(--line)); color:var(--accent); border-radius:12px; padding:12px; touch-action:manipulation;">➕ Aggiungi al programma</button>
-      <div class="field" style="margin:6px 0 0"><label for="attivNota">Nota per la sessione (facoltativa)</label><input type="text" id="attivNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
       <div class="chip-add" style="margin-top:10px">
         <input type="text" id="eserAddInput" placeholder="Aggiungi un'attività…">
         <button type="button" id="eserAddBtn">＋</button>
@@ -1855,7 +1854,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v170</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v171</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3021,6 +3020,19 @@
       row.innerHTML='<div class="cr-main">'+main+'</div>'+(sub.length?'<div class="cr-sub">'+sub.join(' · ')+'</div>':'');
       var edb=document.createElement("button"); edb.className="cr-edit"; edb.type="button"; edb.setAttribute("aria-label","Modifica"); edb.innerHTML=PENCIL; edb.onclick=function(){ startEditCiclo(c); };
       row.appendChild(edb);
+      var nb=document.createElement("button"); nb.className="cr-edit"; nb.style.right="64px"; nb.type="button"; nb.setAttribute("aria-label","Nota"); nb.textContent="📝"; nb.title=(c.note?"Modifica la nota":"Aggiungi una nota");
+      nb.onclick=function(){
+        var ed=document.createElement("div"); ed.style.cssText="display:flex; gap:6px; margin-top:6px; width:100%";
+        var inp=document.createElement("input"); inp.type="text"; inp.value=c.note||""; inp.placeholder="Nota…"; inp.style.cssText="flex:1 1 auto; min-width:0; font-family:inherit; font-size:14px; padding:6px 8px; border:1.5px solid var(--accent); border-radius:8px; background:var(--surface); color:var(--ink)";
+        var ok=document.createElement("button"); ok.type="button"; ok.className="tl-time-ok"; ok.textContent="✓"; ok.setAttribute("aria-label","Salva nota");
+        var cx=document.createElement("button"); cx.type="button"; cx.className="tl-time-cancel"; cx.textContent="✕"; cx.setAttribute("aria-label","Annulla");
+        ed.appendChild(inp); ed.appendChild(ok); ed.appendChild(cx); row.appendChild(ed); try{ inp.focus(); }catch(e){}
+        ok.onclick=function(){ c.note=(inp.value||"").trim(); saveCicli(); renderCiclo(); };
+        cx.onclick=function(){ renderCiclo(); };
+        inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); ok.onclick(); } else if(e.key==="Escape"){ cx.onclick(); } });
+      };
+      row.appendChild(nb);
+      if(c.note){ var sb=document.createElement("button"); sb.className="cr-edit"; sb.style.right="96px"; sb.type="button"; sb.setAttribute("aria-label","Anche in Salute"); sb.textContent="🩺"; sb.title="Metti anche in Salute (come fastidio)"; sb.onclick=function(){ pushToSalute(c.note, "da Ciclo", c.inizio); sb.disabled=true; sb.style.opacity=".45"; sb.textContent="✓"; }; row.appendChild(sb); }
       var del=document.createElement("button"); del.className="cr-del"; del.type="button"; del.setAttribute("aria-label","Elimina"); del.innerHTML=TRASH;
       del.onclick=function(){ cicli=cicli.filter(function(y){return y.id!==c.id;}); if(editingCicloId===c.id){ editingCicloId=null; document.getElementById("cicloEditPanel").hidden=true; } saveCicli(); renderCiclo(); };
       row.appendChild(del); host.appendChild(row);
