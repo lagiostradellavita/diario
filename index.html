@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 166; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 167; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -451,6 +451,8 @@
   .tl-text.expandable{cursor:pointer; text-decoration:underline dotted; text-underline-offset:3px; text-decoration-color:var(--muted);}
   .tl-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:8px; width:30px; height:30px; font-size:17px; cursor:pointer; touch-action:manipulation;}
   .tl-edit{flex:0 0 auto; appearance:none; border:none; background:var(--surface-2); color:var(--ink-soft); border-radius:8px; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation;}
+  .tl-note{display:inline; font-size:13.5px; font-weight:500; color:var(--muted); font-style:italic;}
+  .tl-notebtn{font-size:15px;}
   .tl-check{flex:0 0 auto; appearance:none; border:2px solid var(--lvl-low); background:transparent; color:var(--lvl-low); border-radius:50%; width:30px; height:30px; font-size:16px; font-weight:800; line-height:1; cursor:pointer; touch-action:manipulation;}
   .tl-row.param-ok{ background:color-mix(in srgb, var(--lvl-low) 12%, transparent); border-left:4px solid var(--lvl-low); padding-left:8px; border-radius:8px; }
   .tl-row.param-warn{ background:color-mix(in srgb, var(--lvl-mid) 14%, transparent); border-left:4px solid var(--lvl-mid); padding-left:8px; border-radius:8px; }
@@ -1854,7 +1856,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v166</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v167</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2404,8 +2406,23 @@
         var row=document.createElement("div"); row.className="tl-row"+(r.rowClass?" "+r.rowClass:"");
         row.innerHTML='<span class="tl-time"'+(opts.noTime?' style="display:none"':'')+'>'+hhmm(new Date(r.ts))+'</span><span class="tl-emoji">'+(r.emoji||"")+'</span><span class="tl-text"></span>';
         row.querySelector(".tl-text").textContent=r.text;
+        if(r.note){ var _tt=row.querySelector(".tl-text"); _tt.appendChild(document.createElement("br")); var _nn=document.createElement("span"); _nn.className="tl-note"; _nn.textContent="📝 "+r.note; _tt.appendChild(_nn); }
         if(r.onPhoto){ var ph=document.createElement("button"); ph.className="tl-edit"; ph.textContent="📷"; ph.setAttribute("aria-label","Vedi foto"); (function(rr){ ph.onclick=function(){ rr.onPhoto(); }; })(r); row.appendChild(ph); }
         if(r.onEdit){ var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi"); (function(rr){ ed.onclick=function(){ rr.onEdit(); }; })(r); row.appendChild(ed); }
+        if(r.onNote){ var nb=document.createElement("button"); nb.className="tl-edit tl-notebtn"; nb.textContent="📝"; nb.setAttribute("aria-label","Nota"); nb.title=(r.note?"Modifica la nota":"Aggiungi una nota");
+          (function(rr,rowEl){ nb.onclick=function(){
+            Array.prototype.forEach.call(rowEl.children,function(c){ c.style.display="none"; });
+            var inp=document.createElement("input"); inp.type="text"; inp.className="tl-time-edit tl-note-edit"; inp.value=rr.note||""; inp.placeholder="Nota…";
+            var ok=document.createElement("button"); ok.className="tl-time-ok"; ok.textContent="✓"; ok.setAttribute("aria-label","Salva nota");
+            var cx=document.createElement("button"); cx.className="tl-time-cancel"; cx.textContent="✕"; cx.setAttribute("aria-label","Annulla");
+            rowEl.appendChild(inp); rowEl.appendChild(ok); rowEl.appendChild(cx); try{ inp.focus(); }catch(e){}
+            var done=false;
+            ok.onclick=function(){ if(done) return; done=true; rr.onNote(inp.value); };
+            cx.onclick=function(){ if(done) return; done=true; try{ rowEl.removeChild(inp); rowEl.removeChild(ok); rowEl.removeChild(cx); }catch(e){} Array.prototype.forEach.call(rowEl.children,function(c){ c.style.display=""; }); };
+            inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); ok.onclick(); } else if(e.key==="Escape"){ cx.onclick(); } });
+          }; })(r,row);
+          row.appendChild(nb);
+        }
         if(r.onTimeEdit){ var te=document.createElement("button"); te.className="tl-edit tl-timebtn"; te.textContent="🕐"; te.setAttribute("aria-label","Correggi l'ora"); te.title="Correggi l'ora"; (function(rr,rowEl,btn){ btn.onclick=function(){ Array.prototype.forEach.call(rowEl.children,function(c){ c.style.display="none"; }); var inp=document.createElement("input"); inp.type="time"; inp.className="tl-time-edit"; inp.value=hhmm(new Date(rr.ts)); var ok=document.createElement("button"); ok.className="tl-time-ok"; ok.textContent="✓"; ok.setAttribute("aria-label","Conferma ora"); var cx=document.createElement("button"); cx.className="tl-time-cancel"; cx.textContent="✕"; cx.setAttribute("aria-label","Annulla"); rowEl.appendChild(inp); rowEl.appendChild(ok); rowEl.appendChild(cx); try{ inp.focus(); }catch(e){} var done=false; ok.onclick=function(){ if(done) return; done=true; rr.onTimeEdit(inp.value||null); }; cx.onclick=function(){ if(done) return; done=true; rr.onTimeEdit(null); }; }; })(r,row,te); row.appendChild(te); }
         if(r.onDelete){ var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina"); (function(rr){ del.onclick=function(){ rr.onDelete(); }; })(r); row.appendChild(del); }
         body.appendChild(row);
@@ -2424,6 +2441,8 @@
     var taken={}; try{ var _t=JSON.parse(localStorage.getItem(cfg.takenKey)); if(_t && typeof _t==="object") taken=_t; }catch(e){}
     function saveDefs(){ try{ localStorage.setItem(cfg.defsKey, JSON.stringify(defs)); }catch(e){} }
     function saveTaken(){ try{ localStorage.setItem(cfg.takenKey, JSON.stringify(taken)); }catch(e){} }
+    var notes={}; if(cfg.notesKey){ try{ var _n=JSON.parse(localStorage.getItem(cfg.notesKey)); if(_n && typeof _n==="object") notes=_n; }catch(e){} }
+    function saveNotes(){ if(!cfg.notesKey) return; try{ localStorage.setItem(cfg.notesKey, JSON.stringify(notes)); }catch(e){} }
     var storicoOpen={};
     var editId=null, finiteOpen=false;
     function defActive(p){ if(!p||p.attivo===false) return false; var tdk=pillDayKey(new Date()); if(p.dal && tdk<p.dal) return false; if(p.al && tdk>p.al) return false; return true; }
@@ -2527,7 +2546,7 @@
         var stRows=[], nmeById={}; defs.forEach(function(p){ nmeById[p.id]=p.nome; });
         var takenEff={};
         Object.keys(taken).forEach(function(k){ var tv=taken[k]; if(typeof tv!=="number") return; var parts=k.split("|"); var nm=nmeById[parts[1]]||"Pillola", ora=parts[2]; var ed=effPillDay(ora, tv); (takenEff[ed]||(takenEff[ed]={}))[parts[1]+"|"+ora]=true;
-          stRows.push({ ts:tv, dayKeyOverride:ed, emoji:"💊", text:nm+(ora?" · programmata "+ora:""), onDelete:(function(key){ return function(){ if(confirm("Togliere questa presa dallo storico?")){ delete taken[key]; saveTaken(); render(); } }; })(k) }); });
+          stRows.push({ ts:tv, dayKeyOverride:ed, emoji:"💊", text:nm+(ora?" · programmata "+ora:""), note:(notes[k]||""), onNote:(function(key){ return function(v){ v=(v||"").trim(); if(v) notes[key]=v; else delete notes[key]; saveNotes(); render(); }; })(k), onDelete:(function(key){ return function(){ if(confirm("Togliere questa presa dallo storico?")){ delete taken[key]; delete notes[key]; saveTaken(); saveNotes(); render(); } }; })(k) }); });
         var _rdk=dayKey(new Date()), _tdk=pillDayKey(new Date()), _nm=(_tdk===_rdk)?(new Date().getHours()*60+new Date().getMinutes()):(24*60);
         function pillDayStat(dk){ var isT=(dk===_tdk), sc=0, tk=0; defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.dal && dk<p.dal) return; if(p.al && dk>p.al) return; (p.orari||[]).forEach(function(o){ if(isT && oraMin(o)>_nm) return; sc++; if(takenEff[dk] && takenEff[dk][p.id+"|"+o]) tk++; }); }); return {sched:sc, taken:tk}; }
         renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora.",
@@ -2601,7 +2620,7 @@
   }
 
   var Pillole=makeScheduler({
-    defsKey:"salute-pil-defs", takenKey:"salute-pil-taken", defaultOra:"08:00",
+    defsKey:"salute-pil-defs", takenKey:"salute-pil-taken", notesKey:"salute-pil-note", defaultOra:"08:00",
     ids:{date:"pilDate", summary:"pilSummary", today:"pilToday", list:"pilList", storico:"pilStorico", addBtn:"pilAddBtn", form:"pilForm", nome:"pilNome", orari:"pilOrari", addOra:"pilAddOra", save:"pilSave", cancel:"pilCancel", dal:"pilDal", al:"pilAl", editActions:"pilEditActions", finish:"pilFinish", del:"pilDelete", finite:"pilFiniteWrap"},
     labels:{done:"prese", empty:"Nessuna medicina impostata.<br>Aggiungila qui sotto con i suoi orari.", needName:"Scrivi il nome della medicina", added:"Medicina aggiunta ✓"}
   });
@@ -3416,7 +3435,8 @@
     var sp=[]; if(last.pressione)sp.push("🩸"+last.pressione); if(last.saturazione)sp.push("🫁"+last.saturazione+"%"); if(last.battiti)sp.push("❤️"+last.battiti);
     var sum=document.getElementById("parametriSummary"); sum.textContent=sp.join("  "); sum.style.color="var(--ink-soft)";
     var pEmo={pressione:"🩸", saturazione:"🫁", battiti:"❤️"}, pNam={pressione:"Pressione", saturazione:"Saturazione", battiti:"Battiti"};
-    var rows=parametri.map(function(x){ var _lv=paramLevel(x.tipo,x.valore); return { ts:x.ts, emoji:(pEmo[x.tipo]||"❤️"), text:(pNam[x.tipo]||x.tipo)+" "+String(x.valore)+" "+(PARAM_UNIT[x.tipo]||''), rowClass:(_lv?("param-"+_lv):""),
+    var rows=parametri.map(function(x){ var _lv=paramLevel(x.tipo,x.valore); return { ts:x.ts, emoji:(pEmo[x.tipo]||"❤️"), text:(pNam[x.tipo]||x.tipo)+" "+String(x.valore)+" "+(PARAM_UNIT[x.tipo]||''), rowClass:(_lv?("param-"+_lv):""), note:(x.nota||""),
+      onNote:(function(xx){ return function(v){ v=(v||"").trim(); parametri.forEach(function(y){ if(y.id===xx.id){ if(v) y.nota=v; else delete y.nota; } }); saveParam(); renderParametri(); }; })(x),
       onEdit:(function(xx){ return function(){ startEditParam(xx); }; })(x),
       onDelete:(function(xx){ return function(){ parametri=parametri.filter(function(y){return y.id!==xx.id;}); if(editingParamId===xx.id) editingParamCancel(); saveParam(); renderParametri(); }; })(x) }; });
     renderStorico("parametriStorico", rows, storOpen.param, {empty:"Nessun parametro registrato.", dayClass:function(g){ var worst=0; (g.items||[]).forEach(function(r){ var c=r.rowClass||""; if(c.indexOf("param-bad")>=0) worst=Math.max(worst,3); else if(c.indexOf("param-warn")>=0) worst=Math.max(worst,2); else if(c.indexOf("param-ok")>=0) worst=Math.max(worst,1); }); return worst===3?"pday-bad":(worst===2?"pday-warn":(worst===1?"pday-ok":"")); }});
