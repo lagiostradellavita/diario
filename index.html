@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 169; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 170; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1855,7 +1855,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v169</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v170</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2110,7 +2110,8 @@
     var total = entries.reduce(function(s,e){ return s+e.q; },0);
     document.getElementById("histCount").textContent = entries.length ? num(total)+" in totale" : "";
     var rows=entries.map(function(e){ var meta=TIPI[e.tipo]||{label:e.tipo};
-      return { ts:+new Date(e.ts), q:e.q, emoji:"🚬", text:(e.q>1?num(e.q)+" ":"")+meta.label+(e.nota?" — "+e.nota:""),
+      return { ts:+new Date(e.ts), q:e.q, emoji:"🚬", text:(e.q>1?num(e.q)+" ":"")+meta.label+(e.nota?" — "+e.nota:""), note:(e.nota||""), noteInText:true,
+        onNote:(function(ee){ return function(v){ v=(v||"").trim(); if(v) ee.nota=v; else delete ee.nota; save(); render(); }; })(e),
         onToSalute:(e.nota?(function(ee,lbl){ return function(){ pushToSalute(ee.nota, "dopo sigaretta ("+lbl+")", +new Date(ee.ts)); }; })(e, meta.label):null),
         onEdit:(function(ee){ return function(){ startEditFumo(ee); }; })(e),
         onDelete:(function(ee){ return function(){ deleteEntry(ee.id); }; })(e) }; });
@@ -2406,7 +2407,7 @@
         var row=document.createElement("div"); row.className="tl-row"+(r.rowClass?" "+r.rowClass:"");
         row.innerHTML='<span class="tl-time"'+(opts.noTime?' style="display:none"':'')+'>'+hhmm(new Date(r.ts))+'</span><span class="tl-emoji">'+(r.emoji||"")+'</span><span class="tl-text"></span>';
         row.querySelector(".tl-text").textContent=r.text;
-        if(r.note){ var _tt=row.querySelector(".tl-text"); _tt.appendChild(document.createElement("br")); var _nn=document.createElement("span"); _nn.className="tl-note"; _nn.textContent="📝 "+r.note; _tt.appendChild(_nn); }
+        if(r.note && !r.noteInText){ var _tt=row.querySelector(".tl-text"); _tt.appendChild(document.createElement("br")); var _nn=document.createElement("span"); _nn.className="tl-note"; _nn.textContent="📝 "+r.note; _tt.appendChild(_nn); }
         if(r.onPhoto){ var ph=document.createElement("button"); ph.className="tl-edit"; ph.textContent="📷"; ph.setAttribute("aria-label","Vedi foto"); (function(rr){ ph.onclick=function(){ rr.onPhoto(); }; })(r); row.appendChild(ph); }
         if(r.onEdit){ var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi"); (function(rr){ ed.onclick=function(){ rr.onEdit(); }; })(r); row.appendChild(ed); }
         if(r.onNote){ var nb=document.createElement("button"); nb.className="tl-edit tl-notebtn"; nb.textContent="📝"; nb.setAttribute("aria-label","Nota"); nb.title=(r.note?"Modifica la nota":"Aggiungi una nota");
@@ -2883,7 +2884,9 @@
     var now=new Date(), dK=dayKey(now);
     document.getElementById("alimDate").textContent=fmtDayLong(now);
     var rows=ciboLog.map(function(x){ var mtxt=cibiText(x); if(x.nota){ mtxt += (mtxt?' — ':'') + x.nota; } var mk=mealKcal(x); if(mk>0) mtxt += " · "+mk+" kcal";
-      return { ts:x.ts, emoji:"🍽️", text:mtxt,
+      return { ts:x.ts, emoji:"🍽️", text:mtxt, note:(x.nota||""), noteInText:true,
+        onNote:(function(xx){ return function(v){ v=(v||"").trim(); if(v) xx.nota=v; else delete xx.nota; saveCiboLog(); renderAlim(); }; })(x),
+        onToSalute:(x.nota?(function(xx){ return function(){ pushToSalute(xx.nota, "da Alimentazione", xx.ts); }; })(x):null),
         onEdit:(function(xx){ return function(){ startEditMeal(xx); }; })(x),
         onDelete:(function(xx){ return function(){ ciboLog=ciboLog.filter(function(y){return y.id!==xx.id;}); if(editingMealId===xx.id) cancelEditMeal(); saveCiboLog(); renderAlim(); }; })(x) }; });
     renderStorico("ciboLog", rows, storOpen.alim, {empty:"Nessun pasto registrato."});
@@ -3080,7 +3083,9 @@
     if(sorted.length){ var series=sorted.slice(-14).map(function(s){ var d=new Date(s.ts); return {lbl:pad2(d.getDate())+"/"+pad2(d.getMonth()+1), val:Math.round((s.ore||0)*10)/10}; }); gbox.innerHTML='<div class="ciclo-chart-box"><div class="cc-cap">Ore di sonno per notte</div>'+svgBars(series,"#6366F1")+'</div>'; }
     else { gbox.innerHTML=""; }
     var rows=sonno.map(function(s){ var parts=[oreStr(s.ore||0)]; if(s.qualita)parts.push(s.qualita); if(s.nota)parts.push(s.nota);
-      return { ts:s.ts, emoji:"😴", text:parts.join(" · "),
+      return { ts:s.ts, emoji:"😴", text:parts.join(" · "), note:(s.nota||""), noteInText:true,
+        onNote:(function(ss){ return function(v){ v=(v||"").trim(); if(v) ss.nota=v; else delete ss.nota; saveSonno(); renderSonno(); }; })(s),
+        onToSalute:(s.nota?(function(ss){ return function(){ pushToSalute(ss.nota, "da Sonno", ss.ts); }; })(s):null),
         onPhoto:(s.foto?(function(f){ return function(){ docView(f); }; })(s.foto):null),
         onEdit:(function(ss){ return function(){ startEditSonno(ss); }; })(s),
         onDelete:(function(ss){ return function(){ sonno=sonno.filter(function(y){return y.id!==ss.id;}); if(editingSonnoId===ss.id) cancelEditSonno(); saveSonno(); renderSonno(); }; })(s) }; });
@@ -3477,7 +3482,9 @@
     document.getElementById("evacDate").textContent=fmtDayLong(new Date());
     var c=evacCounts(), s=document.getElementById("evacSummary");
     s.textContent=c.tot? (c.tot+(c.tot===1?" volta":" volte")+" · 💧"+c.u+" 💩"+c.f) : "0 volte"; s.style.color=c.tot?"var(--ink-soft)":"var(--muted)";
-    var rows=evac.map(function(x){ return { ts:x.ts, emoji:(x.tipo==="feci"?"💩":"💧"), text:evacLabel(x).replace(/^\S+\s+/,""),
+    var rows=evac.map(function(x){ return { ts:x.ts, emoji:(x.tipo==="feci"?"💩":"💧"), text:evacLabel(x).replace(/^\S+\s+/,""), note:(x.nota||""), noteInText:true,
+      onNote:(function(xx){ return function(v){ v=(v||"").trim(); if(v) xx.nota=v; else delete xx.nota; saveEvac(); renderEvac(); }; })(x),
+      onToSalute:(x.nota?(function(xx){ return function(){ pushToSalute(xx.nota, "da Evacuazioni", xx.ts); }; })(x):null),
       onEdit:(function(xx){ return function(){ startEditEvac(xx); }; })(x),
       onDelete:(function(xx){ return function(){ evac=evac.filter(function(y){return y.id!==xx.id;}); if(editingEvacId===xx.id) cancelEditEvac(); saveEvac(); renderEvac(); }; })(x) }; });
     var evacStart=null; evac.forEach(function(x){ var _d=dayKey(new Date(x.ts)); if(!evacStart||_d<evacStart) evacStart=_d; });
@@ -3622,7 +3629,9 @@
     var dK=dayKey(new Date());
     var today=attivLog.filter(function(x){ return dayKey(new Date(x.tsEnd))===dK; });
     var rows=attivLog.map(function(x){ var dparts=[]; if(x.dur>0) dparts.push(fmtDur(x.dur)); if(x.valore) dparts.push(x.valore); if(x.nota) dparts.push(x.nota); if(!dparts.length) dparts.push(fmtDur(x.dur||0));
-      return { ts:x.tsEnd, emoji:"🏃", text:x.nome+" · "+dparts.join(" · "),
+      return { ts:x.tsEnd, emoji:"🏃", text:x.nome+" · "+dparts.join(" · "), note:(x.nota||""), noteInText:true,
+        onNote:(function(xx){ return function(v){ v=(v||"").trim(); if(v) xx.nota=v; else delete xx.nota; saveAttivLog(); renderAttiv(); }; })(x),
+        onToSalute:(x.nota?(function(xx){ return function(){ pushToSalute(xx.nota, "da Attività", xx.tsEnd); }; })(x):null),
         onPhoto:(x.foto?(function(f){ return function(){ docView(f); }; })(x.foto):null),
         onEdit:(function(xx){ return function(){ startEditAttiv(xx); }; })(x),
         onDelete:(function(xx){ return function(){ attivLog=attivLog.filter(function(y){return y.id!==xx.id;}); if(editingAttivId===xx.id) cancelEditAttiv(); saveAttivLog(); renderAttiv(); }; })(x) }; });
@@ -4837,7 +4846,9 @@
     var q=document.getElementById("sessoQuick");
     if(q){ q.innerHTML=""; SESSO_ORDER.filter(function(t){ return sessoHidden.indexOf(t)<0; }).forEach(function(t){ var b=document.createElement("button"); b.className="qbtn"; b.type="button"; b.style.setProperty("--c", SESSO_TIPI[t].c); b.innerHTML='<span class="qlab">'+SESSO_TIPI[t].label+'</span><span class="qadd">+1 · oggi '+(cnt[t]||0)+'</span>'; b.onclick=function(){ sessoAdd(t); }; q.appendChild(b); }); }
     try{ if(!document.getElementById("sessoManage").hidden) renderSessoManage(); }catch(e){}
-    var rows=sessoLog.map(function(x){ return { ts:x.ts, emoji:"🛏️", text:(SESSO_TIPI[x.tipo]?SESSO_TIPI[x.tipo].label:x.tipo)+(x.nota?" — "+x.nota:""),
+    var rows=sessoLog.map(function(x){ return { ts:x.ts, emoji:"🛏️", text:(SESSO_TIPI[x.tipo]?SESSO_TIPI[x.tipo].label:x.tipo)+(x.nota?" — "+x.nota:""), note:(x.nota||""), noteInText:true,
+      onNote:(function(xx){ return function(v){ v=(v||"").trim(); if(v) xx.nota=v; else delete xx.nota; saveSessoLog(); renderSesso(); }; })(x),
+      onToSalute:(x.nota?(function(xx){ return function(){ pushToSalute(xx.nota, "da Sesso", xx.ts); }; })(x):null),
       onTimeEdit:(function(xx){ return function(v){ if(v){ var p=String(v).split(":"); var d=new Date(xx.ts); d.setHours(parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0, 0); xx.ts=+d; saveSessoLog(); } renderSesso(); }; })(x),
       onDelete:(function(xx){ return function(){ sessoLog=sessoLog.filter(function(y){return y.id!==xx.id;}); saveSessoLog(); renderSesso(); }; })(x) }; });
     var sessoStart=null; sessoLog.forEach(function(x){ var _d=dayKey(new Date(x.ts)); if(!sessoStart||_d<sessoStart) sessoStart=_d; });
