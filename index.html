@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 171; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 172; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1332,14 +1332,14 @@
       <div class="food-cat" id="collapFastidi">
         <button type="button" class="fc-head" id="headFastidi"><span id="lblFastidi">🤕 Fastidi fisici</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodyFastidi" hidden>
-          <input type="text" id="fastidiSearch" list="dlFastidiAll" placeholder="Cerca un fastidio…" autocomplete="off">
+          <div class="chip-add">
+            <input type="text" id="fastidiSearch" list="dlFastidiAll" placeholder="Scrivi un fastidio e tocca ＋" autocomplete="off">
+            <button type="button" id="fastidiSearchBtn">＋</button>
+          </div>
+          <p class="fineprint" style="margin:4px 0 0">Scrivi la <b>frase intera</b> (es. «fastidio alla congiuntiva»), anche di più parole, e tocca <b>＋</b>. Se esiste già la ritrovi mentre scrivi.</p>
           <div id="fastidiSelected" class="chips" style="margin-top:8px"></div>
           <button type="button" class="link-btn" id="fastidiListToggle" style="margin-top:6px;text-align:left;padding:8px 2px">▸ Sfoglia tutti i fastidi</button>
           <div id="fastidiChips" class="chips" hidden style="margin-top:4px"></div>
-          <div class="chip-add" style="margin-top:10px">
-            <input type="text" id="fastidiAddInput" placeholder="Aggiungi un nuovo fastidio…">
-            <button type="button" id="fastidiAddBtn">＋</button>
-          </div>
           <div id="fastidiManage" class="chip-manage"></div>
           <div class="prog-flabel" style="margin-top:14px">📍 Luoghi — il «dove» si assegna a <b>ogni fastidio</b> qui sopra. Qui aggiungi i luoghi nuovi:</div>
           <div id="doveChips" class="chips" hidden></div>
@@ -1854,7 +1854,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v171</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v172</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3164,7 +3164,6 @@
   var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts", false, {sortAlpha:true, onChange:onFastidiChange, manageId:"fastidiManage", addSelects:true});
   var psicoG=makeChipGroup("psicoChips", PSICO, "salute-psico-opts", false, {manageId:"psicoManage", onChange:onPsicoChange, addSelects:true});
   var doveG=makeChipGroup("doveChips", ["Dx (destro)","Sx (sinistro)","Bilaterale"], "salute-dove-opts", false, {manageId:"doveManage", onChange:function(){ try{ renderFastidiSel(); }catch(e){} }});
-  wireAdd("fastidiAddInput","fastidiAddBtn", fastidiG, true);
   wireAdd("psicoAddInput","psicoAddBtn", psicoG, true);
   // Fastidi maggiori del giorno: selezione libera a parte, mostrata in cima alla giornata nello Storico
   var fastidiMaggiori={}; try{ var _fm=JSON.parse(localStorage.getItem("salute-fastidi-maggiori")); if(_fm && typeof _fm==="object") fastidiMaggiori=_fm; }catch(e){}
@@ -3234,9 +3233,10 @@
   }
   function onFastidiChange(){ renderFastidiSel(); updateFastidiDatalist(); if(typeof updateSaluteCount==="function") updateSaluteCount(); }
   (function(){
-    var s=document.getElementById("fastidiSearch");
-    function pick(){ var v=(s.value||"").trim(); if(!v) return; var opt=null; fastidiG.opts().forEach(function(o){ if(o.toLowerCase()===v.toLowerCase()) opt=o; }); if(opt){ fastidiG.selectOne(opt); s.value=""; } }
-    if(s){ s.addEventListener("change", pick); s.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); pick(); } }); }
+    var s=document.getElementById("fastidiSearch"), btn=document.getElementById("fastidiSearchBtn");
+    function addFast(){ var v=(s.value||"").trim(); if(!v) return; var opt=null; fastidiG.opts().forEach(function(o){ if(o.toLowerCase()===v.toLowerCase()) opt=o; }); fastidiG.selectOne(opt||v); s.value=""; try{ s.focus(); }catch(e){} }
+    if(btn){ btn.onclick=addFast; }
+    if(s){ s.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); addFast(); } }); }
     var lt=document.getElementById("fastidiListToggle");
     if(lt){ lt.onclick=function(){ var c=document.getElementById("fastidiChips"); c.hidden=!c.hidden; lt.textContent=(c.hidden?"▸":"▾")+" Sfoglia tutti i fastidi"; }; }
   })();
