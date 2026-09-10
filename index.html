@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 173; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 174; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1515,7 +1515,7 @@
         <p class="fineprint" style="margin:0 0 8px">Il <b>collegamento</b> al documento «Storia clinica». Aggiungi quella <b>più recente</b>; quando ne fai una nuova, aggiungi anche quella — restano tutte, dalla più recente in cima.</p>
         <div id="storieList"></div>
         <div class="field" style="margin-top:8px"><label for="storiaDocData">Data o nome (facoltativo)</label><input type="text" id="storiaDocData" placeholder="es. 10/09/2026" autocomplete="off"></div>
-        <div class="field"><label for="storiaDocLink">Collegamento (link al documento)</label><input type="url" id="storiaDocLink" inputmode="url" placeholder="Incolla qui il link della storia clinica" autocomplete="off"></div>
+        <div class="field"><label for="storiaDocLink">Collegamento (link al documento)</label><textarea id="storiaDocLink" rows="3" inputmode="url" placeholder="Incolla qui il link della storia clinica" autocomplete="off" style="width:100%; resize:vertical; word-break:break-all; font-family:inherit;"></textarea></div>
         <div class="panel-actions"><button class="primary" id="storiaDocAdd">＋ Aggiungi</button></div>
       </div>
     </div>
@@ -1865,7 +1865,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v173</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v174</p>
 </div>
 
 <div id="reportView" hidden>
