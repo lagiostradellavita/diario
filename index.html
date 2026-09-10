@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 174; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 175; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1865,7 +1865,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v174</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v175</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3357,6 +3357,10 @@
     maggKeys.forEach(function(dk){ if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } });
     noteKeys.forEach(function(dk){ if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } });
     if(!byDay[todayK]){ byDay[todayK]={dk:todayK, d:new Date(), items:[]}; groups.push(byDay[todayK]); } // oggi c'è sempre: così puoi aggiungere la nota di fine giornata anche senza fastidi
+    // Mostra TUTTI i giorni, dalla prima registrazione a oggi, anche quelli vuoti (per aggiungere la nota di fine giornata a qualsiasi giorno)
+    var _dks=groups.map(function(g){return g.dk;}); var _min=_dks.length?_dks.reduce(function(a,b){return a<b?a:b;}):todayK;
+    var _sd=new Date(_min+"T12:00:00"), _ed=new Date(todayK+"T12:00:00");
+    if(!isNaN(_sd.getTime()) && _sd<=_ed){ for(var _dd=new Date(_sd); _dd<=_ed; _dd.setDate(_dd.getDate()+1)){ var _k=dayKey(_dd); if(!byDay[_k]){ byDay[_k]={dk:_k, d:new Date(_dd), items:[]}; groups.push(byDay[_k]); } } }
     groups.sort(function(a,b){ return b.d-a.d; });
     groups.forEach(function(g){
       var open = (g.dk in saluteDayOpen) ? saluteDayOpen[g.dk] : (g.dk===todayK);
