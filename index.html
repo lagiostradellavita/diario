@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 172; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 173; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1509,6 +1509,17 @@
     <button class="primary" id="storiaReportBtn" style="width:100%; margin:2px 0 4px">📄 Crea un report della storia clinica</button>
     <p class="fineprint" style="margin:0 0 12px">Un foglio unico — sintesi, diagnosi/terapie/eventi e l'elenco degli esami con i collegamenti — da stampare o salvare in <b>PDF</b> (per il medico).</p>
 
+    <div class="food-cat open" id="collapStStorie" style="margin-bottom:10px">
+      <button type="button" class="fc-head" id="headStStorie"><span>📄 Le mie storie cliniche</span><span class="fc-arrow">›</span></button>
+      <div class="fc-body" id="bodyStStorie">
+        <p class="fineprint" style="margin:0 0 8px">Il <b>collegamento</b> al documento «Storia clinica». Aggiungi quella <b>più recente</b>; quando ne fai una nuova, aggiungi anche quella — restano tutte, dalla più recente in cima.</p>
+        <div id="storieList"></div>
+        <div class="field" style="margin-top:8px"><label for="storiaDocData">Data o nome (facoltativo)</label><input type="text" id="storiaDocData" placeholder="es. 10/09/2026" autocomplete="off"></div>
+        <div class="field"><label for="storiaDocLink">Collegamento (link al documento)</label><input type="url" id="storiaDocLink" inputmode="url" placeholder="Incolla qui il link della storia clinica" autocomplete="off"></div>
+        <div class="panel-actions"><button class="primary" id="storiaDocAdd">＋ Aggiungi</button></div>
+      </div>
+    </div>
+
     <div class="food-cat open" id="collapStEsami">
       <button type="button" class="fc-head" id="headStEsami"><span>🔗 Esami e referti</span><span class="fc-arrow">›</span></button>
       <div class="fc-body" id="bodyStEsami">
@@ -1854,7 +1865,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v172</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v173</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4994,8 +5005,8 @@
 
   var currentMod="menu", lastDay="";
   // ===== Storia clinica (privata: solo su questo telefono) =====
-  var storia={sintesi:"", dropbox:"", voci:[], esami:[], esamiView:"data"};
-  try{ var _sto=JSON.parse(localStorage.getItem("salute-storia")); if(_sto && typeof _sto==="object"){ storia.sintesi=_sto.sintesi||""; storia.dropbox=_sto.dropbox||""; storia.voci=Array.isArray(_sto.voci)?_sto.voci:[]; storia.esami=Array.isArray(_sto.esami)?_sto.esami:[]; storia.esamiView=(_sto.esamiView==="cat")?"cat":"data"; } }catch(e){}
+  var storia={sintesi:"", dropbox:"", voci:[], esami:[], esamiView:"data", storie:[]};
+  try{ var _sto=JSON.parse(localStorage.getItem("salute-storia")); if(_sto && typeof _sto==="object"){ storia.sintesi=_sto.sintesi||""; storia.dropbox=_sto.dropbox||""; storia.voci=Array.isArray(_sto.voci)?_sto.voci:[]; storia.esami=Array.isArray(_sto.esami)?_sto.esami:[]; storia.esamiView=(_sto.esamiView==="cat")?"cat":"data"; storia.storie=Array.isArray(_sto.storie)?_sto.storie:[]; } }catch(e){}
   function saveStoriaLocal(){ try{ localStorage.setItem("salute-storia", JSON.stringify(storia)); }catch(e){} }
   function saveStoria(){ saveStoriaLocal(); }
 
@@ -5210,6 +5221,31 @@
     if(n>0){ saveStoria(); renderStoriaEsami(); }
     return n;
   }
+  function renderStorieCliniche(){
+    var host=document.getElementById("storieList"); if(!host) return; host.innerHTML="";
+    var list=(storia.storie||[]).slice().sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+    if(!list.length){ host.innerHTML='<div class="empty" style="padding:8px">Ancora nessuna. Aggiungi qui sotto il collegamento alla storia clinica più recente.</div>'; return; }
+    list.forEach(function(s){
+      var u=normUrl(s.link||"");
+      var r=document.createElement("div"); r.style.cssText="display:flex; align-items:center; gap:8px; padding:9px 0; border-top:1px solid var(--line);";
+      var nm=document.createElement("span"); nm.style.cssText="flex:1 1 auto; min-width:0; font-weight:700; overflow-wrap:anywhere;"; nm.textContent=s.data||"Storia clinica";
+      r.appendChild(nm);
+      if(u){ var a=document.createElement("a"); a.className="storia-link"; a.href=u; a.textContent="apri"; r.appendChild(a); }
+      var x=document.createElement("button"); x.type="button"; x.className="storia-x"; x.textContent="×"; x.setAttribute("aria-label","Togli"); x.style.cssText="appearance:none;border:none;background:none;cursor:pointer;font-size:20px;flex:0 0 auto;";
+      x.onclick=function(){ if(confirm("Togliere questa storia clinica dall'elenco? (il file su Dropbox non viene toccato)")){ storia.storie=(storia.storie||[]).filter(function(y){return y.id!==s.id;}); saveStoria(); renderStorieCliniche(); } };
+      r.appendChild(x);
+      host.appendChild(r);
+    });
+  }
+  function addStoriaDoc(){
+    var l=normUrl(document.getElementById("storiaDocLink").value||"");
+    if(!l){ toast("Incolla il collegamento"); return; }
+    var d=(document.getElementById("storiaDocData").value||"").trim(); if(!d){ d=new Date().toLocaleDateString("it-IT"); }
+    storia.storie=storia.storie||[]; storia.storie.push({id:uid(), ts:Date.now(), data:d, link:l});
+    saveStoria(); renderStorieCliniche();
+    document.getElementById("storiaDocData").value=""; document.getElementById("storiaDocLink").value="";
+    toast("Storia clinica aggiunta ✓");
+  }
   function renderStoriaEsami(){
     var host=document.getElementById("storiaEsameList"); if(!host) return; host.innerHTML="";
     var view=(storia.esamiView==="cat")?"cat":"data";
@@ -5350,10 +5386,11 @@
   function refreshDropboxBtn(){ var b=document.getElementById("storiaDropboxOpen"); if(!b) return; b.textContent= storia.dropbox ? "📁 Apri i referti su Dropbox" : "📁 Imposta il link dei referti"; }
   function renderStoria(){
     var s=document.getElementById("storiaSintesi"); if(s) s.value=storia.sintesi||"";
-    refreshDropboxBtn(); renderStoriaVoci(); renderStoriaEsami();
+    refreshDropboxBtn(); renderStoriaVoci(); renderStoriaEsami(); renderStorieCliniche();
   }
   (function(){
-    try{ saluteCollapWire("headStEsami","bodyStEsami","collapStEsami"); saluteCollapWire("headStSintesi","bodyStSintesi","collapStSintesi"); saluteCollapWire("headStVoci","bodyStVoci","collapStVoci"); saluteCollapWire("headStElenco","bodyStElenco","collapStElenco"); saluteCollapWire("headStAggiungi","bodyStAggiungi","collapStAggiungi"); }catch(e){}
+    try{ saluteCollapWire("headStStorie","bodyStStorie","collapStStorie"); saluteCollapWire("headStEsami","bodyStEsami","collapStEsami"); saluteCollapWire("headStSintesi","bodyStSintesi","collapStSintesi"); saluteCollapWire("headStVoci","bodyStVoci","collapStVoci"); saluteCollapWire("headStElenco","bodyStElenco","collapStElenco"); saluteCollapWire("headStAggiungi","bodyStAggiungi","collapStAggiungi"); }catch(e){}
+    var scAdd=document.getElementById("storiaDocAdd"); if(scAdd) scAdd.onclick=addStoriaDoc;
     var s=document.getElementById("storiaSintesi"); if(s) s.oninput=function(){ storia.sintesi=this.value; saveStoria(); };
     var va=document.getElementById("storiaVoceAdd"); if(va) va.onclick=function(){
       var testo=(document.getElementById("storiaVoceTxt").value||"").trim();
