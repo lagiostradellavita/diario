@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 176; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 177; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -914,7 +914,6 @@
         <button class="link-btn" id="suggClose" style="margin-top:6px">Chiudi</button>
       </div>
     </section>
-    <button class="menu-card" type="button" data-mod="diario" style="--mc:#0EA5E9"><span class="mc-emoji">📔</span><span class="mc-text"><span class="mc-name">Diario di oggi</span><span class="mc-st" id="st-diario">scrivi la giornata</span></span><span class="mc-chev">›</span></button>
     <button class="menu-card" type="button" data-mod="programma" style="--mc:#6366F1"><span class="mc-emoji">📋</span><span class="mc-text"><span class="mc-name">Programma</span><span class="mc-st" id="st-prog">pianifica la giornata</span></span><span class="mc-chev">›</span></button>
     <h2 class="menu-grid-title" id="hdrFunzioni">Le tue funzioni</h2>
     <div class="menu-grid">
@@ -928,6 +927,7 @@
       <button class="menu-card" type="button" data-mod="ciclo" style="--mc:#DB2777"><span class="mc-emoji">🌸</span><span class="mc-text"><span class="mc-name">Ciclo</span><span class="mc-st" id="st-ciclo">inizio · fine · previsione</span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="sonno" style="--mc:#6366F1"><span class="mc-emoji">😴</span><span class="mc-text"><span class="mc-name">Sonno</span><span class="mc-st" id="st-sonno">ore e qualità</span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="sesso" style="--mc:#DB2777"><span class="mc-emoji">🛏️</span><span class="mc-text"><span class="mc-name">Sesso</span><span class="mc-st" id="st-sesso"></span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="diario" style="--mc:#0EA5E9"><span class="mc-emoji">📔</span><span class="mc-text"><span class="mc-name">Diario di oggi</span><span class="mc-st" id="st-diario">scrivi la giornata</span></span><span class="mc-chev">›</span></button>
     </div>
     <datalist id="dlPatologie">
       <option>Ipertensione</option><option>Diabete tipo 2</option><option>Diabete tipo 1</option>
@@ -1867,7 +1867,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v176</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v177</p>
 </div>
 
 <div id="reportView" hidden>
