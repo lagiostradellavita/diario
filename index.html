@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 179; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 180; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1867,7 +1867,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v179</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v180</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2562,7 +2562,7 @@
         Object.keys(taken).forEach(function(k){ var tv=taken[k]; if(typeof tv!=="number") return; var parts=k.split("|"); var nm=nmeById[parts[1]]||"Pillola", ora=parts[2]; var ed=effPillDay(ora, tv); (takenEff[ed]||(takenEff[ed]={}))[parts[1]+"|"+ora]=true;
           stRows.push({ ts:tv, dayKeyOverride:ed, emoji:"💊", text:nm+(ora?" · programmata "+ora:""), note:(notes[k]||""), onNote:(function(key){ return function(v){ v=(v||"").trim(); if(v) notes[key]=v; else delete notes[key]; saveNotes(); render(); }; })(k), onToSalute:((notes[k]||"")?(function(key,nmm){ return function(){ pushToSalute(notes[key], "da Pillole ("+nmm+")", taken[key]); }; })(k,nm):null), onDelete:(function(key){ return function(){ if(confirm("Togliere questa presa dallo storico?")){ delete taken[key]; delete notes[key]; saveTaken(); saveNotes(); render(); } }; })(k) }); });
         var _rdk=dayKey(new Date()), _tdk=pillDayKey(new Date()), _nm=(_tdk===_rdk)?(new Date().getHours()*60+new Date().getMinutes()):(24*60);
-        function pillDayStat(dk){ var isT=(dk===_tdk), sc=0, tk=0; defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.dal && dk<p.dal) return; if(p.al && dk>p.al) return; (p.orari||[]).forEach(function(o){ if(isT && oraMin(o)>_nm) return; sc++; if(takenEff[dk] && takenEff[dk][p.id+"|"+o]) tk++; }); }); return {sched:sc, taken:tk}; }
+        function pillDayStat(dk){ var isT=(dk===_tdk), sc=0, tk=0; defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.dal && dk<p.dal) return; if(p.al && dk>p.al) return; if(p.attivo===false){ var _fk=(p.fine!=null)?dayKey(new Date(p.fine)):(p.al||null); if(!_fk || dk>_fk) return; } (p.orari||[]).forEach(function(o){ if(isT && oraMin(o)>_nm) return; sc++; if(takenEff[dk] && takenEff[dk][p.id+"|"+o]) tk++; }); }); return {sched:sc, taken:tk}; }
         renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora.",
           dayClass:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return ""; return s.taken>=s.sched?"done-ok":"done-miss"; },
           headExtra:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return null; var sp=document.createElement("span"); sp.className="dmal"; if(s.taken>=s.sched){ sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutte prese"; } else { var m=s.sched-s.taken; sp.style.color="var(--lvl-high)"; sp.textContent="⚠ "+m+(m===1?" saltata":" saltate"); } return sp; }
