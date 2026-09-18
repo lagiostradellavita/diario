@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 178; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 179; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1867,7 +1867,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v178</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v179</p>
 </div>
 
 <div id="reportView" hidden>
@@ -5461,22 +5461,7 @@
   }
   Array.prototype.forEach.call(document.querySelectorAll(".menu-card"), function(c){ c.onclick=function(){ showMod(c.dataset.mod); }; });
   Array.prototype.forEach.call(document.querySelectorAll("[data-back]"), function(b){ b.onclick=function(){ showMod("menu"); }; });
-  // Scorrimento (swipe) tra le funzioni: dito a destra → funzione successiva, a sinistra → precedente
-  (function(){
-    var ORDER=["diario","programma","fumo","salute","pillole","esercizio","alimentazione","evac","parametri","ciclo","sonno","sesso"];
-    var sx=0, sy=0, track=false;
-    function scrollableX(el){ while(el && el.nodeType===1 && el!==document.body){ if(el.scrollWidth>el.clientWidth+6){ var ov=getComputedStyle(el).overflowX; if(ov==="auto"||ov==="scroll") return true; } el=el.parentElement; } return false; }
-    document.addEventListener("touchstart", function(e){ if(e.touches.length!==1){ track=false; return; } var t=e.touches[0]; sx=t.clientX; sy=t.clientY; track=!scrollableX(e.target); }, {passive:true});
-    document.addEventListener("touchend", function(e){
-      if(!track) return; track=false;
-      if(currentMod==="menu") return;
-      var i=ORDER.indexOf(currentMod); if(i<0) return;
-      var t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
-      if(Math.abs(dx)<120 || Math.abs(dy)>90 || Math.abs(dx)<Math.abs(dy)*2.2) return;
-      var ni=(dx>0? i+1 : i-1); ni=(ni+ORDER.length)%ORDER.length;
-      showMod(ORDER[ni]); try{ window.scrollTo(0,0); }catch(e2){}
-    }, {passive:true});
-  })();
+  // Swipe tra le funzioni rimosso su richiesta dell'utente (si cambiava funzione per sbaglio).
 
   // Cambio giorno: quando scatta la mezzanotte (app aperta o riaperta), l'agenda passa al nuovo
   // giorno con le caselle vuote. I dati già registrati (spunte→ciboLog/attivLog, progFatti per
