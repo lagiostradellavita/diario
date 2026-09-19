@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 182; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 183; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1867,7 +1867,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v182</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v183</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4702,7 +4702,7 @@
     else if(e.kind==="cibo"){ var items=diarioCiboItems.map(function(x){return {nome:(x.nome||"").trim(), qta:(x.qta||"").trim()};}).filter(function(x){return x.nome;}); if(!items.length){ toast("Scrivi almeno un cibo"); return; } var full=items.map(function(x){ var kc=estimateKcal({nome:x.nome, tipo:"", qta:x.qta}); return {nome:x.nome, tipo:"", qta:x.qta||"", kcal:(kc==null?0:kc)}; }); ciboLog.forEach(function(x){ if(x.id===e.id){ x.items=full; x.ts=ts; } }); saveCiboLog(); }
     else if(e.kind==="attiv"){ var nm=(document.getElementById("diarioEserNome").value||"").trim(); if(!nm){ toast("Scrivi l'esercizio"); return; } var dur=(parseInt((document.getElementById("diarioEserDur").value||"").replace(/[^\d]/g,""),10)||0)*60000; attivLog.forEach(function(x){ if(x.id===e.id){ x.nome=nm; x.dur=dur; x.tsEnd=ts; } }); saveAttivLog(); }
     else if(e.kind==="salute"){ var fn=(document.getElementById("diarioFastNome").value||"").trim(), dv=(document.getElementById("diarioFastDove").value||"").trim(), ft=(document.getElementById("diarioFastNota").value||"").trim(); if(!fn && !ft && !dv){ toast("Scrivi un fastidio o una nota"); return; } saluteLog.forEach(function(x){ if(x.id===e.id){ var extraV=(x.voci&&x.voci.length>1)?x.voci.slice(1):[]; var extraD=(x.dove&&x.dove.length>1)?x.dove.slice(1):[]; x.voci=(fn?[fn].concat(extraV):extraV); x.dove=(dv?[dv].concat(extraD):extraD); x.nota=ft; x.ts=ts; } }); saveSaluteLog(); }
-    else if(e.kind==="pill"){ if(!diarioMedSel){ toast("Scegli la medicina"); return; } var op=String(e.id).split("|"), ora=op[2]||"00:00"; Pillole.checkAt(e.id, null); Pillole.checkAt(dayKey(new Date(ts))+"|"+diarioMedSel+"|"+ora, ts); }
+    else if(e.kind==="pill"){ if(!diarioMedSel){ toast("Scegli la medicina"); return; } var op=String(e.id).split("|"), ora=op[2]||"00:00"; Pillole.checkAt(e.id, null); Pillole.checkAt(pillDayKey(new Date(ts))+"|"+diarioMedSel+"|"+ora, ts); }
     else if(e.kind==="diario"){ var nt=(document.getElementById("diarioNotaTxt").value||"").trim()||"Sveglia"; diarioEventi.forEach(function(x){ if(x.id===e.id){ x.testo=nt; x.ts=ts; } }); saveDiarioEventi(); }
     else if(e.kind==="evac"){ var en=(document.getElementById("diarioEvacNota").value||"").trim(); evac.forEach(function(x){ if(x.id===e.id){ x.tipo=diarioEvacTipo; x.nota=en; x.ts=ts; } }); saveEvac(); }
     toast("Modifica salvata ✓"); diarioCancelEdit(); diarioResetForm(); renderDiario();
@@ -4825,7 +4825,7 @@
         var nm=document.createElement("span"); nm.className="reco-med-name"; nm.textContent=md.nome;
         var ti2=document.createElement("input"); ti2.type="time"; ti2.value=nearestTime(r.times, md.pos) || (md.orari&&md.orari[0]) || defTime;
         var add2=document.createElement("button"); add2.type="button"; add2.className="reco-add"; add2.textContent="Segna presa";
-        add2.onclick=function(){ var ora=(md.orari&&md.orari.length)? md.orari[0] : (ti2.value||"00:00"); Pillole.checkAt(dayKey(new Date())+"|"+md.id+"|"+ora, todayAtHHMM(ti2.value||ora)); toast("💊 "+md.nome+" segnata presa"); add2.className="reco-add done"; add2.textContent="Presa ✓"; add2.disabled=true; renderDiario(); };
+        add2.onclick=function(){ var ora=(md.orari&&md.orari.length)? md.orari[0] : (ti2.value||"00:00"); Pillole.checkAt(pillDayKey(new Date())+"|"+md.id+"|"+ora, todayAtHHMM(ti2.value||ora)); toast("💊 "+md.nome+" segnata presa"); add2.className="reco-add done"; add2.textContent="Presa ✓"; add2.disabled=true; renderDiario(); };
         row.appendChild(nm); row.appendChild(ti2); row.appendChild(add2); sec2.appendChild(row); });
       host.appendChild(sec2);
     }
