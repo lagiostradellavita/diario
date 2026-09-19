@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 181; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 182; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1867,7 +1867,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v181</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v182</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4406,7 +4406,7 @@
   function progRipetiLabel(it){ var r=it.ripeti||"ogni"; if(r==="ogni") return "ogni giorno"; if(r==="sett"){ var g=(it.giorni||[]).slice().sort(function(a,b){ return ((a+6)%7)-((b+6)%7); }); return g.length? g.map(function(d){return GIORNI_MAP[d];}).join(", ") : "nessun giorno"; } if(r==="mese") return "il "+it.giornoMese+" del mese"; if(r==="data"){ if(!it.data) return "una data"; var p=String(it.data).split("-"); return "il "+p[2]+"/"+p[1]+"/"+p[0]; } if(r==="range"){ var a=String(it.dataDa||"").split("-"), b=String(it.dataA||"").split("-"); return "dal "+(a[2]||"?")+"/"+(a[1]||"")+" al "+(b[2]||"?")+"/"+(b[1]||""); } return ""; }
   function itemAppliesToDate(it, d){ var r=it.ripeti||"ogni"; if(r==="ogni") return true; if(r==="sett") return (it.giorni||[]).indexOf(d.getDay())>=0; if(r==="mese") return d.getDate()===(parseInt(it.giornoMese,10)||0); if(r==="data") return dayKey(d)===it.data; if(r==="range"){ var k=dayKey(d); return !!(it.dataDa && it.dataA && k>=it.dataDa && k<=it.dataA); } return true; }
   function itemAppliesToday(it){ return itemAppliesToDate(it, new Date()); }
-  function progPlannedForDate(d){ var _dK=dayKey(d), isTd=(_dK===dayKey(new Date())), nm=new Date().getHours()*60+new Date().getMinutes(); function due(o){ return !isTd || !o || hhmmToMin(o)<=nm; } var n=0; programma.forEach(function(it){ if(it.tipo==="fumo") return; if(itemAppliesToDate(it,d) && due(it.ora)) n++; }); try{ var pd=Pillole.data(); (pd.defs||[]).forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>_dK) return; (p.orari||[]).forEach(function(o){ if(due(o)) n++; }); }); }catch(e){} return n; }
+  function progPlannedForDate(d){ var _dK=dayKey(d), isTd=(_dK===dayKey(new Date())), nm=new Date().getHours()*60+new Date().getMinutes(); function due(o){ return !isTd || !o || hhmmToMin(o)<=nm; } var n=0; programma.forEach(function(it){ if(it.tipo==="fumo") return; if(itemAppliesToDate(it,d) && due(it.ora)) n++; }); try{ var pd=Pillole.data(); (pd.defs||[]).forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>_dK) return; if(p.dal && _dK<p.dal) return; if(p.al && _dK>p.al) return; if(p.attivo===false){ var _fk=(p.fine!=null)?dayKey(new Date(p.fine)):(p.al||null); if(!_fk || _dK>_fk) return; } (p.orari||[]).forEach(function(o){ if(due(o)) n++; }); }); }catch(e){} return n; }
   function progDoneForDate(d){ var dK=dayKey(d), n=0; if(progFatti[dK]) n+=Object.keys(progFatti[dK]).length; try{ var pd=Pillole.data(), tk=pd.taken||{}; Object.keys(tk).forEach(function(k){ if(k.indexOf(dK+"|")===0) n++; }); }catch(e){} return n; }
   function renderVerifica(){
     var host=document.getElementById("verificaBody"); if(!host) return; host.innerHTML="";
