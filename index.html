@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 180; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 181; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1867,7 +1867,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v180</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v181</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4061,12 +4061,14 @@
     return h;
   }
   // Report della sola Storia clinica, generato dal pulsante dentro quella pagina.
+  var _appTitle = document.title;
   function genStoriaReport(){
     var body='<h1>Storia clinica</h1>';
     body+='<p class="rep-meta">Generato il '+dmy(new Date())+'</p>';
     try{ body+=repStoria(0, new Date().getTime()); }catch(e){ body+='<p class="rep-empty">Non è stato possibile generare il report.</p>'; }
     document.getElementById("reportBody").innerHTML=body;
     document.getElementById("reportView").hidden=false;
+    try{ document.title="Diario Salute - Storia clinica "+dmy(new Date()).replace(/\//g,"-"); }catch(e){}
     try{ window.scrollTo(0,0); }catch(e){}
   }
   function genReport(){
@@ -4081,6 +4083,7 @@
     order.forEach(function(m){ if(mods.indexOf(m)>=0){ try{ body+=B[m](r.s, r.e); }catch(e){} } });
     document.getElementById("reportBody").innerHTML=body;
     document.getElementById("reportView").hidden=false;
+    try{ var _rt=(repPeriod==="giorno")?("del "+dmy(r.sd)):("dal "+dmy(r.sd)+" al "+dmy(r.ed)); document.title="Diario Salute - Report "+_rt.replace(/\//g,"-"); }catch(e){}
     try{ window.scrollTo(0,0); }catch(e){}
     if(mods.indexOf("referti")>=0){ try{ appendRefertiReport(); }catch(e){} }
   }
@@ -4116,7 +4119,7 @@
   document.getElementById("repOptClose").onclick=function(){ document.getElementById("repOptions").hidden=true; document.getElementById("repToggle").hidden=false; };
   document.getElementById("repGen").onclick=genReport;
   document.getElementById("repPrint").onclick=function(){ try{ window.print(); }catch(e){ toast("Usa Condividi → Stampa"); } };
-  document.getElementById("repClose").onclick=function(){ document.getElementById("reportView").hidden=true; };
+  document.getElementById("repClose").onclick=function(){ document.getElementById("reportView").hidden=true; try{ document.title=_appTitle; }catch(e){} };
   (function(){ var b=document.getElementById("storiaReportBtn"); if(b) b.onclick=genStoriaReport; })();
 
   // ---- Referti e documenti (IndexedDB) ----
