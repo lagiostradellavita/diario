@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 183; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 184; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -925,6 +925,7 @@
       <button class="menu-card" type="button" data-mod="alimentazione" style="--mc:#16A34A"><span class="mc-emoji">🍎</span><span class="mc-text"><span class="mc-name">Alimentazione</span><span class="mc-st" id="st-alim"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="evac" style="--mc:#0D9488"><span class="mc-emoji">🚽</span><span class="mc-text"><span class="mc-name">Evacuazioni</span><span class="mc-st" id="st-evac"></span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="parametri" style="--mc:#DC2626"><span class="mc-emoji">❤️</span><span class="mc-text"><span class="mc-name">Parametri vitali</span><span class="mc-st" id="st-parametri">pressione · saturazione · battiti</span></span><span class="mc-chev">›</span></button>
+      <button class="menu-card" type="button" data-mod="peso" style="--mc:#0891B2"><span class="mc-emoji">⚖️</span><span class="mc-text"><span class="mc-name">Peso</span><span class="mc-st" id="st-peso">registra e monitora</span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="ciclo" style="--mc:#DB2777"><span class="mc-emoji">🌸</span><span class="mc-text"><span class="mc-name">Ciclo</span><span class="mc-st" id="st-ciclo">inizio · fine · previsione</span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="sonno" style="--mc:#6366F1"><span class="mc-emoji">😴</span><span class="mc-text"><span class="mc-name">Sonno</span><span class="mc-st" id="st-sonno">ore e qualità</span></span><span class="mc-chev">›</span></button>
       <button class="menu-card" type="button" data-mod="sesso" style="--mc:#DB2777"><span class="mc-emoji">🛏️</span><span class="mc-text"><span class="mc-name">Sesso</span><span class="mc-st" id="st-sesso"></span></span><span class="mc-chev">›</span></button>
@@ -982,6 +983,7 @@
         <button type="button" class="chip-sel on" data-m="fumo">Fumo</button>
         <button type="button" class="chip-sel on" data-m="salute">Salute</button>
         <button type="button" class="chip-sel on" data-m="parametri">Parametri</button>
+        <button type="button" class="chip-sel on" data-m="peso">Peso</button>
         <button type="button" class="chip-sel on" data-m="pillole">Pillole</button>
         <button type="button" class="chip-sel on" data-m="esercizio">Attività</button>
         <button type="button" class="chip-sel on" data-m="alimentazione">Alimentazione</button>
@@ -1467,6 +1469,19 @@
       <h2 class="section-title" style="margin:16px 0 0">Storico</h2>
       <div id="sonnoStorico" style="margin-top:4px"></div>
     </section>
+    <section class="card" id="pesoCard">
+      <div class="row-between"><h2 class="section-title" style="margin:0">⚖️ Peso</h2><span id="pesoSummary" class="stat-summary"></span></div>
+      <div class="grid2" style="margin-top:10px">
+        <div class="field"><label for="pesoData">Giorno</label><input type="date" id="pesoData"></div>
+        <div class="field"><label for="pesoKg">Peso (kg)</label><input type="text" id="pesoKg" placeholder="es. 82,5" inputmode="decimal" autocomplete="off"></div>
+      </div>
+      <div class="field" style="margin-top:6px"><label for="pesoNota">Nota (facoltativa)</label><input type="text" id="pesoNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
+      <button class="primary" id="pesoSave" style="margin-top:12px">Registra peso</button>
+      <div id="pesoAndamento" style="margin-top:12px"></div>
+      <div id="pesoGrafico" style="margin-top:10px"></div>
+      <h2 class="section-title" style="margin:16px 0 0">Storico</h2>
+      <div id="pesoStorico" style="margin-top:4px"></div>
+    </section>
     <section class="card">
       <div class="food-cat" id="collapMaggiori">
         <button type="button" class="fc-head" id="headMaggiori"><span id="lblMaggiori">⭐ Fastidi maggiori di oggi</span><span class="fc-arrow">›</span></button>
@@ -1500,6 +1515,11 @@
   <!-- ===== SONNO ===== -->
   <section id="mod-sonno" class="screen" hidden>
     <header class="top"><button class="back-btn" type="button" data-back>‹ Menu</button><span class="mark">😴</span><div class="brandtext"><h1>Sonno</h1><p class="sub" id="sonnoDate"></p></div></header>
+  </section>
+
+  <!-- ===== PESO ===== -->
+  <section id="mod-peso" class="screen" hidden>
+    <header class="top"><button class="back-btn" type="button" data-back>‹ Menu</button><span class="mark">⚖️</span><div class="brandtext"><h1>Peso</h1><p class="sub" id="pesoDate"></p></div></header>
   </section>
 
   <!-- ===== STORIA CLINICA ===== -->
@@ -1867,7 +1887,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v183</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v184</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2446,7 +2466,7 @@
     });
   }
   // stato aperto/chiuso degli storici, per funzione
-  var storOpen={param:{}, evac:{}, sonno:{}, alim:{}, attiv:{}, fumo:{}};
+  var storOpen={param:{}, evac:{}, sonno:{}, alim:{}, attiv:{}, fumo:{}, peso:{}};
 
   // ---- Motore «cose da fare a un'ora» (usato da Pillole) ----
   function makeScheduler(cfg){
@@ -3507,6 +3527,88 @@
     return (x.tipo==="feci"?"💩 Feci":"💧 Urina")+(p.length?" · "+p.join(" · "):"");
   }
   function evacCounts(){ var dK=dayKey(new Date()), u=0,f=0; evac.forEach(function(x){ if(dayKey(new Date(x.ts))===dK){ if(x.tipo==="feci")f++; else u++; } }); return {u:u,f:f,tot:u+f}; }
+  // ---- Peso: monitoraggio con andamento, grafico e storico ----
+  var peso=[]; try{ var _pw=JSON.parse(localStorage.getItem("salute-peso")); if(Array.isArray(_pw)) peso=_pw; }catch(e){}
+  function savePeso(){ try{ localStorage.setItem("salute-peso", JSON.stringify(peso)); }catch(e){} }
+  function fmtKg(v){ return String(Math.round(v*10)/10).replace(".",","); }
+  function fmtDeltaTxt(d){ var r=Math.round(d*10)/10; if(Math.abs(r)<0.05) return "invariato"; return (r>0?"+":"−")+fmtKg(Math.abs(r))+" kg"; }
+  function bmiNum(hCm,wKg){ var h=parseFloat(String(hCm==null?"":hCm).replace(",",".")), w=parseFloat(String(wKg==null?"":wKg).replace(",",".")); if(!h||!w) return null; return w/((h/100)*(h/100)); }
+  function pesoCat(b){ if(b==null) return null; if(b<18.5) return {lbl:"sottopeso", cls:"warn"}; if(b<25) return {lbl:"normopeso", cls:"ok"}; if(b<30) return {lbl:"sovrappeso", cls:"warn"}; return {lbl:"obesità", cls:"bad"}; }
+  function catColor(cls){ return cls==="ok"?"#15803D":(cls==="warn"?"#B45309":"#B91C1C"); }
+  // grafico a linea: l'asse verticale si adatta ai valori (non parte da zero) così le variazioni si vedono
+  function svgPesoLine(series){
+    if(!series.length) return '';
+    var W=700,H=190,pB=30,pT=26,pL=10,pR=10;
+    var vals=series.map(function(d){return d.val;});
+    var mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals);
+    if(mn===mx){ mn-=1; mx+=1; } else { var pd=(mx-mn)*0.18; mn-=pd; mx+=pd; }
+    var n=series.length, span=(W-pL-pR), plotH=(H-pB-pT);
+    function X(i){ return n<=1 ? (pL+span/2) : (pL + span*(i/(n-1))); }
+    function Y(v){ return pT + plotH*(1-(v-mn)/(mx-mn)); }
+    var step=n<=14?1:Math.ceil(n/14);
+    var s='<svg class="rep-chart" width="100%" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">';
+    s+='<line x1="'+pL+'" y1="'+(H-pB)+'" x2="'+(W-pR)+'" y2="'+(H-pB)+'" stroke="#ddd" stroke-width="1"/>';
+    if(n>1){ var pts=series.map(function(d,i){ return X(i).toFixed(1)+","+Y(d.val).toFixed(1); }).join(" "); s+='<polyline points="'+pts+'" fill="none" stroke="#0891B2" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'; }
+    series.forEach(function(d,i){
+      var x=X(i), y=Y(d.val);
+      s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3.6" fill="#0891B2"/>';
+      if(i===0 || i===n-1 || n<=8) s+='<text x="'+x.toFixed(1)+'" y="'+(y-8).toFixed(1)+'" text-anchor="middle" font-size="11" fill="#333">'+String(d.val).replace(".",",")+'</text>';
+      if(i%step===0 || i===n-1) s+='<text x="'+x.toFixed(1)+'" y="'+(H-pB+15).toFixed(1)+'" text-anchor="middle" font-size="10" fill="#888">'+esc(d.lbl)+'</text>';
+    });
+    s+='</svg>';
+    return s;
+  }
+  var editingPesoId=null;
+  function cancelEditPeso(){ editingPesoId=null; var b=document.getElementById("pesoSave"); if(b) b.textContent="Registra peso"; }
+  function startEditPeso(x){
+    editingPesoId=x.id; var d=new Date(x.ts);
+    document.getElementById("pesoData").value=ymd(d);
+    document.getElementById("pesoKg").value=fmtKg(x.kg);
+    document.getElementById("pesoNota").value=x.nota||"";
+    document.getElementById("pesoSave").textContent="Salva modifiche";
+    scrollToEl(document.getElementById("pesoCard"));
+  }
+  function renderPeso(){
+    if(!document.getElementById("pesoCard")) return;
+    var pdt=document.getElementById("pesoDate"); if(pdt){ try{ pdt.textContent=fmtDayLong(new Date()); }catch(e){} }
+    var pd0=document.getElementById("pesoData"); if(pd0 && !pd0.value && !editingPesoId){ pd0.value=ymd(new Date()); }
+    var sorted=peso.slice().sort(function(a,b){return a.ts-b.ts;});
+    var sum=document.getElementById("pesoSummary"), andBox=document.getElementById("pesoAndamento"), gbox=document.getElementById("pesoGrafico");
+    if(sorted.length){
+      var lastW=sorted[sorted.length-1].kg, firstW=sorted[0].kg, prevW=sorted.length>1?sorted[sorted.length-2].kg:null;
+      var kgs=sorted.map(function(x){return x.kg;}), minW=Math.min.apply(null,kgs), maxW=Math.max.apply(null,kgs);
+      sum.textContent=fmtKg(lastW)+" kg"; sum.style.color="var(--ink-soft)";
+      var alt=(profilo&&profilo.altezza)?profilo.altezza:null, bmiS=bmiCalc(alt,lastW), cat=pesoCat(bmiNum(alt,lastW));
+      var extra=[];
+      if(bmiS){ extra.push("BMI "+bmiS+(cat?' <span style="color:'+catColor(cat.cls)+'">('+cat.lbl+")</span>":"")); }
+      if(prevW!=null) extra.push("dalla volta prima "+fmtDeltaTxt(lastW-prevW));
+      if(sorted.length>1){ extra.push("dall'inizio "+fmtDeltaTxt(lastW-firstW)); extra.push("min "+fmtKg(minW)+" · max "+fmtKg(maxW)); }
+      andBox.innerHTML=extra.length?('<div style="font-size:14.5px; font-weight:650; color:var(--ink-soft); line-height:1.5">'+extra.join(" · ")+"</div>"):"";
+      var series=sorted.slice(-30).map(function(s){ var d=new Date(s.ts); return {lbl:pad2(d.getDate())+"/"+pad2(d.getMonth()+1), val:Math.round(s.kg*10)/10}; });
+      gbox.innerHTML='<div class="ciclo-chart-box"><div class="cc-cap">Andamento del peso (kg)</div>'+svgPesoLine(series)+'</div>';
+    } else { sum.textContent=""; andBox.innerHTML=""; gbox.innerHTML=""; }
+    var rows=peso.map(function(s){ var parts=[fmtKg(s.kg)+" kg"]; if(s.nota)parts.push(s.nota);
+      return { ts:s.ts, emoji:"⚖️", text:parts.join(" · "), note:(s.nota||""), noteInText:true,
+        onNote:(function(ss){ return function(v){ v=(v||"").trim(); if(v) ss.nota=v; else delete ss.nota; savePeso(); renderPeso(); }; })(s),
+        onToSalute:(s.nota?(function(ss){ return function(){ pushToSalute(ss.nota, "da Peso ("+fmtKg(ss.kg)+" kg)", ss.ts); }; })(s):null),
+        onEdit:(function(ss){ return function(){ startEditPeso(ss); }; })(s),
+        onDelete:(function(ss){ return function(){ peso=peso.filter(function(y){return y.id!==ss.id;}); if(editingPesoId===ss.id) cancelEditPeso(); savePeso(); renderPeso(); }; })(s) }; });
+    renderStorico("pesoStorico", rows, storOpen.peso, {noTime:true, empty:"Nessun peso registrato."});
+  }
+  (function(){ var b=document.getElementById("pesoSave"); if(!b) return; b.onclick=function(){
+    var dv=document.getElementById("pesoData").value, kv=document.getElementById("pesoKg").value;
+    var kg=parseFloat(String(kv).replace(",",".")); if(!kv || isNaN(kg) || kg<=0){ toast("Scrivi il peso in kg"); return; }
+    if(kg>500) kg=500; kg=Math.round(kg*10)/10;
+    var ts = dv ? new Date(dv+"T12:00:00").getTime() : Date.now(); if(isNaN(ts)) ts=Date.now();
+    var nota=(document.getElementById("pesoNota").value||"").trim();
+    if(editingPesoId){ var it=null; peso.forEach(function(y){ if(y.id===editingPesoId) it=y; }); if(it){ it.ts=ts; it.kg=kg; it.nota=nota; } cancelEditPeso(); toast("Modifica salvata ✓"); }
+    else { peso.push({id:uid(), ts:ts, kg:kg, nota:nota}); toast("Peso registrato ✓"); }
+    savePeso();
+    // il peso più recente aggiorna anche i Dati personali, così il BMI resta aggiornato
+    try{ var srt=peso.slice().sort(function(a,b){return a.ts-b.ts;}); if(srt.length){ profilo.peso=fmtKg(srt[srt.length-1].kg); saveProfilo(); var pfIn=document.getElementById("pfPeso"); if(pfIn) pfIn.value=profilo.peso; } }catch(e){}
+    document.getElementById("pesoKg").value=""; document.getElementById("pesoNota").value=""; renderPeso();
+  }; })();
+  renderPeso();
   function renderEvac(){
     document.getElementById("evacDate").textContent=fmtDayLong(new Date());
     var c=evacCounts(), s=document.getElementById("evacSummary");
@@ -3975,6 +4077,19 @@
     h+='</table>';
     return h;
   }
+  function repPeso(s,e){
+    var h='<h2>⚖️ Peso</h2>';
+    var rows=peso.filter(function(x){return typeof x.ts==="number" && x.ts>=s&&x.ts<=e;}).sort(function(a,b){return a.ts-b.ts;});
+    if(!rows.length) return h+'<p class="rep-empty">Nessun peso registrato nel periodo.</p>';
+    var firstW=rows[0].kg, lastW=rows[rows.length-1].kg, d=lastW-firstW;
+    var alt=(profilo&&profilo.altezza)?profilo.altezza:null, bmiS=bmiCalc(alt,lastW);
+    h+='<p class="rep-sum">'+rows.length+' misurazioni · ultimo <b>'+fmtKg(lastW)+' kg</b>'+(bmiS?' · BMI '+bmiS:'')+(rows.length>1?' · '+fmtDeltaTxt(d)+' nel periodo':'')+'</p>';
+    h+=svgPesoLine(rows.slice(-30).map(function(x){ var dd=new Date(x.ts); return {lbl:pad2(dd.getDate())+"/"+pad2(dd.getMonth()+1), val:Math.round(x.kg*10)/10}; }));
+    h+='<table><tr><th>Quando</th><th class="num">Peso</th><th>Nota</th></tr>';
+    rows.forEach(function(x){ h+='<tr><td>'+dmy(new Date(x.ts))+'</td><td class="num">'+fmtKg(x.kg)+' kg</td><td>'+e2(x.nota||"")+'</td></tr>'; });
+    h+='</table>';
+    return h;
+  }
   function repSonno(s,e){
     var h='<h2>😴 Sonno</h2>';
     var rows=sonno.filter(function(x){return typeof x.ts==="number" && x.ts>=s&&x.ts<=e;}).sort(function(a,b){return a.ts-b.ts;});
@@ -4075,8 +4190,8 @@
     var mods=[]; Array.prototype.forEach.call(document.querySelectorAll("#repModules .chip-sel.on"), function(b){ mods.push(b.dataset.m); });
     if(!mods.length){ toast("Scegli almeno un modulo"); return; }
     var r=repRange(repPeriod);
-    var B={storia:repStoria, fumo:repFumo, salute:repSalute, parametri:repParametri, pillole:repPillole, esercizio:repEser, alimentazione:repAlim, sonno:repSonno, evac:repEvac, ciclo:repCiclo, sesso:repSesso, programma:repProgramma, diario:repDiario};
-    var order=["storia","fumo","salute","parametri","pillole","esercizio","alimentazione","sonno","evac","ciclo","sesso","programma","diario"];
+    var B={storia:repStoria, fumo:repFumo, salute:repSalute, parametri:repParametri, peso:repPeso, pillole:repPillole, esercizio:repEser, alimentazione:repAlim, sonno:repSonno, evac:repEvac, ciclo:repCiclo, sesso:repSesso, programma:repProgramma, diario:repDiario};
+    var order=["storia","fumo","salute","parametri","peso","pillole","esercizio","alimentazione","sonno","evac","ciclo","sesso","programma","diario"];
     var body='<h1>Diario Salute — Report '+r.lbl+'</h1>';
     body+='<p class="rep-meta">Periodo: '+(repPeriod==="giorno"?dmy(r.sd):dmy(r.sd)+" – "+dmy(r.ed))+' · generato il '+dmy(new Date())+'</p>';
     if(mods.indexOf("profilo")>=0){ try{ body+=repProfilo(); }catch(e){} }
@@ -4288,6 +4403,7 @@
     if(saluteLog.length){ var last=saluteLog.slice().sort(function(a,b){return b.ts-a.ts;})[0], vv=last.voci||[]; ss.textContent=vv.length>2?(vv.slice(0,2).join(", ")+"…"):vv.join(", "); ss.style.color="var(--ink-soft)"; }
     else { ss.textContent="come ti senti?"; ss.style.color="var(--muted)"; }
     try{ var _sx={sega:0,scopata:0}; sessoLog.forEach(function(x){ if(dayKey(new Date(x.ts))===dK) _sx[x.tipo]=(_sx[x.tipo]||0)+1; }); var _sxt=_sx.sega+_sx.scopata, _sxel=document.getElementById("st-sesso"); if(_sxel){ if(_sxt){ _sxel.textContent="oggi "+_sxt; _sxel.style.color="var(--ink-soft)"; } else { _sxel.textContent="registra"; _sxel.style.color="var(--muted)"; } } }catch(e){}
+    try{ var sw=document.getElementById("st-peso"); if(sw){ if(peso.length){ var lp=peso.slice().sort(function(a,b){return a.ts-b.ts;}); sw.textContent=fmtKg(lp[lp.length-1].kg)+" kg"; sw.style.color="var(--ink-soft)"; } else { sw.textContent="da registrare"; sw.style.color="var(--muted)"; } } }catch(e){}
     var ec=evacCounts(), se2=document.getElementById("st-evac");
     se2.textContent=ec.tot?("💧"+ec.u+" 💩"+ec.f):"0 oggi"; se2.style.color=ec.tot?"var(--ink-soft)":"var(--muted)";
     try{ var ps=progTodayStatus(), sp2=document.getElementById("st-prog"); if(sp2){ if(ps.total){ sp2.textContent=ps.done+"/"+ps.total+" fatte oggi"; sp2.style.color=(ps.done>=ps.total)?"var(--lvl-low)":"var(--ink-soft)"; } else { sp2.textContent="pianifica la giornata"; sp2.style.color="var(--muted)"; } } setCardBadge("programma", Math.max(0,(ps.total||0)-(ps.done||0))); }catch(e){}
@@ -5442,7 +5558,7 @@
   function showMod(m){
     currentMod=m; lastDay=dayKey(new Date());
     if(attivInterval){ clearInterval(attivInterval); attivInterval=null; }
-    ["fumo","sesso","pillole","esercizio","alimentazione","salute","evac","programma","diario","parametri","ciclo","sonno","storia"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
+    ["fumo","sesso","pillole","esercizio","alimentazione","salute","evac","programma","diario","parametri","peso","ciclo","sonno","storia"].forEach(function(x){ var el=document.getElementById("mod-"+x); if(el) el.hidden=(x!==m); });
     document.getElementById("menu").hidden=(m!=="menu");
     try{ window.scrollTo(0,0); }catch(e){}
     if(m==="menu"){ renderMenu(); try{ checkBackupReminder(); }catch(e){} }
@@ -5456,6 +5572,7 @@
     else if(m==="programma") renderProgramma();
     else if(m==="diario"){ renderDiario(); try{ renderRacconto(); }catch(e){} }
     else if(m==="parametri"){ try{ renderParametri(); }catch(e){} }
+    else if(m==="peso"){ try{ renderPeso(); }catch(e){} }
     else if(m==="ciclo"){ try{ renderCiclo(); }catch(e){} }
     else if(m==="sonno"){ try{ renderSonno(); }catch(e){} }
     else if(m==="storia"){ try{ renderStoria(); }catch(e){} }
@@ -5475,7 +5592,7 @@
   try{ setInterval(checkDayRollover, 60000); }catch(e){}
 
   // Parametri vitali / Ciclo / Sonno ora sono funzioni separate: sposto le loro card nelle schermate dedicate
-  (function(){ function mv(cardId, modId){ var c=document.getElementById(cardId), m=document.getElementById(modId); if(c&&m) m.appendChild(c); } mv("parametriCard","mod-parametri"); mv("cicloCard","mod-ciclo"); mv("sonnoCard","mod-sonno");
+  (function(){ function mv(cardId, modId){ var c=document.getElementById(cardId), m=document.getElementById(modId); if(c&&m) m.appendChild(c); } mv("parametriCard","mod-parametri"); mv("cicloCard","mod-ciclo"); mv("sonnoCard","mod-sonno"); mv("pesoCard","mod-peso");
     // Parametri: è la sua schermata → niente collassabile, mostra i parametri direttamente
     var bp=document.getElementById("bodyParam"); if(bp) bp.hidden=false; var hp=document.getElementById("headParam"); if(hp) hp.style.display="none"; var cp=document.getElementById("collapParam"); if(cp) cp.classList.remove("food-cat"); })();
 
@@ -5501,13 +5618,14 @@
     {id:"alimentazione", e:"🍎", n:"Alimentazione"},
     {id:"evac", e:"🚽", n:"Evacuazioni"},
     {id:"parametri", e:"❤️", n:"Parametri vitali"},
+    {id:"peso", e:"⚖️", n:"Peso"},
     {id:"ciclo", e:"🌸", n:"Ciclo"},
     {id:"sonno", e:"😴", n:"Sonno"},
     {id:"sesso", e:"🛏️", n:"Sesso"},
     {id:"storia", e:"🗂️", n:"Storia clinica"}
   ];
   var ALL=FN.map(function(f){ return f.id; });
-  var GRID=["fumo","salute","pillole","esercizio","alimentazione","evac","parametri","ciclo","sonno","sesso"];
+  var GRID=["fumo","salute","pillole","esercizio","alimentazione","evac","parametri","peso","ciclo","sonno","sesso"];
   var KEY="salute-funzioni-attive";
   function getActive(){ try{ var a=JSON.parse(localStorage.getItem(KEY)); return Array.isArray(a)?a:null; }catch(e){ return null; } }
   function setActive(a){ try{ localStorage.setItem(KEY, JSON.stringify(a)); }catch(e){} }
@@ -5539,6 +5657,7 @@
   function open(first){ buildList(); if(doneBtn) doneBtn.textContent=first?"Inizia":"Salva"; if(overlay){ overlay.hidden=false; try{ window.scrollTo(0,0); }catch(e){} } }
   if(doneBtn) doneBtn.onclick=function(){ setActive(ALL.filter(function(id){ return sel[id]; })); apply(); if(overlay) overlay.hidden=true; };
   var cb=document.getElementById("chooseFnBtn"); if(cb) cb.onclick=function(){ open(false); };
+  try{ if(!localStorage.getItem("salute-fn-peso")){ var _ap=getActive(); if(_ap && _ap.indexOf("peso")<0){ _ap.push("peso"); setActive(_ap); } localStorage.setItem("salute-fn-peso","1"); } }catch(e){}
   if(getActive()){ apply(); }
   else if(hasData()){ setActive(ALL); apply(); }
   else { apply(); open(true); }
