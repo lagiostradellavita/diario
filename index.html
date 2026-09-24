@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 184; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 185; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1212,6 +1212,7 @@
         </div>
       </div>
       <div id="pilFiniteWrap" style="margin-top:8px"></div>
+      <div id="pilModLog" style="margin-top:8px"></div>
     </section>
     <section class="card">
       <h2 class="section-title">Storico</h2>
@@ -1887,7 +1888,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v184</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v185</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2477,8 +2478,11 @@
     function saveTaken(){ try{ localStorage.setItem(cfg.takenKey, JSON.stringify(taken)); }catch(e){} }
     var notes={}; if(cfg.notesKey){ try{ var _n=JSON.parse(localStorage.getItem(cfg.notesKey)); if(_n && typeof _n==="object") notes=_n; }catch(e){} }
     function saveNotes(){ if(!cfg.notesKey) return; try{ localStorage.setItem(cfg.notesKey, JSON.stringify(notes)); }catch(e){} }
+    var chlog=[]; if(cfg.logKey){ try{ var _lg=JSON.parse(localStorage.getItem(cfg.logKey)); if(Array.isArray(_lg)) chlog=_lg; }catch(e){} }
+    function saveLog(){ if(!cfg.logKey) return; try{ localStorage.setItem(cfg.logKey, JSON.stringify(chlog)); }catch(e){} }
+    function addLog(tipo, testo){ if(!cfg.logKey) return; chlog.push({ts:Date.now(), tipo:tipo, testo:testo}); if(chlog.length>300) chlog=chlog.slice(-300); saveLog(); }
     var storicoOpen={};
-    var editId=null, finiteOpen=false;
+    var editId=null, finiteOpen=false, modlogOpen=false;
     function defActive(p){ if(!p||p.attivo===false) return false; var tdk=pillDayKey(new Date()); if(p.dal && tdk<p.dal) return false; if(p.al && tdk>p.al) return false; return true; }
     function defFinished(p){ if(!p) return false; if(p.attivo===false) return true; var tdk=pillDayKey(new Date()); return !!(p.al && tdk>p.al); }
     function defUpcoming(p){ if(!p||p.attivo===false) return false; var tdk=pillDayKey(new Date()); return !!(p.dal && tdk<p.dal); }
@@ -2573,6 +2577,7 @@
           cw.appendChild(head); cw.appendChild(body); fw.appendChild(cw);
         }
       }
+      renderModLog();
       // Storico: dosi effettivamente prese (con l'ora reale), per giorno, a scomparsa
       if(document.getElementById(I.storico)){
         // Una dose serale spuntata dopo mezzanotte va attribuita al giorno PROGRAMMATO più vicino (non al giorno di spunta)
@@ -2588,6 +2593,22 @@
           headExtra:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return null; var sp=document.createElement("span"); sp.className="dmal"; if(s.taken>=s.sched){ sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutte prese"; } else { var m=s.sched-s.taken; sp.style.color="var(--lvl-high)"; sp.textContent="⚠ "+m+(m===1?" saltata":" saltate"); } return sp; }
         });
       }
+    }
+    function renderModLog(){
+      var host = I.modlog ? document.getElementById(I.modlog) : null; if(!host) return; host.innerHTML="";
+      if(!chlog.length) return;
+      var EM={aggiunta:"➕", modifica:"✏️", finita:"🏁", ripresa:"🔄", eliminata:"🗑"};
+      var cw=document.createElement("div"); cw.className="food-cat";
+      var head=document.createElement("button"); head.type="button"; head.className="fc-head"+(modlogOpen?" open":""); head.innerHTML='<span>🕘 Storico modifiche ('+chlog.length+')</span><span class="fc-arrow">›</span>';
+      var body=document.createElement("div"); body.className="fc-body"; body.hidden=!modlogOpen;
+      head.onclick=function(){ modlogOpen=!modlogOpen; body.hidden=!modlogOpen; head.classList.toggle("open", modlogOpen); };
+      chlog.slice().reverse().forEach(function(e){
+        var r=document.createElement("div"); r.className="pilrow";
+        var nm=document.createElement("span"); nm.className="pn"; nm.textContent=(EM[e.tipo]||"•")+" "+(e.testo||"");
+        var po=document.createElement("span"); po.className="po"; po.textContent=dmy(new Date(e.ts));
+        r.appendChild(nm); r.appendChild(po); body.appendChild(r);
+      });
+      cw.appendChild(head); cw.appendChild(body); host.appendChild(cw);
     }
     function oraRow(val){
       var wrap=document.getElementById(I.orari);
@@ -2616,8 +2637,8 @@
       if(!orari.length){ toast("Aggiungi almeno un orario"); return; }
       var dal=((document.getElementById(I.dal)||{}).value)||"", al=((document.getElementById(I.al)||{}).value)||"";
       if(dal && al && al<dal){ toast("La fine è prima dell'inizio"); return; }
-      if(editId){ defs.forEach(function(p){ if(p.id===editId){ p.nome=nome; p.orari=orari; p.dal=dal||null; p.al=al||null; if(p.attivo===false && (!al || pillDayKey(new Date())<=al)){ p.attivo=true; p.fine=null; } } }); toast("Modifica salvata ✓"); }
-      else { defs.push({id:uid(), nome:nome, orari:orari, dal:dal||null, al:al||null, attivo:true, createdTs:Date.now()}); toast(L.added); }
+      if(editId){ var _old=null; defs.forEach(function(p){ if(p.id===editId) _old={nome:p.nome, orari:(p.orari||[]).slice(), dal:p.dal||null, al:p.al||null}; }); defs.forEach(function(p){ if(p.id===editId){ p.nome=nome; p.orari=orari; p.dal=dal||null; p.al=al||null; if(p.attivo===false && (!al || pillDayKey(new Date())<=al)){ p.attivo=true; p.fine=null; } } }); if(_old){ var ch=[]; if(_old.nome!==nome) ch.push("«"+_old.nome+"» → «"+nome+"»"); if((_old.orari||[]).join(" · ")!==orari.join(" · ")) ch.push("orari: "+((_old.orari||[]).join(" · ")||"—")+" → "+(orari.join(" · ")||"—")); if((_old.dal||"")!==(dal||"")||(_old.al||"")!==(al||"")) ch.push("periodo aggiornato"); if(ch.length) addLog("modifica", ch.join("; ")); } toast("Modifica salvata ✓"); }
+      else { defs.push({id:uid(), nome:nome, orari:orari, dal:dal||null, al:al||null, attivo:true, createdTs:Date.now()}); addLog("aggiunta", "«"+nome+"» ("+orari.join(" · ")+")"); toast(L.added); }
       editId=null; saveDefs();
       document.getElementById(I.form).hidden=true; render();
     };
@@ -2632,9 +2653,9 @@
       try{ document.getElementById(I.nome).focus(); }catch(e){}
       try{ f.scrollIntoView({block:"center"}); }catch(e){}
     }
-    function finishDef(id){ defs.forEach(function(p){ if(p.id===id){ p.attivo=false; if(!p.al) p.fine=Date.now(); } }); saveDefs(); render(); }
-    function reactivateDef(id){ defs.forEach(function(p){ if(p.id===id){ p.attivo=true; if(p.al && pillDayKey(new Date())>p.al) p.al=null; p.fine=null; } }); saveDefs(); render(); }
-    function deleteDef(id){ defs=defs.filter(function(x){return x.id!==id;}); Object.keys(taken).forEach(function(k){ if(k.split("|")[1]===id) delete taken[k]; }); saveDefs(); saveTaken(); render(); }
+    function finishDef(id){ defs.forEach(function(p){ if(p.id===id){ p.attivo=false; if(!p.al) p.fine=Date.now(); addLog("finita", "«"+p.nome+"»"); } }); saveDefs(); render(); }
+    function reactivateDef(id){ defs.forEach(function(p){ if(p.id===id){ p.attivo=true; if(p.al && pillDayKey(new Date())>p.al) p.al=null; p.fine=null; addLog("ripresa", "«"+p.nome+"»"); } }); saveDefs(); render(); }
+    function deleteDef(id){ var _nm=""; defs.forEach(function(x){ if(x.id===id) _nm=x.nome; }); defs=defs.filter(function(x){return x.id!==id;}); Object.keys(taken).forEach(function(k){ if(k.split("|")[1]===id) delete taken[k]; }); if(_nm) addLog("eliminata", "«"+_nm+"»"); saveDefs(); saveTaken(); render(); }
     (function(){
       var fb=document.getElementById(I.finish);
       if(fb) fb.onclick=function(){ if(!editId) return; var nm=""; defs.forEach(function(x){ if(x.id===editId) nm=x.nome; }); finishDef(editId); editId=null; document.getElementById(I.form).hidden=true; render(); toast("🏁 «"+nm+"» finita — resta nello storico"); };
@@ -2654,8 +2675,8 @@
   }
 
   var Pillole=makeScheduler({
-    defsKey:"salute-pil-defs", takenKey:"salute-pil-taken", notesKey:"salute-pil-note", defaultOra:"08:00",
-    ids:{date:"pilDate", summary:"pilSummary", today:"pilToday", list:"pilList", storico:"pilStorico", addBtn:"pilAddBtn", form:"pilForm", nome:"pilNome", orari:"pilOrari", addOra:"pilAddOra", save:"pilSave", cancel:"pilCancel", dal:"pilDal", al:"pilAl", editActions:"pilEditActions", finish:"pilFinish", del:"pilDelete", finite:"pilFiniteWrap"},
+    defsKey:"salute-pil-defs", takenKey:"salute-pil-taken", notesKey:"salute-pil-note", logKey:"salute-pil-log", defaultOra:"08:00",
+    ids:{date:"pilDate", summary:"pilSummary", today:"pilToday", list:"pilList", storico:"pilStorico", addBtn:"pilAddBtn", form:"pilForm", nome:"pilNome", orari:"pilOrari", addOra:"pilAddOra", save:"pilSave", cancel:"pilCancel", dal:"pilDal", al:"pilAl", editActions:"pilEditActions", finish:"pilFinish", del:"pilDelete", finite:"pilFiniteWrap", modlog:"pilModLog"},
     labels:{done:"prese", empty:"Nessuna medicina impostata.<br>Aggiungila qui sotto con i suoi orari.", needName:"Scrivi il nome della medicina", added:"Medicina aggiunta ✓"}
   });
   // ---- helper condivisi ----
