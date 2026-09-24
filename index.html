@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 187; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 188; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1507,6 +1507,20 @@
         <div class="fc-body" id="bodyRilevanti" hidden>
           <p class="fineprint" style="margin:2px 0 8px">Le cose importanti: i fastidi che segni con la ⭐ qui sotto nello Storico, e i 📌 segnaposto che aggiungi a mano (es. «cambio terapia», «crisi», «visita»).</p>
           <button type="button" class="link-btn" id="addSegnaposto" style="text-align:left;padding:8px 2px">📌 Aggiungi un segnaposto</button>
+          <div class="detail" id="segnaForm" hidden style="margin-top:6px">
+            <div class="field"><label for="segnaTxt">Cosa segni</label><input type="text" id="segnaTxt" placeholder="es. crisi con Giusy, grosso malessere…"></div>
+            <div class="field"><label>Quando</label>
+              <div class="pil-period">
+                <span class="pp-lbl">dal <input type="date" id="segnaDal"></span>
+                <span class="pp-lbl">al <input type="date" id="segnaAl"></span>
+              </div>
+              <p class="fineprint" style="margin:4px 0 0">Metti solo «dal» per un giorno singolo; aggiungi «al» per un periodo (es. una crisi durata più giorni).</p>
+            </div>
+            <div class="panel-actions">
+              <button class="primary" type="button" id="segnaSave">Salva segnaposto</button>
+              <button class="link-btn" type="button" id="segnaCancel">Annulla</button>
+            </div>
+          </div>
           <div id="rilevantiList" style="margin-top:6px"></div>
         </div>
       </div>
@@ -1902,7 +1916,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v187</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v188</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3439,7 +3453,7 @@
       var magg=(fastidiMaggiori[g.dk]||[]);
       if(magg.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">⭐</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+magg.join(", "); body.appendChild(mr); }
       var segsDay=segnaposti.filter(function(s){ return dayKey(new Date(s.ts))===g.dk; }).sort(function(a,b){ return b.ts-a.ts; });
-      segsDay.forEach(function(s){ var sr=document.createElement("div"); sr.className="tl-row segnaposto-row"; sr.innerHTML='<span class="tl-time">'+hhmm(new Date(s.ts))+'</span><span class="tl-emoji">📌</span><span class="tl-text"></span>'; sr.querySelector(".tl-text").textContent=s.testo; var sd=document.createElement("button"); sd.className="tl-del"; sd.textContent="×"; sd.setAttribute("aria-label","Elimina segnaposto"); (function(ss){ sd.onclick=function(){ segnaposti=segnaposti.filter(function(y){return y.id!==ss.id;}); saveSegnaposti(); renderSalute(); }; })(s); sr.appendChild(sd); body.appendChild(sr); });
+      segsDay.forEach(function(s){ var sr=document.createElement("div"); sr.className="tl-row segnaposto-row"; sr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">📌</span><span class="tl-text"></span>'; sr.querySelector(".tl-text").textContent=s.testo+(s.al?(" · fino al "+dmy(new Date(s.al+"T12:00:00"))):""); var sd=document.createElement("button"); sd.className="tl-del"; sd.textContent="×"; sd.setAttribute("aria-label","Elimina segnaposto"); (function(ss){ sd.onclick=function(){ segnaposti=segnaposti.filter(function(y){return y.id!==ss.id;}); saveSegnaposti(); renderSalute(); }; })(s); sr.appendChild(sd); body.appendChild(sr); });
       g.items.forEach(function(x){
         var d=new Date(x.ts);
         var _parts=(x.voci||[]).map(function(v){ var dv=(x.dovePer && x.dovePer[v])?x.dovePer[v]:[]; var lv=(x.intens && x.intens[v])||2; return v+" ("+INT_LBL[lv]+")"+((dv&&dv.length)?" 📍"+dv.join("/"):""); });
@@ -3469,12 +3483,12 @@
     var host=document.getElementById("rilevantiList"); if(!host) return; host.innerHTML="";
     var lbl=document.getElementById("lblRilevanti");
     var items=[];
-    saluteLog.forEach(function(x){ if(x.rilevante){ var t=(x.voci||[]).join(", "); if(x.nota){ t+=(t?" — ":"")+x.nota; } items.push({ts:x.ts, emoji:"⭐", text:t||"(fastidio)"}); } });
-    segnaposti.forEach(function(s){ items.push({ts:s.ts, emoji:"📌", text:s.testo}); });
+    saluteLog.forEach(function(x){ if(x.rilevante){ var t=(x.voci||[]).join(", "); if(x.nota){ t+=(t?" — ":"")+x.nota; } items.push({ts:x.ts, when:dmy(new Date(x.ts))+" "+hhmm(new Date(x.ts)), emoji:"⭐", text:t||"(fastidio)"}); } });
+    segnaposti.forEach(function(s){ items.push({ts:s.ts, when:dmy(new Date(s.ts))+(s.al?(" → "+dmy(new Date(s.al+"T12:00:00"))):""), emoji:"📌", text:s.testo}); });
     if(!items.length){ host.innerHTML='<div class="empty">Niente ancora. Segna un fastidio con la ⭐ qui sotto nello Storico, oppure aggiungi un 📌 segnaposto.</div>'; if(lbl) lbl.textContent="⭐ Eventi rilevanti"; return; }
     items.sort(function(a,b){ return b.ts-a.ts; });
     if(lbl) lbl.textContent="⭐ Eventi rilevanti · "+items.length;
-    items.forEach(function(e){ var r=document.createElement("div"); r.className="tl-row"; r.innerHTML='<span class="tl-time" style="min-width:auto">'+dmy(new Date(e.ts))+' '+hhmm(new Date(e.ts))+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>'; r.querySelector(".tl-text").textContent=e.text; host.appendChild(r); });
+    items.forEach(function(e){ var r=document.createElement("div"); r.className="tl-row"; r.innerHTML='<span class="tl-time" style="min-width:auto">'+(e.when||"")+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>'; r.querySelector(".tl-text").textContent=e.text; host.appendChild(r); });
   }
   var editingSaluteId=null;
   function startEditSalute(x){
@@ -3508,7 +3522,22 @@
     else { saluteLog.push({id:uid(), ts:Date.now(), voci:v, nota:nota, dove:doveAll, dovePer:dovePer, intens:intens}); toast("Registrato ✓"); }
     saveSaluteLog(); fastidiG.clear(); psicoG.clear(); doveG.clear(); fastIntens={}; psicoIntens={}; fastDove={}; document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
   };
-  (function(){ var b=document.getElementById("addSegnaposto"); if(b) b.onclick=function(){ var t=prompt("Segnaposto — cosa vuoi segnare? (es. cambio terapia, crisi, visita)"); if(t==null) return; t=(t||"").trim(); if(!t) return; segnaposti.push({id:uid(), ts:Date.now(), testo:t}); saveSegnaposti(); try{ renderSalute(); }catch(e){} toast("📌 Segnaposto aggiunto"); }; })();
+  (function(){
+    var b=document.getElementById("addSegnaposto"), f=document.getElementById("segnaForm");
+    if(b) b.onclick=function(){ if(!f) return; var willShow=f.hidden; f.hidden=!willShow; if(willShow){ document.getElementById("segnaTxt").value=""; document.getElementById("segnaDal").value=ymd(new Date()); document.getElementById("segnaAl").value=""; try{ document.getElementById("segnaTxt").focus(); }catch(e){} } };
+    var cx=document.getElementById("segnaCancel"); if(cx) cx.onclick=function(){ if(f) f.hidden=true; };
+    var sv=document.getElementById("segnaSave"); if(sv) sv.onclick=function(){
+      var t=(document.getElementById("segnaTxt").value||"").trim();
+      var dal=(document.getElementById("segnaDal").value||"").trim();
+      var al=(document.getElementById("segnaAl").value||"").trim();
+      if(!t){ toast("Scrivi cosa vuoi segnare"); return; }
+      if(!dal){ dal=ymd(new Date()); }
+      if(al && al<dal){ toast("La fine è prima dell'inizio"); return; }
+      var ts=new Date(dal+"T12:00:00").getTime(); if(isNaN(ts)) ts=Date.now();
+      segnaposti.push({id:uid(), ts:ts, dal:dal, al:(al||null), testo:t});
+      saveSegnaposti(); if(f) f.hidden=true; try{ renderSalute(); }catch(e){} toast("📌 Segnaposto aggiunto");
+    };
+  })();
 
   // ---- Parametri: pressione arteriosa, saturazione, battiti cardiaci ----
   var PARAM_LBL={pressione:"🩸 Pressione", saturazione:"🫁 Saturazione", battiti:"❤️ Battiti"};
