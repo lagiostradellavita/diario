@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 185; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 186; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -437,6 +437,8 @@
   .diario-fields[hidden]{display:none;}
   #diarioTipoSeg button, #diarioSigTipo button{font-size:14px; padding:11px 2px;}
   .tl-row{display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--line);}
+  .tl-row.pil-varmark{ background:var(--surface-2); border-radius:6px; padding-left:6px; padding-right:6px; }
+  .tl-row.pil-varmark .tl-text{ font-weight:600; }
   .tl-time{flex:0 0 auto; font-size:14px; font-weight:800; color:var(--ink-soft); font-variant-numeric:tabular-nums; min-width:46px; padding-top:2px;}
   .tl-row input.tl-time-edit{flex:1 1 auto; font-family:inherit; font-size:14px; line-height:1.2; padding:4px 6px; min-height:0; height:30px; box-sizing:border-box; border:1.5px solid var(--accent); border-radius:8px; background:var(--surface); color:var(--ink); min-width:0; max-width:100%;}
   .tl-timebtn{font-size:16px;}
@@ -1888,7 +1890,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v185</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v186</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2588,9 +2590,15 @@
           stRows.push({ ts:tv, dayKeyOverride:ed, emoji:"💊", text:nm+(ora?" · programmata "+ora:""), note:(notes[k]||""), onNote:(function(key){ return function(v){ v=(v||"").trim(); if(v) notes[key]=v; else delete notes[key]; saveNotes(); render(); }; })(k), onToSalute:((notes[k]||"")?(function(key,nmm){ return function(){ pushToSalute(notes[key], "da Pillole ("+nmm+")", taken[key]); }; })(k,nm):null), onDelete:(function(key){ return function(){ if(confirm("Togliere questa presa dallo storico?")){ delete taken[key]; delete notes[key]; saveTaken(); saveNotes(); render(); } }; })(k) }); });
         var _rdk=dayKey(new Date()), _tdk=pillDayKey(new Date()), _nm=(_tdk===_rdk)?(new Date().getHours()*60+new Date().getMinutes()):(24*60);
         function pillDayStat(dk){ var isT=(dk===_tdk), sc=0, tk=0; defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.dal && dk<p.dal) return; if(p.al && dk>p.al) return; if(p.attivo===false){ var _fk=(p.fine!=null)?dayKey(new Date(p.fine)):(p.al||null); if(!_fk || dk>_fk) return; } (p.orari||[]).forEach(function(o){ if(isT && oraMin(o)>_nm) return; sc++; if(takenEff[dk] && takenEff[dk][p.id+"|"+o]) tk++; }); }); return {sched:sc, taken:tk}; }
+        var VARW={aggiunta:"aggiunta", modifica:"modifica", finita:"cura finita", ripresa:"ripresa", eliminata:"eliminata"};
+        var chByDay={};
+        chlog.forEach(function(e){ var _cdk=dayKey(new Date(e.ts)); (chByDay[_cdk]||(chByDay[_cdk]=[])).push(e); stRows.push({ ts:e.ts, emoji:"📌", text:"Variazione ("+(VARW[e.tipo]||e.tipo)+"): "+(e.testo||""), rowClass:"pil-varmark" }); });
         renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora.",
           dayClass:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return ""; return s.taken>=s.sched?"done-ok":"done-miss"; },
-          headExtra:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return null; var sp=document.createElement("span"); sp.className="dmal"; if(s.taken>=s.sched){ sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutte prese"; } else { var m=s.sched-s.taken; sp.style.color="var(--lvl-high)"; sp.textContent="⚠ "+m+(m===1?" saltata":" saltate"); } return sp; }
+          headExtra:function(g){ var s=pillDayStat(g.dk); var wrap=document.createElement("span");
+            if(s.sched){ var sp=document.createElement("span"); sp.className="dmal"; if(s.taken>=s.sched){ sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutte prese"; } else { var m=s.sched-s.taken; sp.style.color="var(--lvl-high)"; sp.textContent="⚠ "+m+(m===1?" saltata":" saltate"); } wrap.appendChild(sp); }
+            var chs=chByDay[g.dk]; if(chs && chs.length){ var pin=document.createElement("span"); pin.className="dmal"; pin.style.marginLeft=s.sched?"8px":"0"; pin.textContent="📌 variazione"+(chs.length>1?" ("+chs.length+")":""); pin.title=chs.map(function(e){ return e.testo; }).join("\n"); wrap.appendChild(pin); }
+            return wrap.childNodes.length?wrap:null; }
         });
       }
     }
