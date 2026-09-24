@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 186; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 187; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -439,6 +439,8 @@
   .tl-row{display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--line);}
   .tl-row.pil-varmark{ background:var(--surface-2); border-radius:6px; padding-left:6px; padding-right:6px; }
   .tl-row.pil-varmark .tl-text{ font-weight:600; }
+  .tl-row.rilevante .tl-text{ font-weight:600; }
+  .tl-row.segnaposto-row{ background:var(--surface-2); border-radius:6px; padding-left:6px; padding-right:6px; }
   .tl-time{flex:0 0 auto; font-size:14px; font-weight:800; color:var(--ink-soft); font-variant-numeric:tabular-nums; min-width:46px; padding-top:2px;}
   .tl-row input.tl-time-edit{flex:1 1 auto; font-family:inherit; font-size:14px; line-height:1.2; padding:4px 6px; min-height:0; height:30px; box-sizing:border-box; border:1.5px solid var(--accent); border-radius:8px; background:var(--surface); color:var(--ink); min-width:0; max-width:100%;}
   .tl-timebtn{font-size:16px;}
@@ -1500,6 +1502,16 @@
       </div>
     </section>
     <section class="card">
+      <div class="food-cat" id="collapRilevanti">
+        <button type="button" class="fc-head" id="headRilevanti"><span id="lblRilevanti">⭐ Eventi rilevanti</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyRilevanti" hidden>
+          <p class="fineprint" style="margin:2px 0 8px">Le cose importanti: i fastidi che segni con la ⭐ qui sotto nello Storico, e i 📌 segnaposto che aggiungi a mano (es. «cambio terapia», «crisi», «visita»).</p>
+          <button type="button" class="link-btn" id="addSegnaposto" style="text-align:left;padding:8px 2px">📌 Aggiungi un segnaposto</button>
+          <div id="rilevantiList" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </section>
+    <section class="card">
       <h2 class="section-title">Storico</h2>
       <div id="saluteList"></div>
     </section>
@@ -1890,7 +1902,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v186</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v187</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3342,6 +3354,7 @@
   saluteCollapWire("headProgList","bodyProgList","collapProgList");
   saluteCollapWire("headVerifica","bodyVerifica","collapVerifica");
   saluteCollapWire("headSalute","bodySalute","collapSalute");
+  saluteCollapWire("headRilevanti","bodyRilevanti","collapRilevanti");
   (function(){ var h=document.getElementById("headSalute"); if(h){ var prev=h.onclick; h.onclick=function(){ if(prev) prev.call(this); if(!editingSaluteId){ var sw=document.getElementById("saluteWhen"); if(sw) sw.hidden=true; } }; } })();
   function updateSaluteCount(){
     var nf=fastidiG.selected().length, np=psicoG.selected().length;
@@ -3352,6 +3365,8 @@
   // (conteggio dello stato psicologico ora aggiornato da onPsicoChange)
   var saluteLog=[]; try{ var _sl=JSON.parse(localStorage.getItem("salute-log")); if(Array.isArray(_sl)) saluteLog=_sl; }catch(e){}
   function saveSaluteLog(){ try{ localStorage.setItem("salute-log", JSON.stringify(saluteLog)); }catch(e){} }
+  var segnaposti=[]; try{ var _sp=JSON.parse(localStorage.getItem("salute-segnaposti")); if(Array.isArray(_sp)) segnaposti=_sp; }catch(e){}
+  function saveSegnaposti(){ try{ localStorage.setItem("salute-segnaposti", JSON.stringify(segnaposti)); }catch(e){} }
   // Porta una nota di un'altra funzione dentro Salute, come fastidio, con la stessa ora
   function pushToSalute(sintomo, contesto, ts){
     sintomo=(sintomo||"").trim(); if(!sintomo){ toast("Nessuna nota da portare in Salute"); return; }
@@ -3407,6 +3422,7 @@
     sorted.forEach(function(x){ var dk=dayKey(new Date(x.ts)); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(x.ts), items:[]}; groups.push(byDay[dk]); } byDay[dk].items.push(x); });
     maggKeys.forEach(function(dk){ if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } });
     noteKeys.forEach(function(dk){ if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } });
+    segnaposti.forEach(function(s){ var dk=dayKey(new Date(s.ts)); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(s.ts), items:[]}; groups.push(byDay[dk]); } });
     if(!byDay[todayK]){ byDay[todayK]={dk:todayK, d:new Date(), items:[]}; groups.push(byDay[todayK]); } // oggi c'è sempre: così puoi aggiungere la nota di fine giornata anche senza fastidi
     // Mostra TUTTI i giorni, dalla prima registrazione a oggi, anche quelli vuoti (per aggiungere la nota di fine giornata a qualsiasi giorno)
     var _dks=groups.map(function(g){return g.dk;}); var _min=_dks.length?_dks.reduce(function(a,b){return a<b?a:b;}):todayK;
@@ -3422,6 +3438,8 @@
       var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
       var magg=(fastidiMaggiori[g.dk]||[]);
       if(magg.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">⭐</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+magg.join(", "); body.appendChild(mr); }
+      var segsDay=segnaposti.filter(function(s){ return dayKey(new Date(s.ts))===g.dk; }).sort(function(a,b){ return b.ts-a.ts; });
+      segsDay.forEach(function(s){ var sr=document.createElement("div"); sr.className="tl-row segnaposto-row"; sr.innerHTML='<span class="tl-time">'+hhmm(new Date(s.ts))+'</span><span class="tl-emoji">📌</span><span class="tl-text"></span>'; sr.querySelector(".tl-text").textContent=s.testo; var sd=document.createElement("button"); sd.className="tl-del"; sd.textContent="×"; sd.setAttribute("aria-label","Elimina segnaposto"); (function(ss){ sd.onclick=function(){ segnaposti=segnaposti.filter(function(y){return y.id!==ss.id;}); saveSegnaposti(); renderSalute(); }; })(s); sr.appendChild(sd); body.appendChild(sr); });
       g.items.forEach(function(x){
         var d=new Date(x.ts);
         var _parts=(x.voci||[]).map(function(v){ var dv=(x.dovePer && x.dovePer[v])?x.dovePer[v]:[]; var lv=(x.intens && x.intens[v])||2; return v+" ("+INT_LBL[lv]+")"+((dv&&dv.length)?" 📍"+dv.join("/"):""); });
@@ -3431,19 +3449,32 @@
         (x.voci||[]).forEach(function(v){ try{ var _e=String(v).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); _rem=_rem.replace(new RegExp("(^|[^0-9a-zàèéìòùáéíóúüç])"+_e+"([^0-9a-zàèéìòùáéíóúüç]|$)","gi"), "$1$2"); }catch(e){} });
         _rem=_rem.replace(/\s{2,}/g," ").replace(/^[\s.,;:·—-]+/,"").replace(/[\s.,;:·—-]+$/,"").trim();
         if(_rem){ stxt += (stxt?' — ':'') + _rem; }
-        var row=document.createElement("div"); row.className="tl-row salute-row";
+        var row=document.createElement("div"); row.className="tl-row salute-row"+(x.rilevante?" rilevante":"");
         row.innerHTML='<span class="tl-time">'+hhmm(d)+'</span><span class="tl-emoji">🤕</span><span class="tl-text"></span>';
         row.querySelector(".tl-text").textContent=stxt;
         var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Correggi"); ed.onclick=function(){ startEditSalute(x); };
         var te=document.createElement("button"); te.className="tl-edit tl-timebtn"; te.textContent="🕐"; te.setAttribute("aria-label","Correggi l'ora"); te.title="Correggi l'ora"; (function(xx,rowEl,btn){ btn.onclick=function(){ Array.prototype.forEach.call(rowEl.children,function(c){ c.style.display="none"; }); var inp=document.createElement("input"); inp.type="time"; inp.className="tl-time-edit"; inp.value=hhmm(new Date(xx.ts)); var ok=document.createElement("button"); ok.className="tl-time-ok"; ok.textContent="✓"; ok.setAttribute("aria-label","Conferma ora"); var cx=document.createElement("button"); cx.className="tl-time-cancel"; cx.textContent="✕"; cx.setAttribute("aria-label","Annulla"); rowEl.appendChild(inp); rowEl.appendChild(ok); rowEl.appendChild(cx); try{ inp.focus(); }catch(e){} var done=false; ok.onclick=function(){ if(done) return; done=true; if(inp.value){ var p=String(inp.value).split(":"); var nd=new Date(xx.ts); nd.setHours(parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0, 0); xx.ts=+nd; saveSaluteLog(); } renderSalute(); }; cx.onclick=function(){ if(done) return; done=true; renderSalute(); }; }; })(x,row,te);
         var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina");
         del.onclick=function(){ saluteLog=saluteLog.filter(function(y){return y.id!==x.id;}); if(editingSaluteId===x.id) cancelEditSalute(); saveSaluteLog(); renderSalute(); };
-        row.appendChild(ed); row.appendChild(te); row.appendChild(del); body.appendChild(row);
+        var st=document.createElement("button"); st.className="tl-edit"; st.textContent=x.rilevante?"⭐":"☆"; st.setAttribute("aria-label","Segna come rilevante"); st.title=x.rilevante?"Rilevante — tocca per togliere":"Segna come rilevante"; (function(xx){ st.onclick=function(){ xx.rilevante=!xx.rilevante; saveSaluteLog(); renderSalute(); }; })(x);
+        row.appendChild(st); row.appendChild(ed); row.appendChild(te); row.appendChild(del); body.appendChild(row);
       });
       body.appendChild(noteGSection(g.dk));
       h.onclick=function(){ var willOpen=body.hidden; body.hidden=!willOpen; saluteDayOpen[g.dk]=willOpen; var chev=h.querySelector(".dchev"); if(chev) chev.textContent=willOpen?"▾":"▸"; };
       host.appendChild(h); host.appendChild(body);
     });
+    try{ renderEventiRilevanti(); }catch(e){}
+  }
+  function renderEventiRilevanti(){
+    var host=document.getElementById("rilevantiList"); if(!host) return; host.innerHTML="";
+    var lbl=document.getElementById("lblRilevanti");
+    var items=[];
+    saluteLog.forEach(function(x){ if(x.rilevante){ var t=(x.voci||[]).join(", "); if(x.nota){ t+=(t?" — ":"")+x.nota; } items.push({ts:x.ts, emoji:"⭐", text:t||"(fastidio)"}); } });
+    segnaposti.forEach(function(s){ items.push({ts:s.ts, emoji:"📌", text:s.testo}); });
+    if(!items.length){ host.innerHTML='<div class="empty">Niente ancora. Segna un fastidio con la ⭐ qui sotto nello Storico, oppure aggiungi un 📌 segnaposto.</div>'; if(lbl) lbl.textContent="⭐ Eventi rilevanti"; return; }
+    items.sort(function(a,b){ return b.ts-a.ts; });
+    if(lbl) lbl.textContent="⭐ Eventi rilevanti · "+items.length;
+    items.forEach(function(e){ var r=document.createElement("div"); r.className="tl-row"; r.innerHTML='<span class="tl-time" style="min-width:auto">'+dmy(new Date(e.ts))+' '+hhmm(new Date(e.ts))+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>'; r.querySelector(".tl-text").textContent=e.text; host.appendChild(r); });
   }
   var editingSaluteId=null;
   function startEditSalute(x){
@@ -3477,6 +3508,7 @@
     else { saluteLog.push({id:uid(), ts:Date.now(), voci:v, nota:nota, dove:doveAll, dovePer:dovePer, intens:intens}); toast("Registrato ✓"); }
     saveSaluteLog(); fastidiG.clear(); psicoG.clear(); doveG.clear(); fastIntens={}; psicoIntens={}; fastDove={}; document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
   };
+  (function(){ var b=document.getElementById("addSegnaposto"); if(b) b.onclick=function(){ var t=prompt("Segnaposto — cosa vuoi segnare? (es. cambio terapia, crisi, visita)"); if(t==null) return; t=(t||"").trim(); if(!t) return; segnaposti.push({id:uid(), ts:Date.now(), testo:t}); saveSegnaposti(); try{ renderSalute(); }catch(e){} toast("📌 Segnaposto aggiunto"); }; })();
 
   // ---- Parametri: pressione arteriosa, saturazione, battiti cardiaci ----
   var PARAM_LBL={pressione:"🩸 Pressione", saturazione:"🫁 Saturazione", battiti:"❤️ Battiti"};
