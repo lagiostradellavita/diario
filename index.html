@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 203; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 204; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1918,7 +1918,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v203</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v204</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2621,14 +2621,10 @@
         var VARW={aggiunta:"aggiunta", modifica:"modifica", finita:"cura finita", ripresa:"ripresa", eliminata:"eliminata"};
         var chByDay={};
         chlog.forEach(function(e){ var _cdk=dayKey(new Date(e.ts)); (chByDay[_cdk]||(chByDay[_cdk]=[])).push(e); stRows.push({ ts:e.ts, emoji:"📌", text:"Variazione ("+(VARW[e.tipo]||e.tipo)+"): "+(e.testo||""), rowClass:"pil-varmark" }); });
-        Object.keys(takenEff).forEach(function(dk){ if(dk>=_tdk) return;
-          defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.dal && dk<p.dal) return; if(p.al && dk>p.al) return; if(p.attivo===false){ var _fk=(p.fine!=null)?dayKey(new Date(p.fine)):(p.al||null); if(!_fk || dk>_fk) return; }
-            var os=(p.orari||[]); if(!os.length) return; var tset={}, pre=p.id+"|"; Object.keys(takenEff[dk]).forEach(function(kk){ if(kk.indexOf(pre)===0) tset[kk.slice(pre.length)]=true; }); var tc=0; for(var _k in tset) tc++; var skipN=os.length-Math.min(tc, os.length); if(skipN<=0) return; var missing=os.filter(function(o){ return !tset[o]; }); missing.slice(0, skipN).forEach(function(o){ var ts=new Date(dk+"T"+o+":00").getTime(); if(isNaN(ts)) ts=new Date(dk+"T23:59:00").getTime(); stRows.push({ ts:ts, dayKeyOverride:dk, emoji:"⚠️", text:p.nome+" · saltata (era "+o+")", rowClass:"pil-skip" }); }); });
-        });
         renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora.", ascending:true,
-          dayClass:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return ""; return s.taken>=s.sched?"done-ok":"done-miss"; },
+          dayClass:function(g){ var s=pillDayStat(g.dk); return (s.sched>0 && s.taken>=s.sched)?"done-ok":""; },
           dayIcon:function(g){ return (chByDay[g.dk]&&chByDay[g.dk].length)?' <span class="dh-pin" title="Variazione (cambi, inizio/fine assunzione)">📌</span>':''; },
-          headExtra:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return null; var sp=document.createElement("span"); sp.className="dmal"; if(s.taken>=s.sched){ sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutte prese"; } else { var m=s.sched-s.taken; sp.style.color="var(--lvl-high)"; sp.textContent="⚠ "+m+(m===1?" saltata":" saltate"); } return sp; }
+          headExtra:function(g){ var s=pillDayStat(g.dk); if(s.sched>0 && s.taken>=s.sched){ var sp=document.createElement("span"); sp.className="dmal"; sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutte prese"; return sp; } return null; }
         });
       }
     }
