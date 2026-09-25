@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 205; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 206; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1918,7 +1918,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v205</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v206</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2618,12 +2618,12 @@
         Object.keys(taken).forEach(function(k){ var tv=taken[k]; if(typeof tv!=="number") return; var parts=k.split("|"); var nm=nmeById[parts[1]]||"Pillola", ora=parts[2]; var ed=effPillDay(ora, tv); (takenEff[ed]||(takenEff[ed]={}))[parts[1]+"|"+ora]=true;
           stRows.push({ ts:tv, dayKeyOverride:ed, emoji:"💊", text:nm+(ora?" · programmata "+ora:""), note:(notes[k]||""), onNote:(function(key){ return function(v){ v=(v||"").trim(); if(v) notes[key]=v; else delete notes[key]; saveNotes(); render(); }; })(k), onToSalute:((notes[k]||"")?(function(key,nmm){ return function(){ pushToSalute(notes[key], "da Pillole ("+nmm+")", taken[key]); }; })(k,nm):null), onDelete:(function(key){ return function(){ if(confirm("Togliere questa presa dallo storico?")){ delete taken[key]; delete notes[key]; saveTaken(); saveNotes(); render(); } }; })(k) }); });
         var _rdk=dayKey(new Date()), _tdk=pillDayKey(new Date()), _nm=(_tdk===_rdk)?(new Date().getHours()*60+new Date().getMinutes()):(24*60);
-        function pillDayStat(dk){ var isT=(dk===_tdk), sc=0, tk=0; defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.dal && dk<p.dal) return; if(p.al && dk>p.al) return; if(p.attivo===false){ var _fk=(p.fine!=null)?dayKey(new Date(p.fine)):(p.al||null); if(!_fk || dk>_fk) return; } var schedDay=0; (p.orari||[]).forEach(function(o){ if(isT && oraMin(o)>_nm) return; schedDay++; }); sc+=schedDay; var tc=0; if(takenEff[dk]){ var pre=p.id+"|"; Object.keys(takenEff[dk]).forEach(function(kk){ if(kk.indexOf(pre)===0) tc++; }); } tk+=Math.min(tc, schedDay); }); return {sched:sc, taken:tk}; }
+        function pillDayStat(dk){ var isT=(dk===_tdk), sc=0, tk=0; defs.forEach(function(p){ if(p.dal){ if(dk<p.dal) return; } else if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.al && dk>p.al) return; if(p.attivo===false){ var _fk=(p.fine!=null)?dayKey(new Date(p.fine)):(p.al||null); if(!_fk || dk>_fk) return; } var schedDay=0; (p.orari||[]).forEach(function(o){ if(isT && oraMin(o)>_nm) return; schedDay++; }); sc+=schedDay; var tc=0; if(takenEff[dk]){ var pre=p.id+"|"; Object.keys(takenEff[dk]).forEach(function(kk){ if(kk.indexOf(pre)===0) tc++; }); } tk+=Math.min(tc, schedDay); }); return {sched:sc, taken:tk}; }
         var VARW={aggiunta:"aggiunta", modifica:"modifica", finita:"cura finita", ripresa:"ripresa", eliminata:"eliminata"};
         var chByDay={};
         chlog.forEach(function(e){ var _cdk=dayKey(new Date(e.ts)); (chByDay[_cdk]||(chByDay[_cdk]=[])).push(e); stRows.push({ ts:e.ts, emoji:"📌", text:"Variazione ("+(VARW[e.tipo]||e.tipo)+"): "+(e.testo||""), rowClass:"pil-varmark" }); });
         Object.keys(takenEff).forEach(function(dk){ if(dk>=_tdk) return;
-          defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.dal && dk<p.dal) return; if(p.al && dk>p.al) return; if(p.attivo===false){ var _fk=(p.fine!=null)?dayKey(new Date(p.fine)):(p.al||null); if(!_fk || dk>_fk) return; }
+          defs.forEach(function(p){ if(p.dal){ if(dk<p.dal) return; } else if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.al && dk>p.al) return; if(p.attivo===false){ var _fk=(p.fine!=null)?dayKey(new Date(p.fine)):(p.al||null); if(!_fk || dk>_fk) return; }
             var os=(p.orari||[]); if(!os.length) return; var tset={}, pre=p.id+"|"; Object.keys(takenEff[dk]).forEach(function(kk){ if(kk.indexOf(pre)===0) tset[kk.slice(pre.length)]=true; }); var tc=0; for(var _k in tset) tc++; var skipN=os.length-Math.min(tc, os.length); if(skipN<=0) return; var missing=os.filter(function(o){ return !tset[o]; }); missing.slice(0, skipN).forEach(function(o){ var ts=new Date(dk+"T"+o+":00").getTime(); if(isNaN(ts)) ts=new Date(dk+"T23:59:00").getTime(); stRows.push({ ts:ts, dayKeyOverride:dk, emoji:"⚠️", text:p.nome+" · saltata (programmata "+o+")", rowClass:"pil-skip", onCheck:(function(pid,ora,tts){ return function(){ taken[pillDayKey(new Date(tts))+"|"+pid+"|"+ora]=tts; saveTaken(); render(); }; })(p.id,o,ts) }); }); });
         });
         renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora.", ascending:true,
