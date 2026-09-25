@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 192; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 193; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1490,7 +1490,7 @@
     </section>
     <section class="card" style="display:none">
       <div class="food-cat" id="collapMaggiori">
-        <button type="button" class="fc-head" id="headMaggiori"><span id="lblMaggiori">⭐ Fastidi maggiori di oggi</span><span class="fc-arrow">›</span></button>
+        <button type="button" class="fc-head" id="headMaggiori"><span id="lblMaggiori">📌 Fastidi maggiori di oggi</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodyMaggiori" hidden>
           <p class="fineprint" style="margin:2px 0 8px">Scegli i fastidi che oggi ti hanno dato più fastidio: compaiono in evidenza in cima alla giornata nello Storico.</p>
           <div id="maggioriChips" class="chips"></div>
@@ -1506,7 +1506,7 @@
       <div class="food-cat" id="collapRilevanti">
         <button type="button" class="fc-head" id="headRilevanti"><span id="lblRilevanti">📌 Eventi rilevanti</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodyRilevanti" hidden>
-          <p class="fineprint" style="margin:2px 0 8px">Le cose importanti: i fastidi che segni con la ⭐ qui sotto nello Storico, e i 📌 segnaposto che aggiungi a mano (es. «cambio terapia», «crisi», «visita»).</p>
+          <p class="fineprint" style="margin:2px 0 8px">Le cose importanti: i fastidi che segni con il 📌 qui sotto nello Storico, e i 📌 segnaposto che aggiungi a mano (es. «cambio terapia», «crisi», «visita»).</p>
           <button type="button" class="link-btn" id="addSegnaposto" style="text-align:left;padding:8px 2px">📌 Aggiungi un segnaposto</button>
           <div class="detail" id="segnaForm" hidden style="margin-top:6px">
             <div class="field"><label for="segnaTxt">Cosa segni</label><input type="text" id="segnaTxt" placeholder="es. crisi con Giusy, grosso malessere…"></div>
@@ -1917,7 +1917,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v192</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v193</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3269,7 +3269,7 @@
   // Fastidi maggiori del giorno: selezione libera a parte, mostrata in cima alla giornata nello Storico
   var fastidiMaggiori={}; try{ var _fm=JSON.parse(localStorage.getItem("salute-fastidi-maggiori")); if(_fm && typeof _fm==="object") fastidiMaggiori=_fm; }catch(e){}
   function saveFastidiMaggiori(){ try{ localStorage.setItem("salute-fastidi-maggiori", JSON.stringify(fastidiMaggiori)); }catch(e){} }
-  function updateMaggioriCount(){ var lm=document.getElementById("lblMaggiori"); if(!lm) return; var n=maggioriG.selected().length; lm.textContent="⭐ Fastidi maggiori di oggi"+(n?" · "+n+(n===1?" scelto":" scelti"):""); }
+  function updateMaggioriCount(){ var lm=document.getElementById("lblMaggiori"); if(!lm) return; var n=maggioriG.selected().length; lm.textContent="📌 Fastidi maggiori di oggi"+(n?" · "+n+(n===1?" scelto":" scelti"):""); }
   function onMaggioriChange(){ var dk=dayKey(new Date()); var s=maggioriG.selected(); if(s.length) fastidiMaggiori[dk]=s; else delete fastidiMaggiori[dk]; saveFastidiMaggiori(); updateMaggioriCount(); try{ renderSalute(); }catch(e){} }
   var maggioriG=makeChipGroup("maggioriChips", FASTIDI.concat(PSICO), "salute-maggiori-opts", false, {sortAlpha:true, onChange:onMaggioriChange, manageId:"maggioriManage"});
   wireAdd("maggioriAddInput","maggioriAddBtn", maggioriG);
