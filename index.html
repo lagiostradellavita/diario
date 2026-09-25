@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 196; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 197; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1917,7 +1917,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v196</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v197</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3500,7 +3500,12 @@
     if(!items.length){ host.innerHTML='<div class="empty">Niente ancora. Segna un fastidio con il 📌 qui sotto nello Storico, oppure aggiungi un 📌 segnaposto.</div>'; if(lbl) lbl.textContent="📌 Eventi rilevanti"; return; }
     items.sort(function(a,b){ return b.ts-a.ts; });
     if(lbl) lbl.textContent="📌 Eventi rilevanti · "+items.length;
-    items.forEach(function(e){ var r=document.createElement("div"); r.className="tl-row"; r.innerHTML='<span class="tl-time" style="min-width:auto">'+(e.when||"")+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>'; r.querySelector(".tl-text").textContent=e.text;
+    items.forEach(function(e){ var r=document.createElement("div"); r.className="tl-row"; r.style.alignItems="flex-start";
+      var em=document.createElement("span"); em.className="tl-emoji"; em.textContent=e.emoji;
+      var tx=document.createElement("span"); tx.className="tl-text"; tx.style.flex="1 1 auto"; tx.style.minWidth="0"; tx.style.overflowWrap="break-word";
+      var mn=document.createElement("div"); mn.textContent=e.text;
+      var sb=document.createElement("div"); sb.style.cssText="font-size:11px;color:var(--muted);margin-top:2px"; sb.textContent=e.when||"";
+      tx.appendChild(mn); tx.appendChild(sb); r.appendChild(em); r.appendChild(tx);
       var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Modifica");
       var dl=document.createElement("button"); dl.className="tl-del"; dl.textContent="×"; dl.setAttribute("aria-label","Elimina");
       if(e.kind==="seg"){ (function(s){ ed.onclick=function(){ openSegnaForm(s); }; dl.title="Elimina segnaposto"; dl.onclick=function(){ if(confirm("Eliminare il segnaposto «"+s.testo+"»?")){ segnaposti=segnaposti.filter(function(y){return y.id!==s.id;}); saveSegnaposti(); renderSalute(); } }; })(e.ref); }
