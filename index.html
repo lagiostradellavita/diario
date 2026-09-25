@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 190; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 191; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1916,7 +1916,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v190</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v191</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3451,7 +3451,7 @@
       h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+(_dayNote?' <span class="dh-note" title="Nota di fine giornata">📝</span>':'')+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+'<span class="dmal">'+(ml?(MAL_LBL[ml]+' ('+cnt+iw+')'):'nessun fastidio')+'</span>';
       var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
       var maggList=[]; saluteLog.forEach(function(x){ if(x.rilevante && dayKey(new Date(x.ts))===g.dk){ (x.voci||[]).forEach(function(v){ if(maggList.indexOf(v)<0) maggList.push(v); }); } });
-      if(maggList.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">⭐</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+maggList.join(", "); body.appendChild(mr); }
+      if(maggList.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">📌</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+maggList.join(", "); body.appendChild(mr); }
       var segsDay=segnaposti.filter(function(s){ var d1=s.dal||dayKey(new Date(s.ts)); var d2=s.al||d1; return g.dk>=d1 && g.dk<=d2; }).sort(function(a,b){ return b.ts-a.ts; });
       segsDay.forEach(function(s){ var sr=document.createElement("div"); sr.className="tl-row segnaposto-row"; sr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">📌</span><span class="tl-text"></span>'; sr.querySelector(".tl-text").textContent=s.testo; var sd=document.createElement("button"); sd.className="tl-del"; sd.textContent="×"; sd.setAttribute("aria-label","Elimina segnaposto"); (function(ss){ sd.onclick=function(){ segnaposti=segnaposti.filter(function(y){return y.id!==ss.id;}); saveSegnaposti(); renderSalute(); }; })(s); sr.appendChild(sd); body.appendChild(sr); });
       g.items.forEach(function(x){
@@ -3470,7 +3470,7 @@
         var te=document.createElement("button"); te.className="tl-edit tl-timebtn"; te.textContent="🕐"; te.setAttribute("aria-label","Correggi l'ora"); te.title="Correggi l'ora"; (function(xx,rowEl,btn){ btn.onclick=function(){ Array.prototype.forEach.call(rowEl.children,function(c){ c.style.display="none"; }); var inp=document.createElement("input"); inp.type="time"; inp.className="tl-time-edit"; inp.value=hhmm(new Date(xx.ts)); var ok=document.createElement("button"); ok.className="tl-time-ok"; ok.textContent="✓"; ok.setAttribute("aria-label","Conferma ora"); var cx=document.createElement("button"); cx.className="tl-time-cancel"; cx.textContent="✕"; cx.setAttribute("aria-label","Annulla"); rowEl.appendChild(inp); rowEl.appendChild(ok); rowEl.appendChild(cx); try{ inp.focus(); }catch(e){} var done=false; ok.onclick=function(){ if(done) return; done=true; if(inp.value){ var p=String(inp.value).split(":"); var nd=new Date(xx.ts); nd.setHours(parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0, 0); xx.ts=+nd; saveSaluteLog(); } renderSalute(); }; cx.onclick=function(){ if(done) return; done=true; renderSalute(); }; }; })(x,row,te);
         var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina");
         del.onclick=function(){ saluteLog=saluteLog.filter(function(y){return y.id!==x.id;}); if(editingSaluteId===x.id) cancelEditSalute(); saveSaluteLog(); renderSalute(); };
-        var st=document.createElement("button"); st.className="tl-edit"; st.textContent=x.rilevante?"⭐":"☆"; st.setAttribute("aria-label","Segna come rilevante"); st.title=x.rilevante?"Rilevante — tocca per togliere":"Segna come rilevante"; (function(xx){ st.onclick=function(){ xx.rilevante=!xx.rilevante; saveSaluteLog(); renderSalute(); }; })(x);
+        var st=document.createElement("button"); st.className="tl-edit"; st.textContent="📌"; st.style.opacity=x.rilevante?"1":"0.3"; st.setAttribute("aria-label","Segna come rilevante"); st.title=x.rilevante?"Rilevante — tocca per togliere":"Segna come rilevante (📌)"; (function(xx){ st.onclick=function(){ xx.rilevante=!xx.rilevante; saveSaluteLog(); renderSalute(); }; })(x);
         row.appendChild(st); row.appendChild(ed); row.appendChild(te); row.appendChild(del); body.appendChild(row);
       });
       body.appendChild(noteGSection(g.dk));
@@ -3483,9 +3483,9 @@
     var host=document.getElementById("rilevantiList"); if(!host) return; host.innerHTML="";
     var lbl=document.getElementById("lblRilevanti");
     var items=[];
-    saluteLog.forEach(function(x){ if(x.rilevante){ var t=(x.voci||[]).join(", "); if(x.nota){ t+=(t?" — ":"")+x.nota; } items.push({ts:x.ts, when:dmy(new Date(x.ts))+" "+hhmm(new Date(x.ts)), emoji:"⭐", text:t||"(fastidio)"}); } });
+    saluteLog.forEach(function(x){ if(x.rilevante){ var t=(x.voci||[]).join(", "); if(x.nota){ t+=(t?" — ":"")+x.nota; } items.push({ts:x.ts, when:dmy(new Date(x.ts))+" "+hhmm(new Date(x.ts)), emoji:"📌", text:t||"(fastidio)"}); } });
     segnaposti.forEach(function(s){ items.push({ts:s.ts, when:dmy(new Date(s.ts))+(s.al?(" → "+dmy(new Date(s.al+"T12:00:00"))):""), emoji:"📌", text:s.testo}); });
-    if(!items.length){ host.innerHTML='<div class="empty">Niente ancora. Segna un fastidio con la ⭐ qui sotto nello Storico, oppure aggiungi un 📌 segnaposto.</div>'; if(lbl) lbl.textContent="📌 Eventi rilevanti"; return; }
+    if(!items.length){ host.innerHTML='<div class="empty">Niente ancora. Segna un fastidio con il 📌 qui sotto nello Storico, oppure aggiungi un 📌 segnaposto.</div>'; if(lbl) lbl.textContent="📌 Eventi rilevanti"; return; }
     items.sort(function(a,b){ return b.ts-a.ts; });
     if(lbl) lbl.textContent="📌 Eventi rilevanti · "+items.length;
     items.forEach(function(e){ var r=document.createElement("div"); r.className="tl-row"; r.innerHTML='<span class="tl-time" style="min-width:auto">'+(e.when||"")+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>'; r.querySelector(".tl-text").textContent=e.text; host.appendChild(r); });
