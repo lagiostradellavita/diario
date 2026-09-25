@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 206; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 207; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1918,7 +1918,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v206</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v207</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2178,7 +2178,7 @@
         onToSalute:(e.nota?(function(ee,lbl){ return function(){ pushToSalute(ee.nota, "dopo sigaretta ("+lbl+")", +new Date(ee.ts)); }; })(e, meta.label):null),
         onEdit:(function(ee){ return function(){ startEditFumo(ee); }; })(e),
         onDelete:(function(ee){ return function(){ deleteEntry(ee.id); }; })(e) }; });
-    renderStorico("history", rows, storOpen.fumo, {empty:'Ancora niente.<br>Tocca un pulsante qui sopra per iniziare.',
+    renderStorico("history", rows, storOpen.fumo, {empty:'Ancora niente.<br>Tocca un pulsante qui sopra per iniziare.', desc:true,
       dayClass:function(g){ var tot=g.items.reduce(function(s,r){ return s+(r.q||0); },0); return "fumo-"+levelOf(tot); },
       headExtra:function(g){ var tot=g.items.reduce(function(s,r){ return s+(r.q||0); },0); var sp=document.createElement("span"); sp.className="dmal"; sp.style.color="var("+lvlVar(levelOf(tot))+")"; sp.textContent=num(tot)+(tot===1?" sigaretta":" sigarette"); return sp; }});
   }
@@ -2451,7 +2451,7 @@
     opts=opts||{};
     var host=document.getElementById(hostId); if(!host) return; host.innerHTML="";
     if(!rows || !rows.length){ host.innerHTML='<div class="empty">'+(opts.empty||"Ancora niente.")+'</div>'; return; }
-    var sorted=rows.slice().sort(function(a,b){ return a.ts-b.ts; });
+    var sorted=rows.slice().sort(function(a,b){ return opts.desc ? (b.ts-a.ts) : (a.ts-b.ts); });
     var todayK=dayKey(new Date());
     var groups=[], byDay={};
     sorted.forEach(function(r){ var dk=(r.dayKeyOverride||dayKey(new Date(r.ts))); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } byDay[dk].items.push(r); });
