@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 202; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 203; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1918,7 +1918,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v202</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v203</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2451,7 +2451,7 @@
     opts=opts||{};
     var host=document.getElementById(hostId); if(!host) return; host.innerHTML="";
     if(!rows || !rows.length){ host.innerHTML='<div class="empty">'+(opts.empty||"Ancora niente.")+'</div>'; return; }
-    var sorted=rows.slice().sort(function(a,b){ return opts.ascending ? (a.ts-b.ts) : (b.ts-a.ts); });
+    var sorted=rows.slice().sort(function(a,b){ return a.ts-b.ts; });
     var todayK=dayKey(new Date());
     var groups=[], byDay={};
     sorted.forEach(function(r){ var dk=(r.dayKeyOverride||dayKey(new Date(r.ts))); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } byDay[dk].items.push(r); });
@@ -3445,7 +3445,7 @@
     var host=document.getElementById("saluteList"); host.innerHTML="";
     var maggKeys=Object.keys(fastidiMaggiori).filter(function(k){ return (fastidiMaggiori[k]||[]).length; });
     var noteKeys=Object.keys(noteGiornata).filter(function(k){ return (noteGiornata[k]||"").trim(); });
-    var sorted=saluteLog.slice().sort(function(a,b){ return b.ts-a.ts; });
+    var sorted=saluteLog.slice().sort(function(a,b){ return a.ts-b.ts; });
     var todayK=dayKey(new Date());
     // Raggruppa per giorno, stessa impaginazione del Diario (a scomparsa + colore malessere + righe timeline)
     var groups=[], byDay={};
@@ -3469,7 +3469,7 @@
       var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
       var maggList=[]; saluteLog.forEach(function(x){ if(x.rilevante && dayKey(new Date(x.ts))===g.dk){ (x.voci||[]).forEach(function(v){ if(maggList.indexOf(v)<0) maggList.push(v); }); } });
       if(maggList.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">📌</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+maggList.join(", "); body.appendChild(mr); }
-      var segsDay=segnaposti.filter(function(s){ var d1=s.dal||dayKey(new Date(s.ts)); var d2=s.al||d1; return g.dk>=d1 && g.dk<=d2; }).sort(function(a,b){ return b.ts-a.ts; });
+      var segsDay=segnaposti.filter(function(s){ var d1=s.dal||dayKey(new Date(s.ts)); var d2=s.al||d1; return g.dk>=d1 && g.dk<=d2; }).sort(function(a,b){ return a.ts-b.ts; });
       segsDay.forEach(function(s){ var sr=document.createElement("div"); sr.className="tl-row segnaposto-row"; sr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">📌</span><span class="tl-text"></span>'; sr.querySelector(".tl-text").textContent=s.testo; var sd=document.createElement("button"); sd.className="tl-del"; sd.textContent="×"; sd.setAttribute("aria-label","Elimina segnaposto"); (function(ss){ sd.onclick=function(){ segnaposti=segnaposti.filter(function(y){return y.id!==ss.id;}); saveSegnaposti(); renderSalute(); }; })(s); sr.appendChild(sd); body.appendChild(sr); });
       g.items.forEach(function(x){
         var d=new Date(x.ts);
