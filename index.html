@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 189; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 190; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1916,7 +1916,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v189</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v190</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3450,7 +3450,8 @@
       var _dayNote=!!(noteGiornata[g.dk]||"").trim();
       h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+(_dayNote?' <span class="dh-note" title="Nota di fine giornata">📝</span>':'')+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+'<span class="dmal">'+(ml?(MAL_LBL[ml]+' ('+cnt+iw+')'):'nessun fastidio')+'</span>';
       var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
-      /* «Fastidi maggiori di oggi» rimosso su richiesta (25/09/2026) */
+      var maggList=[]; saluteLog.forEach(function(x){ if(x.rilevante && dayKey(new Date(x.ts))===g.dk){ (x.voci||[]).forEach(function(v){ if(maggList.indexOf(v)<0) maggList.push(v); }); } });
+      if(maggList.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">⭐</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+maggList.join(", "); body.appendChild(mr); }
       var segsDay=segnaposti.filter(function(s){ var d1=s.dal||dayKey(new Date(s.ts)); var d2=s.al||d1; return g.dk>=d1 && g.dk<=d2; }).sort(function(a,b){ return b.ts-a.ts; });
       segsDay.forEach(function(s){ var sr=document.createElement("div"); sr.className="tl-row segnaposto-row"; sr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">📌</span><span class="tl-text"></span>'; sr.querySelector(".tl-text").textContent=s.testo; var sd=document.createElement("button"); sd.className="tl-del"; sd.textContent="×"; sd.setAttribute("aria-label","Elimina segnaposto"); (function(ss){ sd.onclick=function(){ segnaposti=segnaposti.filter(function(y){return y.id!==ss.id;}); saveSegnaposti(); renderSalute(); }; })(s); sr.appendChild(sd); body.appendChild(sr); });
       g.items.forEach(function(x){
