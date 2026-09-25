@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 194; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 195; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1917,7 +1917,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v194</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v195</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2461,7 +2461,7 @@
       var mlClass="", dmalHtml="";
       if(opts.malessere){ var cnt=dayMalessere(g.dk), sc=dayScore(g.dk), ml=malLevel(sc); if(ml){ mlClass=" mal"+ml; var iw=cnt?(" · "+INT_LBL[Math.max(1,Math.min(3,Math.round(sc/cnt)))]):""; dmalHtml='<span class="dmal">'+MAL_LBL[ml]+' ('+cnt+iw+')</span>'; } }
       var h=document.createElement("div"); h.className="day-head day-toggle"+mlClass+(opts.dayClass?" "+(opts.dayClass(g)||""):"");
-      h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+dmalHtml;
+      var _dicon=opts.dayIcon?(opts.dayIcon(g)||""):""; h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+_dicon+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+dmalHtml;
       if(opts.headExtra){ try{ var ex=opts.headExtra(g); if(ex) h.appendChild(ex); }catch(e){} }
       var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
       if(!g.items.length){ var _er=document.createElement("div"); _er.className="tl-row tl-empty-day"; _er.innerHTML='<span class="tl-emoji">—</span><span class="tl-text"></span>'; _er.querySelector(".tl-text").textContent=(opts.emptyDayText||"Niente registrato"); body.appendChild(_er); }
@@ -2622,10 +2622,8 @@
         chlog.forEach(function(e){ var _cdk=dayKey(new Date(e.ts)); (chByDay[_cdk]||(chByDay[_cdk]=[])).push(e); stRows.push({ ts:e.ts, emoji:"📌", text:"Variazione ("+(VARW[e.tipo]||e.tipo)+"): "+(e.testo||""), rowClass:"pil-varmark" }); });
         renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora.",
           dayClass:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return ""; return s.taken>=s.sched?"done-ok":"done-miss"; },
-          headExtra:function(g){ var s=pillDayStat(g.dk); var wrap=document.createElement("span");
-            if(s.sched){ var sp=document.createElement("span"); sp.className="dmal"; if(s.taken>=s.sched){ sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutte prese"; } else { var m=s.sched-s.taken; sp.style.color="var(--lvl-high)"; sp.textContent="⚠ "+m+(m===1?" saltata":" saltate"); } wrap.appendChild(sp); }
-            var chs=chByDay[g.dk]; if(chs && chs.length){ var pin=document.createElement("span"); pin.className="dmal"; pin.style.marginLeft=s.sched?"8px":"0"; pin.textContent="📌 variazione"+(chs.length>1?" ("+chs.length+")":""); pin.title=chs.map(function(e){ return e.testo; }).join("\n"); wrap.appendChild(pin); }
-            return wrap.childNodes.length?wrap:null; }
+          dayIcon:function(g){ return (chByDay[g.dk]&&chByDay[g.dk].length)?' <span class="dh-pin" title="Variazione (cambi, inizio/fine assunzione)">📌</span>':''; },
+          headExtra:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return null; var sp=document.createElement("span"); sp.className="dmal"; if(s.taken>=s.sched){ sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutte prese"; } else { var m=s.sched-s.taken; sp.style.color="var(--lvl-high)"; sp.textContent="⚠ "+m+(m===1?" saltata":" saltate"); } return sp; }
         });
       }
     }
