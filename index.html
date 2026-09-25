@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 191; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 192; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1213,6 +1213,7 @@
         <div id="pilEditActions" style="display:none; margin-top:6px; border-top:1px solid var(--line); padding-top:8px; flex-wrap:wrap; gap:8px">
           <button type="button" class="link-btn" id="pilFinish" style="width:auto">🏁 Segna come finita</button>
           <button type="button" class="link-btn" id="pilDelete" style="width:auto; color:var(--lvl-high)">🗑 Elimina del tutto</button>
+          <button type="button" class="link-btn" id="pilFillPeriod" style="width:auto">📌 Segna le assunzioni del periodo</button>
         </div>
       </div>
       <div id="pilFiniteWrap" style="margin-top:8px"></div>
@@ -1916,7 +1917,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v191</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v192</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2699,6 +2700,18 @@
         var msg=hasHist?("Eliminare «"+p.nome+"» del tutto? Spariranno anche le prese dallo storico. Se hai solo finito la cura usa «🏁 Segna come finita»."):("Eliminare «"+p.nome+"»?");
         if(confirm(msg)){ deleteDef(editId); editId=null; document.getElementById(I.form).hidden=true; render(); toast("Eliminata"); }
       };
+      var fp=document.getElementById(I.fillPeriod);
+      if(fp) fp.onclick=function(){ if(!editId) return; var p=null; defs.forEach(function(x){ if(x.id===editId) p=x; }); if(!p) return;
+        var os=(p.orari||[]).filter(Boolean); if(!os.length){ toast("Aggiungi prima gli orari"); return; }
+        var minK=null; Object.keys(taken).forEach(function(k){ var d=k.split("|")[0]; if(d && (minK===null || d<minK)) minK=d; });
+        var startK=p.dal||minK||(p.createdTs?pillDayKey(new Date(p.createdTs)):pillDayKey(new Date()));
+        var endK=p.al||(p.fine!=null?pillDayKey(new Date(p.fine)):pillDayKey(new Date()));
+        if(endK<startK){ toast("La fine è prima dell'inizio"); return; }
+        if(!confirm("Segnare «"+p.nome+"» come presa ogni giorno dal "+startK+" al "+endK+", alle "+os.join(", ")+"?")) return;
+        var a=new Date(startK+"T12:00:00"), b=new Date(endK+"T12:00:00"), n=0;
+        for(var dd=new Date(a); dd<=b; dd.setDate(dd.getDate()+1)){ var ds=ymd(dd); os.forEach(function(o){ var ts=new Date(ds+"T"+o+":00").getTime(); if(isNaN(ts)) ts=dd.getTime(); var key=pillDayKey(new Date(ts))+"|"+p.id+"|"+o; if(!taken[key]){ taken[key]=ts; n++; } }); }
+        saveTaken(); editId=null; document.getElementById(I.form).hidden=true; render(); toast("✓ Segnate "+n+" assunzioni di «"+p.nome+"»");
+      };
     })();
     return {render:render, today:today, data:function(){ return {defs:defs, taken:taken}; }, activeDefs:function(){ return defs.filter(defActive); },
       check:function(key){ if(taken[key]) delete taken[key]; else taken[key]=Date.now(); saveTaken(); render(); },
@@ -2710,7 +2723,7 @@
 
   var Pillole=makeScheduler({
     defsKey:"salute-pil-defs", takenKey:"salute-pil-taken", notesKey:"salute-pil-note", logKey:"salute-pil-log", defaultOra:"08:00",
-    ids:{date:"pilDate", summary:"pilSummary", today:"pilToday", list:"pilList", storico:"pilStorico", addBtn:"pilAddBtn", form:"pilForm", nome:"pilNome", orari:"pilOrari", addOra:"pilAddOra", save:"pilSave", cancel:"pilCancel", dal:"pilDal", al:"pilAl", editActions:"pilEditActions", finish:"pilFinish", del:"pilDelete", finite:"pilFiniteWrap", modlog:"pilModLog"},
+    ids:{date:"pilDate", summary:"pilSummary", today:"pilToday", list:"pilList", storico:"pilStorico", addBtn:"pilAddBtn", form:"pilForm", nome:"pilNome", orari:"pilOrari", addOra:"pilAddOra", save:"pilSave", cancel:"pilCancel", dal:"pilDal", al:"pilAl", editActions:"pilEditActions", finish:"pilFinish", del:"pilDelete", fillPeriod:"pilFillPeriod", finite:"pilFiniteWrap", modlog:"pilModLog"},
     labels:{done:"prese", empty:"Nessuna medicina impostata.<br>Aggiungila qui sotto con i suoi orari.", needName:"Scrivi il nome della medicina", added:"Medicina aggiunta ✓"}
   });
   // ---- helper condivisi ----
