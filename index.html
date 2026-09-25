@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 193; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 194; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1917,7 +1917,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v193</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v194</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3461,7 +3461,8 @@
       var cnt=dayMalessere(g.dk), sc=dayScore(g.dk), ml=malLevel(sc); var iw=cnt?(" · "+INT_LBL[Math.max(1,Math.min(3,Math.round(sc/cnt)))]):"";
       var h=document.createElement("div"); h.className="day-head day-toggle mal"+ml;
       var _dayNote=!!(noteGiornata[g.dk]||"").trim();
-      h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+(_dayNote?' <span class="dh-note" title="Nota di fine giornata">📝</span>':'')+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+'<span class="dmal">'+(ml?(MAL_LBL[ml]+' ('+cnt+iw+')'):'nessun fastidio')+'</span>';
+      var _dayPin=segnaposti.some(function(s){ var d1=s.dal||dayKey(new Date(s.ts)); var d2=s.al||d1; return g.dk>=d1 && g.dk<=d2; }) || saluteLog.some(function(x){ return x.rilevante && dayKey(new Date(x.ts))===g.dk; });
+      h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+(_dayPin?' <span class="dh-pin" title="Eventi rilevanti / segnaposto">📌</span>':'')+(_dayNote?' <span class="dh-note" title="Nota di fine giornata">📝</span>':'')+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+'<span class="dmal">'+(ml?(MAL_LBL[ml]+' ('+cnt+iw+')'):'nessun fastidio')+'</span>';
       var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
       var maggList=[]; saluteLog.forEach(function(x){ if(x.rilevante && dayKey(new Date(x.ts))===g.dk){ (x.voci||[]).forEach(function(v){ if(maggList.indexOf(v)<0) maggList.push(v); }); } });
       if(maggList.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">📌</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+maggList.join(", "); body.appendChild(mr); }
