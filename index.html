@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 197; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 198; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1509,7 +1509,7 @@
           <p class="fineprint" style="margin:2px 0 8px">Le cose importanti: i fastidi che segni con il 📌 qui sotto nello Storico, e i 📌 segnaposto che aggiungi a mano (es. «cambio terapia», «crisi», «visita»).</p>
           <button type="button" class="link-btn" id="addSegnaposto" style="text-align:left;padding:8px 2px">📌 Aggiungi un segnaposto</button>
           <div class="detail" id="segnaForm" hidden style="margin-top:6px">
-            <div class="field"><label for="segnaTxt">Cosa segni</label><input type="text" id="segnaTxt" placeholder="es. crisi con Giusy, grosso malessere…"></div>
+            <div class="field"><label for="segnaTxt">Cosa segni</label><textarea id="segnaTxt" rows="4" placeholder="es. crisi con Giusy, grosso malessere…" style="width:100%;resize:vertical;font:inherit"></textarea></div>
             <div class="field"><label>Quando</label>
               <div class="pil-period">
                 <span class="pp-lbl">dal <input type="date" id="segnaDal"></span>
@@ -1917,7 +1917,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v197</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v198</p>
 </div>
 
 <div id="reportView" hidden>
