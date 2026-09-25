@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 204; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 205; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1918,7 +1918,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v204</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v205</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2489,6 +2489,7 @@
         }
         if(r.onToSalute){ var sb=document.createElement("button"); sb.className="tl-edit tl-salutebtn"; sb.textContent="🩺"; sb.setAttribute("aria-label","Anche in Salute"); sb.title="Metti anche in Salute (come fastidio)"; (function(rr,btn){ btn.onclick=function(){ rr.onToSalute(); btn.disabled=true; btn.style.opacity=".45"; btn.textContent="✓"; }; })(r,sb); row.appendChild(sb); }
         if(r.onTimeEdit){ var te=document.createElement("button"); te.className="tl-edit tl-timebtn"; te.textContent="🕐"; te.setAttribute("aria-label","Correggi l'ora"); te.title="Correggi l'ora"; (function(rr,rowEl,btn){ btn.onclick=function(){ Array.prototype.forEach.call(rowEl.children,function(c){ c.style.display="none"; }); var inp=document.createElement("input"); inp.type="time"; inp.className="tl-time-edit"; inp.value=hhmm(new Date(rr.ts)); var ok=document.createElement("button"); ok.className="tl-time-ok"; ok.textContent="✓"; ok.setAttribute("aria-label","Conferma ora"); var cx=document.createElement("button"); cx.className="tl-time-cancel"; cx.textContent="✕"; cx.setAttribute("aria-label","Annulla"); rowEl.appendChild(inp); rowEl.appendChild(ok); rowEl.appendChild(cx); try{ inp.focus(); }catch(e){} var done=false; ok.onclick=function(){ if(done) return; done=true; rr.onTimeEdit(inp.value||null); }; cx.onclick=function(){ if(done) return; done=true; rr.onTimeEdit(null); }; }; })(r,row,te); row.appendChild(te); }
+        if(r.onCheck){ var _ck=document.createElement("button"); _ck.className="tl-check"; _ck.textContent="✓"; _ck.setAttribute("aria-label","Segna presa"); _ck.title="Segna come presa"; (function(rr){ _ck.onclick=function(){ rr.onCheck(); }; })(r); row.appendChild(_ck); }
         if(r.onDelete){ var del=document.createElement("button"); del.className="tl-del"; del.textContent="×"; del.setAttribute("aria-label","Elimina"); (function(rr){ del.onclick=function(){ rr.onDelete(); }; })(r); row.appendChild(del); }
         body.appendChild(row);
       });
@@ -2621,10 +2622,14 @@
         var VARW={aggiunta:"aggiunta", modifica:"modifica", finita:"cura finita", ripresa:"ripresa", eliminata:"eliminata"};
         var chByDay={};
         chlog.forEach(function(e){ var _cdk=dayKey(new Date(e.ts)); (chByDay[_cdk]||(chByDay[_cdk]=[])).push(e); stRows.push({ ts:e.ts, emoji:"📌", text:"Variazione ("+(VARW[e.tipo]||e.tipo)+"): "+(e.testo||""), rowClass:"pil-varmark" }); });
+        Object.keys(takenEff).forEach(function(dk){ if(dk>=_tdk) return;
+          defs.forEach(function(p){ if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.dal && dk<p.dal) return; if(p.al && dk>p.al) return; if(p.attivo===false){ var _fk=(p.fine!=null)?dayKey(new Date(p.fine)):(p.al||null); if(!_fk || dk>_fk) return; }
+            var os=(p.orari||[]); if(!os.length) return; var tset={}, pre=p.id+"|"; Object.keys(takenEff[dk]).forEach(function(kk){ if(kk.indexOf(pre)===0) tset[kk.slice(pre.length)]=true; }); var tc=0; for(var _k in tset) tc++; var skipN=os.length-Math.min(tc, os.length); if(skipN<=0) return; var missing=os.filter(function(o){ return !tset[o]; }); missing.slice(0, skipN).forEach(function(o){ var ts=new Date(dk+"T"+o+":00").getTime(); if(isNaN(ts)) ts=new Date(dk+"T23:59:00").getTime(); stRows.push({ ts:ts, dayKeyOverride:dk, emoji:"⚠️", text:p.nome+" · saltata (programmata "+o+")", rowClass:"pil-skip", onCheck:(function(pid,ora,tts){ return function(){ taken[pillDayKey(new Date(tts))+"|"+pid+"|"+ora]=tts; saveTaken(); render(); }; })(p.id,o,ts) }); }); });
+        });
         renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora.", ascending:true,
-          dayClass:function(g){ var s=pillDayStat(g.dk); return (s.sched>0 && s.taken>=s.sched)?"done-ok":""; },
+          dayClass:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return ""; return s.taken>=s.sched?"done-ok":"done-miss"; },
           dayIcon:function(g){ return (chByDay[g.dk]&&chByDay[g.dk].length)?' <span class="dh-pin" title="Variazione (cambi, inizio/fine assunzione)">📌</span>':''; },
-          headExtra:function(g){ var s=pillDayStat(g.dk); if(s.sched>0 && s.taken>=s.sched){ var sp=document.createElement("span"); sp.className="dmal"; sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutte prese"; return sp; } return null; }
+          headExtra:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return null; var sp=document.createElement("span"); sp.className="dmal"; if(s.taken>=s.sched){ sp.style.color="var(--lvl-low)"; sp.textContent="✓ tutte prese"; } else { var m=s.sched-s.taken; sp.style.color="var(--lvl-high)"; sp.textContent="⚠ "+m+(m===1?" saltata":" saltate"); } return sp; }
         });
       }
     }
