@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 195; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 196; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1917,7 +1917,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v195</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v196</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3495,12 +3495,18 @@
     var host=document.getElementById("rilevantiList"); if(!host) return; host.innerHTML="";
     var lbl=document.getElementById("lblRilevanti");
     var items=[];
-    saluteLog.forEach(function(x){ if(x.rilevante){ var t=(x.voci||[]).join(", "); if(x.nota){ t+=(t?" — ":"")+x.nota; } items.push({ts:x.ts, when:dmy(new Date(x.ts))+" "+hhmm(new Date(x.ts)), emoji:"📌", text:t||"(fastidio)"}); } });
-    segnaposti.forEach(function(s){ items.push({ts:s.ts, when:dmy(new Date(s.ts))+(s.al?(" → "+dmy(new Date(s.al+"T12:00:00"))):""), emoji:"📌", text:s.testo}); });
+    saluteLog.forEach(function(x){ if(x.rilevante){ var t=(x.voci||[]).join(", "); if(x.nota){ t+=(t?" — ":"")+x.nota; } items.push({ts:x.ts, when:dmy(new Date(x.ts))+" "+hhmm(new Date(x.ts)), emoji:"📌", text:t||"(fastidio)", kind:"fast", ref:x}); } });
+    segnaposti.forEach(function(s){ items.push({ts:s.ts, when:dmy(new Date(s.ts))+(s.al?(" → "+dmy(new Date(s.al+"T12:00:00"))):""), emoji:"📌", text:s.testo, kind:"seg", ref:s}); });
     if(!items.length){ host.innerHTML='<div class="empty">Niente ancora. Segna un fastidio con il 📌 qui sotto nello Storico, oppure aggiungi un 📌 segnaposto.</div>'; if(lbl) lbl.textContent="📌 Eventi rilevanti"; return; }
     items.sort(function(a,b){ return b.ts-a.ts; });
     if(lbl) lbl.textContent="📌 Eventi rilevanti · "+items.length;
-    items.forEach(function(e){ var r=document.createElement("div"); r.className="tl-row"; r.innerHTML='<span class="tl-time" style="min-width:auto">'+(e.when||"")+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>'; r.querySelector(".tl-text").textContent=e.text; host.appendChild(r); });
+    items.forEach(function(e){ var r=document.createElement("div"); r.className="tl-row"; r.innerHTML='<span class="tl-time" style="min-width:auto">'+(e.when||"")+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>'; r.querySelector(".tl-text").textContent=e.text;
+      var ed=document.createElement("button"); ed.className="tl-edit"; ed.innerHTML=PENCIL; ed.setAttribute("aria-label","Modifica");
+      var dl=document.createElement("button"); dl.className="tl-del"; dl.textContent="×"; dl.setAttribute("aria-label","Elimina");
+      if(e.kind==="seg"){ (function(s){ ed.onclick=function(){ openSegnaForm(s); }; dl.title="Elimina segnaposto"; dl.onclick=function(){ if(confirm("Eliminare il segnaposto «"+s.testo+"»?")){ segnaposti=segnaposti.filter(function(y){return y.id!==s.id;}); saveSegnaposti(); renderSalute(); } }; })(e.ref); }
+      else { (function(x){ ed.onclick=function(){ startEditSalute(x); }; dl.title="Togli dai rilevanti (resta nello Storico)"; dl.onclick=function(){ x.rilevante=false; saveSaluteLog(); renderSalute(); toast("Tolto dai rilevanti"); }; })(e.ref); }
+      r.appendChild(ed); r.appendChild(dl); host.appendChild(r);
+    });
   }
   var editingSaluteId=null;
   function startEditSalute(x){
@@ -3534,21 +3540,38 @@
     else { saluteLog.push({id:uid(), ts:Date.now(), voci:v, nota:nota, dove:doveAll, dovePer:dovePer, intens:intens}); toast("Registrato ✓"); }
     saveSaluteLog(); fastidiG.clear(); psicoG.clear(); doveG.clear(); fastIntens={}; psicoIntens={}; fastDove={}; document.getElementById("saluteNota").value=""; updateSaluteCount(); renderSalute();
   };
+  var editingSegnaId=null;
+  function openSegnaForm(seg){
+    var f=document.getElementById("segnaForm"); if(!f) return;
+    editingSegnaId = seg ? seg.id : null;
+    document.getElementById("segnaTxt").value = seg ? (seg.testo||"") : "";
+    document.getElementById("segnaDal").value = seg ? (seg.dal||ymd(new Date(seg.ts))) : ymd(new Date());
+    document.getElementById("segnaAl").value = seg ? (seg.al||"") : "";
+    var svb=document.getElementById("segnaSave"); if(svb) svb.textContent = seg ? "Salva modifiche" : "Salva segnaposto";
+    var bod=document.getElementById("bodyRilevanti"); if(bod) bod.hidden=false; var cc=document.getElementById("collapRilevanti"); if(cc) cc.classList.add("open");
+    f.hidden=false;
+    try{ document.getElementById("segnaTxt").focus(); }catch(e){}
+    try{ f.scrollIntoView({block:"center"}); }catch(e){}
+  }
+  function closeSegnaForm(){ editingSegnaId=null; var f=document.getElementById("segnaForm"); if(f) f.hidden=true; var svb=document.getElementById("segnaSave"); if(svb) svb.textContent="Salva segnaposto"; }
+  function saveSegnaForm(){
+    var t=(document.getElementById("segnaTxt").value||"").trim();
+    var dal=(document.getElementById("segnaDal").value||"").trim();
+    var al=(document.getElementById("segnaAl").value||"").trim();
+    if(!t){ toast("Scrivi cosa vuoi segnare"); return; }
+    if(!dal){ dal=ymd(new Date()); }
+    if(al && al<dal){ toast("La fine è prima dell'inizio"); return; }
+    var ts=new Date(dal+"T12:00:00").getTime(); if(isNaN(ts)) ts=Date.now();
+    var wasEdit=!!editingSegnaId;
+    if(wasEdit){ segnaposti.forEach(function(s){ if(s.id===editingSegnaId){ s.testo=t; s.dal=dal; s.al=(al||null); s.ts=ts; } }); }
+    else { segnaposti.push({id:uid(), ts:ts, dal:dal, al:(al||null), testo:t}); }
+    saveSegnaposti(); closeSegnaForm(); try{ renderSalute(); }catch(e){} toast(wasEdit?"Segnaposto aggiornato ✓":"📌 Segnaposto aggiunto");
+  }
   (function(){
-    var b=document.getElementById("addSegnaposto"), f=document.getElementById("segnaForm");
-    if(b) b.onclick=function(){ if(!f) return; var willShow=f.hidden; f.hidden=!willShow; if(willShow){ document.getElementById("segnaTxt").value=""; document.getElementById("segnaDal").value=ymd(new Date()); document.getElementById("segnaAl").value=""; try{ document.getElementById("segnaTxt").focus(); }catch(e){} } };
-    var cx=document.getElementById("segnaCancel"); if(cx) cx.onclick=function(){ if(f) f.hidden=true; };
-    var sv=document.getElementById("segnaSave"); if(sv) sv.onclick=function(){
-      var t=(document.getElementById("segnaTxt").value||"").trim();
-      var dal=(document.getElementById("segnaDal").value||"").trim();
-      var al=(document.getElementById("segnaAl").value||"").trim();
-      if(!t){ toast("Scrivi cosa vuoi segnare"); return; }
-      if(!dal){ dal=ymd(new Date()); }
-      if(al && al<dal){ toast("La fine è prima dell'inizio"); return; }
-      var ts=new Date(dal+"T12:00:00").getTime(); if(isNaN(ts)) ts=Date.now();
-      segnaposti.push({id:uid(), ts:ts, dal:dal, al:(al||null), testo:t});
-      saveSegnaposti(); if(f) f.hidden=true; try{ renderSalute(); }catch(e){} toast("📌 Segnaposto aggiunto");
-    };
+    var b=document.getElementById("addSegnaposto");
+    if(b) b.onclick=function(){ var f=document.getElementById("segnaForm"); if(f && !f.hidden){ closeSegnaForm(); } else { openSegnaForm(null); } };
+    var cx=document.getElementById("segnaCancel"); if(cx) cx.onclick=function(){ closeSegnaForm(); };
+    var sv=document.getElementById("segnaSave"); if(sv) sv.onclick=saveSegnaForm;
   })();
 
   // ---- Parametri: pressione arteriosa, saturazione, battiti cardiaci ----
