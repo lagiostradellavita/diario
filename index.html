@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 188; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 189; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1487,7 +1487,7 @@
       <h2 class="section-title" style="margin:16px 0 0">Storico</h2>
       <div id="pesoStorico" style="margin-top:4px"></div>
     </section>
-    <section class="card">
+    <section class="card" style="display:none">
       <div class="food-cat" id="collapMaggiori">
         <button type="button" class="fc-head" id="headMaggiori"><span id="lblMaggiori">⭐ Fastidi maggiori di oggi</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodyMaggiori" hidden>
@@ -1503,7 +1503,7 @@
     </section>
     <section class="card">
       <div class="food-cat" id="collapRilevanti">
-        <button type="button" class="fc-head" id="headRilevanti"><span id="lblRilevanti">⭐ Eventi rilevanti</span><span class="fc-arrow">›</span></button>
+        <button type="button" class="fc-head" id="headRilevanti"><span id="lblRilevanti">📌 Eventi rilevanti</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodyRilevanti" hidden>
           <p class="fineprint" style="margin:2px 0 8px">Le cose importanti: i fastidi che segni con la ⭐ qui sotto nello Storico, e i 📌 segnaposto che aggiungi a mano (es. «cambio terapia», «crisi», «visita»).</p>
           <button type="button" class="link-btn" id="addSegnaposto" style="text-align:left;padding:8px 2px">📌 Aggiungi un segnaposto</button>
@@ -1916,7 +1916,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v188</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v189</p>
 </div>
 
 <div id="reportView" hidden>
@@ -3436,7 +3436,7 @@
     sorted.forEach(function(x){ var dk=dayKey(new Date(x.ts)); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(x.ts), items:[]}; groups.push(byDay[dk]); } byDay[dk].items.push(x); });
     maggKeys.forEach(function(dk){ if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } });
     noteKeys.forEach(function(dk){ if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(dk+"T12:00:00"), items:[]}; groups.push(byDay[dk]); } });
-    segnaposti.forEach(function(s){ var dk=dayKey(new Date(s.ts)); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(s.ts), items:[]}; groups.push(byDay[dk]); } });
+    segnaposti.forEach(function(s){ var d1=s.dal||dayKey(new Date(s.ts)); var d2=s.al||d1; var a=new Date(d1+"T12:00:00"), b=new Date(d2+"T12:00:00"); if(isNaN(a.getTime())||isNaN(b.getTime())||b<a){ var dk=dayKey(new Date(s.ts)); if(!byDay[dk]){ byDay[dk]={dk:dk, d:new Date(s.ts), items:[]}; groups.push(byDay[dk]); } return; } for(var dd=new Date(a); dd<=b; dd.setDate(dd.getDate()+1)){ var k=dayKey(dd); if(!byDay[k]){ byDay[k]={dk:k, d:new Date(dd), items:[]}; groups.push(byDay[k]); } } });
     if(!byDay[todayK]){ byDay[todayK]={dk:todayK, d:new Date(), items:[]}; groups.push(byDay[todayK]); } // oggi c'è sempre: così puoi aggiungere la nota di fine giornata anche senza fastidi
     // Mostra TUTTI i giorni, dalla prima registrazione a oggi, anche quelli vuoti (per aggiungere la nota di fine giornata a qualsiasi giorno)
     var _dks=groups.map(function(g){return g.dk;}); var _min=_dks.length?_dks.reduce(function(a,b){return a<b?a:b;}):todayK;
@@ -3450,10 +3450,9 @@
       var _dayNote=!!(noteGiornata[g.dk]||"").trim();
       h.innerHTML='<div class="dh-top"><span class="dname">'+fmtDayLong(g.d)+(_dayNote?' <span class="dh-note" title="Nota di fine giornata">📝</span>':'')+'</span><span class="dchev">'+(open?"▾":"▸")+'</span></div>'+'<span class="dmal">'+(ml?(MAL_LBL[ml]+' ('+cnt+iw+')'):'nessun fastidio')+'</span>';
       var body=document.createElement("div"); body.className="day-body"; body.hidden=!open;
-      var magg=(fastidiMaggiori[g.dk]||[]);
-      if(magg.length){ var mr=document.createElement("div"); mr.className="tl-row magg-row"; mr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">⭐</span><span class="tl-text"></span>'; mr.querySelector(".tl-text").textContent="Fastidi maggiori: "+magg.join(", "); body.appendChild(mr); }
-      var segsDay=segnaposti.filter(function(s){ return dayKey(new Date(s.ts))===g.dk; }).sort(function(a,b){ return b.ts-a.ts; });
-      segsDay.forEach(function(s){ var sr=document.createElement("div"); sr.className="tl-row segnaposto-row"; sr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">📌</span><span class="tl-text"></span>'; sr.querySelector(".tl-text").textContent=s.testo+(s.al?(" · fino al "+dmy(new Date(s.al+"T12:00:00"))):""); var sd=document.createElement("button"); sd.className="tl-del"; sd.textContent="×"; sd.setAttribute("aria-label","Elimina segnaposto"); (function(ss){ sd.onclick=function(){ segnaposti=segnaposti.filter(function(y){return y.id!==ss.id;}); saveSegnaposti(); renderSalute(); }; })(s); sr.appendChild(sd); body.appendChild(sr); });
+      /* «Fastidi maggiori di oggi» rimosso su richiesta (25/09/2026) */
+      var segsDay=segnaposti.filter(function(s){ var d1=s.dal||dayKey(new Date(s.ts)); var d2=s.al||d1; return g.dk>=d1 && g.dk<=d2; }).sort(function(a,b){ return b.ts-a.ts; });
+      segsDay.forEach(function(s){ var sr=document.createElement("div"); sr.className="tl-row segnaposto-row"; sr.innerHTML='<span class="tl-time"></span><span class="tl-emoji">📌</span><span class="tl-text"></span>'; sr.querySelector(".tl-text").textContent=s.testo; var sd=document.createElement("button"); sd.className="tl-del"; sd.textContent="×"; sd.setAttribute("aria-label","Elimina segnaposto"); (function(ss){ sd.onclick=function(){ segnaposti=segnaposti.filter(function(y){return y.id!==ss.id;}); saveSegnaposti(); renderSalute(); }; })(s); sr.appendChild(sd); body.appendChild(sr); });
       g.items.forEach(function(x){
         var d=new Date(x.ts);
         var _parts=(x.voci||[]).map(function(v){ var dv=(x.dovePer && x.dovePer[v])?x.dovePer[v]:[]; var lv=(x.intens && x.intens[v])||2; return v+" ("+INT_LBL[lv]+")"+((dv&&dv.length)?" 📍"+dv.join("/"):""); });
@@ -3485,9 +3484,9 @@
     var items=[];
     saluteLog.forEach(function(x){ if(x.rilevante){ var t=(x.voci||[]).join(", "); if(x.nota){ t+=(t?" — ":"")+x.nota; } items.push({ts:x.ts, when:dmy(new Date(x.ts))+" "+hhmm(new Date(x.ts)), emoji:"⭐", text:t||"(fastidio)"}); } });
     segnaposti.forEach(function(s){ items.push({ts:s.ts, when:dmy(new Date(s.ts))+(s.al?(" → "+dmy(new Date(s.al+"T12:00:00"))):""), emoji:"📌", text:s.testo}); });
-    if(!items.length){ host.innerHTML='<div class="empty">Niente ancora. Segna un fastidio con la ⭐ qui sotto nello Storico, oppure aggiungi un 📌 segnaposto.</div>'; if(lbl) lbl.textContent="⭐ Eventi rilevanti"; return; }
+    if(!items.length){ host.innerHTML='<div class="empty">Niente ancora. Segna un fastidio con la ⭐ qui sotto nello Storico, oppure aggiungi un 📌 segnaposto.</div>'; if(lbl) lbl.textContent="📌 Eventi rilevanti"; return; }
     items.sort(function(a,b){ return b.ts-a.ts; });
-    if(lbl) lbl.textContent="⭐ Eventi rilevanti · "+items.length;
+    if(lbl) lbl.textContent="📌 Eventi rilevanti · "+items.length;
     items.forEach(function(e){ var r=document.createElement("div"); r.className="tl-row"; r.innerHTML='<span class="tl-time" style="min-width:auto">'+(e.when||"")+'</span><span class="tl-emoji">'+e.emoji+'</span><span class="tl-text"></span>'; r.querySelector(".tl-text").textContent=e.text; host.appendChild(r); });
   }
   var editingSaluteId=null;
