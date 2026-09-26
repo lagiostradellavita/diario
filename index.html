@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 207; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 208; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1918,7 +1918,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v207</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v208</p>
 </div>
 
 <div id="reportView" hidden>
@@ -5295,6 +5295,40 @@
   // Confronto SEMANTICO (le chiavi JSON possono tornare dal cloud con ordine diverso):
   function _canon(v){ if(v===null||typeof v!=="object") return v; if(Array.isArray(v)) return v.map(_canon); var o={}; Object.keys(v).sort().forEach(function(k){ o[k]=_canon(v[k]); }); return o; }
   function jsonEq(a,b){ try{ return JSON.stringify(_canon(a))===JSON.stringify(_canon(b)); }catch(e){ return false; } }
+  // FUSIONE di due valori (cloud + locale) invece di sovrascrivere: così un
+  // dispositivo non cancella le aggiunte fatte sull'altro. Liste con id → unione
+  // per id (due voci "gemelle", es. due sigarette di fila, hanno id diversi →
+  // restano ENTRAMBE). Mappe → unione delle chiavi. Scalari → non fondibile.
+  // preferLocal decide chi vince a parità di id/chiave (true in spinta, false in lettura).
+  function jsonMerge(remote, local, preferLocal){
+    if(remote===undefined||remote===null) return local;
+    if(local===undefined||local===null) return remote;
+    var ra=Array.isArray(remote), la=Array.isArray(local);
+    if(ra&&la){
+      var withId=remote.concat(local).some(function(x){ return x&&typeof x==="object"&&x.id!=null; });
+      if(withId){
+        var byId={}, order=[];
+        var first=preferLocal?remote:local, second=preferLocal?local:remote; // il vincitore va per ultimo e sovrascrive
+        first.forEach(function(x){ if(x&&typeof x==="object"&&x.id!=null){ if(!(x.id in byId)) order.push(x.id); byId[x.id]=x; } });
+        second.forEach(function(x){ if(x&&typeof x==="object"&&x.id!=null){ if(!(x.id in byId)) order.push(x.id); byId[x.id]=x; } });
+        var out=order.map(function(id){ return byId[id]; });
+        var seen={}; out.forEach(function(x){ try{ seen[JSON.stringify(_canon(x))]=1; }catch(e){} });
+        remote.concat(local).forEach(function(x){ if(!(x&&typeof x==="object"&&x.id!=null)){ var j; try{ j=JSON.stringify(_canon(x)); }catch(e){ j=null; } if(j!=null&&!seen[j]){ seen[j]=1; out.push(x); } } });
+        return out;
+      }
+      var seen2={}, res=[];
+      remote.concat(local).forEach(function(x){ var j; try{ j=JSON.stringify(_canon(x)); }catch(e){ j="_"+Math.random(); } if(!seen2[j]){ seen2[j]=1; res.push(x); } });
+      return res;
+    }
+    var ro=(typeof remote==="object"&&!ra), lo=(typeof local==="object"&&!la);
+    if(ro&&lo){
+      var m={}, kk, a=preferLocal?remote:local, b=preferLocal?local:remote;
+      for(kk in a){ if(Object.prototype.hasOwnProperty.call(a,kk)) m[kk]=a[kk]; }
+      for(kk in b){ if(Object.prototype.hasOwnProperty.call(b,kk)) m[kk]=b[kk]; }
+      return m;
+    }
+    return undefined; // scalari / tipi diversi → non fondibile
+  }
   function cloudMark(msg){ var el=document.getElementById("cloudStatus"); if(el) el.textContent=msg||""; }
   function apiFetch(path, opts){
     opts=opts||{}; opts.headers=opts.headers||{};
@@ -5311,9 +5345,22 @@
     _pushTimers[k]=setTimeout(function(){
       var raw=null; try{ raw=localStorage.getItem(k); }catch(e){}
       if(raw==null) return;
-      try{ JSON.parse(raw); }catch(e){ return; } // solo valori JSON
-      apiFetch("/dati/"+encodeURIComponent(k), {method:"PUT", body:raw, headers:{"Content-Type":"application/json"}})
-        .then(function(){ try{ if(localStorage.getItem(k)===raw) _dirtyClear(k); }catch(e){} cloudMark("Sincronizzato ✓ "+hhmm(new Date())); })
+      var localVal; try{ localVal=JSON.parse(raw); }catch(e){ return; } // solo valori JSON
+      function _putDirect(){ // ripiego: PUT diretto se non riesco a leggere il cloud
+        return apiFetch("/dati/"+encodeURIComponent(k), {method:"PUT", body:raw, headers:{"Content-Type":"application/json"}})
+          .then(function(){ try{ if(localStorage.getItem(k)===raw) _dirtyClear(k); }catch(e){} cloudMark("Sincronizzato ✓ "+hhmm(new Date())); });
+      }
+      // Leggi-modifica-scrivi: unisci col valore già sul cloud, così questa spinta
+      // non sovrascrive le voci aggiunte dall'altro dispositivo.
+      apiFetch("/dati", {method:"GET"}).then(function(all){
+        all=all||{};
+        var remoteVal=(k in all)?all[k]:undefined;
+        var merged=(remoteVal===undefined)?localVal:jsonMerge(remoteVal, localVal, true);
+        if(merged===undefined) merged=localVal; // scalare non fondibile → vince il locale
+        var s=JSON.stringify(merged);
+        return apiFetch("/dati/"+encodeURIComponent(k), {method:"PUT", body:s, headers:{"Content-Type":"application/json"}})
+          .then(function(){ try{ if(localStorage.getItem(k)===raw) _dirtyClear(k); }catch(e){} cloudMark("Sincronizzato ✓ "+hhmm(new Date())); });
+      }).catch(function(){ return _putDirect(); })
         .catch(function(e){ cloudMark("Non sincronizzato: "+(e&&e.message||"")); });
     }, 900);
   }
@@ -5334,9 +5381,18 @@
       if(!keys.length){ return cloudPushAllLocal().then(function(){ _cloudReady=true; }); }
       var changed=0;
       keys.forEach(function(k){ try{
-        if(_isDirty(k)){ if(cloudToken) cloudPushKey(k); return; } // locale più recente e non ancora sincronizzato: NON sovrascrivere, spingi il locale sul cloud
-        var local=null; try{ local=JSON.parse(localStorage.getItem(k)); }catch(e){}
-        if(!jsonEq(data[k], local)){ var s=JSON.stringify(data[k]); if(_origSet) _origSet.call(localStorage,k,s); else localStorage.setItem(k,s); changed++; }
+        var local=null, hasLocal=false; try{ var lr=localStorage.getItem(k); if(lr!=null){ local=JSON.parse(lr); hasLocal=true; } }catch(e){}
+        var remote=data[k];
+        var merged=hasLocal?jsonMerge(remote, local, false):undefined;
+        if(merged!==undefined){
+          // valore fondibile (lista o mappa): UNIONE, nessuna voce persa
+          if(!jsonEq(merged, local)){ var s=JSON.stringify(merged); if(_origSet) _origSet.call(localStorage,k,s); else localStorage.setItem(k,s); changed++; }
+          if(!jsonEq(merged, remote)){ if(cloudToken) cloudPushKey(k); } // il cloud non ha tutto → rispingi l'unione
+        } else {
+          // scalare o niente in locale: comportamento di prima (last-write-wins)
+          if(_isDirty(k)){ if(cloudToken) cloudPushKey(k); return; }
+          if(!jsonEq(remote, local)){ var s2=JSON.stringify(remote); if(_origSet) _origSet.call(localStorage,k,s2); else localStorage.setItem(k,s2); changed++; }
+        }
       }catch(e){} });
       // chiavi locali che il cloud non ha ancora (moduli mai sincronizzati) → spingile su
       try{ for(var j=0;j<localStorage.length;j++){ var lk=localStorage.key(j); if(lk && SYNC_KEYS.test(lk) && !(lk in data)){ try{ JSON.parse(localStorage.getItem(lk)); cloudPushKey(lk); }catch(e){} } } }catch(e){}
