@@ -672,6 +672,10 @@
     box-shadow:0 9px 22px -8px color-mix(in srgb, var(--accent) 62%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 22%, transparent);}
   .primary:active{transform:scale(.985); filter:brightness(.96);}
 
+  .stat-head{cursor:pointer; -webkit-user-select:none; user-select:none;}
+  .stat-head-dx{display:flex; align-items:center; gap:8px;}
+  .stat-head .dchev{font-size:13px; color:var(--muted); font-weight:800;}
+
   /* ---- chart ---- */
   .chart{display:flex; gap:10px; align-items:flex-end; padding:2px 2px 10px;
     overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
@@ -1109,20 +1113,25 @@
 
   <!-- STATISTICHE FUMO -->
   <section class="card">
-    <div class="row-between">
+    <div class="row-between stat-head" id="statHead">
       <h2 class="section-title" style="margin:0">Statistiche</h2>
-      <span id="statSummary" class="stat-summary"></span>
+      <span class="stat-head-dx">
+        <span id="statSummary" class="stat-summary"></span>
+        <span class="dchev" id="statChev">&#9662;</span>
+      </span>
     </div>
-    <div class="seg stat-seg" id="statSeg" style="margin-top:12px">
-      <button type="button" data-v="orari" class="on">Orari</button>
-      <button type="button" data-v="giorno">Giorno</button>
-      <button type="button" data-v="settimana">Sett.</button>
-      <button type="button" data-v="mese">Mese</button>
-      <button type="button" data-v="anno">Anno</button>
+    <div id="statBody" hidden>
+      <div class="seg stat-seg" id="statSeg" style="margin-top:12px">
+        <button type="button" data-v="orari" class="on">Orari</button>
+        <button type="button" data-v="giorno">Giorno</button>
+        <button type="button" data-v="settimana">Sett.</button>
+        <button type="button" data-v="mese">Mese</button>
+        <button type="button" data-v="anno">Anno</button>
+      </div>
+      <p class="muted-sm" id="statDesc" style="margin:9px 0 0"></p>
+      <div class="chart" id="chart" style="margin-top:10px"></div>
+      <p class="stat-legend" id="statLegend"></p>
     </div>
-    <p class="muted-sm" id="statDesc" style="margin:9px 0 0"></p>
-    <div class="chart" id="chart" style="margin-top:10px"></div>
-    <p class="stat-legend" id="statLegend"></p>
   </section>
 
   <!-- STORICO -->
@@ -1913,7 +1922,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v218</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v219</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2254,6 +2263,32 @@
       };
       seg.appendChild(b);
     });
+  })();
+
+  /* Statistiche a scomparsa.
+
+     Il grafico degli orari e' alto e lungo: al telefono riempiva lo schermo, e
+     per arrivare allo Storico bisognava scorrerlo tutto. Ora l'intestazione si
+     tocca. Resta fuori il riepilogo - «Oggi 7» - che e' il numero che si
+     guarda di continuo, e che si aggiorna anche a sezione chiusa.
+
+     All'apertura il grafico si ridisegna: quello degli orari si porta in fondo
+     da solo con scrollLeft, e un elemento nascosto non ha larghezza, quindi
+     disegnato da chiuso resterebbe fermo al primo giorno. */
+  (function statiApribili(){
+    var head=document.getElementById("statHead"),
+        body=document.getElementById("statBody"),
+        chev=document.getElementById("statChev");
+    if(!head||!body) return;
+    function mostra(apri){
+      body.hidden=!apri;
+      if(chev) chev.innerHTML=apri?"&#9652;":"&#9662;";
+      try{ localStorage.setItem("statAperte", apri?"1":"0"); }catch(e){}
+      if(apri) renderStats();
+    }
+    var salvato="0"; try{ salvato=localStorage.getItem("statAperte")||"0"; }catch(e){}
+    mostra(salvato==="1");
+    head.onclick=function(){ mostra(body.hidden); };
   })();
 
   (function buildStatSeg(){
