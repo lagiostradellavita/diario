@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 221; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 222; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1924,7 +1924,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v221</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v222</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4455,10 +4455,11 @@
   var referti=[]; try{ var _rf=JSON.parse(localStorage.getItem("salute-referti")); if(Array.isArray(_rf)) referti=_rf; }catch(e){}
   function saveReferti(){ try{ localStorage.setItem("salute-referti", JSON.stringify(referti)); }catch(e){} }
   function normUrl(u){ u=(u||"").trim(); if(!u) return "";
-    if(/^(https?|file):\/\//i.test(u)) return u;                 // gia' un link completo (Dropbox, Drive, OneDrive, file://)
-    if(/^[a-zA-Z]:[\\/]/.test(u)) return "file:///"+u.replace(/\\/g,"/"); // percorso Windows: C:\Cartella\referto.pdf
-    if(u.charAt(0)==="/") return "file://"+u;                     // percorso Mac/Linux: /Users/...
-    return "https://"+u;                                          // dominio senza schema (es. drive.google.com/...)
+    var BS=String.fromCharCode(92), low=u.toLowerCase();
+    if(low.indexOf("http://")===0 || low.indexOf("https://")===0 || low.indexOf("file://")===0) return u; // link gia' completo (Dropbox, Drive, OneDrive, file://)
+    if(u.length>=3 && /[a-zA-Z]/.test(u.charAt(0)) && u.charAt(1)===":" && (u.charAt(2)===BS || u.charAt(2)==="/")) return "file:///"+u.split(BS).join("/"); // percorso Windows: C:\Cartella\referto.pdf
+    if(u.charAt(0)==="/" || u.indexOf(BS+BS)===0) return "file://"+u.split(BS).join("/"); // percorso Mac/Linux (/Users/...) o rete (\\server)
+    return "https://"+u; // dominio senza schema (es. drive.google.com/...)
   }
   function refRowEl(f, refreshFn){
     var d=new Date(f.ts||Date.now());
