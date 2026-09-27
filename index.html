@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 222; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 223; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1924,7 +1924,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v222</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v223</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4454,7 +4454,7 @@
   // Referti come LINK a Dropbox (non file caricati): ogni utente salva i propri collegamenti.
   var referti=[]; try{ var _rf=JSON.parse(localStorage.getItem("salute-referti")); if(Array.isArray(_rf)) referti=_rf; }catch(e){}
   function saveReferti(){ try{ localStorage.setItem("salute-referti", JSON.stringify(referti)); }catch(e){} }
-  function normUrl(u){ u=(u||"").trim(); if(!u) return "";
+  function refUrl(u){ u=(u||"").trim(); if(!u) return "";
     var BS=String.fromCharCode(92), low=u.toLowerCase();
     if(low.indexOf("http://")===0 || low.indexOf("https://")===0 || low.indexOf("file://")===0) return u; // link gia' completo (Dropbox, Drive, OneDrive, file://)
     if(u.length>=3 && /[a-zA-Z]/.test(u.charAt(0)) && u.charAt(1)===":" && (u.charAt(2)===BS || u.charAt(2)==="/")) return "file:///"+u.split(BS).join("/"); // percorso Windows: C:\Cartella\referto.pdf
@@ -4557,7 +4557,7 @@
   }
   document.getElementById("docAddBtn").onclick=function(){
     var nomeEl=document.getElementById("docNome"), urlEl=document.getElementById("docUrl");
-    var url=normUrl(urlEl.value), nome=(nomeEl.value||"").trim();
+    var url=refUrl(urlEl.value), nome=(nomeEl.value||"").trim();
     if(!url){ toast("Incolla il link del referto (file o cartella)"); return; }
     if(!nome){ nome=docCatSel||"Referto"; }
     referti.push({id:uid(), cat:docCatSel, nome:nome, url:url, ts:Date.now()});
