@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 223; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 224; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1924,7 +1924,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v223</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v224</p>
 </div>
 
 <div id="reportView" hidden>
@@ -5512,28 +5512,65 @@
       document.getElementById("cloudSyncNow").onclick=function(){ cloudPullAll(); };
       document.getElementById("cloudLogoutBtn").onclick=function(){ if(confirm("Uscire dal cloud su questo dispositivo? I dati restano comunque su questo dispositivo.")) cloudLogout(); };
     } else {
-      host.innerHTML='<p class="fineprint" style="margin:0 0 8px">Accedi per tenere i dati sincronizzati su tutti i tuoi dispositivi (telefono, PC di casa e della cooperativa).</p>'
+      host.innerHTML='<p class="fineprint" style="margin:0 0 8px">Accedi per tenere i dati sincronizzati su tutti i tuoi dispositivi. La prima volta, crea un account.</p>'
+        +'<div class="seg" id="cloudMode" style="margin-bottom:10px"><button type="button" data-m="login" class="on">Ho già un account</button><button type="button" data-m="reg">Crea account</button></div>'
+        +'<input id="cloudNomeIn" type="text" autocomplete="name" placeholder="Nome e cognome" style="margin-bottom:8px;display:none">'
         +'<input id="cloudEmailIn" type="email" inputmode="email" autocomplete="username" placeholder="La tua email" style="margin-bottom:8px">'
         +'<input id="cloudPassIn" type="password" autocomplete="current-password" placeholder="Password (almeno 8 caratteri)">'
-        +'<div class="panel-actions" style="margin-top:10px"><button class="primary" id="cloudAuthBtn">Accedi</button></div>'
+        +'<p id="cloudPrivacy" class="fineprint" style="margin:9px 0 0;display:none;line-height:1.5">🔒 <b>I tuoi dati di salute sono privati.</b> Li vedi solo tu, dai tuoi dispositivi: nessun altro utente può leggerli. L\'amministratore vede soltanto che ti sei registrato e quali funzioni usi — <b>mai</b> i contenuti.</p>'
+        +'<div class="panel-actions" style="margin-top:10px"><button class="primary" id="cloudAuthBtn">Entra</button></div>'
         +'<p id="cloudStatus" class="fineprint" style="margin-top:6px"></p>';
-      var btn=document.getElementById("cloudAuthBtn");
       var isReg=false;
-      apiFetch("/auth/stato",{method:"GET"}).then(function(s){ isReg=!(s&&s.configurato); btn.textContent=isReg?"Crea accesso":"Entra"; })
-        .catch(function(e){ cloudMark("Il backend si sta svegliando o non risponde ("+(e&&e.message||"")+"). Riprova tra un minuto."); });
+      var seg=document.getElementById("cloudMode"), nomeI=document.getElementById("cloudNomeIn"), priv=document.getElementById("cloudPrivacy"), btn=document.getElementById("cloudAuthBtn");
+      function setMode(m){ isReg=(m==="reg"); Array.prototype.forEach.call(seg.children,function(c){ c.className=(c.dataset.m===m)?"on":""; }); nomeI.style.display=isReg?"":"none"; priv.style.display=isReg?"":"none"; btn.textContent=isReg?"Crea account":"Entra"; }
+      Array.prototype.forEach.call(seg.children,function(c){ c.onclick=function(){ setMode(c.dataset.m); }; });
+      setMode("login");
       btn.onclick=function(){
         var em=(document.getElementById("cloudEmailIn").value||"").trim();
         var pw=document.getElementById("cloudPassIn").value||"";
+        var nm=(nomeI.value||"").trim();
         if(!em||!pw){ cloudMark("Metti email e password"); return; }
         if(isReg && pw.length<8){ cloudMark("La password deve avere almeno 8 caratteri"); return; }
-        btn.disabled=true; cloudMark(isReg?"Creo l'accesso…":"Entro…");
-        apiFetch(isReg?"/auth/register":"/auth/login",{method:"POST", body:{email:em, password:pw}}).then(function(j){
+        btn.disabled=true; cloudMark(isReg?"Creo l'account…":"Entro…");
+        var body=isReg?{email:em, password:pw, nome:nm}:{email:em, password:pw};
+        apiFetch(isReg?"/auth/register":"/auth/login",{method:"POST", body:body}).then(function(j){
           cloudToken=j.access_token; cloudEmail=j.email;
           try{ localStorage.setItem("diario-cloud-token", cloudToken); localStorage.setItem("diario-cloud-email", cloudEmail); }catch(e){}
           renderCloudCard(); cloudPullAll();
         }).catch(function(e){ btn.disabled=false; cloudMark("Non riuscito: "+(e&&e.message||"")); });
       };
     }
+    try{ renderAdmin(); }catch(e){}
+  }
+  var ADMIN_EMAIL="gianlucarizzo70@gmail.com";
+  function renderAdmin(){
+    var isAdmin = cloudToken && cloudEmail && cloudEmail.trim().toLowerCase()===ADMIN_EMAIL;
+    var card=document.getElementById("adminCard");
+    if(!isAdmin){ if(card) card.style.display="none"; return; }
+    if(!card){
+      card=document.createElement("section"); card.className="card"; card.id="adminCard";
+      card.innerHTML='<button class="link-btn" id="adminToggle">👥 Amministrazione — chi usa l\'app</button><div id="adminPanel" hidden><p class="fineprint" style="margin:6px 0 8px">Chi si è registrato e quali funzioni usa. Non vedi i loro dati di salute.</p><div id="adminList"><div class="empty">…</div></div><div class="panel-actions" style="margin-top:8px"><button class="link-btn" id="adminRefresh">Aggiorna</button></div></div>';
+      var cc=document.getElementById("cloudCard"); var anchor=cc?cc.closest("section"):null;
+      if(anchor && anchor.parentNode){ anchor.parentNode.insertBefore(card, anchor.nextSibling); } else { var mn=document.getElementById("menu"); if(mn) mn.appendChild(card); }
+      card.querySelector("#adminToggle").onclick=function(){ var p=card.querySelector("#adminPanel"); p.hidden=!p.hidden; if(!p.hidden) loadAdmin(); };
+      card.querySelector("#adminRefresh").onclick=loadAdmin;
+    }
+    card.style.display="";
+  }
+  function loadAdmin(){
+    var host=document.getElementById("adminList"); if(!host) return; host.innerHTML='<div class="empty">Carico…</div>';
+    apiFetch("/auth/admin/utenti",{method:"GET"}).then(function(j){
+      var list=(j&&j.utenti)||[]; host.innerHTML="";
+      if(!list.length){ host.innerHTML='<div class="empty">Ancora nessun iscritto.</div>'; return; }
+      var head=document.createElement("p"); head.className="rep-sum"; head.textContent=list.length+(list.length===1?" iscritto":" iscritti"); host.appendChild(head);
+      list.forEach(function(u){
+        var d=u.iscritto?new Date(u.iscritto):null;
+        var fn=(u.funzioni&&u.funzioni.length)?u.funzioni.join(", "):"—";
+        var row=document.createElement("div"); row.className="doc-row"; row.style.display="block";
+        row.innerHTML='<div class="doc-name">'+esc(u.nome||u.email)+'</div><div class="doc-sub">'+esc(u.email)+(d?(" · iscritto "+pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()):"")+'</div><div class="doc-sub">Funzioni: '+esc(fn)+'</div>';
+        host.appendChild(row);
+      });
+    }).catch(function(e){ host.innerHTML='<div class="empty">Non disponibile: '+esc((e&&e.message)||"")+'</div>'; });
   }
   try{ renderCloudCard(); }catch(e){}
   if(cloudToken){ try{ cloudPullAll(); }catch(e){} }
