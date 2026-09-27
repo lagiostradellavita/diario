@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 224; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 225; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1924,7 +1924,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v224</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v225</p>
 </div>
 
 <div id="reportView" hidden>
@@ -5206,7 +5206,7 @@
   function saveSessoHidden(){ try{ localStorage.setItem("salute-sesso-hidden", JSON.stringify(sessoHidden)); }catch(e){} }
   function renderSessoManage(){
     var host=document.getElementById("sessoManage"); if(!host) return; host.innerHTML="";
-    SESSO_ORDER.forEach(function(t){
+    SESSO_ORDER.filter(function(t){ return t!=="sega" || (cloudEmail&&cloudEmail.trim().toLowerCase()===ADMIN_EMAIL); }).forEach(function(t){
       var hid=sessoHidden.indexOf(t)>=0;
       var row=document.createElement("div"); row.className="manage-row";
       var nm=document.createElement("span"); nm.className="manage-name"; nm.textContent=SESSO_TIPI[t].label+(hid?" — nascosta":"");
@@ -5226,7 +5226,7 @@
     var tot=cnt.sega+cnt.scopata, sm=document.getElementById("sessoSummary");
     if(sm){ sm.textContent=tot?(tot+" oggi"):""; sm.style.color="var(--ink-soft)"; }
     var q=document.getElementById("sessoQuick");
-    if(q){ q.innerHTML=""; SESSO_ORDER.filter(function(t){ return sessoHidden.indexOf(t)<0; }).forEach(function(t){ var b=document.createElement("button"); b.className="qbtn"; b.type="button"; b.style.setProperty("--c", SESSO_TIPI[t].c); b.innerHTML='<span class="qlab">'+SESSO_TIPI[t].label+'</span><span class="qadd">+1 · oggi '+(cnt[t]||0)+'</span>'; b.onclick=function(){ sessoAdd(t); }; q.appendChild(b); }); }
+    if(q){ q.innerHTML=""; SESSO_ORDER.filter(function(t){ return sessoHidden.indexOf(t)<0 && (t!=="sega" || (cloudEmail&&cloudEmail.trim().toLowerCase()===ADMIN_EMAIL)); }).forEach(function(t){ var b=document.createElement("button"); b.className="qbtn"; b.type="button"; b.style.setProperty("--c", SESSO_TIPI[t].c); b.innerHTML='<span class="qlab">'+SESSO_TIPI[t].label+'</span><span class="qadd">+1 · oggi '+(cnt[t]||0)+'</span>'; b.onclick=function(){ sessoAdd(t); }; q.appendChild(b); }); }
     try{ if(!document.getElementById("sessoManage").hidden) renderSessoManage(); }catch(e){}
     var rows=sessoLog.map(function(x){ return { ts:x.ts, emoji:"🛏️", text:(SESSO_TIPI[x.tipo]?SESSO_TIPI[x.tipo].label:x.tipo)+(x.nota?" — "+x.nota:""), note:(x.nota||""), noteInText:true,
       onNote:(function(xx){ return function(v){ v=(v||"").trim(); if(v) xx.nota=v; else delete xx.nota; saveSessoLog(); renderSesso(); }; })(x),
