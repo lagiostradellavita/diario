@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     # Da quale sito il browser puo' chiamare l'API. In produzione e' il frontend
     # su GitHub Pages; in sviluppo aggiungiamo localhost.
     frontend_origin: str = "https://lagiostradellavita.github.io"
+    admin_email: str = "gianlucarizzo70@gmail.com"    # chi puo' vedere il pannello di amministrazione
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @field_validator("database_url")
