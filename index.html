@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 208; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 209; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1107,26 +1107,20 @@
     </div>
   </section>
 
-  <!-- 7 GIORNI -->
+  <!-- ANDAMENTO FUMO (grafico a linee) -->
   <section class="card">
     <div class="row-between">
-      <h2 class="section-title" style="margin:0">Statistiche</h2>
+      <h2 class="section-title" style="margin:0">Andamento</h2>
       <span id="statSummary" class="stat-summary"></span>
     </div>
-    <div class="seg stat-seg" id="statSeg" style="margin-top:12px">
-      <button type="button" data-v="ora">Ora</button>
-      <button type="button" data-v="giorno" class="on">Giorno</button>
-      <button type="button" data-v="settimana">Sett.</button>
-      <button type="button" data-v="mese">Mese</button>
-      <button type="button" data-v="anno">Anno</button>
-    </div>
-    <div class="chart" id="chart" style="margin-top:12px"></div>
+    <p class="muted-sm" style="margin:8px 0 0">Ogni linea è un giorno: dalla prima sigaretta sale a ogni accensione fino al totale del giorno. Orizzontale le ore, verticale il numero di sigarette.</p>
+    <div id="chart" style="margin-top:10px"></div>
     <p class="stat-legend">
       <span class="lg lg-low">●</span>≤10
       <span class="lg lg-yellow">●</span>11–15
       <span class="lg lg-mid">●</span>16–20
       <span class="lg lg-high">●</span>≥21
-      <span class="stat-legend-note">· al giorno</span>
+      <span class="stat-legend-note">· colore della linea = sigarette del giorno</span>
     </p>
   </section>
 
@@ -1918,7 +1912,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v208</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v209</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2100,73 +2094,49 @@
   var MESI=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
   var statView="giorno";
 
+  // Grafico a linee: una spezzata per ogni giorno (ultimi 7 giorni con sigarette).
+  // X = ore (0–24), Y = numero di sigarette accumulate nel giorno (0–30, scala a passi di 5).
+  // La linea parte dalla prima sigaretta e sale a ogni accensione fino al totale del giorno.
   function renderStats(){
-    var chart=document.getElementById("chart"); chart.innerHTML="";
+    var chart=document.getElementById("chart"); if(!chart) return; chart.innerHTML="";
     var now=new Date();
-    var byDay={}; entries.forEach(function(e){ var k=dayKey(new Date(e.ts)); byDay[k]=(byDay[k]||0)+e.q; });
-    var todayK=dayKey(now), todayTot=byDay[todayK]||0;
-    var bars=[], sumText="", sumLvl="low", i, k, d, t, avg, start, end;
-
-    if(statView==="ora"){
-      var hrs=[]; for(i=0;i<24;i++) hrs[i]=0;
-      entries.forEach(function(e){ hrs[new Date(e.ts).getHours()]+=e.q; });
-      for(i=0;i<24;i++) bars.push({v:hrs[i], label:(i%6===0?(""+i):""), lvl:null, num:false});
-      sumText="Oggi "+num(todayTot); sumLvl=levelOf(todayTot);
-    } else if(statView==="giorno"){
-      for(i=13;i>=0;i--){ d=new Date(); d.setDate(now.getDate()-i); k=dayKey(d); t=byDay[k]||0;
-        bars.push({v:t, label:fmtWeekday(d).charAt(0).toUpperCase(), sub:pad(d.getDate())+"/"+pad(d.getMonth()+1), lvl:levelOf(t), num:true, today:k===todayK}); }
-      sumText="Oggi "+num(todayTot); sumLvl=levelOf(todayTot);
-    } else if(statView==="settimana"){
-      var cur=weekStart(now);
-      for(i=7;i>=0;i--){
-        var ws=new Date(cur); ws.setDate(cur.getDate()-i*7);
-        var wend=new Date(ws); wend.setDate(ws.getDate()+6);
-        var nextWs=new Date(ws); nextWs.setDate(ws.getDate()+7);
-        t=0; entries.forEach(function(e){ var x=new Date(e.ts); if(x>=ws && x<nextWs) t+=e.q; });
-        avg=t/elapsedDays(ws,wend);
-        bars.push({v:t, label:pad(ws.getDate())+"/"+pad(ws.getMonth()+1), lvl:levelOf(avg), num:true, today:i===0, avg:avg});
-      }
-      avg=bars[bars.length-1].avg; sumText="Media/gg "+avgFmt(avg); sumLvl=levelOf(avg);
-    } else if(statView==="mese"){
-      var byMonth={}; entries.forEach(function(e){ var x=new Date(e.ts); var mk=x.getFullYear()+"-"+pad(x.getMonth()+1); byMonth[mk]=(byMonth[mk]||0)+e.q; });
-      for(i=11;i>=0;i--){
-        d=new Date(now.getFullYear(), now.getMonth()-i, 1);
-        k=d.getFullYear()+"-"+pad(d.getMonth()+1); t=byMonth[k]||0;
-        start=new Date(d.getFullYear(),d.getMonth(),1); end=new Date(d.getFullYear(),d.getMonth()+1,0);
-        avg=t/elapsedDays(start,end);
-        bars.push({v:t, label:MESI[d.getMonth()], lvl:levelOf(avg), num:true, today:i===0, avg:avg});
-      }
-      avg=bars[bars.length-1].avg; sumText="Media/gg "+avgFmt(avg); sumLvl=levelOf(avg);
-    } else {
-      var byYear={}, minY=now.getFullYear();
-      entries.forEach(function(e){ var y=new Date(e.ts).getFullYear(); byYear[y]=(byYear[y]||0)+e.q; if(y<minY) minY=y; });
-      for(var yy=minY; yy<=now.getFullYear(); yy++){
-        t=byYear[yy]||0; start=new Date(yy,0,1); end=new Date(yy,11,31);
-        avg=t/elapsedDays(start,end);
-        bars.push({v:t, label:""+yy, lvl:levelOf(avg), num:true, today:yy===now.getFullYear(), avg:avg});
-      }
-      avg=bars.length?bars[bars.length-1].avg:0; sumText="Media/gg "+avgFmt(avg); sumLvl=levelOf(avg);
-    }
-
-    var max=1; bars.forEach(function(b){ if(b.v>max) max=b.v; });
-    bars.forEach(function(b){
-      var col=document.createElement("div"); col.className="col"+(b.today?" today-col":"");
-      if(b.num){ var nn=document.createElement("div"); nn.className="num"+(b.v===0?" z":""); if(b.lvl && b.v>0) nn.style.color="var("+lvlVar(b.lvl)+")"; nn.textContent=num(b.v); col.appendChild(nn); }
-      var wrap=document.createElement("div"); wrap.className="barwrap";
-      var bar=document.createElement("div"); bar.className="bar";
-      bar.style.height=(b.v===0?3:Math.round((b.v/max)*112))+"px";
-      var seg=document.createElement("div"); seg.className="seg"; seg.style.height="100%";
-      seg.style.background = b.lvl ? "var("+lvlVar(b.lvl)+")" : "var(--accent)";
-      bar.appendChild(seg); wrap.appendChild(bar); col.appendChild(wrap);
-      var wd=document.createElement("div"); wd.className="wd";
-      if(b.sub){ wd.textContent=b.label; var sb=document.createElement("span"); sb.className="wd-sub"; sb.textContent=b.sub; wd.appendChild(sb); }
-      else { wd.textContent=b.label; }
-      col.appendChild(wd);
-      chart.appendChild(col);
+    var byDay={};
+    entries.forEach(function(e){ var d=new Date(e.ts); var k=dayKey(d); (byDay[k]=byDay[k]||[]).push({t:d.getHours()+d.getMinutes()/60, q:e.q, ts:+d}); });
+    var todayK=dayKey(now), todayTot=(byDay[todayK]||[]).reduce(function(a,x){ return a+x.q; },0);
+    var sEl=document.getElementById("statSummary"); if(sEl){ sEl.textContent="Oggi "+num(todayTot); sEl.style.color="var("+lvlVar(levelOf(todayTot))+")"; }
+    var days=[], i, d, k;
+    for(i=6;i>=0;i--){ d=new Date(); d.setDate(now.getDate()-i); k=dayKey(d);
+      if(byDay[k] && byDay[k].length){ days.push({k:k, date:new Date(d.getFullYear(),d.getMonth(),d.getDate()), items:byDay[k].slice().sort(function(a,b){ return a.ts-b.ts; })}); } }
+    if(!days.length){ chart.innerHTML='<p class="muted" style="text-align:center;padding:22px 0">Ancora nessuna sigaretta negli ultimi 7 giorni.</p>'; return; }
+    chart.innerHTML=svgFumoCumulato(days, todayK);
+  }
+  function svgFumoCumulato(days, todayK){
+    var W=760, H=300, pL=30, pR=64, pT=12, pB=28;
+    var css=getComputedStyle(document.documentElement);
+    var fb={"--lvl-low":"#15803D","--lvl-yellow":"#CA8A04","--lvl-mid":"#EA580C","--lvl-high":"#B91C1C"};
+    function colOf(lvl){ var v=(css.getPropertyValue(lvlVar(lvl))||"").trim(); return v||fb[lvlVar(lvl)]; }
+    var maxTot=0; days.forEach(function(g){ g._tot=g.items.reduce(function(a,x){ return a+x.q; },0); if(g._tot>maxTot) maxTot=g._tot; });
+    var yMax=Math.max(30, Math.ceil(maxTot/5)*5);
+    var plotW=W-pL-pR, plotH=H-pT-pB;
+    function X(hr){ return pL+plotW*(hr/24); }
+    function Y(v){ return pT+plotH*(1-(v/yMax)); }
+    var s='<svg class="rep-chart" width="100%" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">';
+    var yv, yy;
+    for(yv=0;yv<=yMax;yv+=5){ yy=Y(yv); s+='<line x1="'+pL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-pR)+'" y2="'+yy.toFixed(1)+'" stroke="#e6e6e6" stroke-width="1"/>'; s+='<text x="'+(pL-5)+'" y="'+(yy+3.5).toFixed(1)+'" text-anchor="end" font-size="11" fill="#999">'+yv+'</text>'; }
+    var h, xx;
+    for(h=0;h<=24;h++){ xx=X(h); s+='<line x1="'+xx.toFixed(1)+'" y1="'+pT+'" x2="'+xx.toFixed(1)+'" y2="'+(H-pB)+'" stroke="'+(h%6===0?"#cfcfcf":"#f1f1f1")+'" stroke-width="1"/>'; if(h%2===0) s+='<text x="'+xx.toFixed(1)+'" y="'+(H-pB+14).toFixed(1)+'" text-anchor="middle" font-size="10" fill="#999">'+h+'</text>'; }
+    s+='<text x="'+(W-pR+6)+'" y="'+(H-pB+14).toFixed(1)+'" font-size="10" fill="#bbb">ora</text>';
+    days.forEach(function(g){
+      var lvl=levelOf(g._tot), col=colOf(lvl), isToday=g.k===todayK;
+      var cum=0, pts=[]; pts.push(X(g.items[0].t).toFixed(1)+","+Y(0).toFixed(1));
+      g.items.forEach(function(x){ cum+=x.q; pts.push(X(x.t).toFixed(1)+","+Y(cum).toFixed(1)); });
+      s+='<polyline points="'+pts.join(" ")+'" fill="none" stroke="'+col+'" stroke-width="'+(isToday?1.6:1)+'" stroke-linejoin="round" stroke-linecap="round" opacity="'+(isToday?1:0.8)+'"/>';
+      var lx=X(g.items[g.items.length-1].t), ly=Y(cum);
+      s+='<circle cx="'+lx.toFixed(1)+'" cy="'+ly.toFixed(1)+'" r="'+(isToday?2.2:1.6)+'" fill="'+col+'"/>';
+      s+='<text x="'+(lx+5).toFixed(1)+'" y="'+(ly+3.5).toFixed(1)+'" font-size="10.5" fill="'+col+'" font-weight="'+(isToday?800:600)+'">'+pad(g.date.getDate())+"/"+pad(g.date.getMonth()+1)+(isToday?" oggi":"")+'</text>';
     });
-    var s=document.getElementById("statSummary"); s.textContent=sumText; s.style.color="var("+lvlVar(sumLvl)+")";
-    if(statView==="ora"){ var ch=new Date().getHours(); chart.scrollLeft=Math.max(0,(ch/24)*chart.scrollWidth - chart.clientWidth/2); }
-    else { chart.scrollLeft=chart.scrollWidth; }
+    s+='</svg>';
+    return s;
   }
 
   function renderHistory(){
@@ -2215,16 +2185,7 @@
     });
   })();
 
-  (function buildStatSeg(){
-    var seg=document.getElementById("statSeg");
-    Array.prototype.forEach.call(seg.children, function(b){
-      b.onclick=function(){
-        statView=b.dataset.v;
-        Array.prototype.forEach.call(seg.children, function(c){ c.className=(c===b)?"on":""; });
-        renderStats();
-      };
-    });
-  })();
+  // (selettore Ora/Giorno/Sett/Mese/Anno rimosso: il grafico mostra gli ultimi 7 giorni a linee)
 
   function setQ(v){ detailQ=Math.max(1,Math.min(99,v)); document.getElementById("qVal").textContent=detailQ; }
   document.getElementById("qMinus").onclick=function(){ setQ(detailQ-1); };
