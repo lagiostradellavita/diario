@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 220; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 221; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1031,11 +1031,13 @@
         <input type="text" id="docCatAdd" placeholder="Aggiungi un tipo…">
         <button type="button" id="docCatAddBtn">＋</button>
       </div>
-      <input id="docFileInput" type="file" accept="image/*,application/pdf,.pdf" multiple>
-      <div class="panel-actions" style="margin-top:15px">
-        <button class="primary" id="docAttach">📎 Allega foto o PDF</button>
+      <input type="text" id="docNome" placeholder="Nome (es. Analisi 04/09 o «Cartella referti»)" style="margin-top:8px">
+      <input type="text" id="docUrl" placeholder="Incolla il link a un file o a una cartella" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin-top:8px">
+      <div class="panel-actions" style="margin-top:12px">
+        <button class="primary" id="docAddBtn">🔗 Aggiungi referto</button>
         <button class="link-btn" id="docPanelClose">Chiudi</button>
       </div>
+      <p class="fineprint" style="margin:8px 0 0">Il link può puntare a un <b>file</b> o a una <b>cartella</b> su Dropbox, Google Drive o sul PC: qui salvi solo il collegamento, che si apre con un tocco. Copia il link dalla tua app (Dropbox/Drive: «Copia link») e incollalo qui.</p>
       <div id="docList" style="margin-top:10px"></div>
       <p class="fineprint">I documenti restano sul telefono, in questo browser. Tieni sempre gli <b>originali</b> al sicuro (email, cartella medica): questa è una copia comoda, non l'unico posto.</p>
       </div>
@@ -1922,7 +1924,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v220</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v221</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4449,6 +4451,25 @@
   var DOC_CATS=["Rx","Analisi del sangue","RMN","Tac","Ecografia","Visita","Ricetta"];
   var docCatsCustom=[]; try{ var _dc=JSON.parse(localStorage.getItem("salute-doc-cats")); if(Array.isArray(_dc)) docCatsCustom=_dc; }catch(e){}
   var docCatSel="Rx";
+  // Referti come LINK a Dropbox (non file caricati): ogni utente salva i propri collegamenti.
+  var referti=[]; try{ var _rf=JSON.parse(localStorage.getItem("salute-referti")); if(Array.isArray(_rf)) referti=_rf; }catch(e){}
+  function saveReferti(){ try{ localStorage.setItem("salute-referti", JSON.stringify(referti)); }catch(e){} }
+  function normUrl(u){ u=(u||"").trim(); if(!u) return "";
+    if(/^(https?|file):\/\//i.test(u)) return u;                 // gia' un link completo (Dropbox, Drive, OneDrive, file://)
+    if(/^[a-zA-Z]:[\\/]/.test(u)) return "file:///"+u.replace(/\\/g,"/"); // percorso Windows: C:\Cartella\referto.pdf
+    if(u.charAt(0)==="/") return "file://"+u;                     // percorso Mac/Linux: /Users/...
+    return "https://"+u;                                          // dominio senza schema (es. drive.google.com/...)
+  }
+  function refRowEl(f, refreshFn){
+    var d=new Date(f.ts||Date.now());
+    var row=document.createElement("div"); row.className="doc-row";
+    row.innerHTML='<span class="doc-ic">🔗</span><span class="doc-meta"><div class="doc-name">'+esc(f.nome)+'</div><div class="doc-sub">'+pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()+(f.cat?" · "+esc(f.cat):"")+'</div></span>';
+    var open=document.createElement("button"); open.className="doc-open"; open.type="button"; open.textContent="Apri";
+    open.onclick=function(){ try{ window.open(f.url,"_blank","noopener"); }catch(e){ try{ location.href=f.url; }catch(e2){} } };
+    var del=document.createElement("button"); del.className="del"; del.type="button"; del.setAttribute("aria-label","Elimina");
+    del.innerHTML=TRASH; del.onclick=function(){ if(confirm("Togliere «"+f.nome+"» dall'elenco?\n(Il file su Dropbox non viene toccato.)")){ referti=referti.filter(function(x){ return x.id!==f.id; }); saveReferti(); refreshFn(); } };
+    row.appendChild(open); row.appendChild(del); return row;
+  }
   function docCatsAll(){ return DOC_CATS.concat(docCatsCustom); }
   function renderDocCats(){
     var host=document.getElementById("docCat"); if(!host) return; host.innerHTML="";
@@ -4487,18 +4508,16 @@
     row.appendChild(open); row.appendChild(del); return row;
   }
   function renderDocList(){
-    var host=document.getElementById("docList"); if(!host) return; host.innerHTML='<div class="empty" style="padding:12px 0">…</div>';
-    docAll().then(function(list){
-      var tg=document.getElementById("docToggle"); if(tg) tg.textContent="📁 Referti e documenti"+(list.length?" ("+list.length+")":"");
-      host.innerHTML="";
-      if(!list.length){ host.innerHTML='<div class="empty">Ancora nessun documento allegato.</div>'; return; }
-      list.sort(function(a,b){ return b.ts-a.ts; });
-      var byCat={}; list.forEach(function(f){ (byCat[f.cat]=byCat[f.cat]||[]).push(f); });
-      Object.keys(byCat).forEach(function(cat){
-        var h=document.createElement("div"); h.className="doc-cat-head"; h.textContent=cat+" ("+byCat[cat].length+")"; host.appendChild(h);
-        byCat[cat].forEach(function(f){ host.appendChild(docRowEl(f, renderDocList)); });
-      });
-    }).catch(function(){ host.innerHTML='<div class="empty">I documenti non sono disponibili in questa modalità.</div>'; });
+    var host=document.getElementById("docList"); if(!host) return;
+    var list=referti.slice().sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+    var tg=document.getElementById("docToggle"); if(tg) tg.textContent="📁 Referti e documenti"+(list.length?" ("+list.length+")":"");
+    host.innerHTML="";
+    if(!list.length){ host.innerHTML='<div class="empty">Ancora nessun referto. Aggiungi qui sopra il link a un file o a una cartella.</div>'; return; }
+    var byCat={}; list.forEach(function(f){ var c=f.cat||"Altro"; (byCat[c]=byCat[c]||[]).push(f); });
+    Object.keys(byCat).forEach(function(cat){
+      var h=document.createElement("div"); h.className="doc-cat-head"; h.textContent=cat+" ("+byCat[cat].length+")"; host.appendChild(h);
+      byCat[cat].forEach(function(f){ host.appendChild(refRowEl(f, renderDocList)); });
+    });
   }
   var docViewerUrl=null;
   function closeDocViewer(){
@@ -4535,19 +4554,15 @@
       }catch(e){ toast("Impossibile aprire il file"); }
     }).catch(function(){ toast("Errore nell'apertura"); });
   }
-  document.getElementById("docAttach").onclick=function(){ document.getElementById("docFileInput").click(); };
-  document.getElementById("docFileInput").onchange=function(ev){
-    var files=ev.target.files; if(!files||!files.length){ return; }
-    var arr=Array.prototype.slice.call(files), done=0, ok=0, cat=docCatSel;
-    arr.forEach(function(file){
-      var r=new FileReader();
-      r.onload=function(){ docPut({id:uid(), cat:cat, nome:file.name||"documento", tipo:file.type||"", size:file.size||0, ts:Date.now(), buf:r.result})
-        .then(function(){ ok++; }).catch(function(){}).then(function(){ done++; if(done===arr.length){ renderDocList(); toast(ok? (ok===1?"Documento allegato ✓":ok+" documenti allegati ✓") : "Impossibile salvare"); } }); };
-      r.onerror=function(){ done++; if(done===arr.length){ renderDocList(); toast(ok?"Allegati "+ok:"Impossibile leggere il file"); } };
-      r.readAsArrayBuffer(file);
-    });
-    ev.target.value="";
+  document.getElementById("docAddBtn").onclick=function(){
+    var nomeEl=document.getElementById("docNome"), urlEl=document.getElementById("docUrl");
+    var url=normUrl(urlEl.value), nome=(nomeEl.value||"").trim();
+    if(!url){ toast("Incolla il link del referto (file o cartella)"); return; }
+    if(!nome){ nome=docCatSel||"Referto"; }
+    referti.push({id:uid(), cat:docCatSel, nome:nome, url:url, ts:Date.now()});
+    saveReferti(); nomeEl.value=""; urlEl.value=""; renderDocList(); toast("Referto aggiunto ✓");
   };
+  document.getElementById("docUrl").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("docAddBtn").click(); } });
   renderDocList();
 
   // documenti dentro ogni modulo (stessa memoria, taggati per modulo)
@@ -4651,7 +4666,7 @@
     if(_on("diario")) items.push({e:"📔", t:"Apri il diario di oggi", m:"diario"});
     if(_on("programma")) items.push({e:"📋", t:"Apri il programma", m:"programma"});
     if(_on("storia")) items.push({e:"🗂️", t:"Apri la storia clinica", m:"storia"});
-    items.push({e:"📁", t:"Allega un referto o un documento", m:"__docs"});
+    items.push({e:"📁", t:"Aggiungi un referto (link)", m:"__docs"});
     items.sort(function(a,b){ return (b.cls==="urgent"?1:0)-(a.cls==="urgent"?1:0); });
     items.forEach(function(s){
       var b=document.createElement("button"); b.type="button"; b.className="sugg"+(s.cls?(" "+s.cls):"");
