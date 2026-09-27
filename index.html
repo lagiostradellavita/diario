@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 215; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 216; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1913,7 +1913,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v215</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v216</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2176,7 +2176,7 @@
     chart.scrollLeft=chart.scrollWidth;
   }
   function svgFumoSoglie(days){
-    var n=days.length, perDay=46, W=Math.max(360, n*perDay), H=450, pL=30, pR=30, pT=28, pB=42;
+    var n=days.length, perDay=46, W=Math.max(360, n*perDay), H=560, pL=30, pR=30, pT=28, pB=42;
     var minT=24; days.forEach(function(g){ g.items.forEach(function(x){ if(x.t<minT) minT=x.t; }); });
     var minH=(minT<24)?Math.max(0, Math.floor(minT/2)*2):0; // l'asse parte dalla prima ora con sigarette: niente fascia notturna vuota in basso
     var plotW=W-pL-pR, plotH=H-pT-pB, slot=plotW/n;
