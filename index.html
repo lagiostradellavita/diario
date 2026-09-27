@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 219; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 220; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1922,7 +1922,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v219</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v220</p>
 </div>
 
 <div id="reportView" hidden>
@@ -4635,12 +4635,22 @@
         if(it.ora && nowMin2>=hhmmToMin(it.ora)-10){ var lbl=(it.nome||"")+(it.qta?" "+it.qta:"")+(it.durataMin?" "+it.durataMin+" min":""); items.push({e:(it.tipo==="pasto"?"🍽️":"🏃"), t:"Programma: "+lbl+(it.ora?" ("+it.ora+")":""), m:"programma", cls:(nowMin2>hhmmToMin(it.ora)?"urgent":"")}); }
       });
     }catch(e){}
-    items.push({e:"🚬", t:"Registra una sigaretta", m:"fumo"});
-    items.push({e:"💊", t:(pt.total===0?"Imposta le tue pillole":(pt.late>0?(pt.late===1?"Prendi la pillola in ritardo":"Prendi le "+pt.late+" pillole in ritardo"):"Segna le pillole di oggi")), m:"pillole", cls:(pt.late>0?"urgent":"")});
-    items.push({e:(attivRunning?"⏱️":"🏃"), t:(attivRunning?"Termina: "+attivRunning.nome:"Avvia un'attività fisica"), m:"esercizio", cls:(attivRunning?"urgent":"")});
-    items.push({e:"🍎", t:"Segna cosa hai mangiato", m:"alimentazione"});
-    items.push({e:"🩺", t:"Segna come ti senti (fastidi)", m:"salute"});
-    items.push({e:"🚽", t:"Registra un'evacuazione", m:"evac"});
+    var _act=null; try{ var _a=JSON.parse(localStorage.getItem("salute-funzioni-attive")); if(Array.isArray(_a)) _act=_a; }catch(e){}
+    function _on(id){ return !_act || _act.indexOf(id)>=0; } // se non configurato, tutte attive
+    if(_on("fumo")) items.push({e:"🚬", t:"Registra una sigaretta", m:"fumo"});
+    if(_on("pillole")) items.push({e:"💊", t:(pt.total===0?"Imposta le tue pillole":(pt.late>0?(pt.late===1?"Prendi la pillola in ritardo":"Prendi le "+pt.late+" pillole in ritardo"):"Segna le pillole di oggi")), m:"pillole", cls:(pt.late>0?"urgent":"")});
+    if(_on("esercizio")) items.push({e:(attivRunning?"⏱️":"🏃"), t:(attivRunning?"Termina: "+attivRunning.nome:"Avvia un'attività fisica"), m:"esercizio", cls:(attivRunning?"urgent":"")});
+    if(_on("alimentazione")) items.push({e:"🍎", t:"Segna cosa hai mangiato", m:"alimentazione"});
+    if(_on("salute")) items.push({e:"🩺", t:"Segna come ti senti (fastidi)", m:"salute"});
+    if(_on("evac")) items.push({e:"🚽", t:"Registra un'evacuazione", m:"evac"});
+    if(_on("parametri")) items.push({e:"❤️", t:"Registra i parametri vitali", m:"parametri"});
+    if(_on("peso")) items.push({e:"⚖️", t:"Registra il peso", m:"peso"});
+    if(_on("sonno")) items.push({e:"😴", t:"Registra il sonno", m:"sonno"});
+    if(_on("ciclo")) items.push({e:"🌸", t:"Segna il ciclo", m:"ciclo"});
+    if(_on("sesso")) items.push({e:"🛏️", t:"Registra attività sessuale", m:"sesso"});
+    if(_on("diario")) items.push({e:"📔", t:"Apri il diario di oggi", m:"diario"});
+    if(_on("programma")) items.push({e:"📋", t:"Apri il programma", m:"programma"});
+    if(_on("storia")) items.push({e:"🗂️", t:"Apri la storia clinica", m:"storia"});
     items.push({e:"📁", t:"Allega un referto o un documento", m:"__docs"});
     items.sort(function(a,b){ return (b.cls==="urgent"?1:0)-(a.cls==="urgent"?1:0); });
     items.forEach(function(s){
