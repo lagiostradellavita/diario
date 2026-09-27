@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 212; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 213; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1913,7 +1913,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v212</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v213</p>
 </div>
 
 <div id="reportView" hidden>
@@ -2197,7 +2197,7 @@
       var prev=null;
       days.forEach(function(g,i){
         var h=oraSoglia(g.items,o.s);
-        if(h==null){ return; }
+        if(h==null){ prev=null; return; } // soglia non raggiunta: nessun punto, la linea si interrompe (congiunge solo giorni consecutivi)
         var x=Xc(i), y=Y(h);
         if(prev) s+='<line x1="'+prev.x.toFixed(1)+'" y1="'+prev.y.toFixed(1)+'" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="'+o.c+'" stroke-width="1.6" stroke-linecap="round"/>';
         s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="2.2" fill="'+o.c+'"/>';
