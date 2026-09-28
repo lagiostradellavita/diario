@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 227; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 228; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1924,7 +1924,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v227</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v228</p>
 </div>
 
 <div id="reportView" hidden>
@@ -5528,13 +5528,17 @@
       document.getElementById("cloudSyncNow").onclick=function(){ cloudPullAll(); };
       document.getElementById("cloudLogoutBtn").onclick=function(){ if(confirm("Uscire dal cloud su questo dispositivo? I dati restano comunque su questo dispositivo.")) cloudLogout(); };
     } else {
-      host.innerHTML='<p class="fineprint" style="margin:0 0 8px">Accedi per tenere i dati sincronizzati su tutti i tuoi dispositivi. La prima volta, crea un account.</p>'
-        +'<div class="seg" id="cloudMode" style="margin-bottom:10px"><button type="button" data-m="login" class="on">Ho già un account</button><button type="button" data-m="reg">Crea account</button></div>'
-        +'<input id="cloudNomeIn" type="text" autocomplete="name" placeholder="Nome e cognome" style="margin-bottom:8px;display:none">'
-        +'<input id="cloudEmailIn" type="email" inputmode="email" autocomplete="username" placeholder="La tua email" style="margin-bottom:8px">'
-        +'<input id="cloudPassIn" type="password" autocomplete="current-password" placeholder="Password (almeno 8 caratteri)">'
+      host.innerHTML='<div style="text-align:center;padding:2px 0 14px">'
+          +'<div aria-hidden="true" style="font-size:44px;line-height:1">💚</div>'
+          +'<h2 style="margin:7px 0 3px;font-size:21px;color:var(--accent,#0f7d6b)">Benvenuto in Diario Salute</h2>'
+          +'<p class="fineprint" style="margin:0;line-height:1.5">Crea il tuo account per iniziare. I tuoi dati restano privati e ti seguono su ogni dispositivo.</p>'
+        +'</div>'
+        +'<div class="seg" id="cloudMode" style="margin-bottom:12px"><button type="button" data-m="login" class="on">Ho già un account</button><button type="button" data-m="reg">Crea account</button></div>'
+        +'<input id="cloudNomeIn" type="text" autocomplete="name" placeholder="Nome e cognome" style="display:none;box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:9px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
+        +'<input id="cloudEmailIn" type="email" inputmode="email" autocomplete="username" placeholder="La tua email" style="display:block;box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:9px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
+        +'<input id="cloudPassIn" type="password" autocomplete="current-password" placeholder="Password (almeno 8 caratteri)" style="display:block;box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:4px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
         +'<p id="cloudPrivacy" class="fineprint" style="margin:9px 0 0;display:none;line-height:1.5">🔒 <b>I tuoi dati di salute sono privati.</b> Li vedi solo tu, dai tuoi dispositivi: nessun altro utente può leggerli. L\'amministratore vede soltanto che ti sei registrato e quali funzioni usi — <b>mai</b> i contenuti.</p>'
-        +'<div class="panel-actions" style="margin-top:10px"><button class="primary" id="cloudAuthBtn">Entra</button></div>'
+        +'<div class="panel-actions" style="margin-top:12px"><button class="primary" id="cloudAuthBtn" style="box-sizing:border-box;width:100%;padding:14px;font-size:16px;border-radius:12px">Entra</button></div>'
         +'<p id="cloudStatus" class="fineprint" style="margin-top:6px"></p>';
       var isReg=false;
       var seg=document.getElementById("cloudMode"), nomeI=document.getElementById("cloudNomeIn"), priv=document.getElementById("cloudPrivacy"), btn=document.getElementById("cloudAuthBtn");
@@ -5556,6 +5560,7 @@
         }).catch(function(e){ btn.disabled=false; cloudMark("Non riuscito: "+(e&&e.message||"")); });
       };
     }
+    if(!cloudToken){ try{ var _mn=document.getElementById("menu"); var _hdr=_mn&&_mn.querySelector("header.menu-hdr"); if(_hdr && host!==_hdr.nextSibling){ _mn.insertBefore(host, _hdr.nextSibling); } }catch(e){} }
     try{ renderAdmin(); }catch(e){} try{ renderGuidaCard(); }catch(e){}
   }
   var ADMIN_EMAIL="gianlucarizzo70@gmail.com";
@@ -5605,7 +5610,7 @@
       {ok:hasProg, t:"Imposta il programma", d:"le cose da fare ogni giorno", act:"prog"},
       {ok:hasGuida, t:"Guarda la guida", d:"come si usa l'app", act:"guida"}
     ];
-    if(!card){ card=document.createElement("section"); card.className="card"; card.id="onbCard"; menu.insertBefore(card, menu.firstChild); }
+    if(!card){ card=document.createElement("section"); card.className="card"; card.id="onbCard"; var _cc=document.getElementById("cloudCard"); if(_cc&&_cc.parentNode){ _cc.parentNode.insertBefore(card, _cc.nextSibling); } else { menu.insertBefore(card, menu.firstChild); } }
     var html='<h2 class="section-title" style="margin:0 0 4px">👋 Benvenuto! Come iniziare</h2><p class="fineprint" style="margin:0 0 8px">Tocca ogni passo, con calma. Quando hai finito puoi nascondere questo riquadro.</p>';
     steps.forEach(function(s,i){
       html+='<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)">'
@@ -6103,6 +6108,6 @@
   try{ if(!localStorage.getItem("salute-fn-peso")){ var _ap=getActive(); if(_ap && _ap.indexOf("peso")<0){ _ap.push("peso"); setActive(_ap); } localStorage.setItem("salute-fn-peso","1"); } }catch(e){}
   if(getActive()){ apply(); }
   else if(hasData()){ setActive(ALL); apply(); }
-  else { apply(); open(true); }
+  else { apply(); }
 })();
 </script>
