@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 229; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 230; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1927,7 +1927,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v229 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v230 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -5621,7 +5621,7 @@
       html+='<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)">'
         +'<span style="font-size:20px;flex:0 0 auto">'+(s.ok?"✅":("<b>"+(i+1)+"</b>"))+'</span>'
         +'<span style="flex:1"><b>'+esc(s.t)+'</b><br><span class="fineprint">'+esc(s.d)+'</span></span>'
-        +'<button class="link-btn onb-go" data-act="'+s.act+'" style="flex:0 0 auto">'+(s.ok?"Rivedi":"Vai")+'</button></div>';
+        +'<button class="link-btn onb-go" data-act="'+s.act+'" style="flex:0 0 auto;width:auto;padding:8px 12px;white-space:nowrap;border:1px solid var(--line);border-radius:9px">'+(s.ok?"Rivedi":"Vai")+'</button></div>';
     });
     html+='<div class="panel-actions" style="margin-top:10px"><button class="link-btn" id="onbDone">Ho finito, nascondi</button></div>';
     card.innerHTML=html;
