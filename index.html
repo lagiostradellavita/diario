@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 226; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 227; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1924,7 +1924,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v226</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v227</p>
 </div>
 
 <div id="reportView" hidden>
@@ -1941,6 +1941,7 @@
     <p class="fnc-sub">Attiva solo quello che ti serve: comparirà nella schermata principale. Puoi cambiare quando vuoi (⚙️ «Scegli le funzioni da mostrare»).</p>
     <div id="fnChooserList" class="fnc-list"></div>
     <div class="fnc-actions"><button class="primary" id="fnChooserDone" type="button">Inizia</button></div>
+    <p style="text-align:center;margin:12px 0 0"><button class="link-btn" id="fnChooserGuide" type="button">📱 Come installare l'app</button></p>
   </div>
 </div>
 
@@ -2392,6 +2393,21 @@
         return {ok:false, reason:code||"error"};
       }
     }
+    // Scegli dove salvare: una cartella del PC, oppure Drive/Dropbox se sono cartelle sincronizzate sul computer
+    if(window.showSaveFilePicker){
+      try{
+        var _h=await window.showSaveFilePicker({suggestedName:filename});
+        var _w=await _h.createWritable(); await _w.write(new Blob([data])); await _w.close();
+        return {ok:true, name:filename};
+      }catch(e){ if(e && e.name==="AbortError") return {ok:false, reason:"declined"}; }
+    }
+    // Sul telefono: «Condividi» per salvare su Dropbox/Drive/File
+    try{
+      if(navigator.canShare){
+        var _f=new File([data], filename, {type:(/\.json$/i.test(filename)?"application/json":"text/plain")});
+        if(navigator.canShare({files:[_f]})){ await navigator.share({files:[_f], title:filename}); return {ok:true, name:filename}; }
+      }
+    }catch(e){ if(e && e.name==="AbortError") return {ok:false, reason:"declined"}; }
     return downloadBlob(filename, data) ? {ok:true, name:filename} : {ok:false, reason:"error"};
   }
 
@@ -5540,7 +5556,7 @@
         }).catch(function(e){ btn.disabled=false; cloudMark("Non riuscito: "+(e&&e.message||"")); });
       };
     }
-    try{ renderAdmin(); }catch(e){}
+    try{ renderAdmin(); }catch(e){} try{ renderGuidaCard(); }catch(e){}
   }
   var ADMIN_EMAIL="gianlucarizzo70@gmail.com";
   function renderAdmin(){
@@ -5606,7 +5622,7 @@
         else if(a==="fn"){ var cb=document.getElementById("chooseFnBtn"); if(cb) cb.click(); }
         else if(a==="prof"){ var av=document.getElementById("pfAvatar"); if(av) av.click(); }
         else if(a==="prog"){ try{ showMod("programma"); }catch(e){} }
-        else if(a==="guida"){ try{ localStorage.setItem("salute-guida-vista","1"); }catch(e){} try{ window.open("Guida-installazione-Diario-Salute.pdf","_blank","noopener"); }catch(e){} renderOnboarding(); }
+        else if(a==="guida"){ apriGuide(); renderOnboarding(); }
       };
     });
     var od=card.querySelector("#onbDone"); if(od) od.onclick=function(){ try{ localStorage.setItem("salute-onboarding-done","1"); }catch(e){} if(card.parentNode) card.parentNode.removeChild(card); };
@@ -5618,8 +5634,60 @@
       if(localStorage.getItem("salute-funzioni-attive") || localStorage.getItem("diario-cloud-token")) localStorage.setItem("salute-onboarding-done","1");
     }
   }catch(e){}
+  var GUIDA_INSTALL='<h3 style="margin:0 0 6px">📱 Installare l\'app sul telefono</h3>'
+    +'<p>Così si apre come una vera app, anche senza browser:</p>'
+    +'<p><b>iPhone (Safari):</b> tocca <b>Condividi</b> (il quadrato con la freccia) → <b>«Aggiungi a Home»</b>.</p>'
+    +'<p><b>Android (Chrome):</b> tocca i <b>tre puntini</b> in alto a destra → <b>«Aggiungi a schermata Home»</b> (o «Installa app»).</p>'
+    +'<p>Poi trovi l\'icona «Diario Salute» tra le tue app.</p>';
+  var GUIDA_USO='<h3 style="margin:0 0 6px">Come si usa Diario Salute</h3>'
+    +'<p>Serve a segnare la tua salute giorno per giorno e a mostrarla al medico. Funziona anche senza internet.</p>'
+    +'<p><b>1) Per prima cosa, configura i tuoi dati personali.</b> Tocca la tua iniziale/foto in alto a destra: nome, data di nascita, altezza, peso, foto, gruppo sanguigno, allergie, farmaci.</p>'
+    +'<p style="background:var(--card,#f2f6fa);border-left:4px solid var(--accent,#0f7d6b);border-radius:8px;padding:8px 12px;margin:8px 0">🔒 <b>Privacy:</b> questi dati, come tutti gli altri, sono <b>tuoi e privati</b>: li vedi solo tu dai tuoi dispositivi, nessun altro utente può leggerli. L\'amministratore vede soltanto che ti sei registrato e quali funzioni usi, <b>mai</b> i contenuti.</p>'
+    +'<p><b>2) Poi imposta il «Programma» (📋)</b> delle cose da fare: pillole con gli orari, pasti, attività, un eventuale limite di sigarette. L\'app te le ricorda e ti avvisa se sei in ritardo.</p>'
+    +'<p><b>3) Poi, giorno per giorno, usa le funzioni:</b></p><ul style="padding-left:18px;margin:4px 0">'
+    +'<li>📔 <b>Diario di oggi</b> — riepilogo della giornata.</li>'
+    +'<li>🚬 <b>Fumo</b> — segni le sigarette; grafici per capire e ridurre.</li>'
+    +'<li>🩺 <b>Salute</b> — sintomi e fastidi.</li>'
+    +'<li>💊 <b>Pillole</b> — spunti quelle prese, secondo gli orari del Programma.</li>'
+    +'<li>🏃 <b>Attività</b> · 🍎 <b>Alimentazione</b> · 🚽 <b>Evacuazioni</b>.</li>'
+    +'<li>❤️ <b>Parametri</b> · ⚖️ <b>Peso</b> · 🌸 <b>Ciclo</b> · 😴 <b>Sonno</b> · 🛏️ <b>Sesso</b>.</li>'
+    +'<li>🗂️ <b>Storia clinica</b> — diagnosi, terapie, esami; riepilogo per il medico.</li></ul>'
+    +'<p><b>Referti:</b> non si caricano file, si incolla il <b>link</b> (Dropbox, Google Drive o cartella del PC).</p>'
+    +'<p><b>Backup:</b> ogni tanto salva un backup (in fondo alla schermata iniziale).</p>'
+    +'<p>🔒 <b>Privacy:</b> i tuoi dati li vedi solo tu.</p>';
+  function apriGuide(mode){
+    try{ localStorage.setItem("salute-guida-vista","1"); }catch(e){}
+    var body = (mode==="install") ? GUIDA_INSTALL : (GUIDA_USO + '<hr style="border:none;border-top:1px solid var(--line,#e3e7ec);margin:16px 0">' + GUIDA_INSTALL);
+    var ov=document.getElementById("guideOverlay");
+    if(!ov){
+      ov=document.createElement("div"); ov.id="guideOverlay";
+      ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto";
+      ov.innerHTML='<div style="background:var(--surface,#fff);color:var(--ink,#1a2230);max-width:460px;width:100%;border-radius:16px;padding:18px;margin:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);font-size:14.5px;line-height:1.55"><div id="guideBody"></div><button type="button" class="link-btn" id="guideClose" style="width:100%;margin-top:14px">Chiudi</button></div>';
+      document.body.appendChild(ov);
+      ov.addEventListener("click", function(e){ if(e.target===ov) ov.style.display="none"; });
+      ov.querySelector("#guideClose").onclick=function(){ ov.style.display="none"; };
+    }
+    ov.querySelector("#guideBody").innerHTML=body;
+    ov.style.display="flex";
+  }
+  window.apriGuide=apriGuide;
+  function renderGuidaCard(){
+    var menu=document.getElementById("menu"); if(!menu) return;
+    var card=document.getElementById("guidaUsoCard");
+    if(!cloudToken){ if(card) card.style.display="none"; return; }
+    if(!card){
+      card=document.createElement("section"); card.className="card"; card.id="guidaUsoCard";
+      card.innerHTML='<button class="link-btn" id="guidaUsoToggle">📖 Guida d\'uso</button><div id="guidaUsoPanel" hidden><div id="guidaUsoBody" style="font-size:14.5px;line-height:1.55"></div><a href="Guida-uso-Diario-Salute.pdf" target="_blank" rel="noopener" class="wide-btn" style="display:block;text-align:center;text-decoration:none;margin-top:12px">⬇️ Scarica la guida in PDF</a></div>';
+      var cc=document.getElementById("cloudCard"); var anchor=cc?cc.closest("section"):null;
+      if(anchor && anchor.parentNode){ anchor.parentNode.insertBefore(card, anchor.nextSibling); } else { menu.appendChild(card); }
+      card.querySelector("#guidaUsoToggle").onclick=function(){ var p=card.querySelector("#guidaUsoPanel"); p.hidden=!p.hidden; if(!p.hidden) card.querySelector("#guidaUsoBody").innerHTML=GUIDA_USO; };
+    }
+    card.style.display="";
+  }
+  try{ var _cfb=document.getElementById("chooseFnBtn"); if(_cfb && _cfb.parentNode && !document.getElementById("guideBtn")){ var _gb=document.createElement("button"); _gb.className="link-btn"; _gb.id="guideBtn"; _gb.textContent="📖 Guida"; _gb.style.marginLeft="6px"; _gb.onclick=apriGuide; _cfb.parentNode.insertBefore(_gb, _cfb.nextSibling); } }catch(e){}
   try{ renderCloudCard(); }catch(e){}
   try{ renderOnboarding(); }catch(e){}
+  try{ renderGuidaCard(); }catch(e){}
   if(cloudToken){ try{ cloudPullAll(); }catch(e){} }
   var STORIA_CAT=["Diagnosi","Terapia/Farmaco","Intervento","Ricovero/PS","Visita","Medico/contatto","Altro"];
   var storiaCatG=makeChipGroup("storiaVoceCat", STORIA_CAT, "salute-storia-cat-opts", true, {});
@@ -6016,6 +6084,7 @@
     return false;
   }
   var overlay=document.getElementById("fnChooser"), listEl=document.getElementById("fnChooserList"), doneBtn=document.getElementById("fnChooserDone");
+  (function(){ var gb=document.getElementById("fnChooserGuide"); if(gb) gb.onclick=function(){ if(window.apriGuide) window.apriGuide("install"); }; })();
   var sel={};
   function buildList(){
     if(!listEl) return; listEl.innerHTML="";
