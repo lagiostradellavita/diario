@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 231; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 232; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1927,7 +1927,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v231 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v232 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -5603,7 +5603,7 @@
       };
     }
     if(!cloudToken){ try{ var _mn=document.getElementById("menu"); var _hdr=_mn&&_mn.querySelector("header.menu-hdr"); if(_hdr && host!==_hdr.nextSibling){ _mn.insertBefore(host, _hdr.nextSibling); } }catch(e){} }
-    try{ renderAdmin(); }catch(e){} try{ renderGuidaCard(); }catch(e){}
+    try{ renderAdmin(); }catch(e){} try{ renderFeedback(); }catch(e){} try{ renderGuidaCard(); }catch(e){}
   }
   var ADMIN_EMAIL="gianlucarizzo70@gmail.com";
   function renderAdmin(){
@@ -5622,6 +5622,8 @@
         +'<div id="admInvList" style="margin-top:8px"></div>'
         +'<h3 style="margin:16px 0 6px;font-size:15px;border-top:1px solid var(--line);padding-top:12px">Richieste di accesso</h3>'
         +'<div id="admReqList"><div class="empty">…</div></div>'
+        +'<h3 style="margin:16px 0 6px;font-size:15px;border-top:1px solid var(--line);padding-top:12px">Suggerimenti e segnalazioni</h3>'
+        +'<div id="admSegList"><div class="empty">…</div></div>'
         +'<h3 style="margin:16px 0 6px;font-size:15px;border-top:1px solid var(--line);padding-top:12px">Iscritti</h3>'
         +'<p class="fineprint" style="margin:0 0 8px">Chi si è registrato e quali funzioni usa. Non vedi i loro dati di salute.</p>'
         +'<div id="adminList"><div class="empty">…</div></div>'
@@ -5651,7 +5653,7 @@
     }
     card.style.display="";
   }
-  function loadAdmin(){ loadUtenti(); loadInviti(); loadRichieste(); }
+  function loadAdmin(){ loadUtenti(); loadInviti(); loadRichieste(); loadSegnalazioni(); }
   function statoBadge(s){ s=s||"attivo"; var m={attivo:["Attivo","#15803D"], in_attesa:["In attesa","#CA8A04"], bloccato:["Bloccato","#B91C1C"]}; var x=m[s]||[s,"#655C54"]; return '<span style="font-size:12px;font-weight:700;color:'+x[1]+'">'+x[0]+'</span>'; }
   function loadUtenti(){
     var host=document.getElementById("adminList"); if(!host) return; host.innerHTML='<div class="empty">Carico…</div>';
@@ -5724,6 +5726,63 @@
         b.onclick=function(){ b.disabled=true; apiFetch("/auth/admin/richieste/"+encodeURIComponent(b.dataset.id),{method:"DELETE"}).then(function(){ loadRichieste(); }).catch(function(e){ b.disabled=false; alert("Non riuscito: "+((e&&e.message)||"")); }); };
       });
     }).catch(function(e){ host.innerHTML='<div class="empty">Non disponibile: '+esc((e&&e.message)||"")+'</div>'; });
+  }
+  function loadSegnalazioni(){
+    var host=document.getElementById("admSegList"); if(!host) return; host.innerHTML='<div class="empty">…</div>';
+    apiFetch("/auth/admin/segnalazioni",{method:"GET"}).then(function(j){
+      var list=(j&&j.segnalazioni)||[]; host.innerHTML="";
+      if(!list.length){ host.innerHTML='<div class="empty">Nessun suggerimento o segnalazione.</div>'; return; }
+      list.forEach(function(s){
+        var d=s.creato_il?new Date(s.creato_il):null;
+        var err=(s.tipo==="errore");
+        var tag='<span style="font-size:12px;font-weight:700;color:'+(err?"#B91C1C":"#2563EB")+'">'+(err?"🐞 Errore":"💡 Funzione")+'</span>';
+        var fatta=(s.stato==="fatta");
+        var row=document.createElement("div"); row.className="doc-row"; row.style.display="block"; if(fatta) row.style.opacity="0.6";
+        row.innerHTML='<div class="doc-name">'+tag+(fatta?' <span style="font-size:12px;color:#15803D">✓ fatta</span>':'')+'</div>'
+          +'<div class="doc-sub" style="white-space:pre-wrap">'+esc(s.testo||"")+'</div>'
+          +'<div class="doc-sub">'+esc(s.da||"—")+(d?(" · "+pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()):"")+'</div>'
+          +(s.contesto?('<div class="doc-sub" style="opacity:.7">'+esc(s.contesto)+'</div>'):'')
+          +'<div class="panel-actions" style="margin-top:6px">'
+            +(fatta?'':'<button class="link-btn seg-done" data-id="'+esc(s.id)+'" style="width:auto;padding:6px 10px;border:1px solid var(--line);border-radius:9px;color:#15803D">Segna fatta</button> ')
+            +'<button class="link-btn seg-del" data-id="'+esc(s.id)+'" style="width:auto;padding:6px 10px;border:1px solid var(--line);border-radius:9px">Elimina</button>'
+          +'</div>';
+        host.appendChild(row);
+      });
+      Array.prototype.forEach.call(host.querySelectorAll(".seg-done"), function(b){ b.onclick=function(){ b.disabled=true; apiFetch("/auth/admin/segnalazioni/"+encodeURIComponent(b.dataset.id)+"/fatta",{method:"POST"}).then(function(){ loadSegnalazioni(); }).catch(function(e){ b.disabled=false; alert("Non riuscito: "+((e&&e.message)||"")); }); }; });
+      Array.prototype.forEach.call(host.querySelectorAll(".seg-del"), function(b){ b.onclick=function(){ if(!confirm("Eliminare?")) return; b.disabled=true; apiFetch("/auth/admin/segnalazioni/"+encodeURIComponent(b.dataset.id),{method:"DELETE"}).then(function(){ loadSegnalazioni(); }).catch(function(e){ b.disabled=false; alert("Non riuscito: "+((e&&e.message)||"")); }); }; });
+    }).catch(function(e){ host.innerHTML='<div class="empty">Non disponibile: '+esc((e&&e.message)||"")+'</div>'; });
+  }
+  function renderFeedback(){
+    var host=document.getElementById("fbCard");
+    if(!cloudToken){ if(host) host.style.display="none"; return; }
+    if(!host){
+      host=document.createElement("section"); host.className="card"; host.id="fbCard";
+      host.innerHTML='<button class="link-btn" id="fbToggle">💡 Suggerimenti e problemi</button>'
+        +'<div id="fbPanel" hidden>'
+          +'<p class="fineprint" style="margin:6px 0 10px;line-height:1.5">Hai un\'idea per una funzione nuova o hai trovato un problema? Scrivimelo: lo ricevo io.</p>'
+          +'<div class="seg seg-4" id="fbTipo" style="--c:var(--accent);--on-c:#fff;margin-bottom:10px"><button type="button" data-t="funzione" class="on">Richiedi funzione</button><button type="button" data-t="errore">Segnala errore</button></div>'
+          +'<textarea id="fbTesto" rows="4" placeholder="Scrivi qui…" style="box-sizing:border-box;width:100%;padding:12px 14px;font-size:16px;border:1.5px solid var(--line);border-radius:11px;background:var(--surface,#fff);color:var(--ink);font-family:inherit"></textarea>'
+          +'<div class="panel-actions" style="margin-top:8px"><button class="primary" id="fbSend" style="box-sizing:border-box;width:100%;padding:13px;font-size:16px;border-radius:12px">Invia</button></div>'
+          +'<p id="fbStatus" class="fineprint" style="margin-top:6px"></p>'
+        +'</div>';
+      var adm=document.getElementById("adminCard"); var cc=document.getElementById("cloudCard");
+      var anchor=adm||cc; if(anchor && anchor.parentNode){ anchor.parentNode.insertBefore(host, anchor.nextSibling); } else { var mn=document.getElementById("menu"); if(mn) mn.appendChild(host); }
+      var fbTipo="funzione";
+      host.querySelector("#fbToggle").onclick=function(){ var p=host.querySelector("#fbPanel"); p.hidden=!p.hidden; };
+      var seg=host.querySelector("#fbTipo");
+      Array.prototype.forEach.call(seg.children,function(c){ c.onclick=function(){ fbTipo=c.dataset.t; Array.prototype.forEach.call(seg.children,function(x){ x.className=(x===c)?"on":""; }); }; });
+      host.querySelector("#fbSend").onclick=function(){
+        var ta=host.querySelector("#fbTesto"), st=host.querySelector("#fbStatus"), sb=this;
+        var testo=(ta.value||"").trim();
+        if(!testo){ st.textContent="Scrivi il messaggio"; return; }
+        var contesto=(fbTipo==="errore")?("v"+(window.__APP_VER||"?")+" · "+(navigator.userAgent||"").slice(0,180)):null;
+        sb.disabled=true; st.textContent="Invio…";
+        apiFetch("/auth/segnalazioni",{method:"POST", body:{tipo:fbTipo, testo:testo, contesto:contesto}}).then(function(){
+          ta.value=""; sb.disabled=false; st.textContent="Inviato ✓ grazie!";
+        }).catch(function(e){ sb.disabled=false; st.textContent="Non riuscito: "+((e&&e.message)||""); });
+      };
+    }
+    host.style.display="";
   }
   function renderOnboarding(){
     var menu=document.getElementById("menu"); if(!menu) return;

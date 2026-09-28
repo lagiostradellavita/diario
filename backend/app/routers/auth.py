@@ -305,3 +305,62 @@ def elimina_richiesta(rid: str, db: Session = Depends(get_session),
     db.execute(text("delete from richieste_accesso where id = :i"), {"i": rid})
     db.commit()
     return None
+
+
+# --- Suggerimenti e segnalazioni degli utenti -------------------------------
+
+class SegnalazioneIn(BaseModel):
+    tipo: Optional[str] = "funzione"     # 'funzione' (nuova funzione) | 'errore'
+    testo: str
+    contesto: Optional[str] = None       # per gli errori: versione app + dispositivo
+
+
+@router.post("/segnalazioni", status_code=201)
+def crea_segnalazione(body: SegnalazioneIn, db: Session = Depends(get_session),
+                      uid: str = Depends(get_user_id)):
+    """Un utente chiede una funzione o segnala un errore. Arriva nel backoffice."""
+    testo = (body.testo or "").strip()
+    if not testo:
+        raise HTTPException(400, "Scrivi il messaggio")
+    tipo = "errore" if (body.tipo or "").strip().lower() == "errore" else "funzione"
+    db.execute(text(
+        "insert into segnalazioni (user_id, tipo, testo, contesto)"
+        " values (:u, :t, :x, :c)"
+    ), {"u": uid, "t": tipo, "x": testo[:4000], "c": (body.contesto or None)})
+    db.commit()
+    return {"ok": True}
+
+
+@router.get("/admin/segnalazioni")
+def lista_segnalazioni(db: Session = Depends(get_session), _admin: str = Depends(get_admin)):
+    righe = db.execute(text(
+        "select s.id, s.tipo, s.testo, s.contesto, s.stato, s.creato_il,"
+        " u.email as u_email, u.nome as u_nome"
+        " from segnalazioni s left join utenti u on u.id = s.user_id"
+        " order by (s.stato = 'nuova') desc, s.creato_il desc"
+    )).mappings().all()
+    return {"segnalazioni": [{
+        "id": str(r["id"]),
+        "tipo": r["tipo"],
+        "testo": r["testo"],
+        "contesto": r["contesto"],
+        "stato": r["stato"],
+        "da": r["u_nome"] or r["u_email"],
+        "creato_il": r["creato_il"].isoformat() if r["creato_il"] else None,
+    } for r in righe]}
+
+
+@router.post("/admin/segnalazioni/{sid}/fatta")
+def segnalazione_fatta(sid: str, db: Session = Depends(get_session),
+                       _admin: str = Depends(get_admin)):
+    db.execute(text("update segnalazioni set stato = 'fatta' where id = :i"), {"i": sid})
+    db.commit()
+    return {"ok": True}
+
+
+@router.delete("/admin/segnalazioni/{sid}", status_code=204)
+def elimina_segnalazione(sid: str, db: Session = Depends(get_session),
+                         _admin: str = Depends(get_admin)):
+    db.execute(text("delete from segnalazioni where id = :i"), {"i": sid})
+    db.commit()
+    return None
