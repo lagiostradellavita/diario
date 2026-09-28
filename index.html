@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 225; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 226; // numero di versione di QUESTO file (allineato al pie di pagina)
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -1924,7 +1924,7 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v225</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v226</p>
 </div>
 
 <div id="reportView" hidden>
@@ -5572,7 +5572,54 @@
       });
     }).catch(function(e){ host.innerHTML='<div class="empty">Non disponibile: '+esc((e&&e.message)||"")+'</div>'; });
   }
+  function renderOnboarding(){
+    var menu=document.getElementById("menu"); if(!menu) return;
+    var done=false; try{ done=localStorage.getItem("salute-onboarding-done")==="1"; }catch(e){}
+    var card=document.getElementById("onbCard");
+    if(done){ if(card) card.parentNode.removeChild(card); return; }
+    var hasAcc=!!cloudToken;
+    var hasFn=false; try{ hasFn=!!localStorage.getItem("salute-funzioni-attive"); }catch(e){}
+    var hasProf=!!(typeof profilo!=="undefined" && profilo && (profilo.nome||"").trim());
+    var hasProg=false; try{ var pg=JSON.parse(localStorage.getItem("salute-programma")); hasProg=Array.isArray(pg)&&pg.length>0; }catch(e){}
+    var hasGuida=false; try{ hasGuida=localStorage.getItem("salute-guida-vista")==="1"; }catch(e){}
+    var steps=[
+      {ok:hasAcc, t:"Crea il tuo account", d:"per salvare i dati e ritrovarli su ogni dispositivo", act:"acc"},
+      {ok:hasFn, t:"Scegli le funzioni", d:"attiva solo quelle che ti servono", act:"fn"},
+      {ok:hasProf, t:"Compila il profilo", d:"nome, altezza, peso, foto", act:"prof"},
+      {ok:hasProg, t:"Imposta il programma", d:"le cose da fare ogni giorno", act:"prog"},
+      {ok:hasGuida, t:"Guarda la guida", d:"come si usa l'app", act:"guida"}
+    ];
+    if(!card){ card=document.createElement("section"); card.className="card"; card.id="onbCard"; menu.insertBefore(card, menu.firstChild); }
+    var html='<h2 class="section-title" style="margin:0 0 4px">👋 Benvenuto! Come iniziare</h2><p class="fineprint" style="margin:0 0 8px">Tocca ogni passo, con calma. Quando hai finito puoi nascondere questo riquadro.</p>';
+    steps.forEach(function(s,i){
+      html+='<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)">'
+        +'<span style="font-size:20px;flex:0 0 auto">'+(s.ok?"✅":("<b>"+(i+1)+"</b>"))+'</span>'
+        +'<span style="flex:1"><b>'+esc(s.t)+'</b><br><span class="fineprint">'+esc(s.d)+'</span></span>'
+        +'<button class="link-btn onb-go" data-act="'+s.act+'" style="flex:0 0 auto">'+(s.ok?"Rivedi":"Vai")+'</button></div>';
+    });
+    html+='<div class="panel-actions" style="margin-top:10px"><button class="link-btn" id="onbDone">Ho finito, nascondi</button></div>';
+    card.innerHTML=html;
+    Array.prototype.forEach.call(card.querySelectorAll(".onb-go"), function(b){
+      b.onclick=function(){
+        var a=b.dataset.act;
+        if(a==="acc"){ var cc=document.getElementById("cloudCard"); if(cc){ try{ (cc.closest("section")||cc).scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){} } }
+        else if(a==="fn"){ var cb=document.getElementById("chooseFnBtn"); if(cb) cb.click(); }
+        else if(a==="prof"){ var av=document.getElementById("pfAvatar"); if(av) av.click(); }
+        else if(a==="prog"){ try{ showMod("programma"); }catch(e){} }
+        else if(a==="guida"){ try{ localStorage.setItem("salute-guida-vista","1"); }catch(e){} try{ window.open("Guida-installazione-Diario-Salute.pdf","_blank","noopener"); }catch(e){} renderOnboarding(); }
+      };
+    });
+    var od=card.querySelector("#onbDone"); if(od) od.onclick=function(){ try{ localStorage.setItem("salute-onboarding-done","1"); }catch(e){} if(card.parentNode) card.parentNode.removeChild(card); };
+  }
+  try{
+    if(!localStorage.getItem("salute-onboarding-init")){
+      localStorage.setItem("salute-onboarding-init","1");
+      // chi usa gia' l'app (ha funzioni scelte o un account) non vede l'onboarding
+      if(localStorage.getItem("salute-funzioni-attive") || localStorage.getItem("diario-cloud-token")) localStorage.setItem("salute-onboarding-done","1");
+    }
+  }catch(e){}
   try{ renderCloudCard(); }catch(e){}
+  try{ renderOnboarding(); }catch(e){}
   if(cloudToken){ try{ cloudPullAll(); }catch(e){} }
   var STORIA_CAT=["Diagnosi","Terapia/Farmaco","Intervento","Ricovero/PS","Visita","Medico/contatto","Altro"];
   var storiaCatG=makeChipGroup("storiaVoceCat", STORIA_CAT, "salute-storia-cat-opts", true, {});
