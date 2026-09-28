@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 232; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 233; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1927,7 +1927,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v232 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v233 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -5609,7 +5609,8 @@
   function renderAdmin(){
     var isAdmin = cloudToken && cloudEmail && cloudEmail.trim().toLowerCase()===ADMIN_EMAIL;
     var card=document.getElementById("adminCard");
-    var vl=document.getElementById("admVerLine"); if(vl){ if(isAdmin){ vl.textContent="Versione app: v"+(window.__APP_VER||"?"); vl.style.display=""; } else { vl.style.display="none"; } }
+    var vb=document.getElementById("verBadge"); if(vb){ vb.textContent = isAdmin ? ("v"+(window.__APP_VER||"?")) : ""; }
+    var vl=document.getElementById("admVerLine"); if(vl){ vl.style.display="none"; }
     if(!isAdmin){ if(card) card.style.display="none"; return; }
     if(!card){
       card=document.createElement("section"); card.className="card"; card.id="adminCard";
@@ -5850,6 +5851,8 @@
     +'<li>🗂️ <b>Storia clinica</b> — diagnosi, terapie, esami; riepilogo per il medico.</li></ul>'
     +'<p><b>Referti:</b> non si caricano file, si incolla il <b>link</b> (Dropbox, Google Drive o cartella del PC).</p>'
     +'<p><b>Backup:</b> ogni tanto salva un backup (in fondo alla schermata iniziale).</p>'
+    +'<p><b>Aggiornamenti:</b> l\'app si aggiorna da sola. Quando c\'è una versione nuova, appena riapri l\'app compare in alto una barra <b>«È disponibile una nuova versione — tocca per aggiornare»</b>: toccala e per un momento vedrai <b>«✓ App aggiornata»</b>. Non devi reinstallare né vedere numeri. Se la barra non compare, tocca il pulsante <b>⟳</b> in alto a destra per ricaricare.</p>'
+    +'<p><b>Suggerimenti e problemi:</b> con <b>«💡 Suggerimenti e problemi»</b> nella schermata iniziale puoi chiedere una funzione nuova o segnalare un errore.</p>'
     +'<p>🔒 <b>Privacy:</b> i tuoi dati li vedi solo tu.</p>';
   function apriGuide(mode){
     try{ localStorage.setItem("salute-guida-vista","1"); }catch(e){}
