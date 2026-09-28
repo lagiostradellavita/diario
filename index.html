@@ -48,7 +48,8 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 228; // numero di versione di QUESTO file (allineato al pie di pagina)
+    var RUNNING = 229; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
       var b=document.createElement("div"); b.id="updBar";
@@ -56,8 +57,8 @@
         "font-family:-apple-system,system-ui,sans-serif;font-weight:750;font-size:16px;"+
         "padding:calc(10px + env(safe-area-inset-top,0px)) 16px 12px;text-align:center;cursor:pointer;"+
         "box-shadow:0 2px 12px rgba(0,0,0,.25);-webkit-tap-highlight-color:transparent;";
-      b.textContent="Nuova versione (v"+v+") - tocca per aggiornare";
-      b.onclick=function(){ location.replace(base + "?v=" + v); };
+      b.textContent="È disponibile una nuova versione — tocca per aggiornare";
+      b.onclick=function(){ try{ sessionStorage.setItem("_diarioUpd","1"); }catch(e){} location.replace(base + "?v=" + v); };
       (document.body||document.documentElement).appendChild(b);
     }
     function check(){
@@ -71,9 +72,10 @@
           }).catch(function(){});
       }catch(e){}
     }
-    function setBadge(){ try{ var vb=document.getElementById("verBadge"); if(vb) vb.textContent="v"+RUNNING; }catch(e){} }
+    function setBadge(){ try{ window.__APP_VER=RUNNING; var vb=document.getElementById("verBadge"); if(vb) vb.textContent=""; }catch(e){} }
     function wireRefresh(){ try{ var rb=document.getElementById("verRefresh"); if(rb) rb.onclick=function(){ var base=location.href.split("#")[0].split("?")[0]; location.replace(base + "?r=" + (new Date().getTime())); }; }catch(e){} }
-    function boot(){ check(); setBadge(); wireRefresh(); }
+    function updDoneToast(){ try{ var b=document.createElement("div"); b.id="updDone"; b.style.cssText="position:fixed;left:0;right:0;top:0;z-index:9999;background:#15803D;color:#fff;font-family:-apple-system,system-ui,sans-serif;font-weight:750;font-size:15px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 12px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.25)"; b.textContent="✓ App aggiornata"; (document.body||document.documentElement).appendChild(b); setTimeout(function(){ try{ b.style.transition="opacity .4s"; b.style.opacity="0"; setTimeout(function(){ if(b.parentNode) b.parentNode.removeChild(b); },420); }catch(e){} }, 2600); }catch(e){} }
+    function boot(){ check(); setBadge(); wireRefresh(); try{ if(sessionStorage.getItem("_diarioUpd")==="1"){ sessionStorage.removeItem("_diarioUpd"); updDoneToast(); } }catch(e){} }
     if(document.readyState!=="loading") boot();
     else window.addEventListener("DOMContentLoaded", boot);
   })();
@@ -1924,7 +1926,9 @@
     </section>
   </section>
 
-  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute · v228</p>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v229 -->
+  <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
 <div id="reportView" hidden>
@@ -5533,16 +5537,16 @@
           +'<h2 style="margin:7px 0 3px;font-size:21px;color:var(--accent,#0f7d6b)">Benvenuto in Diario Salute</h2>'
           +'<p class="fineprint" style="margin:0;line-height:1.5">Crea il tuo account per iniziare. I tuoi dati restano privati e ti seguono su ogni dispositivo.</p>'
         +'</div>'
-        +'<div class="seg" id="cloudMode" style="margin-bottom:12px"><button type="button" data-m="login" class="on">Ho già un account</button><button type="button" data-m="reg">Crea account</button></div>'
+        +'<div class="seg seg-4" id="cloudMode" style="--c:var(--accent);--on-c:#fff;margin-bottom:12px"><button type="button" data-m="login" class="on">Accedi</button><button type="button" data-m="reg">Registrati</button></div>'
         +'<input id="cloudNomeIn" type="text" autocomplete="name" placeholder="Nome e cognome" style="display:none;box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:9px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
         +'<input id="cloudEmailIn" type="email" inputmode="email" autocomplete="username" placeholder="La tua email" style="display:block;box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:9px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
         +'<input id="cloudPassIn" type="password" autocomplete="current-password" placeholder="Password (almeno 8 caratteri)" style="display:block;box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:4px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
         +'<p id="cloudPrivacy" class="fineprint" style="margin:9px 0 0;display:none;line-height:1.5">🔒 <b>I tuoi dati di salute sono privati.</b> Li vedi solo tu, dai tuoi dispositivi: nessun altro utente può leggerli. L\'amministratore vede soltanto che ti sei registrato e quali funzioni usi — <b>mai</b> i contenuti.</p>'
-        +'<div class="panel-actions" style="margin-top:12px"><button class="primary" id="cloudAuthBtn" style="box-sizing:border-box;width:100%;padding:14px;font-size:16px;border-radius:12px">Entra</button></div>'
+        +'<div class="panel-actions" style="margin-top:12px"><button class="primary" id="cloudAuthBtn" style="box-sizing:border-box;width:100%;padding:14px;font-size:16px;border-radius:12px">Accedi</button></div>'
         +'<p id="cloudStatus" class="fineprint" style="margin-top:6px"></p>';
       var isReg=false;
       var seg=document.getElementById("cloudMode"), nomeI=document.getElementById("cloudNomeIn"), priv=document.getElementById("cloudPrivacy"), btn=document.getElementById("cloudAuthBtn");
-      function setMode(m){ isReg=(m==="reg"); Array.prototype.forEach.call(seg.children,function(c){ c.className=(c.dataset.m===m)?"on":""; }); nomeI.style.display=isReg?"":"none"; priv.style.display=isReg?"":"none"; btn.textContent=isReg?"Crea account":"Entra"; }
+      function setMode(m){ isReg=(m==="reg"); Array.prototype.forEach.call(seg.children,function(c){ c.className=(c.dataset.m===m)?"on":""; }); nomeI.style.display=isReg?"":"none"; priv.style.display=isReg?"":"none"; btn.textContent=isReg?"Crea account":"Accedi"; }
       Array.prototype.forEach.call(seg.children,function(c){ c.onclick=function(){ setMode(c.dataset.m); }; });
       setMode("login");
       btn.onclick=function(){
@@ -5567,6 +5571,7 @@
   function renderAdmin(){
     var isAdmin = cloudToken && cloudEmail && cloudEmail.trim().toLowerCase()===ADMIN_EMAIL;
     var card=document.getElementById("adminCard");
+    var vl=document.getElementById("admVerLine"); if(vl){ if(isAdmin){ vl.textContent="Versione app: v"+(window.__APP_VER||"?"); vl.style.display=""; } else { vl.style.display="none"; } }
     if(!isAdmin){ if(card) card.style.display="none"; return; }
     if(!card){
       card=document.createElement("section"); card.className="card"; card.id="adminCard";
