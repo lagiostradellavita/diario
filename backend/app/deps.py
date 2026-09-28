@@ -1,5 +1,6 @@
 from typing import Optional
-from fastapi import Header, HTTPException
+from fastapi import Header, HTTPException, Depends
+from sqlalchemy import text
 from .db import SessionLocal
 from .security import decode_token
 
@@ -32,4 +33,25 @@ def get_user_id(authorization: Optional[str] = Header(None)) -> str:
     uid = payload.get("sub")
     if not uid:
         raise HTTPException(status_code=401, detail="Token non valido")
+    return uid
+
+
+def get_active_user_id(uid: str = Depends(get_user_id),
+                       db=Depends(get_session)) -> str:
+    """Come get_user_id, ma lascia passare solo chi ha l'accesso «attivo».
+
+    E' il guardiano delle rotte dei dati: chi e' «in attesa» dell'ok
+    dell'amministratore, o e' stato «bloccato», non legge ne' scrive l'archivio.
+    Cosi' bloccare qualcuno gli chiude davvero l'app, non solo la schermata."""
+    row = db.execute(text("select stato from utenti where id = :i"),
+                     {"i": uid}).mappings().first()
+    if not row:
+        raise HTTPException(status_code=401, detail="Utente non trovato")
+    stato = row["stato"] or "attivo"
+    if stato == "in_attesa":
+        raise HTTPException(status_code=403,
+                            detail="Il tuo accesso e' in attesa dell'ok dell'amministratore")
+    if stato != "attivo":
+        raise HTTPException(status_code=403,
+                            detail="Accesso sospeso dall'amministratore")
     return uid

@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 230; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 231; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1927,7 +1927,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v230 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v231 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -5391,8 +5391,9 @@
 
   // ===== Cloud: login e sincronizzazione di TUTTI i moduli =====
   var API_BASE = "https://diario-salute-api.onrender.com";
-  var cloudToken=null, cloudEmail=null;
-  try{ cloudToken=localStorage.getItem("diario-cloud-token")||null; cloudEmail=localStorage.getItem("diario-cloud-email")||null; }catch(e){}
+  var cloudToken=null, cloudEmail=null, cloudStato=null;
+  try{ cloudToken=localStorage.getItem("diario-cloud-token")||null; cloudEmail=localStorage.getItem("diario-cloud-email")||null; cloudStato=localStorage.getItem("diario-cloud-stato")||null; }catch(e){}
+  var inviteCode=""; try{ var _im=location.search.match(/[?&]invito=([^&#]+)/); if(_im) inviteCode=decodeURIComponent(_im[1]); }catch(e){}
   var SYNC_KEYS=/^(salute-|diario-fumo:)/;
   var _cloudReady=false, _pushTimers={};
   var _origSet=(window.Storage&&Storage.prototype.setItem)||null;
@@ -5521,10 +5522,20 @@
       } else { _cloudReady=true; cloudMark(changed?("Dati aggiornati dal cloud ✓"):("Tutto già aggiornato ✓")); }
     }).catch(function(e){ _cloudReady=true; cloudMark("Cloud non raggiungibile: "+(e&&e.message||"")+" — i dati restano sul dispositivo"); });
   }
-  function cloudLogout(silent){ cloudToken=null; cloudEmail=null; _cloudReady=false; try{ localStorage.removeItem("diario-cloud-token"); localStorage.removeItem("diario-cloud-email"); }catch(e){} try{ renderCloudCard(); }catch(e){} }
+  function cloudLogout(silent){ cloudToken=null; cloudEmail=null; cloudStato=null; _cloudReady=false; try{ localStorage.removeItem("diario-cloud-token"); localStorage.removeItem("diario-cloud-email"); localStorage.removeItem("diario-cloud-stato"); }catch(e){} try{ renderCloudCard(); }catch(e){} }
   function renderCloudCard(){
     var host=document.getElementById("cloudCard"); if(!host) return;
-    if(cloudToken){
+    if(cloudToken && (cloudStato==="in_attesa" || cloudStato==="bloccato")){
+      var attesa=(cloudStato==="in_attesa");
+      host.innerHTML='<p class="rep-sum">'+(attesa?"⏳ In attesa di approvazione":"🚫 Accesso sospeso")+'</p>'
+        +'<p class="fineprint" style="margin:0 0 8px;line-height:1.5">'+(attesa
+            ? "Il tuo account è stato creato. Potrai usare l'app appena l'amministratore approva il tuo accesso."
+            : "Il tuo accesso è stato sospeso dall'amministratore. I tuoi dati restano al sicuro.")+'</p>'
+        +'<div class="panel-actions">'+(attesa?'<button class="primary" id="cloudCheckBtn">Controlla ora</button> ':'')+'<button class="link-btn" id="cloudLogoutBtn">Esci</button></div>'
+        +'<p id="cloudStatus" class="fineprint" style="margin-top:6px"></p>';
+      var _cb=document.getElementById("cloudCheckBtn"); if(_cb) _cb.onclick=function(){ cloudMark("Controllo…"); apiFetch("/auth/me",{method:"GET"}).then(function(j){ cloudStato=(j&&j.stato)||"attivo"; try{ localStorage.setItem("diario-cloud-stato",cloudStato); }catch(e){} renderCloudCard(); if(cloudStato==="attivo"){ cloudMark("Approvato ✓"); cloudPullAll(); } else { cloudMark("Ancora in attesa"); } }).catch(function(e){ cloudMark("Non riuscito: "+(e&&e.message||"")); }); };
+      document.getElementById("cloudLogoutBtn").onclick=function(){ if(confirm("Uscire su questo dispositivo?")) cloudLogout(); };
+    } else if(cloudToken){
       host.innerHTML='<p class="rep-sum">☁️ Connesso: <b>'+esc(cloudEmail||"")+'</b></p>'
         +'<p class="fineprint" style="margin:0 0 8px">I tuoi dati (tutti i moduli) si sincronizzano tra telefono e PC — di casa e della cooperativa.</p>'
         +'<div class="panel-actions"><button class="primary" id="cloudSyncNow">Sincronizza ora</button> <button class="link-btn" id="cloudLogoutBtn">Esci</button></div>'
@@ -5538,30 +5549,57 @@
           +'<p class="fineprint" style="margin:0;line-height:1.5">Crea il tuo account per iniziare. I tuoi dati restano privati e ti seguono su ogni dispositivo.</p>'
         +'</div>'
         +'<div class="seg seg-4" id="cloudMode" style="--c:var(--accent);--on-c:#fff;margin-bottom:12px"><button type="button" data-m="login" class="on">Accedi</button><button type="button" data-m="reg">Registrati</button></div>'
+        +'<div id="cloudInviteWrap" style="display:none">'
+          +'<input id="cloudCodeIn" type="text" autocomplete="off" placeholder="Codice invito" style="box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:6px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
+          +'<p class="fineprint" style="margin:0 0 9px;line-height:1.5">Serve un invito dell\'amministratore. Se hai aperto un link d\'invito, il codice è già qui.</p>'
+        +'</div>'
         +'<input id="cloudNomeIn" type="text" autocomplete="name" placeholder="Nome e cognome" style="display:none;box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:9px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
         +'<input id="cloudEmailIn" type="email" inputmode="email" autocomplete="username" placeholder="La tua email" style="display:block;box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:9px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
         +'<input id="cloudPassIn" type="password" autocomplete="current-password" placeholder="Password (almeno 8 caratteri)" style="display:block;box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:4px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
         +'<p id="cloudPrivacy" class="fineprint" style="margin:9px 0 0;display:none;line-height:1.5">🔒 <b>I tuoi dati di salute sono privati.</b> Li vedi solo tu, dai tuoi dispositivi: nessun altro utente può leggerli. L\'amministratore vede soltanto che ti sei registrato e quali funzioni usi — <b>mai</b> i contenuti.</p>'
         +'<div class="panel-actions" style="margin-top:12px"><button class="primary" id="cloudAuthBtn" style="box-sizing:border-box;width:100%;padding:14px;font-size:16px;border-radius:12px">Accedi</button></div>'
+        +'<p id="cloudAskWrap" style="text-align:center;margin:8px 0 0;display:none"><button type="button" class="link-btn" id="cloudAskLink" style="width:auto;padding:6px">Non hai un invito? Chiedi l\'accesso</button></p>'
+        +'<div id="cloudAskForm" style="display:none;margin-top:8px;border-top:1px solid var(--line);padding-top:10px">'
+          +'<p class="fineprint" style="margin:0 0 8px;line-height:1.5">Lascia il tuo nome: l\'amministratore riceverà la richiesta e, se vuole, ti manderà un invito.</p>'
+          +'<input id="cloudAskNome" type="text" placeholder="Il tuo nome" style="box-sizing:border-box;width:100%;padding:12px 14px;font-size:16px;border:1.5px solid var(--line);border-radius:11px;margin-bottom:8px;background:var(--surface,#fff);color:var(--ink)">'
+          +'<input id="cloudAskFrom" type="text" placeholder="Da chi hai saputo dell\'app" style="box-sizing:border-box;width:100%;padding:12px 14px;font-size:16px;border:1.5px solid var(--line);border-radius:11px;margin-bottom:8px;background:var(--surface,#fff);color:var(--ink)">'
+          +'<input id="cloudAskEmail" type="email" inputmode="email" placeholder="La tua email (facoltativa)" style="box-sizing:border-box;width:100%;padding:12px 14px;font-size:16px;border:1.5px solid var(--line);border-radius:11px;margin-bottom:8px;background:var(--surface,#fff);color:var(--ink)">'
+          +'<div class="panel-actions"><button class="primary" id="cloudAskSend" style="box-sizing:border-box;width:100%;padding:13px;font-size:16px;border-radius:12px">Invia richiesta</button></div>'
+        +'</div>'
         +'<p id="cloudStatus" class="fineprint" style="margin-top:6px"></p>';
       var isReg=false;
       var seg=document.getElementById("cloudMode"), nomeI=document.getElementById("cloudNomeIn"), priv=document.getElementById("cloudPrivacy"), btn=document.getElementById("cloudAuthBtn");
-      function setMode(m){ isReg=(m==="reg"); Array.prototype.forEach.call(seg.children,function(c){ c.className=(c.dataset.m===m)?"on":""; }); nomeI.style.display=isReg?"":"none"; priv.style.display=isReg?"":"none"; btn.textContent=isReg?"Crea account":"Accedi"; }
+      var invWrap=document.getElementById("cloudInviteWrap"), codeI=document.getElementById("cloudCodeIn"), askWrap=document.getElementById("cloudAskWrap"), askForm=document.getElementById("cloudAskForm");
+      function setMode(m){ isReg=(m==="reg"); Array.prototype.forEach.call(seg.children,function(c){ c.className=(c.dataset.m===m)?"on":""; }); nomeI.style.display=isReg?"":"none"; priv.style.display=isReg?"":"none"; invWrap.style.display=isReg?"":"none"; askWrap.style.display=isReg?"":"none"; if(!isReg){ askForm.style.display="none"; } btn.textContent=isReg?"Crea account":"Accedi"; }
       Array.prototype.forEach.call(seg.children,function(c){ c.onclick=function(){ setMode(c.dataset.m); }; });
-      setMode("login");
+      if(inviteCode){ codeI.value=inviteCode; setMode("reg"); } else { setMode("login"); }
+      document.getElementById("cloudAskLink").onclick=function(){ askForm.style.display=(askForm.style.display==="none")?"":"none"; if(askForm.style.display!=="none"){ try{ document.getElementById("cloudAskNome").focus(); }catch(e){} } };
+      document.getElementById("cloudAskSend").onclick=function(){
+        var nm=(document.getElementById("cloudAskNome").value||"").trim();
+        var fr=(document.getElementById("cloudAskFrom").value||"").trim();
+        var em2=(document.getElementById("cloudAskEmail").value||"").trim();
+        if(!nm){ cloudMark("Scrivi almeno il tuo nome"); return; }
+        var sb=document.getElementById("cloudAskSend"); sb.disabled=true; cloudMark("Invio la richiesta…");
+        apiFetch("/auth/richiesta",{method:"POST", body:{nome:nm, riferito_da:fr, email:em2}}).then(function(){
+          askForm.innerHTML='<p class="rep-sum" style="margin:0">Richiesta inviata ✓</p><p class="fineprint" style="margin:4px 0 0;line-height:1.5">L\'amministratore la vedrà e, se vuole, ti manderà un invito.</p>';
+          cloudMark("");
+        }).catch(function(e){ sb.disabled=false; cloudMark("Non riuscito: "+(e&&e.message||"")); });
+      };
       btn.onclick=function(){
         var em=(document.getElementById("cloudEmailIn").value||"").trim();
         var pw=document.getElementById("cloudPassIn").value||"";
         var nm=(nomeI.value||"").trim();
+        var code=(codeI.value||"").trim();
         if(!em||!pw){ cloudMark("Metti email e password"); return; }
         if(isReg && pw.length<8){ cloudMark("La password deve avere almeno 8 caratteri"); return; }
         btn.disabled=true; cloudMark(isReg?"Creo l'account…":"Entro…");
-        var body=isReg?{email:em, password:pw, nome:nm}:{email:em, password:pw};
+        var body=isReg?{email:em, password:pw, nome:nm, codice:code}:{email:em, password:pw};
         apiFetch(isReg?"/auth/register":"/auth/login",{method:"POST", body:body}).then(function(j){
-          cloudToken=j.access_token; cloudEmail=j.email;
-          try{ localStorage.setItem("diario-cloud-token", cloudToken); localStorage.setItem("diario-cloud-email", cloudEmail); }catch(e){}
-          renderCloudCard(); cloudPullAll();
-        }).catch(function(e){ btn.disabled=false; cloudMark("Non riuscito: "+(e&&e.message||"")); });
+          cloudToken=j.access_token; cloudEmail=j.email; cloudStato=(j&&j.stato)||"attivo";
+          try{ localStorage.setItem("diario-cloud-token", cloudToken); localStorage.setItem("diario-cloud-email", cloudEmail); localStorage.setItem("diario-cloud-stato", cloudStato); }catch(e){}
+          renderCloudCard();
+          if(cloudStato==="attivo"){ cloudPullAll(); } else { cloudMark(""); }
+        }).catch(function(e){ btn.disabled=false; var msg=(e&&e.message)||""; cloudMark("Non riuscito: "+msg); if(isReg && /invito/i.test(msg)){ askWrap.style.display=""; askForm.style.display=""; } });
       };
     }
     if(!cloudToken){ try{ var _mn=document.getElementById("menu"); var _hdr=_mn&&_mn.querySelector("header.menu-hdr"); if(_hdr && host!==_hdr.nextSibling){ _mn.insertBefore(host, _hdr.nextSibling); } }catch(e){} }
@@ -5575,15 +5613,47 @@
     if(!isAdmin){ if(card) card.style.display="none"; return; }
     if(!card){
       card=document.createElement("section"); card.className="card"; card.id="adminCard";
-      card.innerHTML='<button class="link-btn" id="adminToggle">👥 Amministrazione — chi usa l\'app</button><div id="adminPanel" hidden><p class="fineprint" style="margin:6px 0 8px">Chi si è registrato e quali funzioni usa. Non vedi i loro dati di salute.</p><div id="adminList"><div class="empty">…</div></div><div class="panel-actions" style="margin-top:8px"><button class="link-btn" id="adminRefresh">Aggiorna</button></div></div>';
+      card.innerHTML='<button class="link-btn" id="adminToggle">👥 Amministrazione</button><div id="adminPanel" hidden>'
+        +'<h3 style="margin:8px 0 6px;font-size:15px">Inviti</h3>'
+        +'<p class="fineprint" style="margin:0 0 8px;line-height:1.5">Crea un invito e manda il link alla persona: le serve per registrarsi. Poi la approvi qui sotto.</p>'
+        +'<input id="admInvLabel" type="text" placeholder="Per chi è (es. Maria)" style="box-sizing:border-box;width:100%;padding:11px 12px;font-size:16px;border:1.5px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--surface,#fff);color:var(--ink)">'
+        +'<div class="panel-actions"><button class="primary" id="admInvCreate" style="box-sizing:border-box;width:100%;padding:12px;border-radius:11px">Crea invito</button></div>'
+        +'<div id="admInvNew" style="display:none;margin-top:8px"></div>'
+        +'<div id="admInvList" style="margin-top:8px"></div>'
+        +'<h3 style="margin:16px 0 6px;font-size:15px;border-top:1px solid var(--line);padding-top:12px">Richieste di accesso</h3>'
+        +'<div id="admReqList"><div class="empty">…</div></div>'
+        +'<h3 style="margin:16px 0 6px;font-size:15px;border-top:1px solid var(--line);padding-top:12px">Iscritti</h3>'
+        +'<p class="fineprint" style="margin:0 0 8px">Chi si è registrato e quali funzioni usa. Non vedi i loro dati di salute.</p>'
+        +'<div id="adminList"><div class="empty">…</div></div>'
+        +'<div class="panel-actions" style="margin-top:8px"><button class="link-btn" id="adminRefresh">Aggiorna</button></div>'
+        +'</div>';
       var cc=document.getElementById("cloudCard"); var anchor=cc?cc.closest("section"):null;
       if(anchor && anchor.parentNode){ anchor.parentNode.insertBefore(card, anchor.nextSibling); } else { var mn=document.getElementById("menu"); if(mn) mn.appendChild(card); }
       card.querySelector("#adminToggle").onclick=function(){ var p=card.querySelector("#adminPanel"); p.hidden=!p.hidden; if(!p.hidden) loadAdmin(); };
       card.querySelector("#adminRefresh").onclick=loadAdmin;
+      card.querySelector("#admInvCreate").onclick=function(){
+        var lab=(document.getElementById("admInvLabel").value||"").trim();
+        var b=this; b.disabled=true;
+        apiFetch("/auth/admin/inviti",{method:"POST", body:{etichetta:lab}}).then(function(j){
+          b.disabled=false; document.getElementById("admInvLabel").value="";
+          var base=location.href.split("#")[0].split("?")[0];
+          var link=base+"?invito="+encodeURIComponent(j.codice);
+          var box=document.getElementById("admInvNew"); box.style.display="";
+          box.innerHTML='<p class="fineprint" style="margin:0 0 4px">Invito creato'+(lab?(" per <b>"+esc(lab)+"</b>"):"")+'. Manda questo link:</p>'
+            +'<input id="admInvLink" type="text" readonly value="'+esc(link)+'" style="box-sizing:border-box;width:100%;padding:10px 12px;font-size:14px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--ink)">'
+            +'<div class="panel-actions" style="margin-top:6px"><button class="primary" id="admInvCopy" style="box-sizing:border-box;flex:1;padding:11px;border-radius:11px">Copia link</button>'+((navigator.share)?' <button class="link-btn" id="admInvShare">Condividi</button>':'')+'</div>';
+          var li=document.getElementById("admInvLink");
+          document.getElementById("admInvCopy").onclick=function(){ try{ li.select(); }catch(e){} var ok=false; try{ if(navigator.clipboard){ navigator.clipboard.writeText(link); ok=true; } else { ok=document.execCommand("copy"); } }catch(e){} this.textContent=ok?"Copiato ✓":"Copia link"; };
+          var sh=document.getElementById("admInvShare"); if(sh) sh.onclick=function(){ try{ navigator.share({title:"Diario Salute", text:"Invito per Diario Salute", url:link}); }catch(e){} };
+          loadInviti();
+        }).catch(function(e){ b.disabled=false; alert("Non riuscito: "+((e&&e.message)||"")); });
+      };
     }
     card.style.display="";
   }
-  function loadAdmin(){
+  function loadAdmin(){ loadUtenti(); loadInviti(); loadRichieste(); }
+  function statoBadge(s){ s=s||"attivo"; var m={attivo:["Attivo","#15803D"], in_attesa:["In attesa","#CA8A04"], bloccato:["Bloccato","#B91C1C"]}; var x=m[s]||[s,"#655C54"]; return '<span style="font-size:12px;font-weight:700;color:'+x[1]+'">'+x[0]+'</span>'; }
+  function loadUtenti(){
     var host=document.getElementById("adminList"); if(!host) return; host.innerHTML='<div class="empty">Carico…</div>';
     apiFetch("/auth/admin/utenti",{method:"GET"}).then(function(j){
       var list=(j&&j.utenti)||[]; host.innerHTML="";
@@ -5592,9 +5662,66 @@
       list.forEach(function(u){
         var d=u.iscritto?new Date(u.iscritto):null;
         var fn=(u.funzioni&&u.funzioni.length)?u.funzioni.join(", "):"—";
+        var isMe=(u.email&&cloudEmail&&u.email.trim().toLowerCase()===cloudEmail.trim().toLowerCase());
+        var actions="";
+        if(!isMe){
+          if(u.stato==="in_attesa"){ actions='<button class="link-btn adm-act" data-act="attiva" data-id="'+esc(u.id)+'" style="width:auto;padding:7px 12px;border:1px solid var(--line);border-radius:9px;color:#15803D">Approva</button>'; }
+          else if(u.stato==="bloccato"){ actions='<button class="link-btn adm-act" data-act="attiva" data-id="'+esc(u.id)+'" style="width:auto;padding:7px 12px;border:1px solid var(--line);border-radius:9px;color:#15803D">Riattiva</button>'; }
+          else { actions='<button class="link-btn adm-act" data-act="blocca" data-id="'+esc(u.id)+'" style="width:auto;padding:7px 12px;border:1px solid var(--line);border-radius:9px;color:#B91C1C">Blocca</button>'; }
+        }
         var row=document.createElement("div"); row.className="doc-row"; row.style.display="block";
-        row.innerHTML='<div class="doc-name">'+esc(u.nome||u.email)+'</div><div class="doc-sub">'+esc(u.email)+(d?(" · iscritto "+pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()):"")+'</div><div class="doc-sub">Funzioni: '+esc(fn)+'</div>';
+        row.innerHTML='<div class="doc-name">'+esc(u.nome||u.email)+' &nbsp;'+statoBadge(u.stato)+'</div>'
+          +'<div class="doc-sub">'+esc(u.email)+(d?(" · iscritto "+pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()):"")+'</div>'
+          +(u.invito?('<div class="doc-sub">Invito: '+esc(u.invito)+'</div>'):'')
+          +'<div class="doc-sub">Funzioni: '+esc(fn)+'</div>'
+          +(actions?('<div class="panel-actions" style="margin-top:6px">'+actions+'</div>'):'');
         host.appendChild(row);
+      });
+      Array.prototype.forEach.call(host.querySelectorAll(".adm-act"), function(b){
+        b.onclick=function(){ var id=b.dataset.id, act=b.dataset.act;
+          if(act==="blocca" && !confirm("Bloccare questo accesso? La persona non potrà più entrare (i dati restano).")) return;
+          b.disabled=true;
+          apiFetch("/auth/admin/utenti/"+encodeURIComponent(id)+"/"+act,{method:"POST"}).then(function(){ loadUtenti(); }).catch(function(e){ b.disabled=false; alert("Non riuscito: "+((e&&e.message)||"")); });
+        };
+      });
+    }).catch(function(e){ host.innerHTML='<div class="empty">Non disponibile: '+esc((e&&e.message)||"")+'</div>'; });
+  }
+  function loadInviti(){
+    var host=document.getElementById("admInvList"); if(!host) return; host.innerHTML='<div class="empty">…</div>';
+    apiFetch("/auth/admin/inviti",{method:"GET"}).then(function(j){
+      var list=(j&&j.inviti)||[]; host.innerHTML="";
+      if(!list.length){ host.innerHTML='<div class="empty">Nessun invito ancora.</div>'; return; }
+      list.forEach(function(v){
+        var stato=v.usato?("Usato"+(v.usato_da?(" da "+esc(v.usato_da)):"")):"Non ancora usato";
+        var row=document.createElement("div"); row.className="doc-row"; row.style.display="block";
+        row.innerHTML='<div class="doc-name">'+esc(v.etichetta||v.codice)+'</div><div class="doc-sub">'+stato+'</div>'
+          +(v.usato?'':'<div class="panel-actions" style="margin-top:6px"><button class="link-btn inv-del" data-c="'+esc(v.codice)+'" style="width:auto;padding:6px 10px;border:1px solid var(--line);border-radius:9px;color:#B91C1C">Elimina invito</button></div>');
+        host.appendChild(row);
+      });
+      Array.prototype.forEach.call(host.querySelectorAll(".inv-del"), function(b){
+        b.onclick=function(){ if(!confirm("Eliminare questo invito non ancora usato?")) return; b.disabled=true;
+          apiFetch("/auth/admin/inviti/"+encodeURIComponent(b.dataset.c),{method:"DELETE"}).then(function(){ loadInviti(); }).catch(function(e){ b.disabled=false; alert("Non riuscito: "+((e&&e.message)||"")); });
+        };
+      });
+    }).catch(function(e){ host.innerHTML='<div class="empty">Non disponibile: '+esc((e&&e.message)||"")+'</div>'; });
+  }
+  function loadRichieste(){
+    var host=document.getElementById("admReqList"); if(!host) return; host.innerHTML='<div class="empty">…</div>';
+    apiFetch("/auth/admin/richieste",{method:"GET"}).then(function(j){
+      var list=(j&&j.richieste)||[]; host.innerHTML="";
+      if(!list.length){ host.innerHTML='<div class="empty">Nessuna richiesta.</div>'; return; }
+      list.forEach(function(r){
+        var d=r.creato_il?new Date(r.creato_il):null;
+        var row=document.createElement("div"); row.className="doc-row"; row.style.display="block";
+        row.innerHTML='<div class="doc-name">'+esc(r.nome||r.email||"—")+'</div>'
+          +(r.email?('<div class="doc-sub">'+esc(r.email)+'</div>'):'')
+          +(r.riferito_da?('<div class="doc-sub">Da: '+esc(r.riferito_da)+'</div>'):'')
+          +(d?('<div class="doc-sub">'+pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()+'</div>'):'')
+          +'<div class="panel-actions" style="margin-top:6px"><button class="link-btn req-del" data-id="'+esc(r.id)+'" style="width:auto;padding:6px 10px;border:1px solid var(--line);border-radius:9px">Elimina</button></div>';
+        host.appendChild(row);
+      });
+      Array.prototype.forEach.call(host.querySelectorAll(".req-del"), function(b){
+        b.onclick=function(){ b.disabled=true; apiFetch("/auth/admin/richieste/"+encodeURIComponent(b.dataset.id),{method:"DELETE"}).then(function(){ loadRichieste(); }).catch(function(e){ b.disabled=false; alert("Non riuscito: "+((e&&e.message)||"")); }); };
       });
     }).catch(function(e){ host.innerHTML='<div class="empty">Non disponibile: '+esc((e&&e.message)||"")+'</div>'; });
   }
@@ -5698,7 +5825,15 @@
   try{ renderCloudCard(); }catch(e){}
   try{ renderOnboarding(); }catch(e){}
   try{ renderGuidaCard(); }catch(e){}
-  if(cloudToken){ try{ cloudPullAll(); }catch(e){} }
+  if(cloudToken){
+    try{
+      apiFetch("/auth/me",{method:"GET"}).then(function(j){
+        cloudStato=(j&&j.stato)||"attivo"; try{ localStorage.setItem("diario-cloud-stato",cloudStato); }catch(e){}
+        try{ renderCloudCard(); }catch(e){}
+        if(cloudStato==="attivo"){ try{ cloudPullAll(); }catch(e){} }
+      }).catch(function(){ if(cloudStato!=="in_attesa" && cloudStato!=="bloccato"){ try{ cloudPullAll(); }catch(e){} } });
+    }catch(e){}
+  }
   var STORIA_CAT=["Diagnosi","Terapia/Farmaco","Intervento","Ricovero/PS","Visita","Medico/contatto","Altro"];
   var storiaCatG=makeChipGroup("storiaVoceCat", STORIA_CAT, "salute-storia-cat-opts", true, {});
   var EXAM_CATS=["Sangue e midollo","Cuore e circolazione","Testa e neuro","Ecografie","Radiologia","Pelle","Urologia","Ossa e muscoli","Apparato digerente","Mente","Ricoveri ed eventi","Altro"];

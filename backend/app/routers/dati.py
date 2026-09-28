@@ -3,7 +3,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from ..deps import get_session, get_user_id
+from ..deps import get_session, get_active_user_id as get_user_id
 
 router = APIRouter(prefix="/dati", tags=["dati"])
 
