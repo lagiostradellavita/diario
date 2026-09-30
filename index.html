@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 233; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 234; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1927,7 +1927,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v233 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v234 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -4266,14 +4266,34 @@
   }
   function repSalute(s,e){
     var h='<h2>🩺 Salute</h2>';
+    // Eventi rilevanti: i fastidi segnati con 📌 + i segnaposti aggiunti a mano.
+    var ril=[];
+    saluteLog.forEach(function(x){ if(x.rilevante && x.ts>=s && x.ts<=e){ var t=(x.voci||[]).join(", "); if(x.dove&&x.dove.length) t+=(t?' · ':'')+'📍 '+x.dove.join(", "); if(x.nota) t+=(t?' — ':'')+x.nota; ril.push({ts:x.ts, when:dmt(x.ts), text:t||'(fastidio)'}); } });
+    try{ (segnaposti||[]).forEach(function(sp){ var ed=sp.dal?new Date(sp.dal+"T12:00:00").getTime():sp.ts; if(ed>=s && ed<=e){ var when=sp.dal?(dmy(new Date(sp.dal+"T12:00:00"))+((sp.al&&sp.al!==sp.dal)?(" → "+dmy(new Date(sp.al+"T12:00:00"))):"")):dmt(sp.ts); ril.push({ts:ed, when:when, text:sp.testo||''}); } }); }catch(_e){}
+    ril.sort(function(a,b){return a.ts-b.ts;});
+    // Note di fine giornata (una per giorno)
+    var ng=[]; try{ Object.keys(noteGiornata||{}).forEach(function(k){ var t=(noteGiornata[k]||"").trim(); if(!t) return; var tm=new Date(k+"T12:00:00").getTime(); if(tm>=s && tm<=e) ng.push({tm:tm, k:k, testo:t}); }); }catch(_e){}
+    ng.sort(function(a,b){return a.tm-b.tm;});
     var rows=saluteLog.filter(function(x){return x.ts>=s&&x.ts<=e;}).sort(function(a,b){return a.ts-b.ts;});
-    if(!rows.length) return h+'<p class="rep-empty">Nessun fastidio registrato nel periodo.</p>';
-    var cnt={}; rows.forEach(function(r){ (r.voci||[]).forEach(function(v){ cnt[v]=(cnt[v]||0)+1; }); });
-    var top=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];}).slice(0,8).map(function(v){return v+' ('+cnt[v]+')';});
-    h+='<p class="rep-sum">'+rows.length+' registrazioni · più frequenti: '+e2(top.join(', '))+'</p>';
-    h+='<table><tr><th>Quando</th><th>Fastidi</th></tr>';
-    rows.forEach(function(r){ var st=(r.voci||[]).join(", "); if(r.dove&&r.dove.length) st+=(st?' · ':'')+'📍 '+r.dove.join(", "); if(r.nota) st+=(st?' — ':'')+r.nota; h+='<tr><td>'+dmt(r.ts)+'</td><td>'+e2(st)+'</td></tr>'; });
-    h+='</table>';
+    if(!rows.length && !ril.length && !ng.length) return h+'<p class="rep-empty">Nessun dato di salute nel periodo.</p>';
+    if(ril.length){
+      h+='<div class="rep-doc-cat">📌 Eventi rilevanti</div>';
+      h+='<table><tr><th>Quando</th><th>Evento</th></tr>';
+      ril.forEach(function(r){ h+='<tr><td>'+e2(r.when)+'</td><td>'+e2(r.text)+'</td></tr>'; });
+      h+='</table>';
+    }
+    if(ng.length){
+      h+='<div class="rep-doc-cat">📝 Note di fine giornata</div>';
+      ng.forEach(function(x){ h+='<div class="rep-doc"><div class="rep-doc-name">'+e2(dkDisp(x.k))+'</div><div style="font-size:14px; line-height:1.5; white-space:pre-wrap">'+e2(x.testo)+'</div></div>'; });
+    }
+    if(rows.length){
+      var cnt={}; rows.forEach(function(r){ (r.voci||[]).forEach(function(v){ cnt[v]=(cnt[v]||0)+1; }); });
+      var top=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];}).slice(0,8).map(function(v){return v+' ('+cnt[v]+')';});
+      h+='<p class="rep-sum">'+rows.length+' registrazioni · più frequenti: '+e2(top.join(', '))+'</p>';
+      h+='<table><tr><th>Quando</th><th>Fastidi</th></tr>';
+      rows.forEach(function(r){ var st=(r.voci||[]).join(", "); if(r.dove&&r.dove.length) st+=(st?' · ':'')+'📍 '+r.dove.join(", "); if(r.nota) st+=(st?' — ':'')+r.nota; h+='<tr><td>'+dmt(r.ts)+'</td><td>'+e2(st)+'</td></tr>'; });
+      h+='</table>';
+    }
     return h;
   }
   function repEvac(s,e){
