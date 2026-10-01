@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 235; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 236; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1927,7 +1927,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v235 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v236 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -3850,9 +3850,10 @@
       onDelete:(function(xx){ return function(){ evac=evac.filter(function(y){return y.id!==xx.id;}); if(editingEvacId===xx.id) cancelEditEvac(); saveEvac(); renderEvac(); }; })(x) }; });
     var evacStart=null; evac.forEach(function(x){ var _d=dayKey(new Date(x.ts)); if(!evacStart||_d<evacStart) evacStart=_d; });
     function evacHasFeci(dk){ return evac.some(function(x){ return x.tipo==="feci" && dayKey(new Date(x.ts))===dk; }); }
+    function evacFeciCount(dk){ var n=0; evac.forEach(function(x){ if(x.tipo==="feci" && dayKey(new Date(x.ts))===dk) n++; }); return n; }
     renderStorico("evacList", rows, storOpen.evac, {empty:'Ancora niente.<br>Tocca Urina o Feci quando serve.', fillDaysFrom:evacStart, emptyDayText:"Nessuna evacuazione",
       dayClass:function(g){ return evacHasFeci(g.dk)?"ev-ok":"ev-miss"; },
-      headExtra:function(g){ var sp=document.createElement("span"); sp.className="dmal"; if(evacHasFeci(g.dk)){ sp.style.color="var(--lvl-low)"; sp.textContent="💩 fatta"; } else { sp.style.color="var(--lvl-high)"; sp.textContent="⚠ nessuna"; } return sp; } });
+      headExtra:function(g){ var sp=document.createElement("span"); sp.className="dmal"; var n=evacFeciCount(g.dk); if(n>0){ sp.style.color="var(--lvl-low)"; sp.textContent="💩 "+n+(n===1?" volta":" volte"); } else { sp.style.color="var(--lvl-high)"; sp.textContent="⚠ nessuna"; } return sp; } });
   }
   function evacPush(rec){ evac.push(rec); saveEvac(); renderEvac(); toast(EVAC_LBL[rec.tipo]+" registrata ✓"); }
   function evacScrollTo(id){ var c=document.getElementById(id); c.hidden=false; try{ c.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} }
