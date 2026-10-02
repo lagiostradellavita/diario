@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 236; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 237; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -690,7 +690,7 @@
   .col .num{font-size:16px; font-weight:800; color:var(--ink-soft);
     font-variant-numeric:tabular-nums;}
   .col .num.z{color:var(--muted); opacity:.6;}
-  .barwrap{height:120px; width:100%; display:flex; align-items:flex-end; justify-content:center;}
+  .barwrap{height:170px; width:100%; display:flex; align-items:flex-end; justify-content:center;}
   .bar{width:84%; max-width:42px; min-width:24px; display:flex; flex-direction:column-reverse;
     border-radius:7px 7px 3px 3px; overflow:hidden; background:var(--track);}
   .bar .seg{width:100%;}
@@ -1927,7 +1927,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v236 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v237 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -2172,13 +2172,13 @@
         bars.push({v:t, label:""+yy, lvl:levelOf(avg), num:true, today:yy===now.getFullYear(), avg:avg}); }
       avg=bars.length?bars[bars.length-1].avg:0; sumText="Media/gg "+avgFmt(avg); sumLvl=levelOf(avg);
     }
-    var max=1; bars.forEach(function(b){ if(b.v>max) max=b.v; });
+    var max=(statView==="giorno")?30:1; bars.forEach(function(b){ if(b.v>max) max=b.v; });  // «Giorno»: asse fino a 30 (si estende se un giorno supera 30)
     bars.forEach(function(b){
       var col=document.createElement("div"); col.className="col"+(b.today?" today-col":"");
       if(b.num){ var nn=document.createElement("div"); nn.className="num"+(b.v===0?" z":""); if(b.lvl && b.v>0) nn.style.color="var("+lvlVar(b.lvl)+")"; nn.textContent=num(b.v); col.appendChild(nn); }
       var wrap=document.createElement("div"); wrap.className="barwrap";
       var bar=document.createElement("div"); bar.className="bar";
-      bar.style.height=(b.v===0?3:Math.round((b.v/max)*112))+"px";
+      bar.style.height=(b.v===0?3:Math.round((b.v/max)*160))+"px";
       var seg=document.createElement("div"); seg.className="seg"; seg.style.height="100%";
       seg.style.background = b.lvl ? "var("+lvlVar(b.lvl)+")" : "var(--accent)";
       bar.appendChild(seg); wrap.appendChild(bar); col.appendChild(wrap);
@@ -4159,19 +4159,26 @@
     rows.forEach(function(it){ var d=new Date(tsOf(it)); var k=byMonth?(d.getFullYear()+"-"+pad2(d.getMonth()+1)):dayKey(d); m[k]=(m[k]||0)+valOf(it); });
     return Object.keys(m).sort().map(function(k){ var p=k.split("-"); return {lbl: byMonth?(MESI[+p[1]-1]+" "+p[0].slice(2)):(p[2]+"/"+p[1]), val:Math.round(m[k]*10)/10}; });
   }
-  function svgBars(series, color){
+  function svgBars(series, color, opts){
     if(!series.length) return '';
-    var W=700,H=190,pB=30,pT=20,pX=6;
-    var max=0; series.forEach(function(d){ if(d.val>max)max=d.val; }); if(max<=0)max=1;
-    var n=series.length, bw=(W-pX*2)/n, barW=Math.min(bw*0.68,46);
+    opts=opts||{};
+    var W=700, H=opts.H||190, pB=30, pT=20, pX=6, pL=opts.maxY?26:6;
+    var realMax=0; series.forEach(function(d){ if(d.val>realMax)realMax=d.val; });
+    var max, ticks=null;
+    if(opts.maxY){ var ys=opts.yStep||5; max=opts.maxY; while(max<realMax) max+=ys; ticks=[]; for(var tv=0; tv<=max+0.001; tv+=ys) ticks.push(tv); }
+    else { max=realMax>0?realMax:1; }
+    var n=series.length, bw=(W-pL-pX)/n, barW=Math.min(bw*0.68,46);
     var step=n<=18?1:Math.ceil(n/18);
+    var plotBot=H-pB, plotH=plotBot-pT;
+    function Y(v){ return plotBot - plotH*(v/max); }
     var s='<svg class="rep-chart" width="100%" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">';
-    s+='<line x1="'+pX+'" y1="'+(H-pB)+'" x2="'+(W-pX)+'" y2="'+(H-pB)+'" stroke="#ddd" stroke-width="1"/>';
+    if(ticks){ ticks.forEach(function(tk){ var y=Y(tk); s+='<line x1="'+pL+'" y1="'+y.toFixed(1)+'" x2="'+(W-pX)+'" y2="'+y.toFixed(1)+'" stroke="#eee" stroke-width="1"/><text x="'+(pL-4)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="10" fill="#999">'+tk+'</text>'; }); }
+    s+='<line x1="'+pL+'" y1="'+plotBot+'" x2="'+(W-pX)+'" y2="'+plotBot+'" stroke="#ddd" stroke-width="1"/>';
     series.forEach(function(d,i){
-      var x=pX+i*bw+(bw-barW)/2, hh=(H-pB-pT)*(d.val/max), y=(H-pB)-hh;
+      var x=pL+i*bw+(bw-barW)/2, y=Y(d.val), hh=plotBot-y;
       s+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(0,hh).toFixed(1)+'" rx="3" fill="'+color+'"/>';
       if(d.val>0) s+='<text x="'+(x+barW/2).toFixed(1)+'" y="'+(y-4).toFixed(1)+'" text-anchor="middle" font-size="11" fill="#333">'+String(d.val).replace(".",",")+'</text>';
-      if(i%step===0) s+='<text x="'+(x+barW/2).toFixed(1)+'" y="'+(H-pB+15).toFixed(1)+'" text-anchor="middle" font-size="10" fill="#888">'+esc(d.lbl)+'</text>';
+      if(i%step===0) s+='<text x="'+(x+barW/2).toFixed(1)+'" y="'+(plotBot+15).toFixed(1)+'" text-anchor="middle" font-size="10" fill="#888">'+esc(d.lbl)+'</text>';
     });
     s+='</svg>';
     return s;
@@ -4212,7 +4219,8 @@
     var media=Math.round(tot/days.length*10)/10;
     var bt=ORDER.filter(function(t){return byType[t];}).map(function(t){return TIPI[t].label+': '+byType[t];});
     h+='<p class="rep-sum">Totale <b>'+tot+'</b> sigarette · '+days.length+' giorni · media '+String(media).replace(".",",")+'/giorno'+(bt.length?'<br>'+bt.join(' · '):'')+'</p>';
-    h+=svgBars(bucketSeries(rows,function(x){return +new Date(x.ts);},function(x){return x.q;},days.length>45),"#C2410C");
+    var fumoByMonth=days.length>45;
+    h+=svgBars(bucketSeries(rows,function(x){return +new Date(x.ts);},function(x){return x.q;},fumoByMonth),"#C2410C", fumoByMonth?null:{maxY:30,yStep:5,H:240});
     if(days.length>45){
       var byM={}; days.forEach(function(k){ var m=k.slice(0,7); byM[m]=(byM[m]||0)+byDay[k]; });
       h+='<table><tr><th>Mese</th><th class="num">Sigarette</th></tr>';
