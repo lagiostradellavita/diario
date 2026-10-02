@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 237; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 238; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -698,6 +698,10 @@
   .col.today-col .wd{color:var(--accent); font-weight:800;}
   .col .wd-sub{display:block; font-size:11.5px; color:var(--muted); font-weight:700; margin-top:1px; letter-spacing:-.02em;}
   .col.today-col .wd-sub{color:var(--accent);}
+  .col.yaxis{position:sticky; left:0; z-index:2; width:auto; min-width:26px; background:var(--surface); border-right:1px solid var(--line); margin-right:2px;}
+  .col.yaxis .barwrap{position:relative; width:22px; align-items:stretch;}
+  .yax-lab{position:absolute; right:3px; transform:translateY(50%); font-size:10px; color:var(--muted); font-weight:700; line-height:1; white-space:nowrap; font-variant-numeric:tabular-nums;}
+  .yax-tick{position:absolute; right:-2px; width:5px; height:1px; background:var(--line); transform:translateY(50%);}
 
   /* ---- history ---- */
   .day{margin-top:14px;}
@@ -1927,7 +1931,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v237 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v238 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -2125,6 +2129,21 @@
       if(leg) leg.innerHTML='<span class="lg lg-low">●</span>≤10 <span class="lg lg-yellow">●</span>11–15 <span class="lg lg-mid">●</span>16–20 <span class="lg lg-high">●</span>≥21 <span class="stat-legend-note">· '+(view==="giorno"?"al giorno":"media al giorno")+'</span>';
     }
   }
+  function statNiceStep(max){ var raw=max/3; if(raw<=0) return 1; var p=Math.pow(10,Math.floor(Math.log10(raw))); var m=raw/p; var s=(m<1.5?1:(m<3?2:(m<7?5:10)))*p; return s; }
+  function buildYAxis(max){
+    var ax=document.createElement("div"); ax.className="col yaxis";
+    var nSp=document.createElement("div"); nSp.className="num"; nSp.style.visibility="hidden"; nSp.textContent="0"; ax.appendChild(nSp);
+    var wrap=document.createElement("div"); wrap.className="barwrap";
+    var step=statNiceStep(max);
+    for(var v=0; v<=max+0.0001; v+=step){
+      var off=(v/max)*160;
+      var tick=document.createElement("div"); tick.className="yax-tick"; tick.style.bottom=off+"px"; wrap.appendChild(tick);
+      var lab=document.createElement("span"); lab.className="yax-lab"; lab.style.bottom=off+"px"; lab.textContent=num(Math.round(v)); wrap.appendChild(lab);
+    }
+    ax.appendChild(wrap);
+    var wSp=document.createElement("div"); wSp.className="wd"; wSp.style.visibility="hidden"; wSp.textContent="·"; ax.appendChild(wSp);
+    return ax;
+  }
   function renderStats(){
     var chart=document.getElementById("chart"); if(!chart) return; chart.className="chart"; chart.innerHTML="";
     statDescLegend(statView);
@@ -2173,6 +2192,7 @@
       avg=bars.length?bars[bars.length-1].avg:0; sumText="Media/gg "+avgFmt(avg); sumLvl=levelOf(avg);
     }
     var max=(statView==="giorno")?30:1; bars.forEach(function(b){ if(b.v>max) max=b.v; });  // «Giorno»: asse fino a 30 (si estende se un giorno supera 30)
+    chart.appendChild(buildYAxis(max));  // colonna fissa con i numeri dell'asse Y (0,10,20,30…)
     bars.forEach(function(b){
       var col=document.createElement("div"); col.className="col"+(b.today?" today-col":"");
       if(b.num){ var nn=document.createElement("div"); nn.className="num"+(b.v===0?" z":""); if(b.lvl && b.v>0) nn.style.color="var("+lvlVar(b.lvl)+")"; nn.textContent=num(b.v); col.appendChild(nn); }
