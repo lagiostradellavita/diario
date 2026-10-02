@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 238; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 239; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1931,7 +1931,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v238 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v239 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -2115,14 +2115,14 @@
   var MESI=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
   var statView="orari";
 
-  // Grafico: per ogni giorno, a che ORA sono state raggiunte le soglie di 5/10/15/20/25 sigarette.
+  // Grafico: per ogni giorno, a che ORA sono state raggiunte le soglie di 5/10/15/20/25/30 sigarette.
   // X = giorni (ultimi 14), Y = ore del giorno (0–24, tacche ogni 2). Una linea spezzata per soglia.
-  var FUMO_SOG=[{s:5,c:"#16A34A"},{s:10,c:"#2563EB"},{s:15,c:"#CA8A04"},{s:20,c:"#DC2626"},{s:25,c:"#7C3AED"}];
+  var FUMO_SOG=[{s:5,c:"#16A34A"},{s:10,c:"#2563EB"},{s:15,c:"#CA8A04"},{s:20,c:"#DC2626"},{s:25,c:"#7C3AED"},{s:30,c:"#0D9488"}];
   function statDescLegend(view){
     var desc=document.getElementById("statDesc"), leg=document.getElementById("statLegend");
     if(view==="orari"){
-      if(desc) desc.textContent="A che ora, ogni giorno, hai raggiunto la 5ª, 10ª, 15ª, 20ª sigaretta. In alto il totale del giorno. Più la linea è in basso, più presto hai raggiunto quella soglia. Scorri per lo storico.";
-      if(leg) leg.innerHTML='<span class="lg" style="color:#16A34A">●</span> 5 <span class="lg" style="color:#2563EB">●</span> 10 <span class="lg" style="color:#CA8A04">●</span> 15 <span class="lg" style="color:#DC2626">●</span> 20 <span class="lg" style="color:#7C3AED">●</span> 25 <span class="stat-legend-note">· sigarette raggiunte</span>';
+      if(desc) desc.textContent="A che ora, ogni giorno, hai raggiunto la 5ª, 10ª, 15ª, 20ª, 25ª e 30ª sigaretta. In alto il totale del giorno. Più la linea è in basso, più presto hai raggiunto quella soglia. Scorri per lo storico.";
+      if(leg) leg.innerHTML='<span class="lg" style="color:#16A34A">●</span> 5 <span class="lg" style="color:#2563EB">●</span> 10 <span class="lg" style="color:#CA8A04">●</span> 15 <span class="lg" style="color:#DC2626">●</span> 20 <span class="lg" style="color:#7C3AED">●</span> 25 <span class="lg" style="color:#0D9488">●</span> 30 <span class="stat-legend-note">· sigarette raggiunte</span>';
     } else {
       var per={giorno:"giorno",settimana:"settimana",mese:"mese",anno:"anno"}[view]||"giorno";
       if(desc) desc.textContent="Totale sigarette per "+per+". Scorri per vedere tutto lo storico.";
