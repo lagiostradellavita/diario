@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 239; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 240; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1931,7 +1931,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v239 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v240 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -5306,7 +5306,16 @@
     function sessoDayLvl(dk){ var scop=false, sega=false; sessoLog.forEach(function(x){ if(dayKey(new Date(x.ts))===dk){ if(x.tipo==="scopata") scop=true; else if(x.tipo==="sega") sega=true; } }); return scop?"ok":(sega?"warn":"miss"); }
     renderStorico("sessoStorico", rows, sessoStorOpen, {empty:"Ancora niente. Usa i pulsanti qui sopra.", fillDaysFrom:sessoStart, emptyDayText:"Niente",
       dayClass:function(g){ var l=sessoDayLvl(g.dk); return l==="ok"?"pday-ok":(l==="warn"?"pday-warn":"pday-bad"); },
-      headExtra:function(g){ var l=sessoDayLvl(g.dk); var sp=document.createElement("span"); sp.className="dmal"; if(l==="ok"){ sp.style.color="var(--lvl-low)"; sp.textContent="scopata"; } else if(l==="warn"){ sp.style.color="var(--lvl-mid)"; sp.textContent="sega"; } else { sp.style.color="var(--lvl-high)"; sp.textContent="niente"; } return sp; } });
+      headExtra:function(g){
+        var cnt={}, notes=[];
+        sessoLog.forEach(function(x){ if(dayKey(new Date(x.ts))===g.dk){ cnt[x.tipo]=(cnt[x.tipo]||0)+1; if(x.nota) notes.push(x.nota); } });
+        var parts=SESSO_ORDER.filter(function(t){return cnt[t];}).map(function(t){ return (SESSO_TIPI[t]?SESSO_TIPI[t].label.toLowerCase():t)+" "+cnt[t]; });
+        var l=sessoDayLvl(g.dk);
+        var sp=document.createElement("span"); sp.className="dmal";
+        sp.style.color = (l==="ok")?"var(--lvl-low)":((l==="warn")?"var(--lvl-mid)":"var(--lvl-high)");
+        sp.textContent = parts.length ? (parts.join(" · ") + (notes.length? " — "+notes.join("; ") : "")) : "niente";
+        return sp;
+      } });
   }
   (function(){ var b=document.getElementById("sessoWhenToggle"); if(b) b.onclick=function(){ var w=document.getElementById("sessoWhen"); w.hidden=!w.hidden; if(!w.hidden){ var n=new Date(); document.getElementById("sessoData").value=ymd(n); document.getElementById("sessoOra").value=hhmm(n); } }; })();
   (function(){ var b=document.getElementById("sessoManageToggle"); if(b) b.onclick=function(){ var m=document.getElementById("sessoManage"); m.hidden=!m.hidden; if(!m.hidden) renderSessoManage(); }; })();
