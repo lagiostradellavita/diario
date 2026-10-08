@@ -1258,8 +1258,17 @@
       <div class="food-cat" id="collapAttiv">
         <button type="button" class="fc-head" id="headAttiv"><span>🏃 Attività</span><span id="eserSummary" class="stat-summary" style="margin-left:auto"></span><span class="fc-arrow" style="margin-left:10px">›</span></button>
         <div class="fc-body" id="bodyAttiv" hidden>
-      <p class="fineprint" style="margin:2px 0 10px">Tocca <b>Avvia</b> quando inizi e <b>Termina</b> quando finisci: segno durata e ora.</p>
+      <p class="fineprint" style="margin:2px 0 10px">Tocca <b>Avvia</b> quando inizi e <b>Termina</b> quando finisci: segno durata e ora. Oppure <b>spunta</b> una o più attività già fatte e tocca <b>«Registra le selezionate»</b>: finiscono nello storico qui sotto.</p>
       <div id="eserList"></div>
+      <div id="eserSelActions" hidden style="margin-top:10px">
+        <div class="field" style="margin-bottom:8px"><label for="eserSelMin">Minuti (facoltativo, valgono per tutte)</label><input type="text" id="eserSelMin" inputmode="numeric" placeholder="es. 20" autocomplete="off"></div>
+        <button type="button" class="link-btn" id="eserSelWhenToggle" style="text-align:left;padding:4px 2px">＋ cambia data e ora (invece di adesso)</button>
+        <div class="grid2" id="eserSelWhen" hidden>
+          <div class="field"><label for="eserSelData">Data</label><input type="date" id="eserSelData"></div>
+          <div class="field"><label for="eserSelOra">Ora</label><input type="time" id="eserSelOra"></div>
+        </div>
+        <button type="button" class="primary" id="eserRegSelBtn" style="width:100%; margin-top:4px">✓ Registra le selezionate</button>
+      </div>
       <button type="button" id="eserToProgBtn" hidden style="width:100%; margin-top:8px; appearance:none; cursor:pointer; font-family:inherit; font-weight:800; font-size:14.5px; background:color-mix(in srgb, var(--accent) 12%, var(--surface)); border:1.5px solid color-mix(in srgb, var(--accent) 40%, var(--line)); color:var(--accent); border-radius:12px; padding:12px; touch-action:manipulation;">➕ Aggiungi al programma</button>
       <div class="chip-add" style="margin-top:10px">
         <input type="text" id="eserAddInput" placeholder="Aggiungi un'attività…">
@@ -3974,8 +3983,32 @@
   var attivRunning=null; try{ var _ar=JSON.parse(localStorage.getItem("salute-attiv-run")); if(_ar && _ar.nome) attivRunning=_ar; }catch(e){}
   function saveAttivRun(){ try{ if(attivRunning) localStorage.setItem("salute-attiv-run", JSON.stringify(attivRunning)); else localStorage.removeItem("salute-attiv-run"); }catch(e){} }
   var attivInterval=null;
-  var attivProgSel={}; // attività spuntate per essere mandate al Programma
-  function updateEserToProgBtn(){ var b=document.getElementById("eserToProgBtn"); if(!b) return; var n=Object.keys(attivProgSel).length; b.hidden=(n===0); b.textContent="➕ Aggiungi al programma"+(n?" ("+n+")":""); }
+  var attivProgSel={}; // attività spuntate: si possono registrare subito o mandare al Programma
+  function updateEserToProgBtn(){
+    var n=Object.keys(attivProgSel).length;
+    var b=document.getElementById("eserToProgBtn");
+    if(b){ b.hidden=(n===0); b.textContent="➕ Aggiungi al programma"+(n?" ("+n+")":""); }
+    var sa=document.getElementById("eserSelActions"); if(sa) sa.hidden=(n===0);
+    var rb=document.getElementById("eserRegSelBtn"); if(rb) rb.textContent="✓ Registra le selezionate"+(n?" ("+n+")":"");
+    if(n===0){ whenHide("eserSelWhen"); var mi=document.getElementById("eserSelMin"); if(mi) mi.value=""; }
+  }
+  function attivRegistraSel(){
+    var names=Object.keys(attivProgSel);
+    if(!names.length){ toast("Spunta almeno un'attività"); return; }
+    var mEl=document.getElementById("eserSelMin");
+    var mins=parseInt(String(mEl?mEl.value:"").replace(/[^0-9]/g,""),10);
+    var dur=(mins>0 ? mins*60000 : 0);
+    var ts=whenTs("eserSelWhen","eserSelData","eserSelOra");
+    names.forEach(function(n,i){ attivLog.push({id:uid(), nome:n, tsEnd:ts+i, dur:dur}); });
+    saveAttivLog();
+    if(mEl) mEl.value="";
+    whenHide("eserSelWhen");
+    attivProgSel={};
+    renderAttiv();
+    toast("🏃 "+(names.length===1 ? "Registrata: "+names[0] : "Registrate "+names.length+" attività"));
+  }
+  var _eRegSel=document.getElementById("eserRegSelBtn"); if(_eRegSel) _eRegSel.onclick=attivRegistraSel;
+  var _eSelWhen=document.getElementById("eserSelWhenToggle"); if(_eSelWhen) _eSelWhen.onclick=function(){ whenToggle("eserSelWhen","eserSelData","eserSelOra"); };
   function attivSelToProgramma(){
     var names=Object.keys(attivProgSel); if(!names.length){ toast("Spunta almeno un'attività da mettere in programma"); return; }
     showMod("programma");
@@ -3995,7 +4028,7 @@
     attivOpts().forEach(function(nome){
       var run=attivRunning && attivRunning.nome===nome;
       var row=document.createElement("div"); row.className="act-row"+(run?" running":"");
-      var pick=document.createElement("input"); pick.type="checkbox"; pick.className="act-pick"; pick.checked=!!attivProgSel[nome]; pick.setAttribute("aria-label","Seleziona per il programma"); pick.onclick=function(e){ e.stopPropagation(); if(pick.checked) attivProgSel[nome]=true; else delete attivProgSel[nome]; updateEserToProgBtn(); }; row.appendChild(pick);
+      var pick=document.createElement("input"); pick.type="checkbox"; pick.className="act-pick"; pick.checked=!!attivProgSel[nome]; pick.setAttribute("aria-label","Seleziona l'attività"); pick.onclick=function(e){ e.stopPropagation(); if(pick.checked) attivProgSel[nome]=true; else delete attivProgSel[nome]; updateEserToProgBtn(); }; row.appendChild(pick);
       var nm=document.createElement("span"); nm.className="act-name"; nm.textContent=nome; row.appendChild(nm);
       if(run){
         var tm=document.createElement("span"); tm.className="act-timer"; tm.setAttribute("data-run","1"); tm.textContent=fmtDur(Date.now()-attivRunning.start); row.appendChild(tm);
@@ -4010,8 +4043,8 @@
     updateEserToProgBtn();
     var dK=dayKey(new Date());
     var today=attivLog.filter(function(x){ return dayKey(new Date(x.tsEnd))===dK; });
-    var rows=attivLog.map(function(x){ var dparts=[]; if(x.dur>0) dparts.push(fmtDur(x.dur)); if(x.valore) dparts.push(x.valore); if(x.nota) dparts.push(x.nota); if(!dparts.length) dparts.push(fmtDur(x.dur||0));
-      return { ts:x.tsEnd, emoji:"🏃", text:x.nome+" · "+dparts.join(" · "), note:(x.nota||""), noteInText:true,
+    var rows=attivLog.map(function(x){ var dparts=[]; if(x.dur>0) dparts.push(fmtDur(x.dur)); if(x.valore) dparts.push(x.valore); if(x.nota) dparts.push(x.nota);
+      return { ts:x.tsEnd, emoji:"🏃", text:x.nome+(dparts.length?" · "+dparts.join(" · "):""), note:(x.nota||""), noteInText:true,
         onNote:(function(xx){ return function(v){ v=(v||"").trim(); if(v) xx.nota=v; else delete xx.nota; saveAttivLog(); renderAttiv(); }; })(x),
         onToSalute:(x.nota?(function(xx){ return function(){ pushToSalute(xx.nota, "da Attività", xx.tsEnd); }; })(x):null),
         onPhoto:(x.foto?(function(f){ return function(){ docView(f); }; })(x.foto):null),
