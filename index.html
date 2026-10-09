@@ -1694,13 +1694,13 @@
     </header>
     <section class="card">
       <div class="row-between"><h2 class="section-title" style="margin:0">Oggi</h2><span id="evacSummary" class="stat-summary"></span></div>
-      <p class="fineprint" style="margin:2px 0 10px">Tocca <b>Urina</b> o <b>Feci</b>: aggiungi colore, quantità e il resto, oppure registra al volo.</p>
+      <p class="fineprint" style="margin:2px 0 10px">Le schede <b>Urina</b> e <b>Feci</b> sono qui sotto, sempre aperte: compila e tocca <b>Registra</b>. I due pulsanti ti portano direttamente alla scheda giusta.</p>
       <div class="quick quick-2">
-        <button class="qbtn" type="button" id="qUrina" style="--c:#0EA5E9"><span style="font-size:28px;line-height:1">💧</span><span class="qlab">Urina</span><span class="qadd">tocca per registrare</span></button>
-        <button class="qbtn" type="button" id="qFeci" style="--c:#A16207"><span style="font-size:28px;line-height:1">💩</span><span class="qlab">Feci</span><span class="qadd">tocca per registrare</span></button>
+        <button class="qbtn" type="button" id="qUrina" style="--c:#0EA5E9"><span style="font-size:28px;line-height:1">💧</span><span class="qlab">Urina</span><span class="qadd">vai alla scheda</span></button>
+        <button class="qbtn" type="button" id="qFeci" style="--c:#A16207"><span style="font-size:28px;line-height:1">💩</span><span class="qlab">Feci</span><span class="qadd">vai alla scheda</span></button>
       </div>
     </section>
-    <section class="card" id="urinaCard" hidden>
+    <section class="card" id="urinaCard">
       <h2 class="section-title">💧 Urina</h2>
       <p class="group-lbl">Colore</p>
       <div id="urinaColore" class="chips"></div>
@@ -1719,7 +1719,7 @@
       </div>
       <div class="panel-actions" style="margin-top:14px"><button class="primary" id="urinaSave">Registra</button><button class="link-btn" id="urinaCancel">Annulla</button></div>
     </section>
-    <section class="card" id="feciCard" hidden>
+    <section class="card" id="feciCard">
       <h2 class="section-title">💩 Feci</h2>
       <p class="group-lbl">Colore</p>
       <div id="feciColore" class="chips"></div>
@@ -3890,33 +3890,34 @@
     var evacStart=null; evac.forEach(function(x){ var _d=dayKey(new Date(x.ts)); if(!evacStart||_d<evacStart) evacStart=_d; });
     function evacHasFeci(dk){ return evac.some(function(x){ return x.tipo==="feci" && dayKey(new Date(x.ts))===dk; }); }
     function evacFeciCount(dk){ var n=0; evac.forEach(function(x){ if(x.tipo==="feci" && dayKey(new Date(x.ts))===dk) n++; }); return n; }
-    renderStorico("evacList", rows, storOpen.evac, {empty:'Ancora niente.<br>Tocca Urina o Feci quando serve.', fillDaysFrom:evacStart, emptyDayText:"Nessuna evacuazione",
+    renderStorico("evacList", rows, storOpen.evac, {empty:'Ancora niente.<br>Compila la scheda Urina o Feci qui sopra.', fillDaysFrom:evacStart, emptyDayText:"Nessuna evacuazione",
       dayClass:function(g){ return evacHasFeci(g.dk)?"ev-ok":"ev-miss"; },
       headExtra:function(g){ var sp=document.createElement("span"); sp.className="dmal"; var n=evacFeciCount(g.dk); if(n>0){ sp.style.color="var(--lvl-low)"; sp.textContent="💩 "+n+(n===1?" volta":" volte"); } else { sp.style.color="var(--lvl-high)"; sp.textContent="⚠ nessuna"; } return sp; } });
   }
   function evacPush(rec){ evac.push(rec); saveEvac(); renderEvac(); toast(EVAC_LBL[rec.tipo]+" registrata ✓"); }
-  function evacScrollTo(id){ var c=document.getElementById(id); c.hidden=false; try{ c.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} }
-  document.getElementById("qUrina").onclick=function(){ document.getElementById("feciCard").hidden=true; evacScrollTo("urinaCard"); };
-  document.getElementById("qFeci").onclick=function(){ document.getElementById("urinaCard").hidden=true; evacScrollTo("feciCard"); };
+  // le due schede restano sempre aperte: i pulsanti portano alla scheda giusta
+  function evacScrollTo(id){ var c=document.getElementById(id); if(!c) return; c.hidden=false; try{ c.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} }
+  document.getElementById("qUrina").onclick=function(){ evacScrollTo("urinaCard"); };
+  document.getElementById("qFeci").onclick=function(){ evacScrollTo("feciCard"); };
+  function evacResetUrina(){ uColore.clear(); uQta.clear(); uFastidi.clear(); document.getElementById("urinaNota").value=""; document.getElementById("urinaWhen").hidden=true; }
+  function evacResetFeci(){ fColore.clear(); fQta.clear(); fMorb.clear(); document.getElementById("feciNota").value=""; document.getElementById("feciWhen").hidden=true; }
   function evacWhenSetup(dataId,oraId){ var n=new Date(); document.getElementById(dataId).value=ymd(n); document.getElementById(oraId).value=hhmm(n); }
   document.getElementById("urinaWhenToggle").onclick=function(){ var w=document.getElementById("urinaWhen"); w.hidden=!w.hidden; if(!w.hidden) evacWhenSetup("urinaData","urinaOra"); };
   document.getElementById("feciWhenToggle").onclick=function(){ var w=document.getElementById("feciWhen"); w.hidden=!w.hidden; if(!w.hidden) evacWhenSetup("feciData","feciOra"); };
   function evacWhenTs(dataId,oraId,whenId){ var w=document.getElementById(whenId); if(w && !w.hidden){ var d=document.getElementById(dataId).value, t=document.getElementById(oraId).value; if(d&&t){ var ts=new Date(d+"T"+t).getTime(); if(!isNaN(ts)) return ts; } } return Date.now(); }
-  document.getElementById("urinaCancel").onclick=function(){ document.getElementById("urinaCard").hidden=true; };
-  document.getElementById("feciCancel").onclick=function(){ document.getElementById("feciCard").hidden=true; };
+  document.getElementById("urinaCancel").onclick=function(){ evacResetUrina(); cancelEditEvac(); };
+  document.getElementById("feciCancel").onclick=function(){ evacResetFeci(); cancelEditEvac(); };
   var editingEvacId=null;
   function evacFindEdit(){ var it=null; evac.forEach(function(y){ if(y.id===editingEvacId) it=y; }); return it; }
   function cancelEditEvac(){ editingEvacId=null; document.getElementById("urinaSave").textContent="Registra"; document.getElementById("feciSave").textContent="Registra"; }
   function startEditEvac(x){
     editingEvacId=x.id; var d=new Date(x.ts);
     if(x.tipo==="feci"){
-      document.getElementById("urinaCard").hidden=true;
       fColore.set(x.colore?[x.colore]:[]); fQta.set(x.quantita?[x.quantita]:[]); fMorb.set(x.morbidezza?[x.morbidezza]:[]);
       document.getElementById("feciNota").value=x.nota||"";
       document.getElementById("feciWhen").hidden=false; document.getElementById("feciData").value=ymd(d); document.getElementById("feciOra").value=hhmm(d);
       document.getElementById("feciSave").textContent="Salva modifiche"; evacScrollTo("feciCard");
     } else {
-      document.getElementById("feciCard").hidden=true;
       uColore.set(x.colore?[x.colore]:[]); uQta.set(x.quantita?[x.quantita]:[]); uFastidi.set(x.fastidi||[]);
       document.getElementById("urinaNota").value=x.nota||"";
       document.getElementById("urinaWhen").hidden=false; document.getElementById("urinaData").value=ymd(d); document.getElementById("urinaOra").value=hhmm(d);
@@ -3927,15 +3928,13 @@
     var ts=evacWhenTs("urinaData","urinaOra","urinaWhen"), nEl=document.getElementById("urinaNota");
     if(editingEvacId){ var it=evacFindEdit(); if(it){ it.ts=ts; it.tipo="urina"; it.colore=uColore.value(); it.quantita=uQta.value(); it.fastidi=uFastidi.selected(); it.nota=(nEl.value||"").trim(); delete it.morbidezza; } cancelEditEvac(); saveEvac(); renderEvac(); toast("Modifica salvata ✓"); }
     else { evacPush({id:uid(), ts:ts, tipo:"urina", colore:uColore.value(), quantita:uQta.value(), fastidi:uFastidi.selected(), nota:(nEl.value||"").trim()}); }
-    uColore.clear(); uQta.clear(); uFastidi.clear(); nEl.value="";
-    document.getElementById("urinaWhen").hidden=true; document.getElementById("urinaCard").hidden=true;
+    evacResetUrina();
   };
   document.getElementById("feciSave").onclick=function(){
     var ts=evacWhenTs("feciData","feciOra","feciWhen"), nEl=document.getElementById("feciNota");
     if(editingEvacId){ var it=evacFindEdit(); if(it){ it.ts=ts; it.tipo="feci"; it.colore=fColore.value(); it.quantita=fQta.value(); it.morbidezza=fMorb.value(); it.nota=(nEl.value||"").trim(); delete it.fastidi; } cancelEditEvac(); saveEvac(); renderEvac(); toast("Modifica salvata ✓"); }
     else { evacPush({id:uid(), ts:ts, tipo:"feci", colore:fColore.value(), quantita:fQta.value(), morbidezza:fMorb.value(), nota:(nEl.value||"").trim()}); }
-    fColore.clear(); fQta.clear(); fMorb.clear(); nEl.value="";
-    document.getElementById("feciWhen").hidden=true; document.getElementById("feciCard").hidden=true;
+    evacResetFeci();
   };
 
   // ---- Attività Fisiche: avvio/termine con cronometro ----
