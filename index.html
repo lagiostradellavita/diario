@@ -1727,7 +1727,7 @@
       <p class="group-lbl">Quantità</p>
       <div id="feciQta" class="chips"></div>
       <div class="chip-add"><input type="text" id="feciQtaInput" placeholder="Altra quantità…"><button type="button" id="feciQtaBtn">＋</button></div>
-      <p class="group-lbl">Morbidezza</p>
+      <p class="group-lbl">Consistenza</p>
       <div id="feciMorb" class="chips"></div>
       <div class="chip-add"><input type="text" id="feciMorbInput" placeholder="Altro…"><button type="button" id="feciMorbBtn">＋</button></div>
       <div class="field" style="margin-top:12px"><label for="feciNota">Nota (facoltativa)</label><input type="text" id="feciNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
@@ -2868,6 +2868,8 @@
   function pad2(n){ return ("0"+n).slice(-2); }
   function hhmm(d){ return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
   function ymd(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+  // ordina in ordine alfabetico italiano (maiuscole/accenti ignorati)
+  function sortIt(arr){ return (arr||[]).slice().sort(function(a,b){ return String(a).localeCompare(String(b),"it",{sensitivity:"base"}); }); }
   function fmtDur(ms){ var s=Math.max(0,Math.floor(ms/1000)), m=Math.floor(s/60); s=s%60; if(m>=60){ var h=Math.floor(m/60); m=m%60; return h+":"+pad2(m)+":"+pad2(s); } return m+":"+pad2(s); }
   // chip multi-selezione con aggiunte personali che restano
   function makeChipGroup(containerId, preset, customKey, single, opt){
@@ -2880,7 +2882,7 @@
     function saveRenames(){ try{ localStorage.setItem(customKey+"-ren", JSON.stringify(renames)); }catch(e){} }
     function presetShown(){ var a=[]; preset.forEach(function(p){ if(hidden.indexOf(p)<0) a.push(renames[p]||p); }); return a; }
     function all(){ return presetShown().concat(custom); }
-    function opts(){ var a=all(); if(opt.sortAlpha) a=a.slice().sort(function(x,y){ return String(x).localeCompare(String(y),"it"); }); return a; }
+    function opts(){ return opt.sortAlpha===false ? all() : sortIt(all()); }
     function fire(){ if(opt.onChange){ try{ opt.onChange(); }catch(e){} } }
     function render(){
       var host=document.getElementById(containerId); if(!host) return; host.innerHTML="";
@@ -2907,6 +2909,7 @@
       var items=[];
       preset.forEach(function(p){ if(hidden.indexOf(p)<0) items.push({label:(renames[p]||p), preset:true, orig:p}); });
       custom.forEach(function(c){ items.push({label:c, preset:false}); });
+      if(opt.sortAlpha!==false) items.sort(function(a,b){ return String(a.label).localeCompare(String(b.label),"it",{sensitivity:"base"}); });
       if(!items.length) return;
       var tog=document.createElement("button"); tog.type="button"; tog.className="link-btn"; tog.style.cssText="text-align:left;padding:6px 2px;margin-top:4px"; tog.textContent=(manageOpen?"▾":"▸")+" ⚙️ Gestisci le voci (aggiungi, correggi o elimina)"; tog.onclick=function(){ manageOpen=!manageOpen; renderManager(); }; m.appendChild(tog);
       if(!manageOpen) return;
@@ -2976,7 +2979,14 @@
   var SUG_FLUSSO=["Scarso","Leggero","Regolare","Normale","Abbondante","Molto abbondante","Con coaguli"];
   var SUG_ANTIC=["Nessuno","Pillola","Cerotto","Anello","Spirale/IUD","Spirale ormonale","Iniezione","Impianto","Preservativo"];
   var SUG_ATTIVITA=["Camminata","Corsa","Giri in terrazza","Cyclette","Bicicletta","Nuoto","Palestra","Stretching","Yoga","Pilates","Esercizi collo/schiena","Squat e piegamenti","Addominali","Respirazione","Ballo","Passeggiata col cane"];
-  function mkDatalist(id, opts){ if(document.getElementById(id)) return; var dl=document.createElement("datalist"); dl.id=id; opts.forEach(function(o){ var op=document.createElement("option"); op.value=o; dl.appendChild(op); }); document.body.appendChild(dl); }
+  function mkDatalist(id, opts){ if(document.getElementById(id)) return; var dl=document.createElement("datalist"); dl.id=id; sortIt(opts).forEach(function(o){ var op=document.createElement("option"); op.value=o; dl.appendChild(op); }); document.body.appendChild(dl); }
+  // riordina anche le liste di suggerimenti scritte direttamente nella pagina (farmaci, allergie…)
+  (function(){ Array.prototype.forEach.call(document.querySelectorAll("datalist"), function(dl){
+    var ops=Array.prototype.slice.call(dl.querySelectorAll("option"));
+    if(ops.length<2) return;
+    ops.sort(function(a,b){ return String(a.value||a.textContent).localeCompare(String(b.value||b.textContent),"it",{sensitivity:"base"}); });
+    ops.forEach(function(o){ dl.appendChild(o); });
+  }); })();
   function typeListId(nome){ return "dlt_"+String(nome).replace(/[^a-zA-Z]/g,""); }
   (function(){
     Object.keys(FOOD_TYPES).forEach(function(k){ mkDatalist(typeListId(k), FOOD_TYPES[k]); });
@@ -3005,7 +3015,7 @@
     {key:"dolci", label:"🍰 Dolci e snack", foods:["Dolci","Biscotti","Cioccolato","Gelato","Snack salati","Merendine"], typed:[]}
   ];
   var foodCustom={}; FOOD_CATS.forEach(function(c){ try{ var _f=JSON.parse(localStorage.getItem("salute-cibo-"+c.key)); foodCustom[c.key]=Array.isArray(_f)?_f:[]; }catch(e){ foodCustom[c.key]=[]; } });
-  function foodsFor(c){ return c.foods.concat(foodCustom[c.key]||[]); }
+  function foodsFor(c){ return sortIt(c.foods.concat(foodCustom[c.key]||[])); }
   function isTyped(nome){ for(var i=0;i<FOOD_CATS.length;i++){ if(FOOD_CATS[i].typed.indexOf(nome)>=0) return true; } return false; }
   var catOpen={}, pasto=[];
   // tabellina calorie approssimative (kcal per 100 g/ml) — l'utente può correggere a mano
@@ -3936,7 +3946,7 @@
   var attivManageOpen=false;
   function saveAttivHidden(){ try{ localStorage.setItem("salute-attiv-hidden", JSON.stringify(attivHidden)); }catch(e){} }
   function saveAttivRenames(){ try{ localStorage.setItem("salute-attiv-ren", JSON.stringify(attivRenames)); }catch(e){} }
-  function attivOpts(){ var a=[]; ATTIVITA.forEach(function(p){ if(attivHidden.indexOf(p)<0) a.push(attivRenames[p]||p); }); return a.concat(attivCustom); }
+  function attivOpts(){ var a=[]; ATTIVITA.forEach(function(p){ if(attivHidden.indexOf(p)<0) a.push(attivRenames[p]||p); }); return sortIt(a.concat(attivCustom)); }
   // ---- Esercizi programmati (schiena, collo, dolori muscolari): titoli + esercizi selezionabili a scomparsa ----
   var ESERCIZI_CONSIGLIATI=[
     {t:"A. Sblocco del risveglio", sub:"5 minuti, appena sveglio", dur:5,
@@ -4071,6 +4081,7 @@
     var items=[];
     ATTIVITA.forEach(function(p){ if(attivHidden.indexOf(p)<0) items.push({label:(attivRenames[p]||p), preset:true, orig:p}); });
     attivCustom.forEach(function(c){ items.push({label:c, preset:false}); });
+    items.sort(function(a,b){ return String(a.label).localeCompare(String(b.label),"it",{sensitivity:"base"}); });
     if(!items.length) return;
     var tog=document.createElement("button"); tog.type="button"; tog.className="link-btn"; tog.style.cssText="text-align:left;padding:6px 2px;margin-top:4px"; tog.textContent=(attivManageOpen?"▾":"▸")+" ⚙️ Gestisci le attività (correggi o elimina)"; tog.onclick=function(){ attivManageOpen=!attivManageOpen; renderEserManage(); }; m.appendChild(tog);
     if(!attivManageOpen) return;
