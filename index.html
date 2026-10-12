@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 240; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 241; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -438,7 +438,7 @@
   .chip-manage .manage-del{font-size:20px; line-height:1;}
   .diario-fields[hidden]{display:none;}
   #diarioTipoSeg button, #diarioSigTipo button{font-size:14px; padding:11px 2px;}
-  .tl-row{display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--line);}
+  .tl-row{display:flex; flex-wrap:wrap; align-items:flex-start; gap:8px 10px; padding:10px 0; border-bottom:1px solid var(--line);}
   .tl-row.pil-varmark{ background:var(--surface-2); border-radius:6px; padding-left:6px; padding-right:6px; }
   .tl-row.pil-varmark .tl-text{ font-weight:600; }
   .tl-row.pil-skip .tl-text{ color:var(--lvl-high); }
@@ -454,7 +454,7 @@
   .tl-time-ok{flex:0 0 auto; appearance:none; border:none; background:var(--accent); color:#fff; border-radius:8px; width:36px; height:30px; font-size:18px; font-weight:800; line-height:1; cursor:pointer; touch-action:manipulation;}
   .tl-time-cancel{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:8px; width:30px; height:30px; font-size:15px; cursor:pointer; touch-action:manipulation;}
   .tl-emoji{flex:0 0 auto; font-size:18px; line-height:1.25;}
-  .tl-text{flex:1 1 auto; min-width:0; font-size:15.5px; font-weight:600; color:var(--ink); overflow-wrap:anywhere;}
+  .tl-text{flex:1 1 auto; min-width:6em; font-size:15.5px; font-weight:600; color:var(--ink); overflow-wrap:break-word;}
   .tl-text.expandable{cursor:pointer; text-decoration:underline dotted; text-underline-offset:3px; text-decoration-color:var(--muted);}
   .tl-del{flex:0 0 auto; appearance:none; border:none; background:var(--track); color:var(--muted); border-radius:8px; width:30px; height:30px; font-size:17px; cursor:pointer; touch-action:manipulation;}
   .tl-edit{flex:0 0 auto; appearance:none; border:none; background:var(--surface-2); color:var(--ink-soft); border-radius:8px; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation;}
@@ -1940,7 +1940,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v240 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v241 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
