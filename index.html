@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 243; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 244; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1940,7 +1940,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v243 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v244 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -2803,7 +2803,7 @@
       if(!orari.length){ toast("Aggiungi almeno un orario"); return; }
       var dal=((document.getElementById(I.dal)||{}).value)||"", al=((document.getElementById(I.al)||{}).value)||"";
       if(dal && al && al<dal){ toast("La fine è prima dell'inizio"); return; }
-      if(editId){ var _old=null; defs.forEach(function(p){ if(p.id===editId) _old={nome:p.nome, orari:(p.orari||[]).slice(), dal:p.dal||null, al:p.al||null}; }); defs.forEach(function(p){ if(p.id===editId){ p.nome=nome; p.orari=orari; p.dal=dal||null; p.al=al||null; if(p.attivo===false && (!al || pillDayKey(new Date())<=al)){ p.attivo=true; p.fine=null; } } }); if(_old){ var ch=[]; if(_old.nome!==nome) ch.push("«"+_old.nome+"» → «"+nome+"»"); if((_old.orari||[]).join(" · ")!==orari.join(" · ")) ch.push("orari: "+((_old.orari||[]).join(" · ")||"—")+" → "+(orari.join(" · ")||"—")); if((_old.dal||"")!==(dal||"")||(_old.al||"")!==(al||"")) ch.push("periodo aggiornato"); if(ch.length) addLog("modifica", ch.join("; ")); } toast("Modifica salvata ✓"); }
+      if(editId){ var _old=null; defs.forEach(function(p){ if(p.id===editId) _old={nome:p.nome, orari:(p.orari||[]).slice(), dal:p.dal||null, al:p.al||null}; }); defs.forEach(function(p){ if(p.id===editId){ p.nome=nome; p.orari=orari; p.dal=dal||null; p.al=al||null; if(p.attivo===false && (!al || pillDayKey(new Date())<=al)){ p.attivo=true; p.fine=null; } } }); if(_old){ var ch=[]; if(_old.nome!==nome) ch.push("«"+_old.nome+"» → «"+nome+"»"); if((_old.orari||[]).join(" · ")!==orari.join(" · ")) ch.push("orari: "+((_old.orari||[]).join(" · ")||"—")+" → "+(orari.join(" · ")||"—")); if((_old.dal||"")!==(dal||"")||(_old.al||"")!==(al||"")) ch.push("periodo aggiornato"); if(ch.length) addLog("modifica", ch.join("; ")); } if(_old){ var _tdk=pillDayKey(new Date()), _rk=dayKey(new Date()), _now=new Date(), _nm=(_tdk===_rk)?(_now.getHours()*60+_now.getMinutes()):(24*60), _activeToday=(!_old.dal||_tdk>=_old.dal)&&(!_old.al||_tdk<=_old.al), _eid=editId; if(_activeToday){ (_old.orari||[]).forEach(function(o){ if(orari.indexOf(o)>=0) return; if(oraMin(o)>_nm) return; if(taken[_tdk+"|"+_eid+"|"+o]) return; if(confirm("«"+nome+"» delle "+o+": l'hai presa oggi?\n\nOK = sì: resta segnata per oggi e va nello storico.\nAnnulla = no: oggi non l'hai presa.")){ var _ts=new Date(_rk+"T"+o+":00").getTime(); if(isNaN(_ts)) _ts=Date.now(); taken[pillDayKey(new Date(_ts))+"|"+_eid+"|"+o]=_ts; saveTaken(); } }); } } toast("Modifica salvata ✓"); }
       else { defs.push({id:uid(), nome:nome, orari:orari, dal:dal||null, al:al||null, attivo:true, createdTs:Date.now()}); addLog("aggiunta", "«"+nome+"» ("+orari.join(" · ")+")"); toast(L.added); }
       editId=null; saveDefs();
       document.getElementById(I.form).hidden=true; render();
