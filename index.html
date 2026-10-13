@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 242; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 243; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1940,7 +1940,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v242 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v243 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -2646,7 +2646,11 @@
       defs.forEach(function(p){ if(!defActive(p)) return; (p.orari||[]).forEach(function(o){
         var k=dK+"|"+p.id+"|"+o, tv=taken[k], tk=!!tv;
         doses.push({id:p.id, nome:p.nome, ora:o, key:k, taken:tk, takenAt:(typeof tv==="number"?tv:null), late:(!tk && nowMin>oraMin(o))});
-      }); });
+      });
+      // dosi gia' prese oggi a un orario tolto dal programma: restano visibili oggi (da domani solo nello storico)
+      var _pre=dK+"|"+p.id+"|";
+      Object.keys(taken).forEach(function(k){ if(k.indexOf(_pre)!==0) return; var o=k.slice(_pre.length); if((p.orari||[]).indexOf(o)>=0) return; var tv=taken[k]; if(typeof tv!=="number") return; doses.push({id:p.id, nome:p.nome, ora:o, key:k, taken:true, takenAt:tv, late:false}); });
+      });
       doses.sort(function(a,b){ return a.ora<b.ora?-1:(a.ora>b.ora?1:0); });
       var tk=0,late=0; doses.forEach(function(d){ if(d.taken)tk++; if(d.late)late++; });
       return {doses:doses, taken:tk, late:late, total:doses.length};
