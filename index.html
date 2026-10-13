@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 241; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 242; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1940,7 +1940,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v241 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v242 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -2815,8 +2815,8 @@
       try{ document.getElementById(I.nome).focus(); }catch(e){}
       try{ f.scrollIntoView({block:"center"}); }catch(e){}
     }
-    function finishDef(id){ defs.forEach(function(p){ if(p.id===id){ p.attivo=false; if(!p.al) p.fine=Date.now(); addLog("finita", "«"+p.nome+"»"); } }); saveDefs(); render(); }
-    function reactivateDef(id){ defs.forEach(function(p){ if(p.id===id){ p.attivo=true; if(p.al && pillDayKey(new Date())>p.al) p.al=null; p.fine=null; addLog("ripresa", "«"+p.nome+"»"); } }); saveDefs(); render(); }
+    function finishDef(id){ var tdk=pillDayKey(new Date()), nm=""; defs.forEach(function(p){ if(p.id===id){ if(!p.al || p.al>tdk) p.al=tdk; p.fine=Date.now(); nm=p.nome; addLog("finita", "«"+p.nome+"»"); } }); saveDefs(); render(); if(nm) toast("«"+nm+"»: resta nel programma di oggi, da domani va in «Cure finite»"); }
+    function reactivateDef(id){ defs.forEach(function(p){ if(p.id===id){ p.attivo=true; p.al=null; p.fine=null; addLog("ripresa", "«"+p.nome+"»"); } }); saveDefs(); render(); }
     function deleteDef(id){ var _nm=""; defs.forEach(function(x){ if(x.id===id) _nm=x.nome; }); defs=defs.filter(function(x){return x.id!==id;}); Object.keys(taken).forEach(function(k){ if(k.split("|")[1]===id) delete taken[k]; }); if(_nm) addLog("eliminata", "«"+_nm+"»"); saveDefs(); saveTaken(); render(); }
     (function(){
       var fb=document.getElementById(I.finish);
