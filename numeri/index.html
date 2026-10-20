@@ -626,6 +626,37 @@ h2{font-size:1.75rem}
 #accesso .form label{font-size:1.35rem}
 #accesso .form input{font-size:1.3rem;min-height:54px}
 .linkbtn{font-size:1.2rem;padding:8px 0}
+.btn.guida{display:inline-flex;align-items:center;gap:10px;font-size:1.3rem;padding:12px 18px;margin-top:12px;background:var(--sun);color:var(--on-sun)}
+.btn.guida .ic{width:30px;height:30px}
+.welrow{display:flex;align-items:center;gap:10px}
+.welrow .welcome{flex:1;min-width:0}
+.welrow .btn.guida{margin-top:16px;width:60px;height:60px;padding:0;justify-content:center;border-radius:50%;flex:none}
+.resetbox{margin-top:14px;background:#FFF0F0;border:2.5px solid #C62828;border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;color:#1E1838}
+.resetbox b{font-family:var(--f-display);font-size:1.4rem}
+.resetbox p{margin:0;font-size:1.15rem;font-weight:700}
+.resetbox .btn{background:#C62828;color:#fff;font-size:1.3rem;padding:14px 18px}
+.velrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.velrow .btn{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:1.35rem;padding:12px 6px}
+.velrow .btn span{font-size:2.4rem;line-height:1}
+.velrow .btn[aria-pressed="true"]{background:var(--sun);box-shadow:0 0 0 4px var(--sun-deep),0 4px 0 var(--edge)}
+/* temi di colore: si scelgono in Per i grandi; sfondo pieno, senza righe ne' puntini */
+:root[data-tema]{--paper:#FFFFFF;--ink:#1A1A2E;--muted:#3D3A55;--outline:#1A1A2E;--edge:#1A1A2E}
+:root[data-tema] body{background-image:none!important;background-color:var(--bg)!important;background-size:auto!important;background-attachment:fixed;min-height:100vh}
+:root[data-tema="cielo"]{--bg:#CDEBFF;--t1:#FF8A00;--t2:#E91E63;--t3:#FFC400;--t4:#00A3C4;--tt1:#FFFFFF;--tt2:#FFFFFF;--tt3:#1A1A2E;--tt4:#FFFFFF}
+:root[data-tema="prato"]{--bg:#D4F0D2;--t1:#FF7A00;--t2:#8E3FD1;--t3:#FFC400;--t4:#F0388C;--tt1:#FFFFFF;--tt2:#FFFFFF;--tt3:#1A1A2E;--tt4:#FFFFFF}
+:root[data-tema="sole"]{--bg:#FFF0C2;--t1:#F4511E;--t2:#C2185B;--t3:#00897B;--t4:#5E35B1;--tt1:#FFFFFF;--tt2:#FFFFFF;--tt3:#FFFFFF;--tt4:#FFFFFF}
+:root[data-tema="mare"]{--bg:#1565C0;--t1:#FFC400;--t2:#FF4F9A;--t3:#FF8A00;--t4:#9B5CFF;--tt1:#1A1A2E;--tt2:#FFFFFF;--tt3:#FFFFFF;--tt4:#FFFFFF}
+:root[data-tema="arcobaleno"]{--bg:#FFF4C4;--t1:#FF7A00;--t2:#E91E63;--t3:#7C4DFF;--t4:#00A3C4;--tt1:#FFFFFF;--tt2:#FFFFFF;--tt3:#FFFFFF;--tt4:#FFFFFF}
+:root[data-tema="arcobaleno"] body{background-image:linear-gradient(180deg,#FFF4C4 0,#FFDCEB 45%,#D3ECFF 100%)!important;background-attachment:fixed}
+:root[data-tema="mare"] #app > section > .top h1,:root[data-tema="mare"] #app > section > h2,:root[data-tema="mare"] #app > section > .note,:root[data-tema="mare"] #app > section > .logo,:root[data-tema="mare"] .tabbed > h2,:root[data-tema="mare"] [data-panel] > h2,:root[data-tema="mare"] [data-panel] > .note,:root[data-tema="mare"] #cat > h2{color:#FFFFFF}
+:root[data-tema="mare"] .logo .l1{color:#FFC400} :root[data-tema="mare"] .logo .l2{color:#FFFFFF}
+.lvl .badge-l,.chip[aria-pressed="true"]{color:#FFFFFF}
+.aids .chip{font-size:1.1rem;padding:6px 12px}
+.temi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:12px}
+.tema{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 8px;border-radius:20px;font-size:1.3rem}
+.tema .sw{width:100%;height:70px;border-radius:14px;border:2.5px solid #1A1A2E;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px;align-items:center}
+.tema .sw i{display:block;height:100%;border-radius:8px;border:2px solid #1A1A2E}
+.tema[aria-pressed="true"]{box-shadow:0 0 0 5px #1A1A2E,0 4px 0 var(--edge)}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -639,7 +670,7 @@ h2{font-size:1.75rem}
         <div class="xptxt" id="xpTxt"></div>
       </div>
     </header>
-    <p class="welcome" id="welcome"></p>
+    <div class="welrow"><p class="welcome" id="welcome"></p><button class="btn guida" type="button" data-guida="home"><svg class="ic" viewBox="0 0 24 24"><use href="#i-spk"/></svg></button></div>
     <div class="menu">
       <button class="mtile mt-play" id="mPlay"><span class="bic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span><b>Gioca</b><small>Lettere o numeri</small><span class="mt-art" id="mPlayArt" hidden></span></button>
       <button class="mtile mt-voice" id="mVoice"><span class="bic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4.5v15L7 15H3z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.2 5.8a8.8 8.8 0 0 1 0 12.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span class="bic-mini" id="mVoiceArt"></span></span><b>La voce</b><small id="mVoiceName"></small></button>
@@ -660,6 +691,8 @@ h2{font-size:1.75rem}
     <div class="top"><button class="btn icon back" aria-label="Indietro"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>Chi ti legge le domande?</h1></div>
     <p class="note">Tocca un personaggio per sentire la sua voce.</p>
     <div class="voices" id="voiceChips" style="margin-top:12px"></div>
+    <h2>Quanto veloce?</h2>
+    <div class="velrow" id="velBtns"><button class="btn" data-vel="lenta"><span aria-hidden="true">🐢</span>Piano</button><button class="btn" data-vel="normale"><span aria-hidden="true">🚶</span>Normale</button><button class="btn" data-vel="veloce"><span aria-hidden="true">🐇</span>Veloce</button></div>
   </section>
 
   <section id="lista" hidden>
@@ -710,6 +743,7 @@ h2{font-size:1.75rem}
   <section id="accesso" hidden>
     <p class="logo" style="margin-top:10px"><span class="l1">Leggo</span> e <span class="l2">Conto</span></p>
     <p class="note">I giochi per imparare a leggere e a contare. Per entrare serve un accesso approvato.</p>
+    <button class="btn guida" type="button" data-guida="accesso"><svg class="ic" viewBox="0 0 24 24"><use href="#i-spk"/></svg>Ascolta cosa fare</button>
     <div class="tabbed">
       <div class="tabs"><button class="chip" data-tab="in" aria-pressed="true">Entra</button><button class="chip" data-tab="reg" aria-pressed="false">Chiedi l'accesso</button></div>
       <form class="form" data-panel="in" id="fIn" novalidate>
@@ -769,6 +803,7 @@ h2{font-size:1.75rem}
     <p class="logo"><span class="l1">Leggo</span> e <span class="l2">Conto</span></p>
     <div class="top"><h1>Chi gioca oggi?</h1></div>
     <p class="note">Tocca la tua foto. Ogni bambino ha i suoi premi e i suoi risultati.</p>
+    <button class="btn guida" type="button" data-guida="who"><svg class="ic" viewBox="0 0 24 24"><use href="#i-spk"/></svg>Ascolta</button>
     <div class="players" id="playerGrid" style="margin-top:14px"></div>
   </section>
 
@@ -820,8 +855,11 @@ h2{font-size:1.75rem}
   <section id="grandi" hidden>
     <div class="top"><button class="btn icon back" aria-label="Torna al menu"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>Per i grandi</h1></div>
     <div class="tabbed">
+    <div class="resetbox"><b id="resetTit">Ricominciare da zero?</b><p id="resetTxt"></p><button class="btn danger" id="resetBtn">Azzera i risultati</button></div>
     <div class="tabs"><button class="chip" data-tab="imp" aria-pressed="true">Impostazioni</button><button class="chip" data-tab="ris" aria-pressed="false">Risultati</button><button class="chip" data-tab="come" aria-pressed="false">Come funziona</button></div>
     <div data-panel="imp">
+    <h2>I colori dell'app</h2>
+    <div class="temi" id="temiBtns"></div>
     <div class="form" id="accountBox" hidden style="margin-bottom:14px"></div>
     <div class="form">
       <label class="sw"><input type="checkbox" id="optVoice"> Leggi le domande ad alta voce</label>
@@ -830,7 +868,6 @@ h2{font-size:1.75rem}
         <select id="optLen"><option value="5">5</option><option value="8">8</option><option value="10">10</option></select>
       </label>
     </div>
-    <button class="btn danger" id="resetBtn">Azzera i progressi</button>
     </div>
     <div data-panel="ris" hidden>
     <h2>Tutti i bambini</h2>
@@ -994,7 +1031,7 @@ const colorNums = t => t.replace(/\d+/g, m => numHTML(+m));
 /* ---------- salvataggio ---------- */
 const KEY = 'saltino-numeri-v1';
 const DEF = { name: '', xp: 0, stars: 0, stelline: 0, rounds: 0, bestStreak: 0, perfect: 0, badges: {}, days: {}, stats: {},
-  settings: { voice: true, sound: true, len: 10, voiceName: '', persona: 'cartoon', read: { font: 'maiu', colori: true, spazi: false } }, last: { game: 'l20', diff: 0, types: {}, cat: 'mat', gameBy: {} } };
+  settings: { voice: true, sound: true, len: 10, voiceName: '', persona: 'cartoon', vel: 'lenta', read: { font: 'maiu', colori: true, spazi: false } }, last: { game: 'l20', diff: 0, types: {}, cat: 'mat', gameBy: {} } };
 const clone = o => JSON.parse(JSON.stringify(o));
 function load() {
   try {
@@ -1182,12 +1219,32 @@ function voiceFor(P) {
   const score = v => (/natural|neural|enhanced|avanzat|premium|online/i.test(v.name) ? 10 : 0) + (/google/i.test(v.name) ? 6 : 0) + ((P.pref === 'm' ? MAS : FEM).test(v.name) ? 8 : 0);
   return vs.slice().sort((a, b) => score(b) - score(a))[0];
 }
-function utter(t) { const P = persona(), u = new SpeechSynthesisUtterance(t); u.lang = 'it-IT'; const v = voiceFor(P); if (v) u.voice = v; u.pitch = P.pitch; u.rate = P.rate; return u; }
+// la velocita' la scelgono i grandi; di base lenta, per chi sta imparando a leggere
+const VEL = { lenta: .72, normale: .88, veloce: 1 };
+function utter(t, piano) {
+  const P = persona(), u = new SpeechSynthesisUtterance(t); u.lang = 'it-IT'; const v = voiceFor(P); if (v) u.voice = v;
+  u.pitch = P.pitch; u.rate = Math.max(.45, P.rate * (VEL[save.settings.vel] || VEL.lenta) * (piano ? .72 : 1)); return u;
+}
+// una sillaba o una parola da sola si dice piano; nelle frasi la parte fra «» si stacca e si dice piano.
+// Il punto in fondo evita che il telefono tagli l'ultima sillaba.
+function pezzi(t) {
+  t = String(t || '').trim(); if (!t) return [];
+  if (!/\s/.test(t) && !/[«»]/.test(t)) return [{ t: t.toLowerCase() + '.', piano: true }];
+  return t.split(/[«»]/).map((x, i) => ({ t: (i % 2 ? x.toLowerCase() : x).trim(), piano: i % 2 === 1 })).filter(x => /[\wàèéìòù]/i.test(x.t)).map(x => ({ ...x, t: /[.!?]$/.test(x.t) ? x.t : x.t.replace(/[:;,]$/, '') + '.' }));
+}
 let karaokeTok = 0;
+// cancel e subito speak, sull'iPhone, mangia l'inizio o la fine della frase: se stava parlando si aspetta un attimo
+function parla(t, fine, mod) {
+  const ps = pezzi(t); if (!ps.length) { speechSynthesis.cancel(); if (fine) fine(); return; }
+  const via = () => ps.forEach((x, i) => { const u = utter(x.t, x.piano); if (mod) mod(u); if (i === ps.length - 1 && fine) { u.onend = fine; u.onerror = fine; } speechSynthesis.speak(u); });
+  const occupato = speechSynthesis.speaking || speechSynthesis.pending;
+  speechSynthesis.cancel();
+  if (occupato) setTimeout(via, 120); else via();
+}
 function say(t) {
   karaokeTok++;
   if (!('speechSynthesis' in window)) return;
-  try { speechSynthesis.cancel(); speechSynthesis.speak(utter(t)); } catch (e) {}
+  try { parla(t); } catch (e) {}
 }
 // le lodi si dicono con enfasi: un po' piu' acute e veloci
 function sayEmph(t, dopo) {
@@ -1195,9 +1252,8 @@ function sayEmph(t, dopo) {
   let fatto = false; const poi = () => { if (!fatto) { fatto = true; if (dopo) dopo(); } };
   if (!('speechSynthesis' in window)) return poi();
   try {
-    speechSynthesis.cancel(); const u = utter(t); u.pitch = Math.min(2, u.pitch * 1.2 + .1); u.rate = Math.min(1.35, u.rate * 1.08);
-    u.onend = poi; u.onerror = poi; speechSynthesis.speak(u);
-    setTimeout(poi, 900 + t.length * 75);   // se il dispositivo non avvisa la fine della frase
+    parla(t, poi, u => { u.pitch = Math.min(2, u.pitch * 1.2 + .1); });
+    setTimeout(poi, 1500 + t.length * 110);   // se il dispositivo non avvisa la fine della frase
   } catch (e) { poi(); }
 }
 // prima il complimento, poi gli applausi: piu' forti e lunghi per stelline, comete e soli
@@ -1205,34 +1261,79 @@ function festa(m, forte) { const clap = () => applausi(forte); if (save.settings
 function speakWait(t) {
   return new Promise(res => {
     let done = false; const fin = () => { if (!done) { done = true; res(); } };
-    setTimeout(fin, 700 + t.length * 160);
+    setTimeout(fin, 900 + t.length * 200);
     if (!('speechSynthesis' in window)) return;
-    try { const u = utter(t); u.onend = fin; u.onerror = fin; speechSynthesis.speak(u); } catch (e) { fin(); }
+    try { const u = utter(t.replace(/[«»]/g, '')); u.onend = fin; u.onerror = fin; speechSynthesis.speak(u); } catch (e) { fin(); }
   });
 }
-let actx = null, clapBuf = null;
-// applausi sintetizzati: tanti colpi brevi di rumore filtrato, a caso nel tempo
+let actx = null;
+// Sull'iPhone i suoni fatti con WebAudio tacciono con il tasto silenzioso e dopo la voce:
+// gli applausi si preparano una volta come file audio e si suonano con un elemento <audio>,
+// sbloccato al primo tocco. WebAudio resta come ripiego.
+const clapEl = new Audio(), clapUrl = {}; clapEl.preload = 'auto'; clapEl.setAttribute('playsinline', '');
+function wavUrl(buf) {
+  const d = buf.getChannelData(0), n = d.length, b = new DataView(new ArrayBuffer(44 + n * 2)), w = (o, t) => [...t].forEach((c, i) => b.setUint8(o + i, c.charCodeAt(0)));
+  w(0, 'RIFF'); b.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt '); b.setUint32(16, 16, true); b.setUint16(20, 1, true); b.setUint16(22, 1, true);
+  b.setUint32(24, buf.sampleRate, true); b.setUint32(28, buf.sampleRate * 2, true); b.setUint16(32, 2, true); b.setUint16(34, 16, true); w(36, 'data'); b.setUint32(40, n * 2, true);
+  let peak = 0; for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(d[i]));
+  const k = peak > 0 ? .95 / peak : 1;
+  for (let i = 0; i < n; i++) b.setInt16(44 + i * 2, Math.max(-1, Math.min(1, d[i] * k)) * 32767, true);
+  return URL.createObjectURL(new Blob([b], { type: 'audio/wav' }));
+}
+function preparaApplausi() {
+  const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext; if (!OC) return;
+  [false, true].forEach(forte => {
+    try {
+      const sr = 22050, dur = forte ? 3.4 : 1.8, c = new OC(1, Math.round(sr * dur), sr);
+      clapGraph(c, forte, 0);
+      if (forte) [784, 988, 1175, 1568].forEach((f, i) => { const o = c.createOscillator(), g = c.createGain(), t = i * .13; o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.25, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .22); o.connect(g).connect(c.destination); o.start(t); o.stop(t + .25); });
+      const r = c.startRendering(), ok = b => { clapUrl[forte ? 'forte' : 'piano'] = wavUrl(b); };
+      if (r && r.then) r.then(ok); else c.oncomplete = e => ok(e.renderedBuffer);
+    } catch (e) {}
+  });
+}
+function clapGraph(ctx, forte, at) {
+  const n0 = Math.round(ctx.sampleRate * .07), cb = ctx.createBuffer(1, n0, ctx.sampleRate), cd = cb.getChannelData(0);
+  for (let i = 0; i < n0; i++) cd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n0, 4);
+  const dur = forte ? 3.2 : 1.6, rate = forte ? 60 : 30, vol = forte ? .9 : .7;
+  const out = ctx.createGain(), t0 = at + .02;
+  out.gain.setValueAtTime(.0001, t0); out.gain.exponentialRampToValueAtTime(vol, t0 + .2);
+  out.gain.setValueAtTime(vol, t0 + dur - .7); out.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+  out.connect(ctx.destination);
+  for (let i = 0, n = Math.round(dur * rate); i < n; i++) {
+    const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = cb; src.playbackRate.value = .75 + Math.random() * .7;
+    f.type = 'bandpass'; f.frequency.value = 800 + Math.random() * 2000; f.Q.value = .7 + Math.random();
+    g.gain.value = .35 + Math.random() * .65;
+    src.connect(f).connect(g).connect(out); src.start(t0 + Math.random() * (dur - .1));
+  }
+}
+let audioPronto = false;
+function sbloccaAudio() {
+  if (audioPronto) return; audioPronto = true;
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) {}
+  // una frase vuota detta durante il tocco sblocca la voce per tutto il resto
+  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) {}
+  if (guidaInAttesa) { const k = guidaInAttesa; guidaInAttesa = null; setTimeout(() => { if (!guidaDetta[k] && !speechSynthesis.speaking && !speechSynthesis.pending && !$('#' + k).hidden) { guidaDetta[k] = true; say(guidaTesto(k)); } }, 250); }
+  try { clapEl.muted = true; clapEl.src = clapUrl.piano || 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA='; const p = clapEl.play(); if (p && p.then) p.then(() => { clapEl.pause(); clapEl.muted = false; }, () => { clapEl.muted = false; }); else clapEl.muted = false; } catch (e) {}
+}
+['pointerdown', 'touchend', 'click'].forEach(ev => addEventListener(ev, sbloccaAudio, { capture: true, passive: true }));
+preparaApplausi();
+// applausi: tanti colpi brevi di rumore filtrato, a caso nel tempo
 function applausi(forte) {
   if (!save.settings.sound) return;
+  const url = clapUrl[forte ? 'forte' : 'piano'];
+  if (url) {
+    try { clapEl.muted = false; clapEl.volume = 1; clapEl.src = url; clapEl.currentTime = 0; const p = clapEl.play(); if (p && p.catch) p.catch(() => applausiWeb(forte)); return; } catch (e) {}
+  }
+  applausiWeb(forte);
+}
+function applausiWeb(forte) {
   try {
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
     if (actx.state === 'suspended') actx.resume();
-    if (!clapBuf) {
-      const n = Math.round(actx.sampleRate * .07); clapBuf = actx.createBuffer(1, n, actx.sampleRate);
-      const d = clapBuf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 4);
-    }
-    const dur = forte ? 3.2 : 1.4, rate = forte ? 60 : 26, vol = forte ? .9 : .45;
-    const out = actx.createGain(), t0 = actx.currentTime + .02;
-    out.gain.setValueAtTime(.0001, t0); out.gain.exponentialRampToValueAtTime(vol, t0 + .2);
-    out.gain.setValueAtTime(vol, t0 + dur - .7); out.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
-    out.connect(actx.destination);
-    for (let i = 0, n = Math.round(dur * rate); i < n; i++) {
-      const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
-      src.buffer = clapBuf; src.playbackRate.value = .75 + Math.random() * .7;
-      f.type = 'bandpass'; f.frequency.value = 800 + Math.random() * 2000; f.Q.value = .7 + Math.random();
-      g.gain.value = .35 + Math.random() * .65;
-      src.connect(f).connect(g).connect(out); src.start(t0 + Math.random() * (dur - .1));
-    }
+    clapGraph(actx, forte, actx.currentTime);
     if (forte) tone([784, 988, 1175, 1568], .13, 'triangle', .12);   // una fanfara breve sopra gli applausi
   } catch (e) {}
 }
@@ -1240,6 +1341,7 @@ function tone(freqs, dur = .12, type = 'triangle', vol = .16) {
   if (!save.settings.sound) return;
   try {
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
     const t = actx.currentTime;
     freqs.forEach((f, i) => {
       const o = actx.createOscillator(), g = actx.createGain(), s = t + i * dur;
@@ -2166,8 +2268,8 @@ function qIniziale(d) {
   const w = pickWord(d), f = w.w[0]; let op;
   const others = shuffle((VOC.includes(f) ? VOC : CONS).filter(c => c !== f)).slice(0, nOpt(d) - 1);
   return Q({ text: 'Con che lettera comincia?', say: `Con che lettera comincia la parola ${w.w}?`,
-    mount(st, ct) { st.innerHTML = `${aidsBar()}<div class="pic">${w.e}</div><button class="btn aiuto" data-hear>Ascolta la parola</button>`; $('[data-hear]', st).onclick = () => say(w.w); op = choiceUI(ct, shuffle([f, ...others]).map(l => ({ k: l, html: letHTML(l), cls: 'let-opt' })), f, async () => { say(`${w.w} comincia con ${f}`); await sleep(600); }); },
-    reveal() { op.reveal(); say(`${w.w} comincia con ${f}`); } });
+    mount(st, ct) { st.innerHTML = `${aidsBar()}<div class="pic">${w.e}</div><button class="btn aiuto" data-hear>Ascolta la parola</button>`; $('[data-hear]', st).onclick = () => say(w.w); op = choiceUI(ct, shuffle([f, ...others]).map(l => ({ k: l, html: letHTML(l), cls: 'let-opt' })), f, async () => { say(`${w.w} comincia con: «${f}»`); await sleep(600); }); },
+    reveal() { op.reveal(); say(`${w.w} comincia con: «${f}»`); } });
 }
 function qVocale(d) {
   const w = pickWord(Math.min(d, 1)), want = d === 2 ? CONS : VOC;
@@ -2202,7 +2304,7 @@ function qSuono(d) {
     others = shuffle(cand).slice(0, nOpt(d) - 1);
   }
   remember(syl); let op;
-  return Q({ text: 'Ascolta e tocca la sillaba giusta', say: `Tocca la sillaba ${syl}.`,
+  return Q({ text: 'Ascolta e tocca la sillaba giusta', say: `Tocca la sillaba: «${syl}».`,
     mount(st, ct) { st.innerHTML = `${aidsBar()}<div class="pic" aria-hidden="true">👂</div><button class="btn go aiuto" data-hear>Ascolta di nuovo</button>`; $('[data-hear]', st).onclick = () => say(syl); op = choiceUI(ct, shuffle([syl, ...others]).map(x => ({ k: x, html: letHTML(x), cls: 'let-opt' })), syl); },
     reveal() { op.reveal(); say(syl); } });
 }
@@ -2432,9 +2534,19 @@ function qFConta(d) {
 }
 
 /* ---------- schermate ---------- */
-function show(id) { $('#toast').hidden = true; const R = document.documentElement; if (['lista', 'cat', 'game', 'result'].includes(id)) R.dataset.cat = save.last.cat || 'mat'; else delete R.dataset.cat; if (!['cat', 'game', 'result'].includes(id)) delete R.dataset.hero; $$('#app > section').forEach(s => s.hidden = s.id !== id); window.scrollTo(0, 0); }
+function show(id) { if (typeof guida === 'function') guida(id); $('#toast').hidden = true; const R = document.documentElement; if (['lista', 'cat', 'game', 'result'].includes(id)) R.dataset.cat = save.last.cat || 'mat'; else delete R.dataset.cat; if (!['cat', 'game', 'result'].includes(id)) delete R.dataset.hero; $$('#app > section').forEach(s => s.hidden = s.id !== id); window.scrollTo(0, 0); }
 const miniStars = n => [1, 2, 3].map(i => `<svg class="ic${i <= n ? ' on' : ''}" viewBox="0 0 24 24"><use href="#i-star"/></svg>`).join('');
+// il tema vale per tutta la famiglia: sta nell'archivio, non nel profilo del bambino
+const TEMI = { cielo: ['Cielo', '#CDEBFF'], prato: ['Prato', '#D4F0D2'], sole: ['Sole', '#FFF0C2'], mare: ['Mare', '#1565C0'], arcobaleno: ['Arcobaleno', 'linear-gradient(180deg,#FFF4C4,#FFDCEB,#D3ECFF)'] };
+const TEMA_BASE = 'cielo';
+function applicaTema() { const R = document.documentElement, t = TEMI[store.tema] ? store.tema : TEMA_BASE; R.dataset.tema = t; R.dataset.theme = 'light'; }
+function renderTemi() {
+  const cur = TEMI[store.tema] ? store.tema : TEMA_BASE;
+  $('#temiBtns').innerHTML = Object.entries(TEMI).map(([k, [n, bg]]) => `<button class="btn tema" data-tema="${k}" aria-pressed="${k === cur}"><span class="sw" style="background:${bg}" data-tema-sw="${k}"></span>${n}</button>`).join('');
+  $$('#temiBtns [data-tema-sw]').forEach(sw => { const R = document.documentElement, old = R.dataset.tema; R.dataset.tema = sw.dataset.temaSw; const cs = getComputedStyle(R); sw.innerHTML = ['--t1', '--t2', '--t3', '--t4'].map(v => `<i style="background:${cs.getPropertyValue(v)}"></i>`).join(''); R.dataset.tema = old; });
+}
 function renderHome() {
+  applicaTema();
   if (prof.info.genere) document.documentElement.dataset.gen = prof.info.genere; else delete document.documentElement.dataset.gen;
   const li = lvlInfo(save.xp), g = save.last.game;
   $('#hiName').textContent = prof.info.nome || gx('campione', 'campionessa');
@@ -2450,6 +2562,7 @@ function renderHome() {
   $('#goalTxt').textContent = today >= 3 ? 'Obiettivo di oggi raggiunto!' : `Obiettivo di oggi: 3 partite (${today} su 3)`;
   const pc = save.settings.persona || 'cartoon';
   $('#voiceChips').innerHTML = persGrid(pc);
+  $$('#velBtns [data-vel]').forEach(b => b.setAttribute('aria-pressed', String((save.settings.vel || 'lenta') === b.dataset.vel)));
   $('#welcome').textContent = welcomeMsg();
   window.gameCard = ([k, G]) => `<button class="gcard gc-row hero-${k}" data-g="${k}"><span class="gc-ic">${heroSvg(k)}</span><span class="gc-txt"><b>${G.name}</b><small>${G.desc}</small><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></span><span class="gc-go" aria-hidden="true">›</span></button>`;
   const minis = c => `<span class="mini">${Object.keys(GAMES).filter(k => GAMES[k].cat === c).map(heroSvg).join('')}</span>`;
@@ -2500,6 +2613,7 @@ $$('[data-cat]').forEach(b => b.onclick = () => { SND.tick(); openList(b.dataset
 $('#catBack').onclick = () => { renderList(); show('lista'); };
 ['#gamesList'].forEach(id => $(id).addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; SND.tick(); openGame(b.dataset.g); if (save.settings.voice) say(`${GAMES[b.dataset.g].name}! Scegli la difficoltà e premi Gioca.`); }));
 const persGrid = pc => Object.entries(PERSONAS).map(([k, P]) => `<button class="pcard ${k === pc ? 'sel' : ''}" data-p="${k}" aria-pressed="${k === pc}">${persSvg(k)}<b>${P.name}</b><small>${P.tag}</small></button>`).join('');
+$('#velBtns').addEventListener('click', e => { const b = e.target.closest('[data-vel]'); if (!b) return; save.settings.vel = b.dataset.vel; persist(); $$('#velBtns [data-vel]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); say(`Ciao! Parlo così. La sillaba: «pu».`); });
 $('#voiceChips').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; save.settings.persona = b.dataset.p; persist(); renderHome(); say(persona().hello('Saltino')); });
 /* ---------- chi gioca e profilo ---------- */
 function renderWho() {
@@ -2509,8 +2623,23 @@ function renderWho() {
 $('#playerGrid').addEventListener('click', e => {
   const b = e.target.closest('[data-pid]'); if (!b) return; SND.tick();
   if (b.dataset.pid === 'new') return openProfile(null);
-  switchTo(b.dataset.pid); renderHome(); show('home'); sayEmph(welcomeMsg());
+  switchTo(b.dataset.pid); renderHome(); guidaDetta.home = true; show('home'); if (save.settings.voice) say(guidaTesto('home'));
 });
+// la voce spiega a cosa serve la pagina e cosa fare, la prima volta che si apre;
+// il pulsante con l'altoparlante la ripete. L'iPhone non parla prima di un tocco: si aspetta quello.
+var guidaDetta = {}, guidaInAttesa = null;
+function guidaTesto(k) {
+  if (k === 'accesso') return "Ciao! Questa è Leggo e Conto: tanti giochi per imparare a leggere e a contare. Per cominciare, un grande scrive la sua email e la sua password, e tocca Entra. Se non avete ancora l'accesso, toccate: Chiedi l'accesso.";
+  if (k === 'who') return 'Ciao! Chi gioca oggi? Tocca la tua foto. Se sei nuovo, tocca Aggiungi.';
+  if (k === 'home') return `${welcomeMsg()} Tocca Gioca, per giocare con le lettere o con i numeri. Con La voce, scegli chi ti legge le domande. In I miei premi, trovi le stelline che hai vinto.`;
+  return '';
+}
+function guida(k) {
+  if (!save.settings.voice || guidaDetta[k] || !guidaTesto(k)) return;
+  if (!audioPronto) { guidaInAttesa = k; return; }
+  guidaDetta[k] = true; setTimeout(() => { if (!speechSynthesis.speaking && !speechSynthesis.pending) say(guidaTesto(k)); }, 350);
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-guida]'); if (!b) return; guidaDetta[b.dataset.guida] = true; guidaInAttesa = null; say(guidaTesto(b.dataset.guida)); });
 let draft = null, delArm = false;
 function openProfile(p) {
   draft = { id: p ? p.id : null, info: { ...(p ? p.info : newInfo()) }, persona: p ? (p.data.settings.persona || 'cartoon') : 'cartoon' };
@@ -2599,6 +2728,7 @@ function renderAlbum() {
   $('#stickerGrid').innerHTML = STK.map((s, i) => `<div class="stk-t ${i < n ? 'on' : ''}">${i < n ? s : i + 2}</div>`).join('');
 }
 function renderGrandi() {
+  renderTemi();
   if (API_BASE && token) {
     $('#accountBox').hidden = false;
     $('#accountBox').innerHTML = '<b>Account</b><span id="accWho">Collegato</span><button class="btn" type="button" id="accOut">Esci da questo account</button>';
@@ -2620,15 +2750,19 @@ function renderGrandi() {
     return `<tr><td>${[p.info.nome, p.info.cognome].filter(Boolean).join(' ') || 'Senza nome'}</td><td class="n">${p.info.eta || '–'}</td><td>${p.info.classe || '–'}</td><td class="n">${d.rounds}</td><td class="n">${d.stelline || 0}</td><td class="n">${Math.floor((d.stelline || 0) / 20)}</td><td class="n">${lvlInfo(d.xp).lvl}</td><td class="n">${t.t ? Math.round(100 * t.c / t.t) + '%' : '–'}</td></tr>`;
   });
   $('#kidsTable').innerHTML = `<thead><tr><th>Nome</th><th>Età</th><th>Classe</th><th>Partite</th><th>Stelline</th><th>Comete</th><th>Livello</th><th>Giuste al 1° colpo</th></tr></thead><tbody>${krows.join('')}</tbody>`;
-  resetArm = false; $('#resetBtn').textContent = 'Azzera i progressi di questo giocatore';
+  const chi = prof.info.nome || 'questo giocatore';
+  $('#resetTit').textContent = `Ricominciare da zero con ${chi}?`;
+  $('#resetTxt').textContent = `Toglie stelline, comete, soli, livelli, premi e risultati di ${chi}. Nome, foto e impostazioni restano.`;
+  resetArm = false; $('#resetBtn').textContent = `Azzera i risultati di ${chi}`;
 }
 $('#optVoice').addEventListener('change', e => { save.settings.voice = e.target.checked; persist(); });
 $('#optSound').addEventListener('change', e => { save.settings.sound = e.target.checked; persist(); });
 $('#optLen').addEventListener('change', e => { save.settings.len = +e.target.value; persist(); });
 let resetArm = false;
+$('#temiBtns').addEventListener('click', e => { const b = e.target.closest('[data-tema]'); if (!b) return; SND.tick(); store.tema = b.dataset.tema; persist(); applicaTema(); renderTemi(); });
 $('#resetBtn').onclick = () => {
-  if (!resetArm) { resetArm = true; $('#resetBtn').textContent = 'Tocca ancora per confermare: si perdono stelle, livelli e premi'; return; }
-  save = prof.data = { ...clone(DEF), settings: save.settings }; persist(); renderGrandi(); toast('Progressi azzerati', '', 'help');
+  if (!resetArm) { resetArm = true; $('#resetBtn').textContent = 'Sei sicuro? Tocca ancora per azzerare'; return; }
+  save = prof.data = { ...clone(DEF), settings: save.settings }; persist(); syncNow(); renderGrandi(); renderHome(); toast('Risultati azzerati: si ricomincia!', '', 'help');
 };
 
 function confetti() {
