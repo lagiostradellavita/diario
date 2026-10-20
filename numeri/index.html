@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playwrite+IT+Moderna&display=swap">
 <style>
 /* Layout: una colonna centrata da tablet; schermate a turno (menu, gioco, risultato, album, grandi).
    Blu, rosso e verde sono riservati a unità, decine e centinaia: l'interfaccia usa il giallo di Saltino. */
@@ -19,6 +20,8 @@
   --fur:#D08A45; --fur-dark:#8C5426; --fur-light:#F8DFC0; --nose:#2A1E14; --tongue:#FF7F9E; --collar:#7A5CFF;
   --hh:#8D6BE8; --hh-dark:#5634B0; --hh-face:#FFE0C2;
   --bn:#F7AECB; --bn-dark:#D96A9B; --bn-light:#FFE6F0; --bn-nose:#C9417F;
+  --ow:#E8955A; --ow-dark:#A85A2A; --ow-light:#FFE8CF; --s4:#FF9F68;
+  --sy1:#D96000; --sy2:#6741D9; --grid:#D9CFF4; --rule:#CFC4EF; --margin:#F3A6C6;
   --sun:#FFC83D; --sun-deep:#E88A0C; --sun-soft:color-mix(in srgb,var(--sun) 30%,var(--paper)); --gold:#FFC83D; --gold-deep:#E88A0C; --on-sun:#3A2600; --focus:#7A5CFF;
   --u:#1C6BE0; --da:#DA2B2A; --h:#178F48;
   --u-soft:#DDE8FC; --da-soft:#FBE0DF; --h-soft:#DAF1E2;
@@ -32,6 +35,7 @@
   --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:color-mix(in srgb,var(--sun) 28%,var(--paper)); --on-sun:#3A2600; --focus:#A28CFF;
   --u:#5B9BFF; --da:#FF6663; --h:#3FCB78;
   --u-soft:#1D2D52; --da-soft:#4A1F27; --h-soft:#173D29; color-scheme:dark;
+  --sy1:#FF9A3D; --sy2:#B197FC; --grid:#2B2450; --rule:#2E2756; --margin:#5B2A4F;
 }}
 :root[data-theme="dark"]{
   --bg:#17132A; --paper:#241E3E; --ink:#F7F4FF; --muted:#C2BBE0; --line:#3A3262; --edge:#0B0816;
@@ -39,13 +43,20 @@
   --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:color-mix(in srgb,var(--sun) 28%,var(--paper)); --on-sun:#3A2600; --focus:#A28CFF;
   --u:#5B9BFF; --da:#FF6663; --h:#3FCB78;
   --u-soft:#1D2D52; --da-soft:#4A1F27; --h-soft:#173D29; color-scheme:dark;
+  --sy1:#FF9A3D; --sy2:#B197FC; --grid:#2B2450; --rule:#2E2756; --margin:#5B2A4F;
 }
 /* ogni gioco prende i colori del suo personaggio (mai blu, rosso o verde: sono di u, da, h) */
 :root[data-hero="l20"],.hero-l20{--sun:#F4A95C;--sun-deep:#A8612A}
 :root[data-hero="l100"],.hero-l100{--sun:#B39AF5;--sun-deep:#5634B0}
 :root[data-hero="cifre"],.hero-cifre{--sun:#FFC83D;--sun-deep:#E88A0C}
 :root[data-hero="calc"],.hero-calc{--sun:#F59ABF;--sun-deep:#A8366F}
-:root[data-hero] body{background-color:color-mix(in srgb,var(--sun) 16%,var(--bg));background-image:radial-gradient(color-mix(in srgb,var(--sun) 40%,var(--bg)) 3.5px,transparent 4.5px)}
+:root[data-hero="forme"],.hero-forme{--sun:#E3A3F5;--sun-deep:#8A2BA8}
+:root[data-hero="sillabe"],.hero-sillabe{--sun:#FF9F68;--sun-deep:#B5532A}
+:root[data-hero="leggo"],.hero-leggo{--sun:#FFD25E;--sun-deep:#A87400}
+/* quaderno a quadretti per la matematica, a righe per la lettura */
+:root[data-cat="mat"] body{background-image:linear-gradient(var(--grid) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);background-size:28px 28px}
+:root[data-cat="let"] body{background-image:linear-gradient(90deg,transparent 30px,var(--margin) 30px,var(--margin) 33px,transparent 33px),linear-gradient(transparent 34px,var(--rule) 34px,var(--rule) 36px);background-size:100% 100%,100% 36px}
+:root[data-hero] body{background-color:color-mix(in srgb,var(--sun) 14%,var(--bg))}
 :root[data-hero] .prompt{background:linear-gradient(110deg,color-mix(in srgb,var(--sun) 45%,var(--paper)),var(--paper) 70%)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -301,6 +312,58 @@ h2{font-size:1.6rem}
 .pp-tongue{fill:var(--tongue)} .pp-collar{fill:var(--collar)} .pp-badge{fill:var(--gold);stroke:var(--gold-deep);stroke-width:1.2}
 .hh-dark{fill:var(--hh-dark)} .hh-body{fill:var(--hh)} .hh-face{fill:var(--hh-face)} .hh-band{fill:var(--gold-deep)}
 .hh-shoe{fill:var(--gold);stroke:var(--gold-deep);stroke-width:1.5}
+.ow-body{fill:var(--ow)} .ow-dark{fill:var(--ow-dark)} .ow-belly{fill:var(--ow-light)} .ow-glass{fill:none;stroke:var(--pupil);stroke-width:2.2}
+.ow-beak{fill:var(--gold-deep)} .ow-book{fill:var(--bn-dark);stroke:var(--pupil);stroke-width:1.2} .ow-page{stroke:var(--paper);stroke-width:1.5} .ow-feet{fill:var(--gold-deep)}
+/* prima pagina */
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.cat{display:flex;flex-direction:column;align-items:center;gap:8px;border:3px solid var(--outline);border-radius:26px;box-shadow:0 6px 0 var(--edge);padding:18px 16px;text-align:center}
+.cat-let{background-color:color-mix(in srgb,#FF9F68 26%,var(--paper));background-image:linear-gradient(transparent 30px,var(--rule) 30px,var(--rule) 32px);background-size:100% 32px}
+.cat-mat{background-color:color-mix(in srgb,#FFC83D 26%,var(--paper));background-image:linear-gradient(var(--grid) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);background-size:24px 24px}
+.cat-art{display:flex;align-items:center;gap:12px;font-family:var(--f-body);font-weight:700;font-size:2.6rem;line-height:1}
+.cat-art svg{width:84px;height:auto}
+.cat-name{font-family:var(--f-display);font-weight:800;font-size:2rem;line-height:1}
+.cat-desc{font-size:1.25rem}
+.voices{display:flex;flex-wrap:wrap;gap:10px}
+.vchip{display:flex;align-items:center;gap:8px;border:3px solid var(--outline);background:var(--paper);border-radius:999px;padding:8px 16px;font-weight:700;font-size:1.25rem;box-shadow:0 3px 0 var(--edge)}
+.vchip .vem{font-size:1.6rem;line-height:1}
+.vchip.sel{box-shadow:0 0 0 5px var(--sun),0 3px 0 var(--edge)}
+/* lettura */
+.rd{font-family:var(--f-body);font-weight:700}
+.rd.f-cors{font-family:"Playwrite IT Moderna",var(--f-body);font-weight:400}
+.rd.col .sy0{color:var(--sy1)} .rd.col .sy1{color:var(--sy2)}
+.rd.wide{letter-spacing:.14em;word-spacing:.35em}
+.sy{cursor:pointer}
+.word-big{font-size:clamp(2.6rem,12vw,4.4rem);text-align:center;line-height:1.25;margin:0}
+.pic{font-size:clamp(4rem,20vw,6.5rem);text-align:center;line-height:1.1}
+.aids{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.aids .chip{font-size:1.05rem;padding:5px 12px}
+.cutwrap{overflow-x:auto;padding:4px 0}
+.cut{display:flex;justify-content:center;font-size:min(3.6rem,calc((100vw - 90px) / (var(--n) * 1.3)));min-width:min-content;margin:0 auto;line-height:1.35}
+.gap{width:.55em;min-width:18px;border:0;background:transparent;position:relative;padding:0;box-shadow:none}
+.gap::after{content:"";position:absolute;left:50%;top:18%;bottom:18%;border-left:3px dotted var(--muted)}
+.gap.on::after{border-left:6px solid var(--sun-deep);top:0;bottom:0;margin-left:-2px}
+.slotsw{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.slot{min-width:86px;height:76px;border:3px dashed var(--muted);border-radius:16px;display:grid;place-items:center;font-size:2.3rem;background:var(--paper);padding:0 10px}
+.slot.full{border-style:solid;border-color:var(--outline)}
+.tiles{display:flex;justify-content:center;flex-wrap:wrap;gap:10px}
+.tile{font-size:2.3rem;min-width:86px}
+.frase{font-size:clamp(1.9rem,7vw,2.7rem);line-height:1.55;text-align:center;margin:0}
+.frase .wd{border-radius:10px;padding:0 .08em;transition:background .15s}
+.frase .wd.now{background:var(--sun);color:var(--on-sun)}
+.frase .wd.now .sy{color:var(--on-sun)}
+.dom{font-family:var(--f-display);font-weight:700;font-size:1.7rem;text-align:center;margin:0}
+.pic-opt{font-size:3.4rem;min-width:110px;padding:8px 14px}
+.word-opt{font-size:2.3rem}
+/* forme */
+.shp{width:100%;height:auto;display:block}
+.sf{stroke:var(--outline);stroke-width:3.5;stroke-linejoin:round}
+.sf0{fill:var(--gold)} .sf1{fill:var(--hh)} .sf2{fill:var(--bn)} .sf3{fill:var(--s4)}
+.shape-opt{width:clamp(84px,24vw,130px);padding:10px}
+.bigshape{width:min(60%,230px);margin:0 auto}
+.scene{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(100%,440px);margin:0 auto}
+.scene .sc{padding:4px;border-radius:14px}
+.scene .sc.hl{outline:5px solid var(--sun-deep)}
+.nome-opt{font-size:1.7rem}
 .bn-fur{fill:var(--bn)} .bn-dark{fill:var(--bn-dark)} .bn-light{fill:var(--bn-light)} .bn-nose{fill:var(--bn-nose)} .bn-bow{fill:var(--collar)}
 .frames{display:flex;justify-content:center;flex-wrap:wrap;gap:12px}
 .tf{width:min(46%,230px);height:auto;display:block}
@@ -318,6 +381,29 @@ h2{font-size:1.6rem}
 .story{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
 .story>svg{width:110px;height:auto;flex:none}
 .aiuto{align-self:center;font-size:1.05rem}
+/* testi grandi (i titoli restano come sono) */
+body{font-size:23px}
+#qText{font-size:clamp(1.9rem,7vw,2.6rem)}
+#qSub{font-size:1.6rem}
+.hint{font-size:1.35rem}
+.gdesc{font-size:1.3rem}
+.dbtn small{font-size:1.15rem}
+.chip{font-size:1.3rem;padding:8px 16px}
+.xptxt{font-size:1.2rem}
+.pill{font-size:1.2rem}
+.opt{font-size:2.8rem}
+.goal,.cometbox{font-size:1.3rem}
+.lg{font-size:1.2rem}
+.toast b{font-size:1.5rem}
+.news{font-size:1.25rem}
+.bdg small,.note{font-size:1.1rem}
+.prose{font-size:1.15rem}
+.form label{font-size:1.2rem}
+th,td{font-size:1.1rem}
+.foot .btn{font-size:1.3rem}
+.key{font-size:2.1rem}
+.adj .go{font-size:1.9rem}
+.aiuto{font-size:1.3rem}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -339,6 +425,21 @@ h2{font-size:1.6rem}
     <div class="goal"><div class="gdots" id="goalDots"></div><span id="goalTxt"></span></div>
     <div class="cometbox"><span id="cometTxt"></span><div class="slots" id="slots" aria-hidden="true"></div></div>
 
+    <h2>Cosa vuoi fare oggi?</h2>
+    <div class="cats">
+      <button class="cat cat-let" data-cat="let"><span class="cat-art" id="artLet"></span><span class="cat-name">Leggere</span><span class="cat-desc">Sillabe, parole e frasi</span></button>
+      <button class="cat cat-mat" data-cat="mat"><span class="cat-art" id="artMat"></span><span class="cat-name">Matematica</span><span class="cat-desc">Numeri, conti e forme</span></button>
+    </div>
+    <h2>Chi ti legge le domande?</h2>
+    <div class="voices" id="voiceChips"></div>
+    <nav class="foot">
+      <button class="btn" id="toAlbum">Album dei premi</button>
+      <button class="btn" id="toGrandi">Per i grandi</button>
+    </nav>
+  </section>
+
+  <section id="cat" hidden>
+    <div class="top"><button class="btn icon back" aria-label="Torna alla prima pagina"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1 id="catTitle"></h1></div>
     <h2>Scegli il gioco</h2>
     <div class="games" id="gameCards"></div>
     <h2>Esercizi</h2>
@@ -346,10 +447,6 @@ h2{font-size:1.6rem}
     <h2>Difficoltà</h2>
     <div class="diffs" id="diffBtns"></div>
     <button class="btn go play" id="play">Gioca!</button>
-    <nav class="foot">
-      <button class="btn" id="toAlbum">Album dei premi</button>
-      <button class="btn" id="toGrandi">Per i grandi</button>
-    </nav>
   </section>
 
   <section id="game" hidden>
@@ -402,7 +499,6 @@ h2{font-size:1.6rem}
       <label class="sw"><input type="checkbox" id="optVoice"> Leggi le domande ad alta voce</label>
       <label class="sw"><input type="checkbox" id="optSound"> Suoni</label>
       <label for="optVoiceName">Voce<select id="optVoiceName"></select></label>
-      <label for="optPitch">Tono della voce: più basso ⟷ più acuto e allegro<input type="range" id="optPitch" min="0.8" max="1.8" step="0.1" style="max-width:320px"></label>
       <button class="btn" id="tryVoice" type="button" style="align-self:flex-start">Prova la voce</button>
       <label for="optLen">Domande per partita
         <select id="optLen"><option value="5">5</option><option value="8">8</option><option value="10">10</option></select>
@@ -415,7 +511,8 @@ h2{font-size:1.6rem}
       <p><b>I colori sono sempre gli stessi</b>: unità in blu, decine in rosso, centinaia in verde, sui numeri della linea, nelle domande, nei blocchi e nelle caselle. Il resto dell'app usa il giallo, così i tre colori restano legati solo al valore posizionale.</p>
       <p><b>Le regole del gioco.</b> Ogni risposta giusta dà una stellina e dei punti (di più in Medio e Difficile); ogni 20 stelline arriva in premio una stella cometa. Le stelline restano anche se la partita si interrompe a metà. Inoltre tre giuste di fila accendono la fiamma e danno un bonus. Se sbaglia può riprovare una volta; poi l'app mostra la soluzione. I punti non si perdono mai. A fine partita arrivano da 1 a 3 stelle, i punti fanno salire di livello e ogni livello sblocca un adesivo. I traguardi premiano costanza e coraggio, e c'è un obiettivo di 3 partite al giorno.</p>
       <p><b>Più e meno</b> usa la cornice del 10: i pallini gialli sono il primo numero, quelli viola il secondo, quelli barrati sono tolti. In Difficile si passa alle barre rosse delle decine e ai cubetti blu delle unità. «Aiutino» mostra i pallini senza togliere punti.</p>
-      <p><b>La voce</b> è quella del dispositivo: qui sopra si sceglie e si alza il tono. Le più naturali si chiamano spesso «Natural», «Avanzata» o «Google italiano».</p>
+      <p><b>Le voci</b> (cartone animato, maestra precisa, nonno gentile, robot, supereroe, fatina) si scelgono nella prima pagina. Cambiano tono, velocità e frasi; la voce di base è quella del dispositivo e si sceglie qui sopra. Le più naturali si chiamano spesso «Natural», «Avanzata» o «Google italiano».</p>
+      <p><b>Lettura.</b> Le parole si leggono in STAMPATELLO MAIUSCOLO, in minuscolo o in corsivo, con le sillabe colorate a coppie (arancio e viola) e spazi più larghi a richiesta: i pulsanti stanno sopra ogni esercizio. Toccando una sillaba la voce la legge. In «Leggo da solo» il pulsante «Leggi con me» legge la frase una parola per volta, accendendola.</p>
       <p>I progressi restano salvati su questo dispositivo, in questo browser.</p>
     </div>
     <button class="btn danger" id="resetBtn">Azzera i progressi</button>
@@ -483,9 +580,19 @@ const BUNNY = `<g>
   <rect class="fr-eye" x="-1.8" y="7.3" width="3.6" height="3" rx="1"/>
   <circle class="fr-cheek" cx="-11" cy="3" r="2.6"/><circle class="fr-cheek" cx="11" cy="3" r="2.6"/>
   <path class="bn-bow" d="M11 -13 l7 -5 v10z M11 -13 l-6 -6 v11z"/><circle class="bn-bow" cx="11" cy="-13" r="2.6"/></g>`;
-const HEROES = { l20: { name: 'Bobo', art: PUP }, l100: { name: 'Zip', art: HEDGE }, cifre: { name: 'Saltino', art: FROG }, calc: { name: 'Lola', art: BUNNY } };
+const OWL = `<g>
+  <ellipse class="ow-dark" cx="-22" cy="4" rx="7" ry="15" transform="rotate(12 -22 4)"/><ellipse class="ow-dark" cx="22" cy="4" rx="7" ry="15" transform="rotate(-12 22 4)"/>
+  <path class="ow-body" d="M-21 -16 L-17 -30 L-7 -21 Q0 -23 7 -21 L17 -30 L21 -16 Q27 2 21 15 Q13 26 0 26 Q-13 26 -21 15 Q-27 2 -21 -16Z"/>
+  <ellipse class="ow-belly" cx="0" cy="11" rx="13" ry="12"/>
+  <circle class="fr-eye" cx="-9" cy="-9" r="8.5"/><circle class="fr-eye" cx="9" cy="-9" r="8.5"/>
+  <circle class="fr-pupil" cx="-8" cy="-8.5" r="4.2"/><circle class="fr-pupil" cx="10" cy="-8.5" r="4.2"/>
+  <circle class="ow-glass" cx="-9" cy="-9" r="10"/><circle class="ow-glass" cx="9" cy="-9" r="10"/>
+  <path class="ow-beak" d="M-3.5 -1 L3.5 -1 L0 5.5Z"/>
+  <rect class="ow-book" x="-14" y="13" width="28" height="12" rx="2"/><line class="ow-page" x1="0" y1="13" x2="0" y2="25"/>
+  <ellipse class="ow-feet" cx="-7" cy="26" rx="4" ry="2.5"/><ellipse class="ow-feet" cx="7" cy="26" rx="4" ry="2.5"/></g>`;
+const HEROES = { sillabe: { name: 'Olga', art: OWL }, leggo: { name: 'Olga', art: OWL }, forme: { name: 'Zip', art: HEDGE }, l20: { name: 'Bobo', art: PUP }, l100: { name: 'Zip', art: HEDGE }, cifre: { name: 'Saltino', art: FROG }, calc: { name: 'Lola', art: BUNNY } };
 const heroSvg = k => `<svg viewBox="-34 -33 68 60" aria-hidden="true">${HEROES[k].art}</svg>`;
-$('#team').innerHTML = ['l20', 'cifre', 'calc', 'l100'].map(heroSvg).join('');
+$('#team').innerHTML = ['l20', 'cifre', 'sillabe', 'calc', 'l100'].map(heroSvg).join('');
 
 /* ---------- numeri in parole e in colore ---------- */
 const UN = ['zero','uno','due','tre','quattro','cinque','sei','sette','otto','nove','dieci','undici','dodici','tredici','quattordici','quindici','sedici','diciassette','diciotto','diciannove'];
@@ -513,7 +620,7 @@ const colorNums = t => t.replace(/\d+/g, m => numHTML(+m));
 /* ---------- salvataggio ---------- */
 const KEY = 'saltino-numeri-v1';
 const DEF = { name: '', xp: 0, stars: 0, stelline: 0, rounds: 0, bestStreak: 0, perfect: 0, badges: {}, days: {}, stats: {},
-  settings: { voice: true, sound: true, len: 10, voiceName: '', pitch: 1.3 }, last: { game: 'l20', diff: 0, types: {} } };
+  settings: { voice: true, sound: true, len: 10, voiceName: '', persona: 'cartoon', read: { font: 'maiu', colori: true, spazi: false } }, last: { game: 'l20', diff: 0, types: {}, cat: 'mat', gameBy: {} } };
 const clone = o => JSON.parse(JSON.stringify(o));
 function load() {
   try {
@@ -541,6 +648,8 @@ const BADGES = [
   { id: 'colori', mark: 'h·da·u', name: 'Maestro dei colori', desc: '3 partite a Scrivi i numeri', test: () => roundsOf('cifre') >= 3 },
   { id: 'coraggio', mark: '▲', name: 'Coraggioso', desc: 'Finisci una partita difficile', test: () => Object.keys(GAMES).some(g => statOf(g, 2).r > 0) },
   { id: 'tutti', mark: '1·2·3', name: 'Esploratore', desc: 'Gioca a tutti i giochi', test: () => Object.keys(GAMES).every(g => roundsOf(g) > 0) },
+  { id: 'lettore', mark: 'ABC', name: 'Piccolo lettore', desc: '3 partite di lettura', test: () => roundsOf('sillabe') + roundsOf('leggo') >= 3 },
+  { id: 'forme', mark: '▲●■', name: 'Esperto di forme', desc: '3 partite a Le forme', test: () => roundsOf('forme') >= 3 },
   { id: 'conti', mark: '+ −', name: 'Piccolo matematico', desc: '3 partite a Più e meno', test: () => roundsOf('calc') >= 3 },
   { id: 'costante', mark: '3 gg', name: 'Costante', desc: 'Gioca in 3 giorni diversi', test: s => Object.keys(s.days).length >= 3 },
   { id: 'cielo', mark: '50', name: 'Cielo stellato', desc: 'Raccogli 50 stelline', test: s => s.stelline >= 50 },
@@ -560,9 +669,38 @@ function bestVoice() {
 }
 function loadVoices() { itVoice = bestVoice(); if (!$('#grandi').hidden) fillVoices(); }
 if ('speechSynthesis' in window) { loadVoices(); try { speechSynthesis.addEventListener('voiceschanged', loadVoices); } catch (e) {} }
+// le voci sono personaggi: stesso motore del dispositivo, tono, velocita' e frasi diverse
+const PERSONAS = {
+  cartoon: { name: 'Cartone animato', icon: '🎈', pitch: 1.75, rate: 1.05, pref: 'f', praise: ['Evviva!', 'Yuppi!', 'Wow, fortissimo!', 'Super stellare!', 'Che spettacolo!'], retry: ['Ops! Riprova!', 'Ehi, quasi! Ancora!', 'Niente paura, ritenta!'], hello: n => `Ciao ciao! Sono ${n}! Giochiamo?` },
+  maestra: { name: 'Maestra precisa', icon: '👩‍🏫', pitch: 1.0, rate: .85, pref: 'f', praise: ['Corretto.', 'Molto bene.', 'Esatto.', 'Ottimo lavoro.'], retry: ['Non è corretto. Guarda con attenzione e riprova.', 'Riprova, con calma.'], hello: () => 'Buongiorno. Mettiamoci al lavoro.' },
+  nonno: { name: 'Nonno gentile', icon: '👴', pitch: .75, rate: .82, pref: 'm', praise: ['Bravo, tesoro!', 'Proprio così!', 'Che bello, hai indovinato!'], retry: ['Su, riprova piano piano.', 'Quasi, tesoro. Riprova.'], hello: () => 'Ciao tesoro, giochiamo un po\' insieme?' },
+  robot: { name: 'Robot', icon: '🤖', pitch: .3, rate: .9, pref: 'm', praise: ['Risposta esatta. Bip bip!', 'Calcolo perfetto!', 'Bravura al massimo!'], retry: ['Errore. Riprovare.', 'Bip. Nuovo tentativo richiesto.'], hello: () => 'Bip bop. Robot acceso. Iniziamo.' },
+  eroe: { name: 'Supereroe', icon: '🦸', pitch: 1.15, rate: 1.1, pref: 'm', praise: ['Missione compiuta!', 'Super potere!', 'Colpo da campione!'], retry: ['Un eroe non si arrende! Riprova!', 'Quasi! Ritenta, eroe!'], hello: () => 'Pronto per la missione? Si parte!' },
+  fata: { name: 'Fatina', icon: '🧚', pitch: 1.5, rate: .9, pref: 'f', praise: ['Che magia!', 'Scintille di bravura!', 'Incantevole!'], retry: ['Un po\' di polvere magica e riprova.', 'Quasi! Riprova, piccolo mago.'], hello: () => 'Ciao! Sono la fatina dei giochi.' },
+};
+const persona = () => PERSONAS[save.settings.persona] || PERSONAS.cartoon;
+const FEM = /alice|federica|elsa|isabella|paola|emma|bianca|carla|silvia|giulia|chiara|elena|female/i, MAS = /luca|diego|cosimo|giorgio|benigno|lorenzo|marco|pietro|giuseppe|\bmale/i;
+function voiceFor(P) {
+  const vs = itVoices(); if (!vs.length) return null;
+  const chosen = save.settings.voiceName && vs.find(v => v.name === save.settings.voiceName);
+  if (chosen) return chosen;
+  const score = v => (/natural|neural|enhanced|avanzat|premium|online/i.test(v.name) ? 10 : 0) + (/google/i.test(v.name) ? 6 : 0) + ((P.pref === 'm' ? MAS : FEM).test(v.name) ? 8 : 0);
+  return vs.slice().sort((a, b) => score(b) - score(a))[0];
+}
+function utter(t) { const P = persona(), u = new SpeechSynthesisUtterance(t); u.lang = 'it-IT'; const v = voiceFor(P); if (v) u.voice = v; u.pitch = P.pitch; u.rate = P.rate; return u; }
+let karaokeTok = 0;
 function say(t) {
+  karaokeTok++;
   if (!('speechSynthesis' in window)) return;
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'it-IT'; if (itVoice) u.voice = itVoice; u.rate = .95; u.pitch = save.settings.pitch || 1.3; speechSynthesis.speak(u); } catch (e) {}
+  try { speechSynthesis.cancel(); speechSynthesis.speak(utter(t)); } catch (e) {}
+}
+function speakWait(t) {
+  return new Promise(res => {
+    let done = false; const fin = () => { if (!done) { done = true; res(); } };
+    setTimeout(fin, 700 + t.length * 160);
+    if (!('speechSynthesis' in window)) return;
+    try { const u = utter(t); u.onend = fin; u.onerror = fin; speechSynthesis.speak(u); } catch (e) { fin(); }
+  });
 }
 let actx = null;
 function tone(freqs, dur = .12, type = 'triangle', vol = .16) {
@@ -580,23 +718,56 @@ function tone(freqs, dur = .12, type = 'triangle', vol = .16) {
 }
 const SND = { ok: () => tone([660, 880, 1175], .1), soft: () => tone([330, 262], .16, 'sine', .12), tick: () => tone([520], .04, 'sine', .08), hop: i => tone([440 + i * 25], .05, 'sine', .07), win: () => tone([523, 659, 784, 1047, 1319], .11) };
 
+/* ---------- forme ---------- */
+const regPoly = (n, r, st) => Array.from({ length: n }, (_, i) => { const a = (st + i * 360 / n) * Math.PI / 180; return `${(r * Math.cos(a)).toFixed(1)},${(r * Math.sin(a)).toFixed(1)}`; }).join(' ');
+const starPts = () => Array.from({ length: 10 }, (_, i) => { const r = i % 2 ? 19 : 46, a = (-90 + i * 36) * Math.PI / 180; return `${(r * Math.cos(a)).toFixed(1)},${(r * Math.sin(a)).toFixed(1)}`; }).join(' ');
+const FORME = {
+  cerchio: { art: 'il cerchio', pl: 'cerchi', lati: 0, el: '<circle r="40"/>' },
+  quadrato: { art: 'il quadrato', pl: 'quadrati', lati: 4, el: '<rect x="-36" y="-36" width="72" height="72" rx="2"/>' },
+  triangolo: { art: 'il triangolo', pl: 'triangoli', lati: 3, el: '<polygon points="0,-42 44,36 -44,36"/>' },
+  rettangolo: { art: 'il rettangolo', pl: 'rettangoli', lati: 4, el: '<rect x="-46" y="-27" width="92" height="54" rx="2"/>' },
+  ovale: { art: "l'ovale", pl: 'ovali', lati: 0, el: '<ellipse rx="46" ry="28"/>' },
+  rombo: { art: 'il rombo', pl: 'rombi', lati: 4, el: '<polygon points="0,-46 32,0 0,46 -32,0"/>' },
+  stella: { art: 'la stella', pl: 'stelle', f: true, lati: 0, el: `<polygon points="${starPts()}"/>` },
+  cuore: { art: 'il cuore', pl: 'cuori', lati: 0, el: '<path d="M0 38 C-50 6 -40 -36 -14 -36 C-4 -36 0 -28 0 -22 C0 -28 4 -36 14 -36 C40 -36 50 6 0 38Z"/>' },
+  pentagono: { art: 'il pentagono', pl: 'pentagoni', lati: 5, el: `<polygon points="${regPoly(5, 44, -90)}"/>` },
+  esagono: { art: "l'esagono", pl: 'esagoni', lati: 6, el: `<polygon points="${regPoly(6, 44, 0)}"/>` },
+};
+const FLIV = [['cerchio', 'quadrato', 'triangolo', 'rettangolo'], ['cerchio', 'quadrato', 'triangolo', 'rettangolo', 'ovale', 'rombo', 'stella', 'cuore'], Object.keys(FORME)];
+function shapeSVG(k, c, d = 0) {
+  const rot = d === 2 && !['quadrato', 'rombo', 'cerchio'].includes(k) ? rnd(-30, 30) : 0, sc = d === 2 ? rnd(68, 100) / 100 : 1;
+  return `<svg class="shp" viewBox="-50 -50 100 100" aria-hidden="true"><g transform="rotate(${rot}) scale(${sc})" class="sf sf${c}">${FORME[k].el}</g></svg>`;
+}
+
 /* ---------- giochi ---------- */
 const GAMES = {
-  l20: { name: 'Linea del 20', desc: 'Salta con il cucciolo Bobo da 0 a 20',
+  sillabe: { cat: 'let', name: 'Le sillabe', desc: 'Con Olga la civetta: taglia, conta e metti in fila le sillabe',
+    types: [['dividi', 'Dividi in sillabe'], ['quante', 'Quante sillabe?'], ['componi', 'Componi la parola']],
+    diffs: ['2 sillabe', '3 sillabe', 'Parole lunghe'] },
+  leggo: { cat: 'let', name: 'Leggo da solo', desc: 'Parole e frasi da leggere, con la voce che aiuta',
+    types: [['leggi', 'Leggi e trova il disegno'], ['ascolta', 'Ascolta e trova la parola'], ['frasi', 'Leggi la frase']],
+    diffs: ['Parole corte', 'Parole più lunghe', 'Frasi lunghe'] },
+  forme: { cat: 'mat', name: 'Le forme', desc: 'Cerchi, quadrati, triangoli e altre figure con Zip',
+    types: [['ftrova', 'Trova la forma'], ['fnome', 'Come si chiama?'], ['flati', 'Quanti lati?'], ['fconta', 'Conta le forme']],
+    diffs: ['4 forme', '8 forme', '10 forme, girate'] },
+  l20: { cat: 'mat', name: 'Linea del 20', desc: 'Salta con il cucciolo Bobo da 0 a 20',
     types: [['trova', 'Trova il numero'], ['quale', 'Che numero è?'], ['salti', 'Salti'], ['vicini', 'Prima e dopo']],
     diffs: ['Fino a 10', 'Fino a 20', 'Oltre il 10'] },
-  l100: { name: 'Linea del 100', desc: 'Corri con Zip il riccio: salti da 10 fino a 100',
+  l100: { cat: 'mat', name: 'Linea del 100', desc: 'Corri con Zip il riccio: salti da 10 fino a 100',
     types: [['trova', 'Trova il numero'], ['quale', 'Che numero è?'], ['salti', 'Salti'], ['vicini', 'Prima e dopo']],
     diffs: ['Le decine', 'Tutti i numeri', 'Senza aiuti'] },
-  cifre: { name: 'Scrivi i numeri', desc: 'Con Saltino: unità blu, decine rosse, centinaia verdi',
+  cifre: { cat: 'mat', name: 'Scrivi i numeri', desc: 'Con Saltino: unità blu, decine rosse, centinaia verdi',
     types: [['costruisci', 'Conta i blocchi'], ['dettato', 'Dettato'], ['ricalca', 'Ricalca'], ['posto', 'h da u']],
     diffs: ['Fino a 20', 'Fino a 99', 'Fino a 999'] },
-  calc: { name: 'Più e meno', desc: 'Addizioni e sottrazioni con Lola la coniglietta',
+  calc: { cat: 'mat', name: 'Più e meno', desc: 'Addizioni e sottrazioni con Lola la coniglietta',
     types: [['conta', 'Conta e somma'], ['calcola', 'Quanto fa?'], ['mancante', 'Il numero che manca'], ['amici', 'Amici del 10'], ['problemi', 'Problemi']],
     diffs: ['Fino a 10', 'Fino a 20', 'Fino a 100'] },
 };
 const DIFF = ['Facile', 'Medio', 'Difficile'];
 const ART = {
+  sillabe: `<svg viewBox="0 0 200 56" aria-hidden="true"><text x="100" y="45" text-anchor="middle" class="lab" style="font-size:44px"><tspan style="fill:var(--sy1)">CA</tspan><tspan style="fill:var(--ink)">-</tspan><tspan style="fill:var(--sy2)">SA</tspan></text></svg>`,
+  leggo: `<svg viewBox="0 0 200 56" aria-hidden="true"><text x="100" y="45" text-anchor="middle" class="lab" style="font-size:40px"><tspan style="fill:var(--sy1)">LEG</tspan><tspan style="fill:var(--sy2)">GO</tspan><tspan style="fill:var(--ink)">!</tspan></text></svg>`,
+  forme: `<div style="display:flex;gap:8px;height:100%;justify-content:center">${['cerchio', 'triangolo', 'quadrato', 'stella'].map((k, i) => `<span style="width:52px">${shapeSVG(k, i)}</span>`).join('')}</div>`,
   l20: `<svg viewBox="0 0 200 56" aria-hidden="true"><line x1="8" x2="192" y1="22" y2="22" class="axis" style="stroke-width:3"/>${Array.from({ length: 21 }, (_, v) => `<line x1="${12 + v * 8.8}" x2="${12 + v * 8.8}" y1="${v % 10 ? 17 : 13}" y2="${v % 10 ? 27 : 31}" class="tk${v % 10 ? '' : ' tk10'}" style="stroke-width:${v % 10 ? 2 : 3}"/>`).join('')}<text class="lab" style="font-size:17px" x="12" y="52" text-anchor="middle">${tsp(0)}</text><text class="lab" style="font-size:17px" x="100" y="52" text-anchor="middle">${tsp(10)}</text><text class="lab" style="font-size:17px" x="188" y="52" text-anchor="middle">${tsp(20)}</text></svg>`,
   l100: `<svg viewBox="0 0 200 56" aria-hidden="true"><line x1="8" x2="192" y1="22" y2="22" class="axis" style="stroke-width:3"/>${Array.from({ length: 11 }, (_, v) => `<line x1="${12 + v * 17.6}" x2="${12 + v * 17.6}" y1="13" y2="31" class="tk tk10" style="stroke-width:3"/>`).join('')}<text class="lab" style="font-size:17px" x="12" y="52" text-anchor="middle">${tsp(0)}</text><text class="lab" style="font-size:17px" x="100" y="52" text-anchor="middle">${tsp(50)}</text><text class="lab" style="font-size:17px" x="186" y="52" text-anchor="middle">${tsp(100)}</text></svg>`,
   calc: `<svg viewBox="0 0 200 56" aria-hidden="true"><text x="100" y="45" text-anchor="middle" class="lab" style="font-size:44px;fill:var(--ink)">${tsp(3)} + ${tsp(4)} = ${tsp(7)}</text></svg>`,
@@ -610,13 +781,16 @@ function startRound() {
   const all = GAMES[g].types.map(t => t[0]);
   const types = (save.last.types[g] || all).filter(t => all.includes(t));
   run = { stel: 0, comete: 0, game: g, diff: d, types: types.length ? types : all, len: +save.settings.len || 10, i: 0, res: [], pts: 0, streak: 0, recent: [], bag: [], q: null, attempts: 0, locked: false, keys: null };
-  $('#pHero').innerHTML = heroSvg(g); document.documentElement.dataset.hero = g;
+  $('#pHero').innerHTML = heroSvg(g); document.documentElement.dataset.hero = g; save.last.cat = GAMES[g].cat;
   show('game'); nextQ();
 }
 function pickType() { if (!run.bag.length) run.bag = shuffle(run.types.concat(run.types)); return run.bag.pop(); }
 function remember(v) { run.recent.push(v); if (run.recent.length > 5) run.recent.shift(); }
 function Q(o) { o.say = o.say || o.text; o.html = o.html || colorNums(o.text); o.subHtml = o.sub ? colorNums(o.sub) : ''; return o; }
 function makeQ(g, d, type) {
+  if (g === 'forme') return ({ ftrova: qFTrova, fnome: qFNome, flati: qFLati, fconta: qFConta })[type](d);
+  if (g === 'sillabe') return ({ dividi: qDividi, quante: qQuante, componi: qComponi })[type](d);
+  if (g === 'leggo') return ({ leggi: qLeggi, ascolta: qAscolta, frasi: qFrase })[type](d);
   if (g === 'calc') return ({ conta: qConta, calcola: qCalcola, mancante: qMancante, amici: qAmici, problemi: qProblema })[type](d);
   if (g === 'cifre') return ({ costruisci: qCostruisci, dettato: qDettato, ricalca: qRicalca, posto: qPosto })[type](d);
   const cfg = lcfg(g, d);
@@ -634,7 +808,7 @@ function nextQ() {
   st.innerHTML = ''; ct.innerHTML = '';
   q.mount(st, ct);
   renderDots(); hud();
-  if (save.settings.voice) say(run.i === 0 && !run.hello ? (run.hello = true, `Ciao, sono ${HEROES[run.game].name}! ${q.say}`) : q.say);
+  if (save.settings.voice) say(run.i === 0 && !run.hello ? (run.hello = true, `${persona().hello(HEROES[run.game].name)} ${q.say}`) : q.say);
 }
 const PRAISE = ['Evviva!', 'Esatto!', 'Fantastico!', 'Super bravo!', 'Sei un campione!', 'Wow, perfetto!', 'Stellare!', 'Bravissimo!', 'Che forza!'];
 const RETRY = ['Ops! Riprova, ce la fai!', 'Quasi! Ancora una volta', 'Niente paura, riprova!', 'Ci sei quasi!'];
@@ -662,7 +836,7 @@ function judge(ok) {
       confetti(); wait = RM ? 1600 : 2800;
     } else {
       SND.ok();
-      const p = pick(PRAISE);
+      const p = pick(persona().praise);
       toast(p, `+1 stellina · +${gain} punti${run.streak >= 3 && run.attempts === 0 ? ' · ' + run.streak + ' di fila!' : ''}`, 'good');
       if (save.settings.voice) say(p);
     }
@@ -679,7 +853,7 @@ function judge(ok) {
       renderDots();
       $('#nextRow').hidden = false;
     } else {
-      const m = pick(RETRY);
+      const m = pick(persona().retry);
       toast(m, '', 'help'); if (save.settings.voice) say(m);
       if (q.retry) q.retry();
     }
@@ -1178,10 +1352,215 @@ function qProblema(d) {
     reveal() { op.reveal(); $('.eqq', st0).innerHTML = numHTML(P.res); $('[data-vis]', st0).hidden = false; } });
 }
 
+/* ---------- lettura ---------- */
+const WORDS = [
+  [0, 'ca-sa', '🏠'], [0, 'me-la', '🍎'], [0, 'lu-na', '🌙'], [0, 'pa-ne', '🍞'], [0, 'ro-sa', '🌹'], [0, 'ma-no', '✋'], [0, 'pe-ra', '🍐'],
+  [0, 'ne-ve', '❄️'], [0, 'ca-ne', '🐕'], [0, 'ra-na', '🐸'], [0, 'so-le', '☀️'], [0, 'da-do', '🎲'], [0, 'na-ve', '🚢'], [0, 've-la', '⛵'],
+  [0, 'to-po', '🐭'], [0, 'lu-po', '🐺'], [0, 'u-va', '🍇'], [0, 'a-pe', '🐝'], [0, 'to-ro', '🐂'], [0, 'la-na', '🧶'],
+  [1, 'gat-to', '🐱'], [1, 'pal-la', '⚽'], [1, 'tre-no', '🚂'], [1, 'fra-go-la', '🍓'], [1, 'pa-ta-ta', '🥔'], [1, 'ba-na-na', '🍌'],
+  [1, 'pe-co-ra', '🐑'], [1, 'gal-li-na', '🐔'], [1, 'ca-val-lo', '🐴'], [1, 'ma-ti-ta', '✏️'], [1, 'lu-ma-ca', '🐌'], [1, 'far-fal-la', '🦋'],
+  [1, 'let-to', '🛏️'], [1, 'pe-sce', '🐟'], [1, 'stel-la', '⭐'], [1, 'li-bro', '📖'], [1, 'fio-re', '🌸'], [1, 'tor-ta', '🎂'],
+  [2, 'po-mo-do-ro', '🍅'], [2, 'pal-lon-ci-no', '🎈'], [2, 'coc-co-dril-lo', '🐊'], [2, 'ar-co-ba-le-no', '🌈'], [2, 'tar-ta-ru-ga', '🐢'],
+  [2, 'ca-ra-mel-la', '🍬'], [2, 'bi-ci-clet-ta', '🚲'], [2, 'e-le-fan-te', '🐘'], [2, 'ra-gno', '🕷️'], [2, 'fun-go', '🍄'], [2, 'o-ro-lo-gio', '⌚'],
+  [2, 'chia-ve', '🔑'], [2, 'for-chet-ta', '🍴'], [2, 'te-le-fo-no', '☎️'], [2, 'a-e-re-o', '✈️'], [2, 'ma-glia', '👕'], [2, 'scar-pa', '👟'],
+  [2, 'can-gu-ro', '🦘'], [2, 'pin-gui-no', '🐧'], [2, 'gi-raf-fa', '🦒'], [2, 'co-ni-glio', '🐇'], [2, 'ca-stel-lo', '🏰'], [2, 'scim-mia', '🐒'],
+].map(([l, s, e]) => ({ l, s: s.split('-'), w: s.replace(/-/g, ''), e }));
+const FRASI = [
+  [0, 'Il ca-ne ha la pal-la.', 'Chi ha la palla?', '🐕', ['🐱', '🐭']],
+  [0, 'La ra-na sal-ta.', 'Chi salta?', '🐸', ['🐢', '🐌']],
+  [0, 'Il so-le è gial-lo.', 'Che cosa è giallo?', '☀️', ['🌙', '❄️']],
+  [0, 'Lu-ca man-gia la me-la.', 'Che cosa mangia Luca?', '🍎', ['🍌', '🍞']],
+  [0, 'La lu-na è in cie-lo.', 'Che cosa c\'è in cielo?', '🌙', ['🏠', '🚗']],
+  [0, 'Il to-po ha fa-me.', 'Chi ha fame?', '🐭', ['🐘', '🐕']],
+  [1, 'Il gat-to dor-me sul di-va-no.', 'Chi dorme sul divano?', '🐱', ['🐶', '🐰']],
+  [1, 'La mam-ma com-pra il pa-ne.', 'Che cosa compra la mamma?', '🍞', ['🍎', '🧀']],
+  [1, 'Il tre-no cor-re ve-lo-ce.', 'Che cosa corre veloce?', '🚂', ['🚲', '⛵']],
+  [1, 'Sa-ra gio-ca con la pal-la.', 'Con che cosa gioca Sara?', '⚽', ['🎈', '🧸']],
+  [1, 'La far-fal-la vo-la sul fio-re.', 'Chi vola sul fiore?', '🦋', ['🐌', '🐢']],
+  [1, 'Il bam-bi-no leg-ge un li-bro.', 'Che cosa legge il bambino?', '📖', ['✏️', '🎒']],
+  [2, 'Og-gi pio-ve e Mar-co pren-de l\'om-brel-lo.', 'Che cosa prende Marco?', '☂️', ['🧢', '🧤']],
+  [2, 'La tar-ta-ru-ga cam-mi-na pia-no pia-no.', 'Chi cammina piano piano?', '🐢', ['🐇', '🐎']],
+  [2, 'Nel ce-sti-no ci so-no tre fra-go-le.', 'Che cosa c\'è nel cestino?', '🍓', ['🍒', '🍋']],
+  [2, 'Il pin-gui-no nuo-ta nel ma-re fred-do.', 'Chi nuota nel mare freddo?', '🐧', ['🐫', '🦁']],
+  [2, 'Di se-ra la non-na ac-cen-de la lu-ce.', 'Chi accende la luce?', '👵', ['👶', '🐈']],
+  [2, 'Il cuo-co pre-pa-ra u-na tor-ta.', 'Che cosa prepara il cuoco?', '🎂', ['🍕', '🍝']],
+].map(([l, t, q, a, o]) => ({ l, t, q, a, o }));
+const RD = () => { const s = save.settings; if (!s.read) s.read = { font: 'maiu', colori: true, spazi: false }; return s.read; };
+const caseT = t => RD().font === 'maiu' ? t.toUpperCase() : t;
+const aidCls = () => { const r = RD(); return `f-${r.font}${r.colori ? ' col' : ''}${r.spazi ? ' wide' : ''}`; };
+const plain = t => t.replace(/[.,!?;:']/g, '').toLowerCase();
+const sylHTML = (s, i) => `<span class="sy sy${i % 2}" data-raw="${s}" data-sy="${plain(s)}">${caseT(s)}</span>`;
+const wordHTML = w => `<span class="w">${w.s.map(sylHTML).join('')}</span>`;
+const FONT_LBL = { maiu: 'ABC', mini: 'abc', cors: 'corsivo' };
+function aidsBar() {
+  const r = RD();
+  return `<div class="aids"><button class="chip" data-aid="font" title="Cambia carattere">Aa: ${FONT_LBL[r.font]}</button><button class="chip" data-aid="colori" aria-pressed="${r.colori}">Sillabe a colori</button><button class="chip" data-aid="spazi" aria-pressed="${r.spazi}">Spazi larghi</button></div>`;
+}
+function applyAids() {
+  const c = aidCls().split(' ');
+  $$('.rd').forEach(el => { el.classList.remove('f-maiu', 'f-mini', 'f-cors', 'col', 'wide'); el.classList.add(...c); });
+  $$('[data-raw]').forEach(el => el.textContent = caseT(el.dataset.raw));
+  $$('.aids').forEach(a => a.outerHTML = aidsBar());
+}
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-aid]');
+  if (a) { const r = RD(); if (a.dataset.aid === 'font') r.font = { maiu: 'mini', mini: 'cors', cors: 'maiu' }[r.font]; else r[a.dataset.aid] = !r[a.dataset.aid]; persist(); applyAids(); SND.tick(); return; }
+  const s = e.target.closest('[data-sy]');
+  if (s && !$('#game').hidden && !s.closest('.opt,.tile,.slot')) say(s.dataset.sy);
+});
+function pickWord(d, not) {
+  const pool = WORDS.filter(x => x.l === d && x.w !== not); let w, i = 0;
+  do { w = pick(pool); i++; } while (run.recent.includes(w.w) && i < 40);
+  remember(w.w); return w;
+}
+const clap = w => say(w.s.join(', '));
+function qDividi(d) {
+  const w = pickWord(d), L = [...w.w], ok = new Set(); let acc = 0, st0;
+  w.s.slice(0, -1).forEach(x => ok.add(acc += x.length));
+  const cuts = new Set();
+  return Q({ text: 'Dividi la parola in sillabe', sub: 'Tocca tra le lettere dove vuoi tagliare', say: `Dividi in sillabe la parola ${w.w}. Tocca tra le lettere dove vuoi tagliare.`,
+    mount(st, ct) {
+      st0 = st;
+      st.innerHTML = `${aidsBar()}<div class="pic">${w.e}</div><div class="cutwrap"><div class="cut rd ${aidCls()}" style="--n:${L.length}">${L.map((c, i) => `${i ? `<button class="gap" data-gap="${i}" aria-label="Taglia qui"></button>` : ''}<span class="lt" data-raw="${c}">${caseT(c)}</span>`).join('')}</div></div><button class="btn aiuto" data-clap>Batti le mani con me</button>`;
+      $$('[data-gap]', st).forEach(b => b.onclick = () => { if (run.locked) return; const i = +b.dataset.gap; cuts.has(i) ? cuts.delete(i) : cuts.add(i); b.classList.toggle('on', cuts.has(i)); SND.tick(); });
+      $('[data-clap]', st).onclick = () => clap(w);
+      ct.innerHTML = '<div class="adj"><button class="btn go" data-fine>Fatto</button></div>';
+      $('[data-fine]', ct).onclick = () => {
+        if (run.locked) return;
+        if (!cuts.size && ok.size) { toast('Tocca tra le lettere per tagliare', '', 'help'); return; }
+        judge(cuts.size === ok.size && [...ok].every(i => cuts.has(i)));
+      };
+    },
+    reveal() { cuts.clear(); ok.forEach(i => cuts.add(i)); $$('[data-gap]', st0).forEach(b => b.classList.toggle('on', ok.has(+b.dataset.gap))); clap(w); } });
+}
+function qQuante(d) {
+  const w = pickWord(d), n = w.s.length; let op;
+  const vals = shuffle([...new Set([n, n + 1, n - 1, n + 2, n + 3].filter(x => x >= 1 && x <= 6))].slice(0, nOpt(d)).concat([]));
+  if (!vals.includes(n)) vals[0] = n;
+  return Q({ text: 'Quante sillabe ha questa parola?', say: `Quante sillabe ha la parola ${w.w}? Batti le mani e conta.`,
+    mount(st, ct) {
+      st.innerHTML = `${aidsBar()}<div class="pic">${w.e}</div><p class="word-big rd ${aidCls().replace(' col', '')}"><span data-raw="${w.w}">${caseT(w.w)}</span></p><button class="btn aiuto" data-clap>Batti le mani con me</button>`;
+      $('[data-clap]', st).onclick = () => clap(w);
+      op = optionsUI(ct, shuffle(vals), n);
+    },
+    reveal() { op.reveal(); clap(w); } });
+}
+function qComponi(d) {
+  const w = pickWord(d); let tiles = w.s.map((s, i) => ({ s, i }));
+  if (d === 2) { const o = pick(WORDS.filter(x => x.w !== w.w)); tiles.push({ s: pick(o.s), i: -1 }); }
+  do { tiles = shuffle(tiles); } while (tiles.length > 1 && tiles.every((t, k) => t.i === k));
+  let placed = [], st0, ct0;
+  const paint = () => {
+    $('.slotsw', st0).innerHTML = w.s.map((_, k) => `<button class="slot ${placed[k] ? 'full' : ''} rd ${aidCls()}" data-slot="${k}">${placed[k] ? sylHTML(placed[k].s, k) : ''}</button>`).join('');
+    $('.tiles', ct0).innerHTML = tiles.map((t, k) => `<button class="btn tile rd ${aidCls()}" data-tile="${k}" ${placed.includes(t) ? 'disabled' : ''}><span data-raw="${t.s}">${caseT(t.s)}</span></button>`).join('');
+    $$('[data-slot]', st0).forEach(b => b.onclick = () => { if (run.locked) return; placed[+b.dataset.slot] = undefined; placed = placed.filter(Boolean); paint(); });
+    $$('[data-tile]', ct0).forEach(b => b.onclick = () => { if (run.locked || placed.length >= w.s.length) return; placed.push(tiles[+b.dataset.tile]); SND.tick(); say(plain(tiles[+b.dataset.tile].s)); paint(); });
+  };
+  return Q({ text: 'Metti in fila le sillabe', sub: 'Tocca le sillabe nell\'ordine giusto', say: 'Guarda il disegno e metti in fila le sillabe per formare la parola.',
+    mount(st, ct) {
+      st0 = st; ct0 = ct;
+      st.innerHTML = `${aidsBar()}<div class="pic">${w.e}</div><div class="slotsw"></div><button class="btn aiuto" data-hear>Ascolta la parola</button>`;
+      $('[data-hear]', st).onclick = () => say(w.w);
+      ct.innerHTML = '<div class="tiles"></div><div class="adj" style="margin-top:14px"><button class="btn go" data-fine>Fatto</button></div>';
+      $('[data-fine]', ct).onclick = () => { if (run.locked) return; if (placed.length < w.s.length) { toast('Riempi tutte le caselle', '', 'help'); return; } judge(placed.map(p => p.s).join('') === w.w); };
+      paint();
+    },
+    retry() { placed = []; paint(); },
+    reveal() { placed = w.s.map((s, i) => tiles.find(t => t.i === i)); paint(); say(w.w); } });
+}
+function qLeggi(d) {
+  const w = pickWord(d); let op;
+  const others = shuffle(WORDS.filter(x => x.e !== w.e)).slice(0, d === 0 ? 2 : 3);
+  return Q({ text: 'Leggi la parola e tocca il disegno giusto', say: 'Leggi la parola e tocca il disegno giusto.',
+    mount(st, ct) {
+      st.innerHTML = `${aidsBar()}<p class="word-big rd ${aidCls()}">${wordHTML(w)}</p><p class="hint">Se non riesci, tocca le sillabe: la voce te le legge</p>`;
+      op = choiceUI(ct, shuffle([w, ...others]).map(x => ({ k: x.e, html: x.e, cls: 'pic-opt' })), w.e, async () => { say(w.w); await sleep(500); });
+    },
+    reveal() { op.reveal(); say(w.w); } });
+}
+function qAscolta(d) {
+  const w = pickWord(d); let op;
+  const pool = WORDS.filter(x => x.w !== w.w);
+  const near = pool.filter(x => x.s[0] === w.s[0] || x.s.length === w.s.length);
+  const others = shuffle(near.length >= 3 ? near : pool).slice(0, d === 0 ? 2 : 3);
+  return Q({ text: 'Ascolta e tocca la parola giusta', say: `Ascolta e tocca la parola giusta: ${w.w}.`,
+    mount(st, ct) {
+      st.innerHTML = `${aidsBar()}<div class="pic" aria-hidden="true">👂</div><button class="btn go aiuto" data-hear>Ascolta di nuovo</button>`;
+      $('[data-hear]', st).onclick = () => say(w.w);
+      op = choiceUI(ct, shuffle([w, ...others]).map(x => ({ k: x.w, html: `<span class="rd ${aidCls()}">${wordHTML(x)}</span>`, cls: 'word-opt' })), w.w);
+    },
+    reveal() { op.reveal(); say(w.w); } });
+}
+function qFrase(d) {
+  const pool = FRASI.filter(f => f.l === d); let F, i = 0;
+  do { F = pick(pool); i++; } while (run.recent.includes(F.t) && i < 30);
+  remember(F.t);
+  const words = F.t.split(' ');
+  let op;
+  return Q({ text: 'Leggi la frase e rispondi', say: `Leggi la frase, poi rispondi: ${F.q}`,
+    mount(st, ct) {
+      st.innerHTML = `${aidsBar()}<p class="frase rd ${aidCls()}">${words.map((wd, k) => `<span class="wd" data-wi="${k}">${wd.split('-').map(sylHTML).join('')}</span>`).join(' ')}</p><button class="btn aiuto" data-read>Leggi con me</button><p class="dom">${F.q}</p>`;
+      const els = $$('.wd', st);
+      $('[data-read]', st).onclick = async () => {
+        say(''); const tok = karaokeTok;
+        for (let k = 0; k < words.length; k++) {
+          if (tok !== karaokeTok || $('#game').hidden) break;
+          els.forEach((e, j) => e.classList.toggle('now', j === k));
+          await speakWait(plain(words[k].replace(/-/g, '')));
+        }
+        els.forEach(e => e.classList.remove('now'));
+      };
+      op = choiceUI(ct, shuffle([F.a, ...F.o]).map(x => ({ k: x, html: x, cls: 'pic-opt' })), F.a);
+    },
+    reveal() { op.reveal(); say(F.t.replace(/-/g, '')); } });
+}
+function choiceUI(ct, items, correct, before) {
+  ct.innerHTML = `<div class="opts">${items.map(it => `<button class="btn opt ${it.cls || ''}" data-c="${it.k}">${it.html}</button>`).join('')}</div>`;
+  const bs = $$('.opt', ct);
+  bs.forEach(b => b.onclick = async () => {
+    if (run.locked) return;
+    if (b.dataset.c === String(correct)) { bs.forEach(x => x.disabled = true); b.classList.add('good'); if (before) await before(); judge(true); }
+    else { b.classList.add('bad'); b.disabled = true; judge(false); }
+  });
+  return { reveal() { bs.forEach(x => { x.disabled = true; if (x.dataset.c === String(correct)) x.classList.add('good'); }); } };
+}
+
+/* ---------- forme: domande ---------- */
+function pickShape(d, pool) { let k, i = 0; pool = pool || FLIV[d]; do { k = pick(pool); i++; } while (run.recent.includes(k) && i < 20); remember(k); return k; }
+function qFTrova(d) {
+  const k = pickShape(d), others = shuffle(FLIV[d].filter(x => x !== k)).slice(0, nOpt(d) - 1); let op;
+  return Q({ text: `Tocca ${FORME[k].art}`,
+    mount(st, ct) { st.innerHTML = `<p class="hint">Quale di queste forme è ${FORME[k].art}?</p>`; op = choiceUI(ct, shuffle([k, ...others]).map(x => ({ k: x, html: shapeSVG(x, rnd(0, 3), d), cls: 'shape-opt' })), k, async () => { say(`Sì, questo è ${FORME[k].art}!`); await sleep(400); }); },
+    reveal() { op.reveal(); } });
+}
+function qFNome(d) {
+  const k = pickShape(d), others = shuffle(FLIV[d].filter(x => x !== k)).slice(0, nOpt(d) - 1); let op;
+  return Q({ text: 'Come si chiama questa forma?',
+    mount(st, ct) { st.innerHTML = `<div class="bigshape">${shapeSVG(k, rnd(0, 3), d)}</div>`; op = choiceUI(ct, shuffle([k, ...others]).map(x => ({ k: x, html: `<span class="rd f-maiu">${x.toUpperCase()}</span>`, cls: 'nome-opt' })), k); },
+    reveal() { op.reveal(); say(`Questo è ${FORME[k].art}.`); } });
+}
+function qFLati(d) {
+  const pool = [['triangolo', 'quadrato', 'rettangolo'], ['triangolo', 'quadrato', 'rettangolo', 'rombo'], ['triangolo', 'quadrato', 'rettangolo', 'rombo', 'pentagono', 'esagono']][d];
+  const k = pickShape(d, pool), n = FORME[k].lati; let op;
+  return Q({ text: `Quanti lati ha ${FORME[k].art}?`, sub: 'Conta le linee dritte del bordo',
+    mount(st, ct) { st.innerHTML = `<div class="bigshape">${shapeSVG(k, rnd(0, 3), d)}</div>`; op = optionsUI(ct, distract(n, 8, nOpt(d), [3, 4, 5, 6, 2].filter(x => x !== n)), n); },
+    reveal() { op.reveal(); } });
+}
+function qFConta(d) {
+  const k = pickShape(d), n = rnd(1, [3, 5, 6][d]), tot = d === 0 ? 8 : 12;
+  const cells = shuffle(Array(n).fill(k).concat(Array.from({ length: tot - n }, () => pick(FLIV[d].filter(x => x !== k)))));
+  let op, st0;
+  return Q({ text: `Quant${FORME[k].f ? 'e' : 'i'} ${FORME[k].pl} vedi?`,
+    mount(st, ct) { st0 = st; st.innerHTML = `<div class="scene">${cells.map(c => `<div class="sc ${c === k ? 't' : ''}">${shapeSVG(c, rnd(0, 3), d)}</div>`).join('')}</div>`; op = optionsUI(ct, distract(n, 12, nOpt(d), [n + 1, n - 1, n + 2].filter(x => x > 0)), n, async () => { $$('.sc.t', st).forEach(e => e.classList.add('hl')); await sleep(500); }); },
+    reveal() { op.reveal(); $$('.sc.t', st0).forEach(e => e.classList.add('hl')); } });
+}
+
 /* ---------- schermate ---------- */
-function show(id) { $('#toast').hidden = true; if (id !== 'game' && id !== 'result') delete document.documentElement.dataset.hero; $$('#app > section').forEach(s => s.hidden = s.id !== id); window.scrollTo(0, 0); }
+function show(id) { $('#toast').hidden = true; const R = document.documentElement; if (['cat', 'game', 'result'].includes(id)) R.dataset.cat = save.last.cat || 'mat'; else delete R.dataset.cat; if (id !== 'game' && id !== 'result') delete R.dataset.hero; $$('#app > section').forEach(s => s.hidden = s.id !== id); window.scrollTo(0, 0); }
 const miniStars = n => [1, 2, 3].map(i => `<svg class="ic${i <= n ? ' on' : ''}" viewBox="0 0 24 24"><use href="#i-star"/></svg>`).join('');
 function renderHome() {
+$('#artLet').innerHTML = heroSvg('sillabe') + '<span class="rd col"><span class="sy0">A</span><span class="sy1">b</span><span class="sy0">c</span></span>';
+$('#artMat').innerHTML = heroSvg('calc') + `<span>${numHTML(1)} + ${numHTML(2)}</span>`;
   const li = lvlInfo(save.xp), g = save.last.game;
   $('#hiName').textContent = save.name || 'campione';
   $('#lvlN').textContent = li.lvl; $('#xpFill').style.width = (li.pct * 100) + '%';
@@ -1193,27 +1572,40 @@ function renderHome() {
   const today = save.days[dayKey()] || 0;
   $('#goalDots').innerHTML = [0, 1, 2].map(i => `<i class="gdot ${i < today ? 'on' : ''}">${i < today ? STAR : ''}</i>`).join('');
   $('#goalTxt').textContent = today >= 3 ? 'Obiettivo di oggi raggiunto!' : `Obiettivo di oggi: 3 partite (${today} su 3)`;
-  $('#gameCards').innerHTML = Object.entries(GAMES).map(([k, G]) => `<button class="gcard hero-${k} ${k === g ? 'sel' : ''}" data-g="${k}" aria-pressed="${k === g}"><span class="gart">${ART[k]}</span><span class="gname"><span class="ghero">${heroSvg(k)}</span>${G.name}</span><span class="gdesc">${G.desc}</span><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></button>`).join('');
+  const pc = save.settings.persona || 'cartoon';
+  $('#voiceChips').innerHTML = Object.entries(PERSONAS).map(([k, P]) => `<button class="vchip ${k === pc ? 'sel' : ''}" data-p="${k}" aria-pressed="${k === pc}"><span class="vem" aria-hidden="true">${P.icon}</span>${P.name}</button>`).join('');
+}
+function openCat(c) {
+  save.last.cat = c; save.last.gameBy = save.last.gameBy || {};
+  if (!GAMES[save.last.game] || GAMES[save.last.game].cat !== c) save.last.game = save.last.gameBy[c] || Object.keys(GAMES).find(k => GAMES[k].cat === c);
+  persist(); renderCat(); show('cat');
+}
+function renderCat() {
+  const c = save.last.cat || 'mat', g = save.last.game;
+  $('#catTitle').textContent = c === 'let' ? 'Giochi di lettura' : 'Giochi di matematica';
+  $('#gameCards').innerHTML = Object.entries(GAMES).filter(([, G]) => G.cat === c).map(([k, G]) => `<button class="gcard hero-${k} ${k === g ? 'sel' : ''}" data-g="${k}" aria-pressed="${k === g}"><span class="gart">${ART[k]}</span><span class="gname"><span class="ghero">${heroSvg(k)}</span>${G.name}</span><span class="gdesc">${G.desc}</span><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></button>`).join('');
   const on = save.last.types[g] || GAMES[g].types.map(t => t[0]);
   $('#typeChips').innerHTML = GAMES[g].types.map(([k, n]) => `<button class="chip" data-t="${k}" aria-pressed="${on.includes(k)}">${n}</button>`).join('');
   $('#diffBtns').innerHTML = DIFF.map((n, d) => `<button class="dbtn ${d === save.last.diff ? 'sel' : ''}" data-d="${d}" aria-pressed="${d === save.last.diff}"><span class="pips">${[0, 1, 2].map(i => `<i class="${i <= d ? 'on' : ''}"></i>`).join('')}</span>${n}<small>${GAMES[g].diffs[d]}</small></button>`).join('');
 }
-$('#gameCards').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; save.last.game = b.dataset.g; persist(); renderHome(); SND.tick(); });
-$('#diffBtns').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (!b) return; save.last.diff = +b.dataset.d; persist(); renderHome(); SND.tick(); });
+$('#gameCards').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; save.last.game = b.dataset.g; (save.last.gameBy = save.last.gameBy || {})[save.last.cat] = b.dataset.g; persist(); renderCat(); SND.tick(); });
+$$('[data-cat]').forEach(b => b.onclick = () => { SND.tick(); openCat(b.dataset.cat); });
+$('#voiceChips').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; save.settings.persona = b.dataset.p; persist(); renderHome(); say(persona().hello('Saltino')); });
+$('#diffBtns').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (!b) return; save.last.diff = +b.dataset.d; persist(); renderCat(); SND.tick(); });
 $('#typeChips').addEventListener('click', e => {
   const b = e.target.closest('[data-t]'); if (!b) return;
   const g = save.last.game, all = GAMES[g].types.map(t => t[0]);
   let on = (save.last.types[g] || all).slice();
   on = on.includes(b.dataset.t) ? on.filter(t => t !== b.dataset.t) : on.concat(b.dataset.t);
   if (!on.length) { toast('Lascia almeno un esercizio', '', 'help'); return; }
-  save.last.types[g] = on; persist(); renderHome();
+  save.last.types[g] = on; persist(); renderCat();
 });
 $('#play').onclick = () => { SND.tick(); startRound(); };
-$('#quit').onclick = () => { run = null; try { speechSynthesis.cancel(); } catch (e) {} renderHome(); show('home'); };
+$('#quit').onclick = () => { run = null; karaokeTok++; try { speechSynthesis.cancel(); } catch (e) {} renderCat(); show('cat'); };
 $('#say').onclick = () => { if (run && run.q) say(run.q.say); };
 $('#nextBtn').onclick = () => nextQ();
 $('#again').onclick = () => startRound();
-$('#menu').onclick = () => { renderHome(); show('home'); };
+$('#menu').onclick = () => { renderCat(); show('cat'); };
 $$('.back').forEach(b => b.onclick = () => { renderHome(); show('home'); });
 $('#toAlbum').onclick = () => { renderAlbum(); show('album'); };
 $('#toGrandi').onclick = () => { renderGrandi(); show('grandi'); };
@@ -1232,7 +1624,7 @@ function fillVoices() {
   sel.value = vs.some(v => v.name === save.settings.voiceName) ? save.settings.voiceName : '';
 }
 function renderGrandi() {
-  fillVoices(); $('#optPitch').value = String(save.settings.pitch || 1.3);
+  fillVoices();
   $('#kidName').value = save.name; $('#optVoice').checked = save.settings.voice; $('#optSound').checked = save.settings.sound; $('#optLen').value = String(save.settings.len);
   const rows = [];
   for (const g of Object.keys(GAMES)) for (const d of [0, 1, 2]) {
@@ -1246,8 +1638,7 @@ $('#kidName').addEventListener('input', e => { save.name = e.target.value.trim()
 $('#optVoice').addEventListener('change', e => { save.settings.voice = e.target.checked; persist(); });
 $('#optSound').addEventListener('change', e => { save.settings.sound = e.target.checked; persist(); });
 $('#optVoiceName').addEventListener('change', e => { save.settings.voiceName = e.target.value; persist(); itVoice = bestVoice(); });
-$('#optPitch').addEventListener('change', e => { save.settings.pitch = +e.target.value; persist(); });
-$('#tryVoice').onclick = () => say(`Ciao${save.name ? ' ' + save.name : ''}! Sono Saltino. Giochiamo con i numeri?`);
+$('#tryVoice').onclick = () => say(persona().hello('Saltino'));
 $('#optLen').addEventListener('change', e => { save.settings.len = +e.target.value; persist(); });
 let resetArm = false;
 $('#resetBtn').onclick = () => {
