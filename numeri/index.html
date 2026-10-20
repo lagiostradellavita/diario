@@ -541,6 +541,24 @@ th,td{font-size:1.1rem}
 .gbar .dots{flex:1 1 100%;order:9;margin-top:4px}
 .opt.word-opt{font-size:1.9rem}.opt.nome-opt{font-size:1.6rem}.opt.let-opt{font-size:2.6rem}.opt.vf{font-size:1.8rem}.opt.pic-opt{font-size:3.4rem}
 .games.home{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+ /* elenco dei giochi: una scheda grande per riga, personaggio in un cerchio bianco */
+#gamesList{grid-template-columns:1fr;gap:14px;max-width:720px;margin-inline:auto}
+@media (min-width:820px){#gamesList{grid-template-columns:1fr 1fr}}
+.gc-row{flex-direction:row!important;align-items:center!important;text-align:left!important;gap:14px;padding:14px 14px 14px 12px!important;min-height:132px;background:var(--sun)!important;border:2.5px solid var(--outline)!important}
+.gc-ic{width:104px;height:104px;flex:none;border-radius:50%;background:#FFFFFF;border:3px solid #1E1838;display:grid;place-items:center;box-shadow:0 4px 0 rgba(30,24,56,.3)}
+.gc-ic svg{width:84px;height:auto}
+.gc-txt{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.gc-txt b{font-family:var(--f-display);font-size:1.6rem;font-weight:800;line-height:1.05;color:#1E1838}
+.gc-txt small{font-size:1.15rem;font-weight:700;line-height:1.25;color:#1E1838}
+.gc-txt .gbest .ic{width:20px;height:20px;color:rgba(255,255,255,.75)}
+.gc-txt .gbest .ic.on{color:#1E1838}
+.gc-go{font-family:var(--f-display);font-size:3rem;font-weight:800;line-height:1;color:#1E1838;flex:none}
+/* pagina del gioco: testi piu' grandi */
+.gamehead p{font-size:1.45rem;font-weight:700;color:#1E1838}
+.gamehead .gc-ic svg{width:84px}
+.dbtn{font-size:1.6rem}
+.dbtn small{font-size:1.2rem;font-weight:700}
+.exbtn{font-size:1.3rem}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -2366,7 +2384,7 @@ function renderHome() {
   const pc = save.settings.persona || 'cartoon';
   $('#voiceChips').innerHTML = persGrid(pc);
   $('#welcome').textContent = welcomeMsg();
-  window.gameCard = ([k, G]) => `<button class="gcard hero-${k}" data-g="${k}"><span class="gname"><span class="ghero">${heroSvg(k)}</span>${G.name}</span><span class="gdesc">${G.desc}</span><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></button>`;
+  window.gameCard = ([k, G]) => `<button class="gcard gc-row hero-${k}" data-g="${k}"><span class="gc-ic">${heroSvg(k)}</span><span class="gc-txt"><b>${G.name}</b><small>${G.desc}</small><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></span><span class="gc-go" aria-hidden="true">›</span></button>`;
   const minis = c => `<span class="mini">${Object.keys(GAMES).filter(k => GAMES[k].cat === c).map(heroSvg).join('')}</span>`;
   $('#artLet').innerHTML = toyBlocks(['A', 'B', 'C'], 'let') + minis('let'); $('#artMat').innerHTML = toyBlocks(['1', '2', '3'], 'mat') + minis('mat');
   $('#mPlayArt').innerHTML = heroSvg('cifre') + heroSvg('sillabe');
@@ -2405,7 +2423,7 @@ function renderCat() {
   const c = save.last.cat || 'mat', g = save.last.game;
   $('#catTitle').textContent = GAMES[g].name;
   document.documentElement.dataset.hero = g;
-  $('#gameHead').innerHTML = `${heroSvg(g)}<p>${GAMES[g].desc}. Scegli gli esercizi e la difficoltà, poi premi <b>Gioca!</b></p>`;
+  $('#gameHead').innerHTML = `<span class="gc-ic">${heroSvg(g)}</span><p>${GAMES[g].desc}</p>`;
   const on = save.last.types[g] || GAMES[g].types.map(t => t[0]);
   $('#exToggle').textContent = `${$('#typeChips').hidden ? 'Scegli gli esercizi' : 'Chiudi gli esercizi'} (${on.length} su ${GAMES[g].types.length})`;
   $('#typeChips').innerHTML = GAMES[g].types.map(([k, n]) => `<button class="chip" data-t="${k}" aria-pressed="${on.includes(k)}">${n}</button>`).join('');
