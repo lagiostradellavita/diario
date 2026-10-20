@@ -1031,9 +1031,12 @@ const heroSvg = k => `<svg viewBox="-34 -33 68 60" aria-hidden="true">${HEROES[k
 // ogni ambientazione cambia la specie dei personaggi, non il loro nome: Leo resta Leo, anche da dinosauro
 const OL = 'stroke="#1E1838" stroke-width="2.5" stroke-linejoin="round"';
 const OLs = 'stroke="#1E1838" stroke-width="1.8" stroke-linejoin="round"';
-const occhio = (x, y, r = 4.2) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" ${OLs}/><circle cx="${(x + r * .18).toFixed(1)}" cy="${(y + r * .1).toFixed(1)}" r="${(r * .56).toFixed(1)}" fill="#1E1838"/><circle cx="${(x + r * .4).toFixed(1)}" cy="${(y - r * .25).toFixed(1)}" r="${(r * .22).toFixed(1)}" fill="#fff"/>`;
-const sorriso = (x, y, w = 5) => `<path d="M${x - w} ${y} Q${x} ${y + w * .9} ${x + w} ${y}" fill="none" stroke="#1E1838" stroke-width="2" stroke-linecap="round"/>`;
-const guancia = (x, y, r = 2.6) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#FF8FB0" opacity=".85"/>`;
+// stile da bambini grandi: sopracciglia decise, niente guance rosa, sorriso furbo.
+// dir 1: sopracciglio piu' basso verso destra (occhio sinistro, o profilo verso destra); -1 il contrario; 0 dritto
+const ciglio = (x, y, r, dir = 1) => `<path d="M${(x - r * 1.05).toFixed(1)} ${(y - r - 2.8 - dir * .7).toFixed(1)} L${(x + r * 1.05).toFixed(1)} ${(y - r - 2.8 + dir * .7).toFixed(1)}" stroke="#1E1838" stroke-width="2.6" stroke-linecap="round"/>`;
+const occhio = (x, y, r = 4.2, dir = 1) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" ${OLs}/><circle cx="${(x + r * .18).toFixed(1)}" cy="${(y + r * .12).toFixed(1)}" r="${(r * .5).toFixed(1)}" fill="#1E1838"/><circle cx="${(x + r * .36).toFixed(1)}" cy="${(y - r * .16).toFixed(1)}" r="${(r * .18).toFixed(1)}" fill="#fff"/>${ciglio(x, y, r, dir)}`;
+const sorriso = (x, y, w = 5) => `<path d="M${x - w} ${y + .6} Q${(x + w * .2).toFixed(1)} ${(y + w * .75).toFixed(1)} ${x + w} ${(y - 1.4).toFixed(1)}" fill="none" stroke="#1E1838" stroke-width="2.2" stroke-linecap="round"/>`;
+const guancia = () => '';
 const gamba = (x, y, c, h = 9, w = 7) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${c}" ${OL}/>`;
 // tubo con il bordo: prima il contorno scuro, poi il colore
 const tubo = (d, c, w) => `<path d="${d}" fill="none" stroke="#1E1838" stroke-width="${w + 5}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
@@ -1060,7 +1063,7 @@ const DINO = {
   leggo: (c = '#FFD54A', d = '#E39A00') => `<g>
     <ellipse cx="0" cy="-6" rx="16" ry="15" fill="${c}" ${OL}/>
     <path d="M-6 -20 l3 -6 l3 6 M1 -21 l3 -6 l3 6" fill="#FF9A2E" stroke="#1E1838" stroke-width="1.5"/>
-    ${occhio(-6, -9, 4.6)}${occhio(6, -9, 4.6)}${sorriso(0, -1, 4)}${guancia(-11, -2)}${guancia(11, -2)}
+    ${occhio(-6, -9, 4.4)}${occhio(6, -9, 4.4, -1)}${sorriso(0, -1, 4)}${guancia(-11, -2)}${guancia(11, -2)}
     <path d="M-21 4 L-15 -2 L-9 5 L-3 -1 L3 5 L9 -1 L15 5 L21 0 Q23 27 0 27 Q-23 27 -21 4Z" fill="#FFF4DC" ${OL}/>
     <circle cx="-9" cy="15" r="2.6" fill="#C9A8FF"/><circle cx="8" cy="19" r="3" fill="#FFB0CC"/><circle cx="13" cy="10" r="2" fill="#C9A8FF"/></g>`,
   frasi: (c = '#FFC94D', d = '#D9902A') => `<g>
@@ -1121,7 +1124,7 @@ function alieno({ c, d, forma = 'tondo', occhi = 2, antenne = 2, extra = '' }) {
   const top = forma === 'tondo' ? -15 : -20, ey = forma === 'tondo' ? -1 : -6;
   const ant = antenne === 2 ? `<path d="M-6 ${top + 2} L-12 ${top - 9} M6 ${top + 2} L12 ${top - 9}" stroke="#1E1838" stroke-width="2.5" stroke-linecap="round"/><circle cx="-12" cy="${top - 10}" r="3.6" fill="#FFD000" ${OLs}/><circle cx="12" cy="${top - 10}" r="3.6" fill="#FFD000" ${OLs}/>`
     : antenne === 1 ? `<path d="M0 ${top} L0 ${top - 10}" stroke="#1E1838" stroke-width="2.5" stroke-linecap="round"/><circle cx="0" cy="${top - 11}" r="4" fill="#FFD000" ${OLs}/>` : '';
-  const oc = occhi === 1 ? occhio(0, ey, 8) : occhi === 3 ? occhio(-10, ey + 1, 4.4) + occhio(0, ey - 3, 4.4) + occhio(10, ey + 1, 4.4) : occhio(-7, ey, 5.6) + occhio(7, ey, 5.6);
+  const oc = occhi === 1 ? occhio(0, ey, 7, 0) : occhi === 3 ? occhio(-10, ey + 1, 4, 1) + occhio(0, ey - 3, 4, 0) + occhio(10, ey + 1, 4, -1) : occhio(-7, ey, 5, 1) + occhio(7, ey, 5, -1);
   const braccia = `<path d="M${forma === 'tondo' ? -18 : -14} 8 q-8 2 -10 -5 M${forma === 'tondo' ? 18 : 14} 8 q8 2 10 -5" fill="none" stroke="#1E1838" stroke-width="6" stroke-linecap="round"/><path d="M${forma === 'tondo' ? -18 : -14} 8 q-8 2 -10 -5 M${forma === 'tondo' ? 18 : 14} 8 q8 2 10 -5" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
   const piedi = extra === 'tentacoli' ? [-12, -4, 4, 12].map(x => tubo(`M${x} 18 q${x < 0 ? -4 : 4} 6 0 9`, c, 4)).join('') : `<ellipse cx="-7" cy="24" rx="6" ry="3.5" fill="${d}" ${OLs}/><ellipse cx="7" cy="24" rx="6" ry="3.5" fill="${d}" ${OLs}/>`;
   const macchie = `<circle cx="-9" cy="14" r="2.2" fill="${d}" opacity=".6"/><circle cx="10" cy="16" r="1.8" fill="${d}" opacity=".6"/>`;
@@ -1148,36 +1151,51 @@ const ALIENI = {
   forme: alieno({ c: '#E0A458', d: '#9A6324', forma: 'tondo', occhi: 1, antenne: 1, extra: 'casco' }),
 };
 
-// i cartoni: oggetti buffi con la faccia
-const faccia = (y = 0, x = 0, r = 4.4) => `${occhio(x - 6, y, r)}${occhio(x + 6, y, r)}${sorriso(x, y + 8, 4.5)}${guancia(x - 11, y + 6)}${guancia(x + 11, y + 6)}`;
 const stellaPts = (cx, cy, R, r) => Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r : R; return `${(cx + q * Math.cos(a)).toFixed(1)},${(cy + q * Math.sin(a)).toFixed(1)}`; }).join(' ');
+// i cartoni: eroi dei cartoni animati, con il costume del loro mestiere
+function eroe({ pelle = '#F2C29B', capelli = '#5A3A22', abito, scuro, testa = '', mano = '', mantello = '' }) {
+  const t = `<circle cx="0" cy="-15" r="12" fill="${pelle}" ${OL}/>`;
+  const viso = `${occhio(-4.6, -15, 2.9, 1)}${occhio(4.6, -15, 2.9, -1)}${sorriso(0, -8.5, 3.2)}`;
+  const corpo = `${mantello ? `<path d="M-9 -2 L-17 25 L17 25 L9 -2Z" fill="${mantello}" ${OL}/>` : ''}
+    <path d="M-6 14 L-7 25 M6 14 L7 25" stroke="#1E1838" stroke-width="7" stroke-linecap="round"/><path d="M-6 14 L-7 25 M6 14 L7 25" stroke="${scuro}" stroke-width="4" stroke-linecap="round"/>
+    <path d="M-10 -1 Q0 -4 10 -1 L11 16 L-11 16Z" fill="${abito}" ${OL}/>
+    <path d="M-10 1 Q-17 7 -18 13 M10 1 Q17 7 18 13" fill="none" stroke="#1E1838" stroke-width="7" stroke-linecap="round"/><path d="M-10 1 Q-17 7 -18 13 M10 1 Q17 7 18 13" fill="none" stroke="${abito}" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="-18" cy="14" r="3" fill="${pelle}" ${OLs}/><circle cx="18" cy="14" r="3" fill="${pelle}" ${OLs}/>`;
+  const fronte = `<path d="M-12 -17 Q-12 -29 0 -28 Q12 -29 12 -17 Q6 -23 0 -21 Q-6 -24 -12 -17Z" fill="${capelli}" ${OLs}/>`;
+  const T = {
+    super: `${fronte}<path d="M-12.5 -19 Q0 -22 12.5 -19 L12 -12 Q0 -14 -12 -12Z" fill="${scuro}" ${OLs}/>${viso}`,
+    maga: `${fronte}${viso}<path d="M-16 -23 Q0 -28 16 -23 Q0 -20 -16 -23Z" fill="${abito}" ${OL}/><path d="M-10 -24 L4 -33 L10 -24Z" fill="${abito}" ${OL}/><polygon points="${stellaPts(2, -27, 3, 1.3)}" fill="#FFD000"/>`,
+    pilota: `<path d="M-13 -14 Q-14 -29 0 -29 Q14 -29 13 -14 L13 -9 L9 -9 L9 -18 Q0 -23 -9 -18 L-9 -9 L-13 -9Z" fill="${scuro}" ${OL}/>${viso}<circle cx="-5" cy="-23" r="3.6" fill="#BDEBFF" ${OLs}/><circle cx="5" cy="-23" r="3.6" fill="#BDEBFF" ${OLs}/><path d="M-1.4 -23 h2.8" stroke="#1E1838" stroke-width="2"/>`,
+    pirata: `${viso}<circle cx="4.6" cy="-15" r="3.6" fill="#1E1838"/><path d="M-12 -21 L12 -11" stroke="#1E1838" stroke-width="1.6"/><path d="M-17 -21 Q0 -15 17 -21 L11 -30 Q0 -26 -11 -30Z" fill="#2A2346" ${OL}/><circle cx="0" cy="-24" r="2.4" fill="#FFF4DC"/>`,
+    cavaliere: `<path d="M-13 -12 Q-14 -29 0 -29 Q14 -29 13 -12 L9 -12 L9 -18 Q0 -21 -9 -18 L-9 -12Z" fill="#C9CFDF" ${OL}/>${viso}<path d="M0 -29 Q4 -36 11 -34 Q6 -31 4 -27" fill="${abito}" ${OLs}/>`,
+    ninja: `<circle cx="0" cy="-15" r="12.5" fill="${scuro}" ${OL}/><path d="M-11 -18 Q0 -21 11 -18 L11 -11 Q0 -13 -11 -11Z" fill="${pelle}"/>${occhio(-4.6, -14.5, 2.9, 1)}${occhio(4.6, -14.5, 2.9, -1)}<path d="M-12 -20 Q0 -23 12 -20" stroke="${abito}" stroke-width="3" fill="none"/><path d="M11 -20 q8 -2 10 4 M11 -20 q9 2 8 8" stroke="${abito}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+    esploratore: `${fronte}${viso}<path d="M-19 -20 Q0 -15 19 -20 Q0 -24 -19 -20Z" fill="#C9A27A" ${OL}/><path d="M-11 -21 Q-11 -31 0 -31 Q11 -31 11 -21Z" fill="#E0C9A0" ${OL}/><path d="M-11 -23 Q0 -21 11 -23" stroke="#8A5A2A" stroke-width="2.4" fill="none"/>`,
+    principessa: `<path d="M-13 -16 Q-16 0 -12 6 L-8 -6Z M13 -16 Q16 0 12 6 L8 -6Z" fill="${capelli}" ${OLs}/>${fronte}${viso}<path d="M-8 -25 L-8 -32 L-4 -28 L0 -33 L4 -28 L8 -32 L8 -25Z" fill="#FFD000" ${OLs}/>`,
+    detective: `${fronte}${viso}<path d="M-14 -22 Q0 -32 14 -22 Q15 -19 12 -20 Q0 -25 -12 -20 Q-15 -19 -14 -22Z" fill="${scuro}" ${OL}/><path d="M-14 -22 L-19 -19 L-13 -20Z" fill="${scuro}" ${OLs}/>`,
+  };
+  const M = { lente: `<circle cx="24" cy="6" r="5" fill="#CFF3FF" ${OL}/><path d="M20 10 L18 13" stroke="#1E1838" stroke-width="3" stroke-linecap="round"/>`,
+    spada: `<path d="M22 12 L28 -8" stroke="#1E1838" stroke-width="5" stroke-linecap="round"/><path d="M22 12 L28 -8" stroke="#E6EAF2" stroke-width="2.5" stroke-linecap="round"/><path d="M18 11 h8" stroke="#1E1838" stroke-width="3" stroke-linecap="round"/>`,
+    bacchetta: `<path d="M20 14 L28 -2" stroke="#1E1838" stroke-width="3" stroke-linecap="round"/><polygon points="${stellaPts(28, -4, 5, 2.2)}" fill="#FFD000" ${OLs}/>`,
+    scudo: `<path d="M-26 4 Q-20 2 -14 4 Q-14 16 -20 20 Q-26 16 -26 4Z" fill="#FFC14D" ${OL}/>` }[mano] || '';
+  return `<g>${corpo}${t}${T[testa] || viso}${M}</g>`;
+}
 const CARTONI = {
-  lettere: `<g><polygon points="${stellaPts(0, 0, 30, 14)}" fill="#FFD000" ${OL}/>${faccia(-1, 0, 4)}</g>`,
-  sillabe: `<g><path d="M-22 18 Q-34 16 -30 4 Q-34 -10 -18 -10 Q-16 -26 0 -24 Q14 -30 20 -14 Q34 -14 32 2 Q36 16 22 18Z" fill="#F3EDFF" ${OL}/>${faccia(-2, 0, 4.4)}</g>`,
-  leggo: `<g><path d="M-13 2 L0 27 L13 2Z" fill="#E8A35E" ${OL}/><path d="M-8 6 l13 13 M-2 4 l9 9 M4 4 l4 4 M8 6 l-14 14 M2 4 l-8 8" stroke="#B0692A" stroke-width="1.4"/>
-    <circle cx="0" cy="-10" r="15" fill="#FFB0CC" ${OL}/><path d="M-15 -6 Q-10 0 -5 -5 Q0 1 5 -5 Q10 0 15 -6 L15 2 L-15 2Z" fill="#FFB0CC" ${OL}/><circle cx="0" cy="-26" r="4" fill="#E53950" ${OLs}/>
-    ${faccia(-12, 0, 3.8)}</g>`,
-  frasi: `<g><path d="M-10 -30 h20 v6 h-20Z" fill="#FF8FB0" ${OL}/><rect x="-10" y="-24" width="20" height="38" fill="#FFC400" ${OL}/><path d="M-10 14 L0 30 L10 14Z" fill="#F8DFC0" ${OL}/><path d="M-3.5 25 L0 30 L3.5 25Z" fill="#1E1838"/>
-    ${occhio(-4, -12, 3.6)}${occhio(4, -12, 3.6)}${sorriso(0, -5, 3.5)}<path d="M-10 -20 h20" stroke="#E39A00" stroke-width="1.6"/></g>`,
-  italiano: `<g><path d="M-18 4 L-13 26 L13 26 L18 4Z" fill="#FF7FB6" ${OL}/><path d="M-12 6 l2 18 M-4 6 l1 18 M4 6 l-1 18 M12 6 l-2 18" stroke="#D94A8C" stroke-width="1.5"/>
-    <path d="M-21 4 Q-24 -10 -12 -12 Q-8 -24 4 -20 Q16 -24 18 -10 Q26 -8 21 4Z" fill="#FFF4DC" ${OL}/><circle cx="2" cy="-24" r="4.5" fill="#E53950" ${OLs}/>
-    ${[[-12, -6, '#4FC3C9'], [8, -10, '#FFD000'], [14, -2, '#9B6BFF'], [-4, -14, '#FF7FB6']].map(([x, y, f]) => `<rect x="${x}" y="${y}" width="5" height="2" rx="1" fill="${f}" transform="rotate(30 ${x} ${y})"/>`).join('')}
-    ${occhio(-6, 12, 3.6)}${occhio(6, 12, 3.6)}${sorriso(0, 18, 3)}</g>`,
-  l20: `<g><path d="M-18 24 L-18 -6 A18 18 0 0 1 18 -6 L18 24 L12 19 L6 24 L0 19 L-6 24 L-12 19Z" fill="#FFFFFF" ${OL}/>
-    <path d="M-18 4 q-8 -2 -10 -10 M18 4 q8 -2 10 -10" fill="none" stroke="#1E1838" stroke-width="2.5" stroke-linecap="round"/>${faccia(-6, 0, 4.6)}</g>`,
+  lettere: eroe({ pelle: '#F2C29B', abito: '#FF8A00', scuro: '#B34A00', testa: 'super', mantello: '#E53950' }) .replace('</g>', `<polygon points="${stellaPts(0, 6, 5, 2.2)}" fill="#FFD000" ${OLs}/></g>`),
+  sillabe: eroe({ pelle: '#E8B48C', capelli: '#2A1E14', abito: '#7B3FF2', scuro: '#4B22A0', testa: 'maga', mano: 'bacchetta' }),
+  leggo: eroe({ pelle: '#C68A5E', capelli: '#2A1E14', abito: '#FFC400', scuro: '#8A5A2A', testa: 'pilota' }),
+  frasi: eroe({ pelle: '#F2C29B', abito: '#E91E63', scuro: '#2A2346', testa: 'pirata', mano: 'spada' }),
+  italiano: eroe({ pelle: '#E8B48C', abito: '#9AA3BA', scuro: '#5C6378', testa: 'cavaliere', mano: 'scudo' }).replace('<path d="M0 -29 Q4 -36', '<path fill="#E53950" d="M0 -29 Q4 -36'),
+  l20: eroe({ pelle: '#E8B48C', abito: '#FF8A00', scuro: '#2A2346', testa: 'ninja' }),
   l100: `<g><path d="M0 -24 V-31" stroke="#1E1838" stroke-width="2.5"/><circle cx="0" cy="-32" r="3.5" fill="#FF5FA2" ${OLs}/>
     <rect x="-16" y="-24" width="32" height="24" rx="8" fill="#FFC14D" ${OL}/><rect x="-11" y="-19" width="22" height="13" rx="4" fill="#2A2346"/>
     <circle cx="-5" cy="-12.5" r="3.4" fill="#7FE7FF"/><circle cx="5" cy="-12.5" r="3.4" fill="#7FE7FF"/>
     <rect x="-13" y="2" width="26" height="22" rx="6" fill="#FFC14D" ${OL}/><circle cx="-4" cy="10" r="2.5" fill="#FF5FA2"/><circle cx="4" cy="10" r="2.5" fill="#4FC3C9"/><rect x="-6" y="16" width="12" height="3" rx="1.5" fill="#2A2346"/>
     <path d="M-13 8 h-8 v8 M13 8 h8 v8" fill="none" stroke="#1E1838" stroke-width="3" stroke-linecap="round"/></g>`,
-  cifre: `<g><path d="M0 14 Q-4 20 2 24 Q6 28 0 32" fill="none" stroke="#1E1838" stroke-width="1.6"/><ellipse cx="0" cy="-6" rx="19" ry="22" fill="#FF7FB6" ${OL}/><path d="M-3 15 L3 15 L0 19Z" fill="#FF7FB6" ${OLs}/>
-    <path d="M-10 -20 q4 -6 10 -6" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>${faccia(-6, 0, 4.4)}</g>`,
-  calc: `<g><path d="M4 -27 A27 27 0 1 0 4 27 A34 34 0 0 1 4 -27Z" fill="#FFE03A" ${OL}/>${occhio(-12, -4, 4)}${sorriso(-10, 6, 4)}${guancia(-18, 4)}
-    <polygon points="${stellaPts(22, -16, 6, 2.6)}" fill="#FFD000" ${OLs}/><polygon points="${stellaPts(24, 10, 4, 1.8)}" fill="#FFD000" ${OLs}/></g>`,
-  forme: `<g><path d="M-16 -8 L-4 -20 L22 -20 L10 -8Z" fill="#FFE3B0" ${OL}/><path d="M10 -8 L22 -20 L22 8 L10 20Z" fill="#E8A35E" ${OL}/><rect x="-16" y="-8" width="26" height="28" fill="#FFC970" ${OL}/>
-    <circle cx="4" cy="-14" r="2" fill="#1E1838"/><circle cx="16" cy="-6" r="2" fill="#fff"/><circle cx="16" cy="6" r="2" fill="#fff"/>
-    ${occhio(-8, 2, 3.6)}${occhio(2, 2, 3.6)}${sorriso(-3, 10, 3.5)}</g>`,
+  cifre: eroe({ pelle: '#8D5A3B', capelli: '#1E1410', abito: '#A7C06A', scuro: '#6B5A2A', testa: 'esploratore' }),
+  calc: eroe({ pelle: '#F2C29B', capelli: '#C2185B', abito: '#FF5FA2', scuro: '#9B1F8A', testa: 'principessa', mano: 'spada' }),
+  forme: eroe({ pelle: '#C68A5E', capelli: '#2A1E14', abito: '#C9A27A', scuro: '#6B4A2A', testa: 'detective', mano: 'lente' }),
 };
+
 
 // lo scenario: una striscia in fondo alla pagina, molto chiara, dietro a tutto
 const SCENE = {
@@ -1208,7 +1226,15 @@ const MONDI = {
   animali: { nome: 'Animali', art: null, voce: 'con gli animali', fondo: '#E3F6DA' },
 };
 const mondo = () => { try { return MONDI[save.settings.mondo] ? save.settings.mondo : 'animali'; } catch (e) { return 'animali'; } };
-const ANIMALI_ART = Object.fromEntries(Object.entries(HEROES).map(([k, h]) => [k, h.art]));
+// gli animali prendono lo stesso stile: via le guance, sopracciglia sopra gli occhi
+function decisi(svg) {
+  svg = svg.replace(/<circle class="fr-cheek"[^>]*\/>/g, '');
+  const occhi = [...svg.matchAll(/<circle class="fr-eye" cx="(-?[\d.]+)" cy="(-?[\d.]+)" r="([\d.]+)"\/>/g)].map(m => [+m[1], +m[2], +m[3]]);
+  if (!occhi.length) return svg;
+  const xs = occhi.map(o => o[0]).sort((a, b) => a - b), mid = (xs[0] + xs[xs.length - 1]) / 2;
+  return svg.replace(/<\/g>\s*$/, occhi.map(([x, y, r]) => ciglio(x, y, r, occhi.length === 1 ? 1 : x < mid ? 1 : -1)).join('') + '</g>');
+}
+const ANIMALI_ART = Object.fromEntries(Object.entries(HEROES).map(([k, h]) => [k, decisi(h.art)]));
 Object.keys(HEROES).forEach(k => Object.defineProperty(HEROES[k], 'art', { configurable: true, enumerable: true, get: () => { const A = MONDI[mondo()].art; return (A && A[k]) || ANIMALI_ART[k]; } }));
 const heroIn = (m, k) => `<svg viewBox="-34 -33 68 60" aria-hidden="true">${(MONDI[m].art && MONDI[m].art[k]) || ANIMALI_ART[k]}</svg>`;
 // le cose dentro le domande: due volte su tre vengono dall'ambientazione, se ce n'e' una adatta
