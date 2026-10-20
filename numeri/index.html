@@ -639,27 +639,40 @@ h2{font-size:1.75rem}
 .velrow .btn{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:1.35rem;padding:12px 6px}
 .velrow .btn span{font-size:2.4rem;line-height:1}
 .velrow .btn[aria-pressed="true"]{background:var(--sun);box-shadow:0 0 0 4px var(--sun-deep),0 4px 0 var(--edge)}
-/* temi di colore: si scelgono in Per i grandi; sfondo pieno, senza righe ne' puntini */
-:root[data-tema]{--paper:#FFFFFF;--ink:#1A1A2E;--muted:#3D3A55;--outline:#1A1A2E;--edge:#1A1A2E}
-:root[data-tema] body{background-image:none!important;background-color:var(--bg)!important;background-size:auto!important;background-attachment:fixed;min-height:100vh}
-:root[data-tema="cielo"]{--bg:#CDEBFF;--t1:#FF8A00;--t2:#E91E63;--t3:#FFC400;--t4:#00A3C4;--tt1:#FFFFFF;--tt2:#FFFFFF;--tt3:#1A1A2E;--tt4:#FFFFFF}
-:root[data-tema="prato"]{--bg:#D4F0D2;--t1:#FF7A00;--t2:#8E3FD1;--t3:#FFC400;--t4:#F0388C;--tt1:#FFFFFF;--tt2:#FFFFFF;--tt3:#1A1A2E;--tt4:#FFFFFF}
-:root[data-tema="sole"]{--bg:#FFF0C2;--t1:#F4511E;--t2:#C2185B;--t3:#00897B;--t4:#5E35B1;--tt1:#FFFFFF;--tt2:#FFFFFF;--tt3:#FFFFFF;--tt4:#FFFFFF}
-:root[data-tema="mare"]{--bg:#1565C0;--t1:#FFC400;--t2:#FF4F9A;--t3:#FF8A00;--t4:#9B5CFF;--tt1:#1A1A2E;--tt2:#FFFFFF;--tt3:#FFFFFF;--tt4:#FFFFFF}
-:root[data-tema="arcobaleno"]{--bg:#FFF4C4;--t1:#FF7A00;--t2:#E91E63;--t3:#7C4DFF;--t4:#00A3C4;--tt1:#FFFFFF;--tt2:#FFFFFF;--tt3:#FFFFFF;--tt4:#FFFFFF}
-:root[data-tema="arcobaleno"] body{background-image:linear-gradient(180deg,#FFF4C4 0,#FFDCEB 45%,#D3ECFF 100%)!important;background-attachment:fixed}
-:root[data-tema="mare"] #app > section > .top h1,:root[data-tema="mare"] #app > section > h2,:root[data-tema="mare"] #app > section > .note,:root[data-tema="mare"] #app > section > .logo,:root[data-tema="mare"] .tabbed > h2,:root[data-tema="mare"] [data-panel] > h2,:root[data-tema="mare"] [data-panel] > .note,:root[data-tema="mare"] #cat > h2{color:#FFFFFF}
-:root[data-tema="mare"] .logo .l1{color:#FFC400} :root[data-tema="mare"] .logo .l2{color:#FFFFFF}
 .lvl .badge-l,.chip[aria-pressed="true"]{color:#FFFFFF}
 .aids .chip{font-size:1.1rem;padding:6px 12px}
-.temi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:12px}
-.tema{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 8px;border-radius:20px;font-size:1.3rem}
-.tema .sw{width:100%;height:70px;border-radius:14px;border:2.5px solid #1A1A2E;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px;align-items:center}
-.tema .sw i{display:block;height:100%;border-radius:8px;border:2px solid #1A1A2E}
-.tema[aria-pressed="true"]{box-shadow:0 0 0 5px #1A1A2E,0 4px 0 var(--edge)}
+/* sfondi quasi bianchi: quadretti per i numeri, righe per le lettere; lo scenario in fondo, molto chiaro */
+:root,:root[data-gen="m"]{--bg:#F5FAFF;--t1:#FF8A00;--t2:#E91E63;--t3:#FFC400;--t4:#00A3C4;--tt1:#FFFFFF;--tt2:#FFFFFF;--tt3:#1A1A2E;--tt4:#FFFFFF;--paper:#FFFFFF;--ink:#1A1A2E;--muted:#3D3A55;--outline:#1A1A2E;--edge:#1A1A2E}
+:root[data-gen="f"]{--bg:#FFF8FC}
+:root[data-gen="m"]{--band1:#E6F6FF;--bandm:#CDEDFF;--band2:#AEDFFF}
+:root[data-gen="f"]{--band1:#FFE9F6;--bandm:#FFD3EE;--band2:#FFB5DE}
+body{background-image:none!important;background-color:var(--bg)!important;min-height:100vh}
+:root[data-cat="mat"] body{background-image:linear-gradient(#DDEAF6 1.5px,transparent 1.5px),linear-gradient(90deg,#DDEAF6 1.5px,transparent 1.5px)!important;background-size:28px 28px!important}
+:root[data-cat="let"] body{background-image:linear-gradient(90deg,transparent 22px,#FFD6E7 22px,#FFD6E7 24px,transparent 24px),linear-gradient(transparent 34px,#DDEAF6 34px,#DDEAF6 36px)!important;background-size:100% 100%,100% 36px!important}
+#scena{position:fixed;left:0;right:0;bottom:0;height:130px;pointer-events:none;z-index:0;opacity:.5}
+#scena svg{width:100%;height:100%;display:block}
+:root[data-cat] #scena{opacity:.3}
+#app{position:relative;z-index:1}
+.mondi{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.mondo-t{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;min-height:200px;border:2.5px solid var(--outline);border-radius:24px;background:var(--mf);box-shadow:0 4px 0 var(--edge);padding:12px 8px 14px;font-family:var(--f-display)}
+.mondo-t .m-sc{position:absolute;inset:auto 0 0 0;height:70%;opacity:.55}
+.mondo-t .m-sc svg{width:100%;height:100%;display:block}
+.mondo-t .m-ch{position:relative;display:flex;align-items:flex-end;justify-content:center}
+.mondo-t .m-ch svg{width:66px;height:auto}
+.mondo-t .m-ch svg:nth-child(2){width:84px;margin:0 -6px}
+.mondo-t b{position:relative;font-size:1.7rem;font-weight:800;color:#1A1A2E;background:#FFFFFF;border:2.5px solid var(--outline);border-radius:999px;padding:2px 16px;line-height:1.2}
+.mondo-t[aria-pressed="true"]{box-shadow:0 0 0 5px #1A1A2E,0 4px 0 var(--edge)}
+#mondo .btn.guida{margin:6px 0 4px}
+#mondiGrandi + h2{margin-top:22px}
+#grandi .form{margin-top:16px}
+.mondo-t .m-ch svg{width:56px} .mondo-t .m-ch svg:nth-child(2){width:74px}
+.vocebtn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:10px 16px}
+.vocebtn .vb-ic svg{width:64px;height:auto;display:block}
+.vocebtn b{display:block;font-size:1.5rem} .vocebtn small{display:block;font-family:var(--f-body);font-size:1.1rem;font-weight:700}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
+<div id="scena" aria-hidden="true"></div>
 <div id="app">
   <section id="home">
     <header class="hero">
@@ -799,6 +812,13 @@ h2{font-size:1.75rem}
     </div>
   </section>
 
+  <section id="mondo" hidden>
+    <div class="top"><h1>Dove vuoi giocare?</h1></div>
+    <p class="note">Tocca il tuo mondo: cambiano i personaggi e le cose dei giochi.</p>
+    <button class="btn guida" type="button" data-guida="mondo"><svg class="ic" viewBox="0 0 24 24"><use href="#i-spk"/></svg>Ascolta</button>
+    <div class="mondi" id="mondiGrid"></div>
+  </section>
+
   <section id="who" hidden>
     <p class="logo"><span class="l1">Leggo</span> e <span class="l2">Conto</span></p>
     <div class="top"><h1>Chi gioca oggi?</h1></div>
@@ -858,8 +878,11 @@ h2{font-size:1.75rem}
     <div class="resetbox"><b id="resetTit">Ricominciare da zero?</b><p id="resetTxt"></p><button class="btn danger" id="resetBtn">Azzera i risultati</button></div>
     <div class="tabs"><button class="chip" data-tab="imp" aria-pressed="true">Impostazioni</button><button class="chip" data-tab="ris" aria-pressed="false">Risultati</button><button class="chip" data-tab="come" aria-pressed="false">Come funziona</button></div>
     <div data-panel="imp">
-    <h2>I colori dell'app</h2>
-    <div class="temi" id="temiBtns"></div>
+    <h2 id="mondoTit">Ambientazione</h2>
+    <p class="note" style="margin:0 0 10px">Cambia i personaggi, lo sfondo e le cose nei giochi.</p>
+    <div class="mondi" id="mondiGrandi"></div>
+    <h2>La voce</h2>
+    <button class="btn vocebtn" type="button" id="grVoce"></button>
     <div class="form" id="accountBox" hidden style="margin-bottom:14px"></div>
     <div class="form">
       <label class="sw"><input type="checkbox" id="optVoice"> Leggi le domande ad alta voce</label>
@@ -1004,6 +1027,196 @@ const ENGINE = `<g><path d="M-6 -22 q-6 -4 -2 -9 q6 -3 9 1 q6 -2 7 4" fill="#FFF
   ${[-18, -2, 16].map(x => `<circle cx="${x}" cy="20" r="6.5" fill="#2A2346"/><circle cx="${x}" cy="20" r="2.5" fill="#FFD000"/>`).join('')}</g>`;
 const HEROES = { treno: { name: 'Ciuf', art: ENGINE }, lettere: { name: 'Leo', art: LION }, sillabe: { name: 'Olga', art: OWL }, leggo: { name: 'Pio', art: CHICK }, frasi: { name: 'Gigi', art: GIRAFFE }, italiano: { name: 'Otto', art: OCTO }, forme: { name: 'Tina', art: TURTLE }, l20: { name: 'Bobo', art: PUP }, l100: { name: 'Zip', art: HEDGE }, cifre: { name: 'Saltino', art: FROG }, calc: { name: 'Lola', art: BUNNY } };
 const heroSvg = k => `<svg viewBox="-34 -33 68 60" aria-hidden="true">${HEROES[k].art}</svg>`;
+/* ---------- ambientazioni: personaggi, scenari, parole e frasi ---------- */
+// ogni ambientazione cambia la specie dei personaggi, non il loro nome: Leo resta Leo, anche da dinosauro
+const OL = 'stroke="#1E1838" stroke-width="2.5" stroke-linejoin="round"';
+const OLs = 'stroke="#1E1838" stroke-width="1.8" stroke-linejoin="round"';
+const occhio = (x, y, r = 4.2) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" ${OLs}/><circle cx="${(x + r * .18).toFixed(1)}" cy="${(y + r * .1).toFixed(1)}" r="${(r * .56).toFixed(1)}" fill="#1E1838"/><circle cx="${(x + r * .4).toFixed(1)}" cy="${(y - r * .25).toFixed(1)}" r="${(r * .22).toFixed(1)}" fill="#fff"/>`;
+const sorriso = (x, y, w = 5) => `<path d="M${x - w} ${y} Q${x} ${y + w * .9} ${x + w} ${y}" fill="none" stroke="#1E1838" stroke-width="2" stroke-linecap="round"/>`;
+const guancia = (x, y, r = 2.6) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#FF8FB0" opacity=".85"/>`;
+const gamba = (x, y, c, h = 9, w = 7) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${c}" ${OL}/>`;
+// tubo con il bordo: prima il contorno scuro, poi il colore
+const tubo = (d, c, w) => `<path d="${d}" fill="none" stroke="#1E1838" stroke-width="${w + 5}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+
+const DINO = {
+  lettere: (c = '#FF9A2E', d = '#C76A10') => `<g>
+    <path d="M-15 2 Q-30 4 -33 18 Q-24 15 -12 15Z" fill="${c}" ${OL}/>${gamba(-11, 15, d)}${gamba(1, 15, d)}
+    <ellipse cx="-3" cy="8" rx="15" ry="12" fill="${c}" ${OL}/><ellipse cx="1" cy="11" rx="8" ry="7" fill="#FFE2B8"/>
+    <rect x="0" y="-9" width="12" height="12" fill="${c}"/>
+    <rect x="-2" y="-26" width="30" height="20" rx="9" fill="${c}" ${OL}/>
+    <path d="M12 3 q5 0 6 4" fill="none" stroke="#1E1838" stroke-width="2.5" stroke-linecap="round"/>
+    ${occhio(12, -18, 4.6)}<circle cx="24" cy="-20" r="1.3" fill="#1E1838"/>
+    <path d="M14 -10 Q21 -7 27 -11" fill="none" stroke="#1E1838" stroke-width="2" stroke-linecap="round"/>
+    <path d="M17 -9.5 l1.5 3 l1.5 -2.6 M21 -8.6 l1.4 2.8 l1.5 -3" fill="#fff" stroke="#1E1838" stroke-width="1"/>${guancia(6, -12)}
+    <path d="M-8 -3 l3 -5 l3 4 M-1 -4 l3 -5 l3 4" fill="${d}" stroke="#1E1838" stroke-width="1.5"/></g>`,
+  sillabe: (c = '#9B6BFF', d = '#5E35B1') => `<g>
+    <path d="M-6 -2 L-33 -12 Q-30 4 -22 6 Q-16 0 -12 8Z" fill="${c}" ${OL}/><path d="M6 -2 L33 -12 Q30 4 22 6 Q16 0 12 8Z" fill="${c}" ${OL}/>
+    <path d="M-27 -8 L-14 2 M27 -8 L14 2" stroke="${d}" stroke-width="1.5"/>
+    <ellipse cx="0" cy="8" rx="9" ry="13" fill="${c}" ${OL}/><ellipse cx="0" cy="11" rx="5" ry="8" fill="#E5D9FF"/>
+    <path d="M-5 20 l-2 6 M5 20 l2 6" stroke="#1E1838" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M-4 -19 L-16 -30 L-1 -24Z" fill="#FFC14D" ${OLs}/>
+    <circle cx="0" cy="-13" r="10" fill="${c}" ${OL}/><path d="M7 -15 L24 -10 L7 -7Z" fill="#FFC14D" ${OL}/>
+    ${occhio(1, -15, 4.2)}${guancia(-5, -9)}</g>`,
+  leggo: (c = '#FFD54A', d = '#E39A00') => `<g>
+    <ellipse cx="0" cy="-6" rx="16" ry="15" fill="${c}" ${OL}/>
+    <path d="M-6 -20 l3 -6 l3 6 M1 -21 l3 -6 l3 6" fill="#FF9A2E" stroke="#1E1838" stroke-width="1.5"/>
+    ${occhio(-6, -9, 4.6)}${occhio(6, -9, 4.6)}${sorriso(0, -1, 4)}${guancia(-11, -2)}${guancia(11, -2)}
+    <path d="M-21 4 L-15 -2 L-9 5 L-3 -1 L3 5 L9 -1 L15 5 L21 0 Q23 27 0 27 Q-23 27 -21 4Z" fill="#FFF4DC" ${OL}/>
+    <circle cx="-9" cy="15" r="2.6" fill="#C9A8FF"/><circle cx="8" cy="19" r="3" fill="#FFB0CC"/><circle cx="13" cy="10" r="2" fill="#C9A8FF"/></g>`,
+  frasi: (c = '#FFC94D', d = '#D9902A') => `<g>
+    <path d="M-16 8 Q-30 10 -33 20 Q-24 18 -14 17Z" fill="${c}" ${OL}/>${gamba(-17, 15, c, 11, 7)}${gamba(-4, 15, c, 11, 7)}
+    ${tubo('M3 6 Q10 -6 15 -20', c, 9)}
+    <ellipse cx="-8" cy="9" rx="16" ry="10" fill="${c}" ${OL}/><circle cx="-12" cy="6" r="2.6" fill="${d}"/><circle cx="-4" cy="10" r="2.2" fill="${d}"/><circle cx="-15" cy="13" r="1.8" fill="${d}"/>
+    <ellipse cx="19" cy="-23" rx="10" ry="7" fill="${c}" ${OL}/>${occhio(19, -25, 3.6)}<path d="M21 -19 Q25 -18 28 -21" fill="none" stroke="#1E1838" stroke-width="1.8" stroke-linecap="round"/>${guancia(14, -20, 2)}</g>`,
+  italiano: (c = '#FF7FB6', d = '#D94A8C') => `<g>
+    ${[-14, -6, 2].map((x, i) => `<path d="M${x} ${-2 + i} L${x + 4} ${-14 + i * 1.5} L${x + 8} ${-1 + i}Z" fill="#FFC14D" ${OLs}/>`).join('')}
+    <path d="M-17 6 Q-28 8 -32 4 Q-28 16 -15 14Z" fill="${c}" ${OL}/><path d="M-31 3 l-2 -5 M-30 6 l-4 -2" stroke="#1E1838" stroke-width="2" stroke-linecap="round"/>
+    ${gamba(-14, 13, d, 12, 7)}${gamba(4, 13, d, 12, 7)}
+    <ellipse cx="-3" cy="7" rx="18" ry="11" fill="${c}" ${OL}/><ellipse cx="-1" cy="11" rx="10" ry="5" fill="#FFD3E6"/>
+    <circle cx="20" cy="3" r="9" fill="${c}" ${OL}/>${occhio(21, 0, 3.8)}${sorriso(22, 6, 3)}${guancia(16, 6, 2)}</g>`,
+  l20: (c = '#4FC3C9', d = '#1F8A90') => `<g>
+    <path d="M2 -24 A18 18 0 0 1 24 4 L10 2Z" fill="#FFC14D" ${OL}/>
+    <path d="M-15 6 Q-30 8 -32 18 Q-24 16 -13 16Z" fill="${c}" ${OL}/>${gamba(-14, 15, d)}${gamba(0, 15, d)}
+    <ellipse cx="-4" cy="9" rx="16" ry="11" fill="${c}" ${OL}/>
+    <circle cx="14" cy="-2" r="12" fill="${c}" ${OL}/>
+    <path d="M10 -12 L6 -28 L15 -14Z M21 -10 L26 -25 L24 -9Z" fill="#FFF4DC" ${OLs}/><path d="M24 2 L32 -1 L25 6Z" fill="#FFF4DC" ${OLs}/>
+    ${occhio(15, -4, 4.2)}${sorriso(17, 4, 3.5)}${guancia(9, 3)}</g>`,
+  l100: (c = '#B38BFF', d = '#7A4FD9') => `<g>
+    <path d="M-10 4 Q-28 0 -33 6 Q-26 12 -10 12Z" fill="${c}" ${OL}/>
+    <path d="M-4 14 L-8 26 M4 14 L6 26" stroke="#1E1838" stroke-width="6" stroke-linecap="round"/><path d="M-4 14 L-8 26 M4 14 L6 26" stroke="${d}" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="0" cy="6" rx="12" ry="10" fill="${c}" ${OL}/>
+    ${tubo('M6 0 Q10 -8 12 -12', c, 7)}
+    <path d="M6 -24 l-6 -6 l9 2 l-1 -8 l7 7" fill="#FF8FB0" ${OLs}/>
+    <ellipse cx="16" cy="-17" rx="12" ry="8" fill="${c}" ${OL}/>${occhio(16, -19, 3.8)}<path d="M18 -13 Q23 -12 27 -15" fill="none" stroke="#1E1838" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M8 4 l6 3 M7 8 l5 4" stroke="#1E1838" stroke-width="2.2" stroke-linecap="round"/></g>`,
+  cifre: (c = '#E0A458', d = '#9A6324') => `<g>
+    <path d="M-20 8 Q-28 8 -30 6" stroke="#1E1838" stroke-width="7" stroke-linecap="round"/><path d="M-20 8 Q-28 8 -30 6" stroke="${c}" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="-31" cy="5" r="5" fill="${d}" ${OL}/>
+    ${gamba(-14, 13, d, 10, 8)}${gamba(4, 13, d, 10, 8)}
+    <path d="M-22 14 Q-22 -8 0 -8 Q20 -8 22 14Z" fill="${c}" ${OL}/>
+    ${[-15, -6, 3, 12].map(x => `<path d="M${x} -4 l3 -7 l3 7" fill="#FFF4DC" ${OLs}/>`).join('')}
+    <path d="M-18 6 h36" stroke="${d}" stroke-width="2" stroke-dasharray="3 4"/>
+    <circle cx="23" cy="6" r="9" fill="${c}" ${OL}/>${occhio(24, 3, 3.6)}${sorriso(24, 9, 3)}</g>`,
+  calc: (c = '#FF5FA2', d = '#C2185B') => `<g>
+    ${tubo('M6 -22 Q-8 -30 -16 -26', '#FFC14D', 5)}
+    <path d="M-14 6 Q-28 8 -31 18 Q-22 16 -12 16Z" fill="${c}" ${OL}/>${gamba(-12, 15, d)}${gamba(2, 15, d)}
+    <ellipse cx="-2" cy="8" rx="14" ry="12" fill="${c}" ${OL}/><ellipse cx="2" cy="11" rx="7" ry="7" fill="#FFD3E6"/>
+    <rect x="2" y="-10" width="10" height="12" fill="${c}"/>
+    <ellipse cx="13" cy="-15" rx="13" ry="10" fill="${c}" ${OL}/>
+    ${occhio(13, -17, 4.2)}${sorriso(17, -9, 3.5)}${guancia(7, -10)}
+    <path d="M10 4 q5 0 6 4" fill="none" stroke="#1E1838" stroke-width="2.5" stroke-linecap="round"/></g>`,
+  forme: (c = '#FFB347', d = '#C76A10') => `<g>
+    <path d="M-34 22 Q-25 16 -17 22 T0 22 T17 22 T34 22" fill="none" stroke="#7FC8F8" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-16 8 Q-30 10 -32 16 Q-22 18 -12 14Z" fill="${c}" ${OL}/>
+    <path d="M-14 14 l-8 8 M10 14 l8 8" stroke="#1E1838" stroke-width="6" stroke-linecap="round"/><path d="M-14 14 l-8 8 M10 14 l8 8" stroke="${d}" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="-2" cy="10" rx="16" ry="9" fill="${c}" ${OL}/>
+    ${tubo('M10 4 Q18 -6 14 -18', c, 8)}
+    <ellipse cx="18" cy="-21" rx="10" ry="7" fill="${c}" ${OL}/>${occhio(19, -23, 3.6)}${sorriso(21, -17, 2.6)}${guancia(13, -18, 2)}</g>`,
+};
+
+function alieno({ c, d, forma = 'tondo', occhi = 2, antenne = 2, extra = '' }) {
+  const corpo = forma === 'alto' ? `<rect x="-14" y="-18" width="28" height="42" rx="14" fill="${c}" ${OL}/>`
+    : forma === 'pera' ? `<path d="M0 -20 Q14 -20 14 -4 Q22 10 18 20 Q0 28 -18 20 Q-22 10 -14 -4 Q-14 -20 0 -20Z" fill="${c}" ${OL}/>`
+    : `<circle cx="0" cy="4" r="19" fill="${c}" ${OL}/>`;
+  const top = forma === 'tondo' ? -15 : -20, ey = forma === 'tondo' ? -1 : -6;
+  const ant = antenne === 2 ? `<path d="M-6 ${top + 2} L-12 ${top - 9} M6 ${top + 2} L12 ${top - 9}" stroke="#1E1838" stroke-width="2.5" stroke-linecap="round"/><circle cx="-12" cy="${top - 10}" r="3.6" fill="#FFD000" ${OLs}/><circle cx="12" cy="${top - 10}" r="3.6" fill="#FFD000" ${OLs}/>`
+    : antenne === 1 ? `<path d="M0 ${top} L0 ${top - 10}" stroke="#1E1838" stroke-width="2.5" stroke-linecap="round"/><circle cx="0" cy="${top - 11}" r="4" fill="#FFD000" ${OLs}/>` : '';
+  const oc = occhi === 1 ? occhio(0, ey, 8) : occhi === 3 ? occhio(-10, ey + 1, 4.4) + occhio(0, ey - 3, 4.4) + occhio(10, ey + 1, 4.4) : occhio(-7, ey, 5.6) + occhio(7, ey, 5.6);
+  const braccia = `<path d="M${forma === 'tondo' ? -18 : -14} 8 q-8 2 -10 -5 M${forma === 'tondo' ? 18 : 14} 8 q8 2 10 -5" fill="none" stroke="#1E1838" stroke-width="6" stroke-linecap="round"/><path d="M${forma === 'tondo' ? -18 : -14} 8 q-8 2 -10 -5 M${forma === 'tondo' ? 18 : 14} 8 q8 2 10 -5" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
+  const piedi = extra === 'tentacoli' ? [-12, -4, 4, 12].map(x => tubo(`M${x} 18 q${x < 0 ? -4 : 4} 6 0 9`, c, 4)).join('') : `<ellipse cx="-7" cy="24" rx="6" ry="3.5" fill="${d}" ${OLs}/><ellipse cx="7" cy="24" rx="6" ry="3.5" fill="${d}" ${OLs}/>`;
+  const macchie = `<circle cx="-9" cy="14" r="2.2" fill="${d}" opacity=".6"/><circle cx="10" cy="16" r="1.8" fill="${d}" opacity=".6"/>`;
+  let s = `${braccia}${piedi}${corpo}${macchie}${ant}${oc}${sorriso(0, ey + 10, 5)}${guancia(-11, ey + 9)}${guancia(11, ey + 9)}`;
+  if (extra === 'ufo') s = `<g transform="translate(0 -5) scale(.78)">${corpo}${ant}${oc}${sorriso(0, ey + 10, 5)}</g>
+    <path d="M-17 -6 A17 17 0 0 1 17 -6" fill="#CFF3FF" opacity=".55" ${OLs}/>
+    <ellipse cx="0" cy="8" rx="31" ry="9" fill="#FFB347" ${OL}/><ellipse cx="0" cy="4" rx="17" ry="4" fill="#FFD98A" ${OLs}/>
+    ${[-20, -7, 7, 20].map(x => `<circle cx="${x}" cy="10" r="2.4" fill="#FFF4A8" ${OLs} stroke-width="1"/>`).join('')}
+    <path d="M-12 17 l-5 8 M12 17 l5 8" stroke="#1E1838" stroke-width="2.5" stroke-linecap="round"/>`;
+  if (extra === 'casco') s += `<circle cx="0" cy="${forma === 'tondo' ? 0 : -4}" r="${forma === 'tondo' ? 24 : 26}" fill="#CFF3FF" opacity=".28" stroke="#1E1838" stroke-width="2"/><path d="M-12 -16 a16 16 0 0 1 10 -6" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  if (extra === 'orecchie') s = `<path d="M-10 -14 Q-16 -34 -6 -30 Q-2 -22 -4 -14Z M10 -14 Q16 -34 6 -30 Q2 -22 4 -14Z" fill="${c}" ${OL}/>` + s;
+  return `<g>${s}</g>`;
+}
+const ALIENI = {
+  lettere: alieno({ c: '#FF9A2E', d: '#C76A10', forma: 'tondo', occhi: 2, antenne: 2 }),
+  sillabe: alieno({ c: '#9B6BFF', d: '#5E35B1', forma: 'alto', occhi: 3, antenne: 1 }),
+  leggo: alieno({ c: '#FFD54A', d: '#E39A00', forma: 'tondo', occhi: 1, antenne: 2 }),
+  frasi: alieno({ c: '#FF7FB6', d: '#C2185B', forma: 'alto', occhi: 2, antenne: 2 }),
+  italiano: alieno({ c: '#C9A0FF', d: '#7A4FD9', forma: 'tondo', occhi: 2, antenne: 0, extra: 'tentacoli' }),
+  l20: alieno({ c: '#FF5FA2', d: '#C2185B', forma: 'tondo', occhi: 2, antenne: 1, extra: 'ufo' }),
+  l100: alieno({ c: '#4FC3C9', d: '#1F8A90', forma: 'alto', occhi: 2, antenne: 0, extra: 'casco' }),
+  cifre: alieno({ c: '#FFB347', d: '#C76A10', forma: 'pera', occhi: 3, antenne: 2 }),
+  calc: alieno({ c: '#F28CE0', d: '#9B1F8A', forma: 'pera', occhi: 2, antenne: 0, extra: 'orecchie' }),
+  forme: alieno({ c: '#E0A458', d: '#9A6324', forma: 'tondo', occhi: 1, antenne: 1, extra: 'casco' }),
+};
+
+// i cartoni: oggetti buffi con la faccia
+const faccia = (y = 0, x = 0, r = 4.4) => `${occhio(x - 6, y, r)}${occhio(x + 6, y, r)}${sorriso(x, y + 8, 4.5)}${guancia(x - 11, y + 6)}${guancia(x + 11, y + 6)}`;
+const stellaPts = (cx, cy, R, r) => Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r : R; return `${(cx + q * Math.cos(a)).toFixed(1)},${(cy + q * Math.sin(a)).toFixed(1)}`; }).join(' ');
+const CARTONI = {
+  lettere: `<g><polygon points="${stellaPts(0, 0, 30, 14)}" fill="#FFD000" ${OL}/>${faccia(-1, 0, 4)}</g>`,
+  sillabe: `<g><path d="M-22 18 Q-34 16 -30 4 Q-34 -10 -18 -10 Q-16 -26 0 -24 Q14 -30 20 -14 Q34 -14 32 2 Q36 16 22 18Z" fill="#F3EDFF" ${OL}/>${faccia(-2, 0, 4.4)}</g>`,
+  leggo: `<g><path d="M-13 2 L0 27 L13 2Z" fill="#E8A35E" ${OL}/><path d="M-8 6 l13 13 M-2 4 l9 9 M4 4 l4 4 M8 6 l-14 14 M2 4 l-8 8" stroke="#B0692A" stroke-width="1.4"/>
+    <circle cx="0" cy="-10" r="15" fill="#FFB0CC" ${OL}/><path d="M-15 -6 Q-10 0 -5 -5 Q0 1 5 -5 Q10 0 15 -6 L15 2 L-15 2Z" fill="#FFB0CC" ${OL}/><circle cx="0" cy="-26" r="4" fill="#E53950" ${OLs}/>
+    ${faccia(-12, 0, 3.8)}</g>`,
+  frasi: `<g><path d="M-10 -30 h20 v6 h-20Z" fill="#FF8FB0" ${OL}/><rect x="-10" y="-24" width="20" height="38" fill="#FFC400" ${OL}/><path d="M-10 14 L0 30 L10 14Z" fill="#F8DFC0" ${OL}/><path d="M-3.5 25 L0 30 L3.5 25Z" fill="#1E1838"/>
+    ${occhio(-4, -12, 3.6)}${occhio(4, -12, 3.6)}${sorriso(0, -5, 3.5)}<path d="M-10 -20 h20" stroke="#E39A00" stroke-width="1.6"/></g>`,
+  italiano: `<g><path d="M-18 4 L-13 26 L13 26 L18 4Z" fill="#FF7FB6" ${OL}/><path d="M-12 6 l2 18 M-4 6 l1 18 M4 6 l-1 18 M12 6 l-2 18" stroke="#D94A8C" stroke-width="1.5"/>
+    <path d="M-21 4 Q-24 -10 -12 -12 Q-8 -24 4 -20 Q16 -24 18 -10 Q26 -8 21 4Z" fill="#FFF4DC" ${OL}/><circle cx="2" cy="-24" r="4.5" fill="#E53950" ${OLs}/>
+    ${[[-12, -6, '#4FC3C9'], [8, -10, '#FFD000'], [14, -2, '#9B6BFF'], [-4, -14, '#FF7FB6']].map(([x, y, f]) => `<rect x="${x}" y="${y}" width="5" height="2" rx="1" fill="${f}" transform="rotate(30 ${x} ${y})"/>`).join('')}
+    ${occhio(-6, 12, 3.6)}${occhio(6, 12, 3.6)}${sorriso(0, 18, 3)}</g>`,
+  l20: `<g><path d="M-18 24 L-18 -6 A18 18 0 0 1 18 -6 L18 24 L12 19 L6 24 L0 19 L-6 24 L-12 19Z" fill="#FFFFFF" ${OL}/>
+    <path d="M-18 4 q-8 -2 -10 -10 M18 4 q8 -2 10 -10" fill="none" stroke="#1E1838" stroke-width="2.5" stroke-linecap="round"/>${faccia(-6, 0, 4.6)}</g>`,
+  l100: `<g><path d="M0 -24 V-31" stroke="#1E1838" stroke-width="2.5"/><circle cx="0" cy="-32" r="3.5" fill="#FF5FA2" ${OLs}/>
+    <rect x="-16" y="-24" width="32" height="24" rx="8" fill="#FFC14D" ${OL}/><rect x="-11" y="-19" width="22" height="13" rx="4" fill="#2A2346"/>
+    <circle cx="-5" cy="-12.5" r="3.4" fill="#7FE7FF"/><circle cx="5" cy="-12.5" r="3.4" fill="#7FE7FF"/>
+    <rect x="-13" y="2" width="26" height="22" rx="6" fill="#FFC14D" ${OL}/><circle cx="-4" cy="10" r="2.5" fill="#FF5FA2"/><circle cx="4" cy="10" r="2.5" fill="#4FC3C9"/><rect x="-6" y="16" width="12" height="3" rx="1.5" fill="#2A2346"/>
+    <path d="M-13 8 h-8 v8 M13 8 h8 v8" fill="none" stroke="#1E1838" stroke-width="3" stroke-linecap="round"/></g>`,
+  cifre: `<g><path d="M0 14 Q-4 20 2 24 Q6 28 0 32" fill="none" stroke="#1E1838" stroke-width="1.6"/><ellipse cx="0" cy="-6" rx="19" ry="22" fill="#FF7FB6" ${OL}/><path d="M-3 15 L3 15 L0 19Z" fill="#FF7FB6" ${OLs}/>
+    <path d="M-10 -20 q4 -6 10 -6" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>${faccia(-6, 0, 4.4)}</g>`,
+  calc: `<g><path d="M4 -27 A27 27 0 1 0 4 27 A34 34 0 0 1 4 -27Z" fill="#FFE03A" ${OL}/>${occhio(-12, -4, 4)}${sorriso(-10, 6, 4)}${guancia(-18, 4)}
+    <polygon points="${stellaPts(22, -16, 6, 2.6)}" fill="#FFD000" ${OLs}/><polygon points="${stellaPts(24, 10, 4, 1.8)}" fill="#FFD000" ${OLs}/></g>`,
+  forme: `<g><path d="M-16 -8 L-4 -20 L22 -20 L10 -8Z" fill="#FFE3B0" ${OL}/><path d="M10 -8 L22 -20 L22 8 L10 20Z" fill="#E8A35E" ${OL}/><rect x="-16" y="-8" width="26" height="28" fill="#FFC970" ${OL}/>
+    <circle cx="4" cy="-14" r="2" fill="#1E1838"/><circle cx="16" cy="-6" r="2" fill="#fff"/><circle cx="16" cy="6" r="2" fill="#fff"/>
+    ${occhio(-8, 2, 3.6)}${occhio(2, 2, 3.6)}${sorriso(-3, 10, 3.5)}</g>`,
+};
+
+// lo scenario: una striscia in fondo alla pagina, molto chiara, dietro a tutto
+const SCENE = {
+  animali: `<path d="M0 120 V78 Q60 50 130 74 Q200 96 270 66 Q340 40 400 70 V120Z" fill="#BFE6A8"/><path d="M0 120 V96 Q90 80 180 98 Q280 112 400 92 V120Z" fill="#9ED98A"/>
+    <rect x="318" y="34" width="10" height="40" rx="3" fill="#B07A4A"/><circle cx="323" cy="30" r="22" fill="#7CCB6A"/><circle cx="308" cy="40" r="14" fill="#7CCB6A"/><circle cx="338" cy="40" r="14" fill="#7CCB6A"/>
+    ${[[40, 96, '#FF8FB0'], [70, 102, '#FFD000'], [220, 104, '#C9A0FF'], [250, 98, '#FF8FB0'], [370, 100, '#FFD000']].map(([x, y, f]) => `<path d="M${x} ${y} v12" stroke="#5BAE4A" stroke-width="2"/><circle cx="${x}" cy="${y}" r="5" fill="${f}"/><circle cx="${x}" cy="${y}" r="2" fill="#fff"/>`).join('')}
+    <circle cx="60" cy="26" r="16" fill="#FFE28A"/>`,
+  dinosauri: `<path d="M0 120 V92 Q100 78 200 94 Q300 108 400 88 V120Z" fill="#E8D3A8"/>
+    <path d="M250 96 L292 30 L312 30 L356 96Z" fill="#C9A27A"/><path d="M292 30 Q302 40 312 30 L306 46 Q300 40 296 48Z" fill="#FF8A3D"/>
+    <circle cx="300" cy="18" r="9" fill="#D8D2CC"/><circle cx="312" cy="8" r="7" fill="#E4DFDA"/><circle cx="288" cy="10" r="6" fill="#E4DFDA"/>
+    <path d="M60 100 V56" stroke="#A97B50" stroke-width="7" stroke-linecap="round"/>${[-60, -25, 15, 50, 85].map(a => `<path d="M60 56 q${(30 * Math.cos(a * Math.PI / 180)).toFixed(0)} ${(-12 + 20 * Math.sin(a * Math.PI / 180)).toFixed(0)} ${(46 * Math.cos(a * Math.PI / 180)).toFixed(0)} ${(14 + 30 * Math.sin(a * Math.PI / 180)).toFixed(0)}" stroke="#8CCB6E" stroke-width="7" fill="none" stroke-linecap="round"/>`).join('')}
+    ${[130, 160, 380].map(x => `<path d="M${x} 104 q-10 -18 -2 -34 M${x} 104 q10 -16 4 -32 M${x} 104 q0 -20 -4 -40" stroke="#9AD27E" stroke-width="5" fill="none" stroke-linecap="round"/>`).join('')}
+    <ellipse cx="205" cy="104" rx="9" ry="11" fill="#FFF4DC" stroke="#E0C9A0" stroke-width="2"/><ellipse cx="222" cy="106" rx="7" ry="9" fill="#FFF4DC" stroke="#E0C9A0" stroke-width="2"/>`,
+  spazio: `<path d="M0 120 V96 Q100 84 200 98 Q300 110 400 92 V120Z" fill="#D9DCEB"/>${[[60, 108, 8], [150, 104, 5], [270, 110, 7], [350, 102, 4]].map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r * 1.6}" ry="${r * .6}" fill="#C3C7DA"/>`).join('')}
+    <circle cx="330" cy="40" r="20" fill="#FFC9A8"/><ellipse cx="330" cy="40" rx="34" ry="8" fill="none" stroke="#C9A0FF" stroke-width="4"/>
+    <g transform="translate(70 30) rotate(30)"><path d="M0 -24 Q10 -12 10 10 L-10 10 Q-10 -12 0 -24Z" fill="#E9ECF5"/><circle cy="-6" r="4" fill="#9FD6FF"/><path d="M-10 4 l-7 10 h7Z M10 4 l7 10 h-7Z" fill="#FFB0CC"/><path d="M-5 12 l5 12 l5 -12Z" fill="#FFC14D"/></g>
+    ${[[20, 20], [140, 14], [200, 40], [250, 18], [390, 14], [110, 60], [380, 70], [180, 70]].map(([x, y]) => `<polygon points="${stellaPts(x, y, 5, 2.2)}" fill="#FFD966"/>`).join('')}`,
+  cartoni: `<path d="M40 120 A160 160 0 0 1 360 120" fill="none" stroke="#FFB0CC" stroke-width="12"/><path d="M52 120 A148 148 0 0 1 348 120" fill="none" stroke="#FFD98A" stroke-width="12"/><path d="M64 120 A136 136 0 0 1 336 120" fill="none" stroke="#B9E8A8" stroke-width="12"/><path d="M76 120 A124 124 0 0 1 324 120" fill="none" stroke="#A8D8FF" stroke-width="12"/><path d="M88 120 A112 112 0 0 1 312 120" fill="none" stroke="#D7C2FF" stroke-width="12"/>
+    ${[[30, 104], [370, 100]].map(([x, y]) => `<g fill="#FFFFFF" stroke="#E2E6F0" stroke-width="2"><circle cx="${x - 14}" cy="${y}" r="12"/><circle cx="${x}" cy="${y - 8}" r="16"/><circle cx="${x + 16}" cy="${y}" r="12"/></g>`).join('')}
+    ${[[110, 30, '#FF8FB0'], [290, 22, '#FFD000'], [200, 14, '#9FD6FF']].map(([x, y, f]) => `<path d="M${x} ${y + 14} q-4 10 2 20" stroke="#B9BED0" stroke-width="1.5" fill="none"/><ellipse cx="${x}" cy="${y}" rx="10" ry="13" fill="${f}"/>`).join('')}`,
+};
+
+const DINO_S = Object.fromEntries(Object.keys(DINO).map(k => [k, DINO[k]()]));
+const MONDI = {
+  dinosauri: { nome: 'Dinosauri', art: DINO_S, voce: 'con i dinosauri', fondo: '#FFF1DC' },
+  spazio: { nome: 'Spazio', art: ALIENI, voce: 'nello spazio, con gli alieni', fondo: '#E9E6FF' },
+  cartoni: { nome: 'Cartoni', art: CARTONI, voce: 'con i cartoni animati', fondo: '#FFE6F3' },
+  animali: { nome: 'Animali', art: null, voce: 'con gli animali', fondo: '#E3F6DA' },
+};
+const mondo = () => { try { return MONDI[save.settings.mondo] ? save.settings.mondo : 'animali'; } catch (e) { return 'animali'; } };
+const ANIMALI_ART = Object.fromEntries(Object.entries(HEROES).map(([k, h]) => [k, h.art]));
+Object.keys(HEROES).forEach(k => Object.defineProperty(HEROES[k], 'art', { configurable: true, enumerable: true, get: () => { const A = MONDI[mondo()].art; return (A && A[k]) || ANIMALI_ART[k]; } }));
+const heroIn = (m, k) => `<svg viewBox="-34 -33 68 60" aria-hidden="true">${(MONDI[m].art && MONDI[m].art[k]) || ANIMALI_ART[k]}</svg>`;
+// le cose dentro le domande: due volte su tre vengono dall'ambientazione, se ce n'e' una adatta
+function dalMondo(pool, key) {
+  const m = mondo(), t = pool.filter(x => x.m && x.m.includes(m) && !run.recent.includes(key(x)));
+  return t.length && Math.random() < .65 ? pick(t) : pick(pool);
+}
+const segna = (pool, m, re, key) => pool.forEach(x => { if (re.test(key(x))) x.m = (x.m || []).concat(m); });
 
 /* ---------- numeri in parole e in colore ---------- */
 const UN = ['zero','uno','due','tre','quattro','cinque','sei','sette','otto','nove','dieci','undici','dodici','tredici','quattordici','quindici','sedici','diciassette','diciotto','diciannove'];
@@ -1104,7 +1317,7 @@ function gateFrom(e) {
   if (e.status === 401) { logout(); toast('Rientra con la tua password', '', 'help'); return; }
   attesa(/sospes/i.test(e.message) ? 'bloccato' : 'in_attesa');
 }
-function startApp() { renderHome(); if (store.profiles.length > 1) { renderWho(); show('who'); } else show('home'); }
+function startApp() { renderHome(); if (store.profiles.length > 1) { renderWho(); show('who'); } else if (!save.settings.mondo) apriMondo(); else show('home'); }
 async function boot() {
   if (!API_BASE) return startApp();
   if (recCode) return openRec('nuova');
@@ -2067,9 +2280,15 @@ const STORIE = [
   { k: 'l20', cose: 'ossi', f: false }, { k: 'l100', cose: 'mele', f: true }, { k: 'cifre', cose: 'foglie', f: true },
   { k: 'calc', cose: 'carote', f: true }, { k: 'calc', cose: 'palloncini', f: false }, { k: 'l20', cose: 'palline', f: true },
 ];
+STORIE.forEach(x => { x.m = ['animali']; });
+STORIE.push(...[
+  ['dinosauri', 'l20', 'ossi', false], ['dinosauri', 'calc', 'uova', true], ['dinosauri', 'cifre', 'foglie', true], ['dinosauri', 'l100', 'pigne', true],
+  ['spazio', 'l20', 'stelle', true], ['spazio', 'calc', 'razzi', false], ['spazio', 'cifre', 'pietre lunari', true], ['spazio', 'l100', 'pianeti', false],
+  ['cartoni', 'l20', 'palloncini', false], ['cartoni', 'calc', 'caramelle', true], ['cartoni', 'cifre', 'gelati', false], ['cartoni', 'l100', 'regali', false],
+].map(([m, k, cose, f]) => ({ k, cose, f, m: [m] })));
 function qProblema(d) {
   let P; do { P = calcPair(d, pick([1, -1])); } while (P.b < 2 || P.res < 1);
-  const S = pick(STORIE), H = HEROES[S.k], lei = S.k === 'calc';
+  const S = dalMondo(STORIE, x => x.cose), H = HEROES[S.k], lei = S.k === 'calc';
   const text = P.op > 0
     ? `${H.name} ha ${P.a} ${S.cose}. Ne trova ${S.f ? 'altre' : 'altri'} ${P.b}. Quant${S.f ? 'e' : 'i'} ${S.cose} ha adesso?`
     : `${H.name} ha ${P.a} ${S.cose}. Ne regala ${P.b} a un amico. Quant${S.f ? 'e' : 'i'} ${S.cose} ${lei ? 'le' : 'gli'} restano?`;
@@ -2141,9 +2360,21 @@ document.addEventListener('click', e => {
   const s = e.target.closest('[data-sy]');
   if (s && !$('#game').hidden && !s.closest('.opt,.tile,.slot')) say(s.dataset.sy);
 });
+// le parole, le frasi e le storie di ogni ambientazione
+WORDS.push(...[
+  ['dinosauri', 0, 'uo-vo', '🥚'], ['dinosauri', 1, 'os-so', '🦴'], ['dinosauri', 1, 'den-te', '🦷'], ['dinosauri', 1, 'pal-ma', '🌴'], ['dinosauri', 1, 'fel-ce', '🌿'],
+  ['dinosauri', 2, 'vul-ca-no', '🌋'], ['dinosauri', 2, 'di-no-sau-ro', '🦕'], ['dinosauri', 2, 'roc-cia', '🪨'], ['dinosauri', 2, 'fo-glia', '🍃'], ['dinosauri', 2, 'im-pron-ta', '🐾'],
+  ['spazio', 1, 'raz-zo', '🚀'], ['spazio', 1, 'ter-ra', '🌍'], ['spazio', 1, 'co-me-ta', '☄️'], ['spazio', 2, 'pia-ne-ta', '🪐'], ['spazio', 2, 'a-lie-no', '👽'],
+  ['spazio', 2, 'a-stro-nau-ta', '🧑‍🚀'], ['spazio', 2, 'te-le-sco-pio', '🔭'], ['spazio', 2, 'sa-tel-li-te', '🛰️'],
+  ['cartoni', 0, 'fa-ta', '🧚'], ['cartoni', 0, 'ma-go', '🧙'], ['cartoni', 1, 'ge-la-to', '🍦'], ['cartoni', 1, 're-ga-lo', '🎁'], ['cartoni', 1, 'co-ro-na', '👑'],
+  ['cartoni', 1, 'dra-go', '🐉'], ['cartoni', 1, 'ro-bot', '🤖'], ['cartoni', 1, 'mo-stro', '👾'], ['cartoni', 2, 'fan-ta-sma', '👻'], ['cartoni', 2, 'bac-chet-ta', '🪄'], ['cartoni', 2, 'prin-ci-pes-sa', '👸'],
+].map(([m, l, s, e]) => ({ l, s: s.split('-'), w: s.replace(/-/g, ''), e, m: [m] })));
+segna(WORDS, 'animali', /^(cane|rana|topo|lupo|ape|toro|gatto|pecora|gallina|cavallo|lumaca|farfalla|pesce|tigre|delfino|struzzo|coccodrillo|tartaruga|elefante|ragno|canguro|pinguino|giraffa|coniglio|scimmia)$/, x => x.w);
+segna(WORDS, 'spazio', /^(luna|sole|stella)$/, x => x.w);
+segna(WORDS, 'cartoni', /^(torta|palloncino|caramella|arcobaleno|castello)$/, x => x.w);
 function pickWord(d, not) {
   const pool = WORDS.filter(x => x.l === d && x.w !== not); let w, i = 0;
-  do { w = pick(pool); i++; } while (run.recent.includes(w.w) && i < 40);
+  do { w = dalMondo(pool, x => x.w); i++; } while (run.recent.includes(w.w) && i < 40);
   remember(w.w); return w;
 }
 const clap = w => say(w.s.join(', '));
@@ -2226,7 +2457,7 @@ function qAscolta(d) {
 }
 function qFrase(d) {
   const pool = FRASI.filter(f => f.l === d); let F, i = 0;
-  do { F = pick(pool); i++; } while (run.recent.includes(F.t) && i < 30);
+  do { F = dalMondo(pool, x => x.t); i++; } while (run.recent.includes(F.t) && i < 30);
   remember(F.t);
   const words = F.t.split(' ');
   let op;
@@ -2338,10 +2569,50 @@ const COMPLETA = [['Il cane ___ la palla.', 'prende', ['vola', 'nuota']], ["L'ap
   ['Il pesce vive nel ___.', 'mare', ['letto', 'forno']], ['Mi lavo le mani con il ___.', 'sapone', ['gelato', 'libro']], ["La gallina fa l'___.", 'uovo', ['ombrello', 'orso']],
   ["Quando piove apro l'___.", 'ombrello', ['uovo', 'armadio']], ['Il gatto fa ___.', 'miao', ['bau', 'muu']], ["D'inverno cade la ___.", 'neve', ['torta', 'palla']],
   ['Scrivo con la ___.', 'matita', ['forchetta', 'scarpa']], ['Bevo il latte nella ___.', 'tazza', ['scarpa', 'borsa']], ['La mucca fa ___.', 'muu', ['miao', 'bau']]];
+FRASI.push(...[
+  ['dinosauri', 0, 'Il di-no-sau-ro man-gia.', 'Chi mangia?', '🦕', ['🐱', '🐟']],
+  ['dinosauri', 0, "L'uo-vo è nel ni-do.", "Che cosa c'è nel nido?", '🥚', ['🍎', '⚽']],
+  ['dinosauri', 1, 'Il vul-ca-no fa tan-to fu-mo.', 'Che cosa fa tanto fumo?', '🌋', ['🏠', '🌳']],
+  ['dinosauri', 1, 'Il di-no-sau-ro tro-va un os-so.', 'Che cosa trova il dinosauro?', '🦴', ['🍌', '🎈']],
+  ['dinosauri', 2, "Il cuc-cio-lo di di-no-sau-ro e-sce dal-l'uo-vo.", 'Da dove esce il cucciolo?', '🥚', ['🚗', '🛏️']],
+  ['dinosauri', 2, 'Sot-to la pal-ma dor-me un di-no-sau-ro.', 'Dove dorme il dinosauro?', '🌴', ['🏰', '🚀']],
+  ['spazio', 0, 'Il raz-zo vo-la.', 'Che cosa vola?', '🚀', ['🚗', '🐢']],
+  ['spazio', 0, "L'a-lie-no ri-de.", 'Chi ride?', '👽', ['🐶', '👵']],
+  ['spazio', 1, 'Il pia-ne-ta ha gli a-nel-li.', 'Che cosa ha gli anelli?', '🪐', ['🌙', '☀️']],
+  ['spazio', 1, "L'a-stro-nau-ta guar-da le stel-le.", "Che cosa guarda l'astronauta?", '⭐', ['🍎', '🐟']],
+  ['spazio', 2, 'Il di-sco vo-lan-te at-ter-ra vi-ci-no al-la ca-sa.', 'Che cosa atterra vicino alla casa?', '🛸', ['✈️', '🚂']],
+  ['spazio', 2, 'Con il te-le-sco-pio Lu-ca ve-de la lu-na.', 'Che cosa vede Luca?', '🌙', ['🌈', '🌳']],
+  ['cartoni', 0, 'La fa-ta vo-la.', 'Chi vola?', '🧚', ['🐢', '🐌']],
+  ['cartoni', 0, 'Il ma-go ri-de.', 'Chi ride?', '🧙', ['🐟', '👶']],
+  ['cartoni', 1, 'Il ro-bot bal-la con il mo-stro.', 'Con chi balla il robot?', '👾', ['🐶', '👵']],
+  ['cartoni', 1, 'La prin-ci-pes-sa ha la co-ro-na.', 'Che cosa ha la principessa?', '👑', ['🧢', '🎒']],
+  ['cartoni', 2, 'Il dra-go buo-no man-gia un ge-la-to.', 'Che cosa mangia il drago?', '🍦', ['🍕', '🥕']],
+  ['cartoni', 2, 'Il fan-ta-smi-no gio-ca nel ca-stel-lo.', 'Dove gioca il fantasmino?', '🏰', ['🏠', '⛺']],
+].map(([m, l, t, q, a, o]) => ({ l, t, q, a, o, m: [m] })));
+TRENO.push(...[
+  ['dinosauri', 0, 'Il dinosauro mangia.'], ['dinosauri', 0, 'Il vulcano fuma.'], ['dinosauri', 1, 'Il dinosauro trova un osso.'], ['dinosauri', 1, "Il cucciolo esce dall'uovo."], ['dinosauri', 2, 'Il grande dinosauro mangia le foglie della palma.'],
+  ['spazio', 0, 'Il razzo vola.'], ['spazio', 0, "L'alieno ride."], ['spazio', 1, 'La luna brilla nel cielo.'], ['spazio', 1, "L'astronauta guarda le stelle."], ['spazio', 2, 'Il disco volante atterra vicino alla casa.'],
+  ['cartoni', 0, 'La fata vola.'], ['cartoni', 0, 'Il mago ride.'], ['cartoni', 1, 'Il robot balla con il mostro.'], ['cartoni', 1, 'La principessa ha la corona.'], ['cartoni', 2, 'Il drago buono mangia un gelato al cioccolato.'],
+].map(([m, l, t]) => ({ l, t, m: [m] })));
+SENSO.push(...[
+  ['dinosauri', 'Il dinosauro mangia le foglie.', 'Le foglie mangiano il dinosauro.'], ['dinosauri', "Il cucciolo esce dall'uovo.", "L'uovo esce dal cucciolo."],
+  ['spazio', 'Il razzo vola nello spazio.', 'Il razzo vola nella tazza.'], ['spazio', 'Il pianeta ha gli anelli.', 'Gli anelli hanno il pianeta.'],
+  ['cartoni', 'La fata ha la bacchetta magica.', 'La bacchetta magica ha la fata.'], ['cartoni', 'Il drago vola nel cielo.', 'Il drago vola nel cassetto.'],
+].map(([m, a, b]) => Object.assign([a, b], { m: [m] })));
+COMPLETA.push(...[
+  ['dinosauri', "Il cucciolo esce dall'___.", 'uovo', ['ombrello', 'armadio']], ['dinosauri', 'Il vulcano fa tanto ___.', 'fumo', ['latte', 'pane']],
+  ['spazio', 'Il razzo vola nello ___.', 'spazio', ['zaino', 'stagno']], ['spazio', 'Di notte in cielo brillano le ___.', 'stelle', ['scarpe', 'sedie']],
+  ['cartoni', 'La fata ha la ___ magica.', 'bacchetta', ['forchetta', 'scarpa']], ['cartoni', 'La principessa vive nel ___.', 'castello', ['frigorifero', 'cestino']],
+].map(([m, a, b, c]) => Object.assign([a, b, c], { m: [m] })));
+segna(FRASI, 'animali', /\b(ca-ne|ra-na|to-po|gat-to|far-fal-la|tar-ta-ru-ga|pin-gui-no)\b/, x => x.t);
+segna(TRENO, 'animali', /\b(cane|rana|gatto|pesce|uccello|tigre|delfino|mucca|struzzo|pulcino|farfalla)\b|L'uccello/i, x => x.t);
+segna(SENSO, 'animali', /\b(gatto|cane|mucca|pesce)\b|uccello/i, x => x[0]);
+segna(COMPLETA, 'animali', /\b(cane|ape|pesce|gallina|gatto|mucca)\b|L'ape/i, x => x[0]);
+segna(FRASI, 'spazio', /lu-na|so-le/, x => x.t);
 const lineHTML = t => `<p class="frase rd ${aidCls()}">${wordsHTML(t)}</p>`;
 function qTreno(d, extra) {
   const pool = TRENO.filter(f => f.l === d); let F, i = 0;
-  do { F = pick(pool); i++; } while (run.recent.includes(F.t) && i < 30); remember(F.t);
+  do { F = dalMondo(pool, x => x.t); i++; } while (run.recent.includes(F.t) && i < 30); remember(F.t);
   const words = F.t.split(' ');
   let tiles = words.map((w, k) => ({ w, k }));
   if (extra) { const o = pick(TRENO.filter(x => x.t !== F.t)).t.split(' ').filter(w => !words.includes(w) && !/[.]$/.test(w)); if (o.length) tiles.push({ w: pick(o), k: -1 }); }
@@ -2366,7 +2637,7 @@ function qTreno(d, extra) {
     reveal() { placed = words.map((w, k) => tiles.find(t => t.k === k)); paint(); say(F.t); } });
 }
 function qSenso(d) {
-  let S, i = 0; do { S = pick(SENSO); i++; } while (run.recent.includes(S[0]) && i < 20); remember(S[0]);
+  let S, i = 0; do { S = dalMondo(SENSO, x => x[0]); i++; } while (run.recent.includes(S[0]) && i < 20); remember(S[0]);
   const opts = [S[0], S[1]].concat(d > 0 ? [pick(SENSO.filter(x => x !== S))[1]] : []);
   let op;
   return Q({ text: 'Quale frase ha senso?', say: 'Leggi le frasi e tocca quella che ha senso.',
@@ -2382,7 +2653,7 @@ function qPezzi(d) {
     reveal() { op.reveal(); $('[data-l]', st0).innerHTML = lineHTML(P[0] + ' ' + P[1]); say(P[0] + ' ' + P[1]); } });
 }
 function qCompleta(d) {
-  let C, i = 0; do { C = pick(COMPLETA); i++; } while (run.recent.includes(C[0]) && i < 20); remember(C[0]);
+  let C, i = 0; do { C = dalMondo(COMPLETA, x => x[0]); i++; } while (run.recent.includes(C[0]) && i < 20); remember(C[0]);
   const full = w => C[0].replace(/'___/, "'" + w).replace('___', w);
   let op, st0;
   return Q({ text: 'Completa la frase', say: 'Leggi la frase e scegli la parola che manca.',
@@ -2391,7 +2662,7 @@ function qCompleta(d) {
 }
 function qOrdina(d) {
   const pool = FRASI.filter(f => f.l === d); let F, i = 0;
-  do { F = pick(pool); i++; } while (run.recent.includes(F.t) && i < 30); remember(F.t);
+  do { F = dalMondo(pool, x => x.t); i++; } while (run.recent.includes(F.t) && i < 30); remember(F.t);
   const words = F.t.replace(/-/g, '').split(' ');
   let tiles = words.map((w, k) => ({ w, k }));
   do { tiles = shuffle(tiles); } while (tiles.every((t, k) => t.k === k));
@@ -2536,17 +2807,16 @@ function qFConta(d) {
 /* ---------- schermate ---------- */
 function show(id) { if (typeof guida === 'function') guida(id); $('#toast').hidden = true; const R = document.documentElement; if (['lista', 'cat', 'game', 'result'].includes(id)) R.dataset.cat = save.last.cat || 'mat'; else delete R.dataset.cat; if (!['cat', 'game', 'result'].includes(id)) delete R.dataset.hero; $$('#app > section').forEach(s => s.hidden = s.id !== id); window.scrollTo(0, 0); }
 const miniStars = n => [1, 2, 3].map(i => `<svg class="ic${i <= n ? ' on' : ''}" viewBox="0 0 24 24"><use href="#i-star"/></svg>`).join('');
-// il tema vale per tutta la famiglia: sta nell'archivio, non nel profilo del bambino
-const TEMI = { cielo: ['Cielo', '#CDEBFF'], prato: ['Prato', '#D4F0D2'], sole: ['Sole', '#FFF0C2'], mare: ['Mare', '#1565C0'], arcobaleno: ['Arcobaleno', 'linear-gradient(180deg,#FFF4C4,#FFDCEB,#D3ECFF)'] };
-const TEMA_BASE = 'cielo';
-function applicaTema() { const R = document.documentElement, t = TEMI[store.tema] ? store.tema : TEMA_BASE; R.dataset.tema = t; R.dataset.theme = 'light'; }
-function renderTemi() {
-  const cur = TEMI[store.tema] ? store.tema : TEMA_BASE;
-  $('#temiBtns').innerHTML = Object.entries(TEMI).map(([k, [n, bg]]) => `<button class="btn tema" data-tema="${k}" aria-pressed="${k === cur}"><span class="sw" style="background:${bg}" data-tema-sw="${k}"></span>${n}</button>`).join('');
-  $$('#temiBtns [data-tema-sw]').forEach(sw => { const R = document.documentElement, old = R.dataset.tema; R.dataset.tema = sw.dataset.temaSw; const cs = getComputedStyle(R); sw.innerHTML = ['--t1', '--t2', '--t3', '--t4'].map(v => `<i style="background:${cs.getPropertyValue(v)}"></i>`).join(''); R.dataset.tema = old; });
+// l'ambientazione la sceglie il bambino la prima volta; i grandi la cambiano da Per i grandi
+function applicaMondo() {
+  const R = document.documentElement, m = mondo(); R.dataset.mondo = m; R.dataset.theme = 'light';
+  const sc = $('#scena'); if (sc && sc.dataset.m !== m) { sc.dataset.m = m; sc.innerHTML = `<svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${SCENE[m]}</svg>`; }
 }
+const mondiHTML = () => Object.entries(MONDI).map(([k, M]) => `<button class="mondo-t" data-mondo="${k}" aria-pressed="${k === mondo()}" style="--mf:${M.fondo}">
+  <span class="m-sc"><svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${SCENE[k]}</svg></span>
+  <span class="m-ch">${['lettere', 'l20', 'sillabe'].map(g => heroIn(k, g)).join('')}</span><b>${M.nome}</b></button>`).join('');
 function renderHome() {
-  applicaTema();
+  applicaMondo();
   if (prof.info.genere) document.documentElement.dataset.gen = prof.info.genere; else delete document.documentElement.dataset.gen;
   const li = lvlInfo(save.xp), g = save.last.game;
   $('#hiName').textContent = prof.info.nome || gx('campione', 'campionessa');
@@ -2609,7 +2879,12 @@ function renderCat() {
   $('#typeChips').innerHTML = GAMES[g].types.map(([k, n]) => `<button class="chip" data-t="${k}" aria-pressed="${on.includes(k)}">${n}</button>`).join('');
   $('#diffBtns').innerHTML = DIFF.map((n, d) => `<button class="dbtn ${d === save.last.diff ? 'sel' : ''}" data-d="${d}" aria-pressed="${d === save.last.diff}"><span class="pips">${[0, 1, 2].map(i => `<i class="${i <= d ? 'on' : ''}"></i>`).join('')}</span>${n}<small>${GAMES[g].diffs[d]}</small></button>`).join('');
 }
-$$('[data-cat]').forEach(b => b.onclick = () => { SND.tick(); openList(b.dataset.cat); if (save.settings.voice) say(b.dataset.cat === 'let' ? 'Evviva, le lettere! Scegli un gioco.' : 'Evviva, i numeri! Scegli un gioco.'); });
+$$('[data-cat]').forEach(b => b.onclick = () => {
+  SND.tick(); const c = b.dataset.cat; openList(c);
+  if (!save.settings.voice) return;
+  const nomi = Object.values(GAMES).filter(G => G.cat === c).map(G => G.name);
+  say(`Con cosa vuoi giocare${prof.info.nome ? ', ' + prof.info.nome : ''}? Ci sono: ${nomi.slice(0, -1).join(', ')}, e ${nomi[nomi.length - 1]}. Tocca il gioco che vuoi.`);
+});
 $('#catBack').onclick = () => { renderList(); show('lista'); };
 ['#gamesList'].forEach(id => $(id).addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; SND.tick(); openGame(b.dataset.g); if (save.settings.voice) say(`${GAMES[b.dataset.g].name}! Scegli la difficoltà e premi Gioca.`); }));
 const persGrid = pc => Object.entries(PERSONAS).map(([k, P]) => `<button class="pcard ${k === pc ? 'sel' : ''}" data-p="${k}" aria-pressed="${k === pc}">${persSvg(k)}<b>${P.name}</b><small>${P.tag}</small></button>`).join('');
@@ -2623,13 +2898,16 @@ function renderWho() {
 $('#playerGrid').addEventListener('click', e => {
   const b = e.target.closest('[data-pid]'); if (!b) return; SND.tick();
   if (b.dataset.pid === 'new') return openProfile(null);
-  switchTo(b.dataset.pid); renderHome(); guidaDetta.home = true; show('home'); if (save.settings.voice) say(guidaTesto('home'));
+  switchTo(b.dataset.pid); renderHome();
+  if (!save.settings.mondo) { apriMondo(); if (save.settings.voice) { guidaDetta.mondo = true; say(guidaTesto('mondo')); } return; }
+  guidaDetta.home = true; show('home'); if (save.settings.voice) say(guidaTesto('home'));
 });
 // la voce spiega a cosa serve la pagina e cosa fare, la prima volta che si apre;
 // il pulsante con l'altoparlante la ripete. L'iPhone non parla prima di un tocco: si aspetta quello.
 var guidaDetta = {}, guidaInAttesa = null;
 function guidaTesto(k) {
   if (k === 'accesso') return "Ciao! Questa è Leggo e Conto: tanti giochi per imparare a leggere e a contare. Per cominciare, un grande scrive la sua email e la sua password, e tocca Entra. Se non avete ancora l'accesso, toccate: Chiedi l'accesso.";
+  if (k === 'mondo') return `Dove vuoi giocare${prof.info.nome ? ', ' + prof.info.nome : ''}? Con i dinosauri, nello spazio con gli alieni, con i cartoni animati, o con gli animali? Tocca il tuo mondo.`;
   if (k === 'who') return 'Ciao! Chi gioca oggi? Tocca la tua foto. Se sei nuovo, tocca Aggiungi.';
   if (k === 'home') return `${welcomeMsg()} Tocca Gioca, per giocare con le lettere o con i numeri. Con La voce, scegli chi ti legge le domande. In I miei premi, trovi le stelline che hai vinto.`;
   return '';
@@ -2706,6 +2984,7 @@ $('#menu').onclick = () => { renderCat(); show('cat'); };
 $$('.back').forEach(b => b.onclick = () => { renderHome(); show('home'); });
 $('#mPlay').onclick = () => { SND.tick(); show('scelta'); if (save.settings.voice) say('Con cosa vuoi giocare? Con le lettere o con i numeri?'); };
 $('#mVoice').onclick = () => { SND.tick(); renderHome(); show('voce'); };
+$('#grVoce').onclick = () => { SND.tick(); renderHome(); show('voce'); };
 $('#mPrizes').onclick = () => { SND.tick(); renderHome(); renderAlbum(); show('album'); };
 $('#listBack').onclick = () => show('scelta');
 $('#exToggle').onclick = () => { const c = $('#typeChips'); c.hidden = !c.hidden; $('#exToggle').setAttribute('aria-expanded', String(!c.hidden)); renderCat(); };
@@ -2728,7 +3007,8 @@ function renderAlbum() {
   $('#stickerGrid').innerHTML = STK.map((s, i) => `<div class="stk-t ${i < n ? 'on' : ''}">${i < n ? s : i + 2}</div>`).join('');
 }
 function renderGrandi() {
-  renderTemi();
+  $('#mondiGrandi').innerHTML = mondiHTML();
+  $('#grVoce').innerHTML = `<span class="vb-ic">${persSvg(save.settings.persona in PERSONAS ? save.settings.persona : 'cartoon')}</span><span><b>${persona().name}</b><small>Tocca per cambiare voce e velocità</small></span>`; $('#mondoTit').textContent = `Ambientazione di ${prof.info.nome || 'questo giocatore'}`;
   if (API_BASE && token) {
     $('#accountBox').hidden = false;
     $('#accountBox').innerHTML = '<b>Account</b><span id="accWho">Collegato</span><button class="btn" type="button" id="accOut">Esci da questo account</button>';
@@ -2759,7 +3039,10 @@ $('#optVoice').addEventListener('change', e => { save.settings.voice = e.target.
 $('#optSound').addEventListener('change', e => { save.settings.sound = e.target.checked; persist(); });
 $('#optLen').addEventListener('change', e => { save.settings.len = +e.target.value; persist(); });
 let resetArm = false;
-$('#temiBtns').addEventListener('click', e => { const b = e.target.closest('[data-tema]'); if (!b) return; SND.tick(); store.tema = b.dataset.tema; persist(); applicaTema(); renderTemi(); });
+function scegliMondo(k) { save.settings.mondo = k; persist(); applicaMondo(); }
+$('#mondiGrandi').addEventListener('click', e => { const b = e.target.closest('[data-mondo]'); if (!b) return; SND.tick(); scegliMondo(b.dataset.mondo); renderGrandi(); say(`Ecco: si gioca ${MONDI[b.dataset.mondo].voce}!`); });
+$('#mondiGrid').addEventListener('click', e => { const b = e.target.closest('[data-mondo]'); if (!b) return; SND.tick(); scegliMondo(b.dataset.mondo); renderHome(); guidaDetta.home = true; show('home'); if (save.settings.voice) say(`Evviva, si gioca ${MONDI[b.dataset.mondo].voce}! ${guidaTesto('home')}`); });
+function apriMondo() { $('#mondiGrid').innerHTML = mondiHTML(); show('mondo'); }
 $('#resetBtn').onclick = () => {
   if (!resetArm) { resetArm = true; $('#resetBtn').textContent = 'Sei sicuro? Tocca ancora per azzerare'; return; }
   save = prof.data = { ...clone(DEF), settings: save.settings }; persist(); syncNow(); renderGrandi(); renderHome(); toast('Risultati azzerati: si ricomincia!', '', 'help');
