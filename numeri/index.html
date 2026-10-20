@@ -669,6 +669,9 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
 .vocebtn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:10px 16px}
 .vocebtn .vb-ic svg{width:64px;height:auto;display:block}
 .vocebtn b{display:block;font-size:1.5rem} .vocebtn small{display:block;font-family:var(--f-body);font-size:1.1rem;font-weight:700}
+/* nomi di forme e posizioni: uno sotto l'altro, interi */
+.opts:has(.nome-opt){grid-template-columns:1fr!important;max-width:420px}
+.opt.nome-opt{overflow-wrap:anywhere}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -1218,12 +1221,339 @@ const SCENE = {
     ${[[110, 30, '#FF8FB0'], [290, 22, '#FFD000'], [200, 14, '#9FD6FF']].map(([x, y, f]) => `<path d="M${x} ${y + 14} q-4 10 2 20" stroke="#B9BED0" stroke-width="1.5" fill="none"/><ellipse cx="${x}" cy="${y}" rx="10" ry="13" fill="${f}"/>`).join('')}`,
 };
 
-const DINO_S = Object.fromEntries(Object.keys(DINO).map(k => [k, DINO[k]()]));
+// personaggi per ragazzi fino a 10 anni: proporzioni vere, occhi a mandorla, ombre per il volume
+const K = '#14121F';
+const O2 = `stroke="${K}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"`;
+const O1 = `stroke="${K}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"`;
+// occhio a mandorla; specchio: guarda dall'altra parte (occhio destro di una faccia vista di fronte)
+function mandorla(x, y, s = 3.2, iride = '#E8A317', specchio = false, ciglio = 1, bw = 2.3) {
+  const h = s * .62;
+  const g = `<path d="M${-s} 0 Q0 ${-h * 1.55} ${s} ${-h * .25} Q0 ${h * 1.05} ${-s} 0Z" fill="#fff" ${O1}/>
+    <circle cx="${s * .12}" cy="${-h * .15}" r="${h * .78}" fill="${iride}"/><circle cx="${s * .15}" cy="${-h * .15}" r="${h * .4}" fill="${K}"/><circle cx="${s * .34}" cy="${-h * .45}" r="${h * .2}" fill="#fff"/>
+    ${ciglio ? `<path d="M${-s * 1.15} ${-h * 1.7 - ciglio * .8} L${s * 1.15} ${-h * 1.35 + ciglio * .8}" stroke="${K}" stroke-width="${bw}" stroke-linecap="round"/>` : ''}`;
+  return `<g transform="translate(${x} ${y})${specchio ? ' scale(-1 1)' : ''}">${g}</g>`;
+}
+const ombra = (d, o = .16) => `<path d="${d}" fill="${K}" opacity="${o}"/>`;
+const linea = (d, w = 2, c = K) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const arto = (d, c, w) => `<path d="${d}" fill="none" stroke="${K}" stroke-width="${w + 3.5}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const stellaP = (cx, cy, R, r) => Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r : R; return `${(cx + q * Math.cos(a)).toFixed(1)},${(cy + q * Math.sin(a)).toFixed(1)}`; }).join(' ');
+
+const DINO10 = {
+  // Leo: tirannosauro
+  lettere: (() => { const c = '#E0661B', d = '#A8410E', l = '#F6BE8A'; return `<g>
+    ${arto('M-2 5 Q2 13 -3 17 L0 25', d, 5)}
+    <path d="M-34 -5 Q-22 -10 -12 -8 L-10 4 Q-22 3 -34 -5Z" fill="${c}" ${O2}/>
+    <path d="M-15 -8 Q-4 -15 8 -11 Q14 -6 12 4 Q4 12 -8 9 Q-17 6 -15 -8Z" fill="${c}" ${O2}/>
+    ${ombra('M-14 3 Q-4 11 10 3 Q8 10 -6 10 Q-14 8 -14 3Z')}<path d="M-6 8 Q2 9 9 3" stroke="${l}" stroke-width="3" fill="none" stroke-linecap="round"/>
+    ${[[-26, -7], [-18, -9], [-9, -12], [0, -13]].map(([x, y]) => linea(`M${x} ${y} l2 4`, 2.2, d)).join('')}
+    ${arto('M9 0 L13 3 L15 1.5', d, 2)}
+    <path d="M12 -10 L30 -11 Q29 -6 20 -5 Q13 -5 10 -8Z" fill="${l}" ${O2}/>
+    <path d="M5 -9 Q6 -21 17 -23 Q27 -24 32 -18 Q33 -13 30 -12 L13 -11 Q8 -9 5 -9Z" fill="${c}" ${O2}/>
+    ${[18, 21, 24, 27].map(x => `<path d="M${x} -11.5 l1.3 2.6 l1.3 -2.6Z" fill="#fff" stroke="${K}" stroke-width=".8"/>`).join('')}
+    <path d="M12 -21 Q17 -24 22 -21" stroke="${d}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    ${mandorla(17, -16.5, 2.8, '#F2C230', false, 1)}<circle cx="29.5" cy="-18" r="1" fill="${K}"/>
+    ${arto('M-6 4 Q2 11 -1 17 L3 24', c, 5.5)}<path d="M0 24 l7 0 M3 24 l1 2.5" stroke="${K}" stroke-width="2.2" stroke-linecap="round"/></g>`; })(),
+  // Olga: pteranodonte
+  sillabe: (() => { const c = '#6A4BC4', d = '#3E2A85', l = '#B9A6F0'; return `<g>
+    <path d="M-3 -4 L-33 -16 L-27 -8 L-31 1 L-20 -1 L-8 4Z" fill="${c}" ${O2}/><path d="M3 -4 L33 -16 L27 -8 L31 1 L20 -1 L8 4Z" fill="${c}" ${O2}/>
+    ${ombra('M-31 1 L-20 -1 L-8 4 L-27 -8Z', .18)}${ombra('M31 1 L20 -1 L8 4 L27 -8Z', .18)}
+    ${linea('M-28 -12 L-6 0 M28 -12 L6 0', 1.4, l)}
+    <ellipse cx="0" cy="1" rx="6" ry="10" fill="${c}" ${O2}/><path d="M-2 4 Q0 9 2 4" stroke="${l}" stroke-width="2" fill="none"/>
+    ${arto('M-3 10 L-5 16', d, 2)}${arto('M3 10 L5 16', d, 2)}
+    <path d="M-2 -15 L-18 -28 L3 -20Z" fill="#E8743B" ${O2}/>
+    <path d="M-4 -13 Q0 -21 8 -19 L30 -14 L8 -11 Q2 -9 -4 -13Z" fill="${c}" ${O2}/>
+    ${linea('M10 -14 L28 -14', 1.2)}${mandorla(4, -15.5, 2.4, '#F2C230', false, 1)}</g>`; })(),
+  // Pio: spinosauro
+  leggo: (() => { const c = '#2F9C93', d = '#1D6C66', l = '#9EE0D5'; return `<g>
+    ${arto('M2 6 Q5 14 1 18 L4 25', d, 4.5)}
+    <path d="M-15 -4 Q-14 -24 -4 -29 Q6 -25 9 -7Z" fill="#E8743B" ${O2}/>${[-11, -7, -3, 1, 5].map((x, i) => linea(`M${x} ${-6 - i % 2} L${x + 1} ${-22 + Math.abs(i - 2) * 3}`, 1.3, '#A8410E')).join('')}
+    <path d="M-34 -1 Q-22 -6 -12 -6 L-10 5 Q-22 4 -34 -1Z" fill="${c}" ${O2}/>
+    <path d="M-15 -6 Q-2 -12 10 -8 Q15 -3 12 5 Q2 12 -8 9 Q-17 5 -15 -6Z" fill="${c}" ${O2}/>${ombra('M-14 3 Q-2 11 11 3 Q8 10 -6 10 Q-14 8 -14 3Z')}
+    ${arto('M8 1 L13 4 L15 2', d, 2)}
+    <path d="M7 -9 Q12 -16 20 -15 L33 -11 L33 -8 L19 -6 Q12 -5 8 -6Z" fill="${c}" ${O2}/>${linea('M19 -9 L32 -9.5', 1.2)}
+    ${[22, 25, 28, 31].map(x => `<path d="M${x} -9.4 l1 2 l1 -2Z" fill="#fff" stroke="${K}" stroke-width=".7"/>`).join('')}
+    ${mandorla(15, -12.5, 2.4, '#F2C230', false, 1)}
+    ${arto('M-5 5 Q3 12 -1 18 L3 25', c, 5)}${linea('M0 25 l6 0', 2)}</g>`; })(),
+  // Gigi: brachiosauro
+  frasi: (() => { const c = '#D9A441', d = '#9E6E1E', l = '#F3D592'; return `<g>
+    ${arto('M-16 10 L-17 24', d, 5)}${arto('M2 8 L2 24', d, 5.5)}
+    <path d="M-20 4 Q-30 10 -34 20 Q-26 14 -18 12Z" fill="${c}" ${O2}/>
+    ${arto('M6 2 Q14 -10 16 -24', c, 8)}
+    <ellipse cx="-6" cy="5" rx="17" ry="10" fill="${c}" ${O2}/>${ombra('M-22 7 Q-6 18 10 7 Q4 15 -8 15 Q-20 14 -22 7Z')}
+    ${[[-12, 1], [-4, -1], [-15, 6], [-6, 5], [3, 3]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="2.4" ry="1.6" fill="${d}" opacity=".7"/>`).join('')}
+    ${arto('M-12 10 L-13 25', c, 5)}${arto('M6 8 L7 25', c, 5.5)}
+    <path d="M12 -26 Q16 -32 23 -30 Q31 -28 32 -24 Q28 -21 20 -21 Q13 -21 12 -26Z" fill="${c}" ${O2}/><path d="M16 -30 Q19 -33 22 -31" stroke="${d}" stroke-width="2" fill="none"/>
+    ${mandorla(20, -26.5, 2.2, '#5A3A10', false, 1)}${linea('M26 -23 L31 -24', 1.2)}</g>`; })(),
+  // Otto: stegosauro
+  italiano: (() => { const c = '#C2557E', d = '#86304F', p = '#F2A23A'; return `<g>
+    ${arto('M-12 8 L-13 24', d, 5)}${arto('M8 8 L9 24', d, 5)}
+    ${[[-17, 0, 6], [-10, -6, 8], [-2, -9, 9], [6, -8, 8], [13, -3, 6]].map(([x, y, h]) => `<path d="M${x - 3.5} ${y + 3} L${x} ${y - h} L${x + 3.5} ${y + 3}Z" fill="${p}" ${O1}/>`).join('')}
+    <path d="M-20 4 Q-28 4 -33 -2" stroke="${K}" stroke-width="6.5" stroke-linecap="round" fill="none"/><path d="M-20 4 Q-28 4 -33 -2" stroke="${c}" stroke-width="3" stroke-linecap="round" fill="none"/>
+    ${linea('M-31 -2 L-34 -8 M-29 0 L-30 -7', 2)}
+    <path d="M-21 8 Q-14 -6 2 -6 Q16 -6 20 5 Q4 12 -21 8Z" fill="${c}" ${O2}/>${ombra('M-20 7 Q2 13 19 5 Q14 12 0 12 Q-14 12 -20 7Z')}
+    ${arto('M-8 9 L-8 25', c, 5)}${arto('M12 8 L13 25', c, 5)}
+    <path d="M18 2 Q24 -2 30 1 Q33 4 30 7 Q24 9 18 7Z" fill="${c}" ${O2}/>${mandorla(24, 1.5, 2, '#F2C230', false, 1)}</g>`; })(),
+  // Bobo: triceratopo
+  l20: (() => { const c = '#5F7A8A', d = '#3B505C', f = '#E39A3B'; return `<g>
+    ${arto('M-14 8 L-15 24', d, 5.5)}${arto('M4 8 L4 24', d, 5.5)}
+    <path d="M-20 0 Q-28 4 -34 10 Q-26 10 -19 8Z" fill="${c}" ${O2}/>
+    <ellipse cx="-6" cy="3" rx="16" ry="10" fill="${c}" ${O2}/>${ombra('M-21 5 Q-6 16 9 6 Q4 14 -6 14 Q-18 13 -21 5Z')}
+    <path d="M4 -16 Q14 -28 26 -16 L20 -2 L8 -2Z" fill="${f}" ${O2}/>${[[8, -19], [14, -24], [21, -21]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.4" fill="#fff" opacity=".7"/>`).join('')}
+    <path d="M7 -6 Q14 -12 24 -8 L31 1 Q26 7 16 6 Q9 5 7 -6Z" fill="${c}" ${O2}/>
+    <path d="M14 -10 L28 -22 L18 -8Z M20 -9 L33 -17 L23 -6Z" fill="#F4ECD8" ${O1}/><path d="M27 -2 L33 -7 L30 0Z" fill="#F4ECD8" ${O1}/>
+    ${mandorla(17, -4, 2.4, '#F2C230', false, 1)}${linea('M24 3 L30 2', 1.3)}
+    ${arto('M-10 9 L-10 25', c, 5.5)}${arto('M8 8 L9 25', c, 5.5)}</g>`; })(),
+  // Zip: velociraptor
+  l100: (() => { const c = '#8E5BD6', d = '#5B34A0', l = '#D7C2FF'; return `<g>
+    ${arto('M-2 6 L-8 14 L-4 24', d, 3.5)}
+    <path d="M-34 -10 Q-20 -8 -10 -4 L-9 4 Q-22 -2 -34 -10Z" fill="${c}" ${O2}/>
+    <path d="M-12 -4 Q-2 -12 8 -9 Q13 -4 9 4 Q0 9 -9 5 Q-14 1 -12 -4Z" fill="${c}" ${O2}/>${ombra('M-11 2 Q0 9 10 2 Q6 8 -2 8 Q-9 7 -11 2Z')}
+    ${[-24, -18, -10, -3].map((x, i) => linea(`M${x} ${-8 - i} l2 4`, 2, d)).join('')}
+    ${arto('M7 -9 Q11 -15 14 -16', c, 5)}
+    <path d="M11 -18 Q16 -24 24 -22 L33 -18 L32 -15 L22 -13 Q14 -12 11 -18Z" fill="${c}" ${O2}/>
+    ${[22, 25, 28].map(x => `<path d="M${x} -14.5 l1 2 l1 -2Z" fill="#fff" stroke="${K}" stroke-width=".7"/>`).join('')}
+    <path d="M11 -19 L6 -24 L10 -22 L8 -28 L13 -22" fill="#F2A23A" ${O1}/>
+    ${mandorla(18, -19, 2.3, '#F2C230', false, 1)}
+    ${arto('M6 -2 L13 2 L16 -1', d, 2.4)}${linea('M16 -1 l2 -2 M16 -1 l2 1', 1.4)}
+    ${arto('M0 5 L6 13 L1 24', c, 4)}${linea('M1 24 l6 0 M1 24 l-2 -3', 2)}</g>`; })(),
+  // Saltino: anchilosauro
+  cifre: (() => { const c = '#A67C52', d = '#6E4E2E', s = '#E8D3A8'; return `<g>
+    ${arto('M-12 8 L-13 22', d, 5.5)}${arto('M8 8 L9 22', d, 5.5)}
+    <path d="M-20 6 Q-28 6 -30 4" stroke="${K}" stroke-width="6" stroke-linecap="round" fill="none"/><path d="M-20 6 Q-28 6 -30 4" stroke="${c}" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <ellipse cx="-31" cy="4" rx="4.5" ry="3.5" fill="${d}" ${O2}/>
+    <path d="M-22 10 Q-22 -8 0 -9 Q20 -8 22 10Z" fill="${c}" ${O2}/>${ombra('M-21 6 L21 6 L22 10 L-22 10Z', .2)}
+    ${[-16, -8, 0, 8, 16].map((x, i) => `<path d="M${x - 3} ${-4 - (i === 2 ? 3 : i % 2 ? 2 : 0)} l3 -4.5 l3 4.5Z" fill="${s}" ${O1}/>`).join('')}
+    ${[-14, -5, 4, 13].map(x => `<ellipse cx="${x}" cy="2" rx="3" ry="2" fill="${s}" ${O1}/>`).join('')}
+    ${[-22, 22].map(x => `<path d="M${x} 4 l${x < 0 ? -4 : 4} -1 l0 4Z" fill="${s}" ${O1}/>`).join('')}
+    <path d="M18 0 Q26 -3 31 2 Q32 7 26 9 Q20 9 18 6Z" fill="${c}" ${O2}/>${mandorla(25, 1.5, 2, '#F2C230', false, 1)}
+    ${arto('M-8 9 L-8 24', c, 5.5)}${arto('M12 8 L13 24', c, 5.5)}</g>`; })(),
+  // Lola: parasaurolofo
+  calc: (() => { const c = '#D9467A', d = '#9B2452', l = '#F7B3CB'; return `<g>
+    ${arto('M-4 6 L-6 16 L-3 24', d, 5)}
+    <path d="M-34 4 Q-22 -2 -12 -2 L-10 8 Q-22 8 -34 4Z" fill="${c}" ${O2}/>
+    <path d="M-14 -2 Q-4 -10 6 -7 Q11 -2 9 6 Q0 12 -9 9 Q-16 5 -14 -2Z" fill="${c}" ${O2}/>${ombra('M-13 5 Q-2 12 9 5 Q5 11 -4 11 Q-11 10 -13 5Z')}
+    ${arto('M5 -6 Q9 -14 12 -17', c, 5)}
+    <path d="M10 -16 L-6 -30 Q-8 -32 -5 -32 L14 -21Z" fill="#F2A23A" ${O2}/>
+    <path d="M9 -17 Q13 -24 20 -22 L29 -17 Q30 -13 26 -12 L18 -12 Q11 -12 9 -17Z" fill="${c}" ${O2}/>${linea('M20 -14 L28 -14.5', 1.2)}
+    ${mandorla(15.5, -18, 2.3, '#F2C230', false, 1)}
+    ${arto('M7 -2 L12 2 L14 0', d, 2)}
+    ${arto('M-1 6 L3 15 L0 24', c, 5)}${linea('M0 24 l6 0', 2)}</g>`; })(),
+  // Tina: plesiosauro
+  forme: (() => { const c = '#E39A3B', d = '#A8661A'; return `<g>
+    ${linea('M-34 14 Q-26 10 -18 14 T-2 14 T14 14 T30 14', 2.4, '#4FA8E0')}
+    <path d="M-12 12 L-22 22 L-8 16Z" fill="${d}" ${O2}/><path d="M8 12 L18 22 L4 16Z" fill="${d}" ${O2}/>
+    <path d="M-20 8 Q-30 10 -34 6 Q-28 14 -18 12Z" fill="${c}" ${O2}/>
+    <ellipse cx="-4" cy="9" rx="17" ry="7" fill="${c}" ${O2}/>${ombra('M-20 10 Q-4 18 12 10 Q6 16 -4 16 Q-16 15 -20 10Z')}
+    ${arto('M9 5 Q18 -6 16 -20', c, 6)}
+    <path d="M12 -22 Q16 -28 23 -26 L31 -22 Q31 -18 24 -18 Q15 -17 12 -22Z" fill="${c}" ${O2}/>${linea('M22 -20 L30 -20.5', 1.2)}
+    ${mandorla(18, -23, 2.2, '#2B7FB8', false, 1)}
+    ${linea('M-34 22 Q-26 18 -18 22 T-2 22 T14 22 T30 22', 2.4, '#4FA8E0')}</g>`; })(),
+};
+
+// corpo umanoide snello, visto di fronte: testa, busto, braccia, gambe
+function figura({ pelle, tuta, scuro, testa, extra = '', braccia = true }) {
+  return `<g>
+    ${arto('M-5 10 L-7 25', scuro, 4.5)}${arto('M5 10 L7 25', scuro, 4.5)}
+    ${braccia ? arto('M-8 -4 Q-15 4 -16 12', tuta, 4) + arto('M8 -4 Q15 4 16 12', tuta, 4) : ''}
+    <path d="M-9 -6 Q0 -9 9 -6 L8 12 Q0 14 -8 12Z" fill="${tuta}" ${O2}/>${ombra('M1 -7 Q6 -7 9 -6 L8 12 Q4 13 1 13Z', .14)}
+    ${testa}${extra}</g>`;
+}
+const ALIENI10 = {
+  // Leo: guerriero con casco e visiera
+  lettere: figura({ pelle: '#7CC47F', tuta: '#E0661B', scuro: '#6B2E0B',
+    testa: `<path d="M-11 -14 Q-12 -30 0 -30 Q12 -30 11 -14 Q6 -9 0 -9 Q-6 -9 -11 -14Z" fill="#E0661B" ${O2}/><path d="M-9 -20 Q0 -24 9 -20 L8 -15 Q0 -17 -8 -15Z" fill="#7FE7FF" ${O1}/><path d="M-6 -20 L-2 -21" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M0 -30 L0 -34" stroke="${K}" stroke-width="2"/>${linea('M-11 -14 L-14 -18 M11 -14 L14 -18', 2)}`,
+    extra: `<path d="M-4 0 L0 -4 L4 0 L0 4Z" fill="#7FE7FF" ${O1}/>${linea('M-9 6 L9 6', 1.4)}` }),
+  // Olga: alieno grigio, occhi grandi e neri a mandorla
+  sillabe: figura({ pelle: '#B7A8D9', tuta: '#4B3A8C', scuro: '#2A1F55',
+    testa: `<path d="M0 -6 Q-5 -6 -9 -12 Q-15 -20 -12 -27 Q-7 -33 0 -33 Q7 -33 12 -27 Q15 -20 9 -12 Q5 -6 0 -6Z" fill="#B7A8D9" ${O2}/>
+      <path d="M-10 -20 Q-6 -24 -2 -19 Q-5 -14 -10 -20Z" fill="${K}"/><path d="M10 -20 Q6 -24 2 -19 Q5 -14 10 -20Z" fill="${K}"/><circle cx="-6" cy="-20" r=".9" fill="#fff"/><circle cx="6" cy="-20" r=".9" fill="#fff"/>
+      ${linea('M-2 -10.5 L2 -10.5', 1.4)}${ombra('M2 -33 Q12 -32 13 -24 Q12 -14 3 -7 Q8 -16 2 -33Z', .12)}` }),
+  // Pio: drone esploratore
+  leggo: `<g>${arto('M-14 -2 L-26 -6', '#9AA3BA', 2.5)}${arto('M14 -2 L26 -6', '#9AA3BA', 2.5)}
+    <ellipse cx="-27" cy="-8" rx="7" ry="2" fill="#C9CFDF" ${O1}/><ellipse cx="27" cy="-8" rx="7" ry="2" fill="#C9CFDF" ${O1}/>
+    <path d="M-16 -4 Q-16 -18 0 -19 Q16 -18 16 -4 Q16 10 0 12 Q-16 10 -16 -4Z" fill="#E8C547" ${O2}/>${ombra('M3 -19 Q16 -18 16 -4 Q16 10 3 12 Q10 0 3 -19Z', .15)}
+    <circle cx="0" cy="-4" r="8" fill="#2A2346" ${O2}/><circle cx="0" cy="-4" r="5" fill="#FF5B4A"/><circle cx="0" cy="-4" r="2.4" fill="#FFD0C8"/><circle cx="2" cy="-6" r="1.2" fill="#fff"/>
+    ${linea('M-10 8 L-12 16 M10 8 L12 16 M0 12 L0 20', 2)}<circle cx="0" cy="21" r="2" fill="#7FE7FF" ${O1}/>
+    <rect x="-12" y="-16" width="5" height="2" rx="1" fill="#2A2346"/><rect x="7" y="-16" width="5" height="2" rx="1" fill="#2A2346"/></g>`,
+  // Gigi: alieno alto con cresta
+  frasi: figura({ pelle: '#D9467A', tuta: '#2A2346', scuro: '#14121F',
+    testa: `<path d="M-3 -6 L-3 -12 L3 -12 L3 -6Z" fill="#D9467A" ${O2}/><path d="M-8 -16 Q-9 -28 0 -29 Q9 -28 8 -16 Q4 -11 0 -11 Q-4 -11 -8 -16Z" fill="#D9467A" ${O2}/>
+      <path d="M-4 -29 L-8 -34 L0 -30 L8 -34 L4 -29" fill="#F2A23A" ${O1}/>${mandorla(-3.6, -20, 2.4, '#7FE7FF', false, 1)}${mandorla(3.6, -20, 2.4, '#7FE7FF', true, 1)}${linea('M-2 -14 Q0 -13 2 -14.5', 1.3)}`,
+    extra: `<path d="M-9 -6 L0 2 L9 -6" stroke="#F2A23A" stroke-width="2" fill="none"/>` }),
+  // Otto: alieno a tentacoli
+  italiano: `<g>${[-14, -7, 0, 7, 14].map((x, i) => arto(`M${x * .7} 4 Q${x} 14 ${x * 1.5} ${18 + (i % 2) * 4} Q${x * 1.8} 24 ${x * 1.4 + (x < 0 ? -3 : 3)} 25`, '#7B4FD9', 3.2)).join('')}
+    <path d="M-15 4 Q-18 -16 0 -18 Q18 -16 15 4 Q0 9 -15 4Z" fill="#7B4FD9" ${O2}/>${ombra('M3 -18 Q18 -16 15 4 Q10 7 4 7 Q12 -6 3 -18Z', .15)}
+    ${[[-8, -12], [7, -13], [10, -6]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.5" fill="#B9A6F0"/>`).join('')}
+    ${mandorla(-5.5, -4, 3, '#7CF2A0', false, 1)}${mandorla(5.5, -4, 3, '#7CF2A0', true, 1)}${linea('M-3 2 Q0 3.5 3 1.5', 1.4)}</g>`,
+  // Bobo: pilota nel disco volante
+  l20: `<g><path d="M-14 -6 Q-14 -22 0 -22 Q14 -22 14 -6Z" fill="#CFF3FF" opacity=".55" ${O2}/>
+    <path d="M-6 -6 Q-7 -16 0 -16 Q7 -16 6 -6Z" fill="#5BC48A" ${O1}/>${mandorla(-2.6, -11, 1.8, '#F2C230', false, 1)}${mandorla(2.6, -11, 1.8, '#F2C230', true, 1)}
+    <path d="M-14 -16 Q-10 -20 -6 -20" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" opacity=".9"/>
+    <path d="M-33 0 Q-20 -9 0 -8 Q20 -9 33 0 Q20 8 0 8 Q-20 8 -33 0Z" fill="#9AA3BA" ${O2}/>${ombra('M-33 0 Q-20 8 0 8 Q20 8 33 0 Q20 4 0 4 Q-20 4 -33 0Z', .25)}
+    ${[-22, -11, 0, 11, 22].map(x => `<circle cx="${x}" cy="1" r="1.8" fill="#FFD966" ${O1}/>`).join('')}
+    <path d="M-10 8 L-16 18 M10 8 L16 18" stroke="${K}" stroke-width="2"/><path d="M-6 8 L-8 22 L8 22 L6 8Z" fill="#FFD966" opacity=".35"/></g>`,
+  // Zip: ranger spaziale con casco
+  l100: figura({ pelle: '#E8B48C', tuta: '#E9ECF5', scuro: '#5C6378',
+    testa: `<circle cx="0" cy="-19" r="11" fill="#2A2346" ${O2}/><path d="M-8 -22 Q0 -27 8 -22 L7 -14 Q0 -11 -7 -14Z" fill="#3E7CB1"/><path d="M-6 -22 Q-2 -24 1 -23" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M11 -22 L14 -26" stroke="${K}" stroke-width="2"/>`,
+    extra: `<rect x="-5" y="-2" width="10" height="6" rx="1.5" fill="#2A2346" ${O1}/><circle cx="-2" cy="1" r="1" fill="#FF5B4A"/><circle cx="2" cy="1" r="1" fill="#7CF2A0"/><path d="M-9 -5 L-12 -9 L-6 -8Z" fill="#F2A23A" ${O1}/>` }),
+  // Saltino: rettiliano a tre occhi
+  cifre: figura({ pelle: '#E39A3B', tuta: '#5F7A8A', scuro: '#2E3B44',
+    testa: `<path d="M-10 -12 Q-12 -28 0 -29 Q12 -28 10 -12 Q6 -8 0 -8 Q-6 -8 -10 -12Z" fill="#E39A3B" ${O2}/>
+      ${[[-6, -23], [0, -26], [6, -23]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1" fill="#A8661A"/>`).join('')}
+      ${mandorla(-5, -17, 2.2, '#7CF2A0', false, 1)}${mandorla(5, -17, 2.2, '#7CF2A0', true, 1)}${mandorla(0, -21.5, 1.8, '#7CF2A0', false, 0)}
+      ${linea('M-3 -11.5 L3 -11.5', 1.3)}<path d="M-10 -16 L-14 -14 L-10 -13Z M10 -16 L14 -14 L10 -13Z" fill="#E39A3B" ${O1}/>` }),
+  // Lola: guerriera con antenne lunghe
+  calc: figura({ pelle: '#E37BB0', tuta: '#9B2452', scuro: '#4A1027',
+    testa: `<path d="M-5 -26 Q-12 -32 -16 -30 M5 -26 Q12 -32 16 -30" stroke="${K}" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="-16" cy="-30" r="2" fill="#7FE7FF" ${O1}/><circle cx="16" cy="-30" r="2" fill="#7FE7FF" ${O1}/>
+      <path d="M-9 -14 Q-10 -28 0 -28 Q10 -28 9 -14 Q5 -9 0 -9 Q-5 -9 -9 -14Z" fill="#E37BB0" ${O2}/>${mandorla(-3.8, -18.5, 2.3, '#7FE7FF', false, 1)}${mandorla(3.8, -18.5, 2.3, '#7FE7FF', true, 1)}${linea('M-2 -12.5 Q0 -11.5 2.5 -13', 1.3)}`,
+    extra: `<path d="M-9 -6 L-13 -9 L-11 -3Z M9 -6 L13 -9 L11 -3Z" fill="#F2A23A" ${O1}/>${arto('M16 12 L22 -6', '#7FE7FF', 1.6)}` }),
+  // Tina: golem di cristallo
+  forme: `<g>${arto('M-6 10 L-8 25', '#7A5A9A', 5)}${arto('M6 10 L8 25', '#7A5A9A', 5)}
+    ${arto('M-10 -4 L-17 12', '#9C7BC0', 5)}${arto('M10 -4 L17 12', '#9C7BC0', 5)}
+    <path d="M-11 -8 L0 -12 L11 -8 L10 12 L-10 12Z" fill="#9C7BC0" ${O2}/>${ombra('M0 -12 L11 -8 L10 12 L0 12Z', .15)}
+    <path d="M-4 -2 L0 -8 L4 -2 L0 6Z" fill="#7FE7FF" ${O1}/>
+    <path d="M-9 -12 L-7 -26 L0 -30 L7 -26 L9 -12 L0 -9Z" fill="#9C7BC0" ${O2}/>
+    <path d="M-7 -26 L-10 -33 L-3 -28Z M7 -26 L11 -32 L3 -28Z" fill="#7FE7FF" ${O1}/>
+    ${mandorla(-3.8, -19, 2.3, '#7FE7FF', false, 1)}${mandorla(3.8, -19, 2.3, '#7FE7FF', true, 1)}${linea('M-3 -13 L3 -13', 1.3)}</g>`,
+};
+
+// occhio umano: mandorla bianca senza contorno, pupilla scura, sopracciglio sottile
+const occhioU = (x, y, dir = 1, iride = '#4A2E1A') => `<path d="M${x - 2.6} ${y} Q${x} ${y - 2.4} ${x + 2.6} ${y - .3} Q${x} ${y + 1.6} ${x - 2.6} ${y}Z" fill="#fff"/><circle cx="${x + dir * .3}" cy="${y - .3}" r="1.35" fill="${iride}"/><circle cx="${x + dir * .3}" cy="${y - .3}" r=".7" fill="${K}"/>${linea(`M${x - 2.8} ${y - 3.4 - dir * .5} L${x + 2.8} ${y - 3.4 + dir * .5}`, 1.3)}`;
+// testa umana piccola, viso con occhi a mandorla e bocca decisa
+const visoU = (pelle, y = -19, extra = '') => `<path d="M-3 -9 L-3 -12 L3 -12 L3 -9Z" fill="${pelle}" ${O1}/><path d="M-8 ${y + 1} Q-8 ${y - 10} 0 ${y - 10} Q8 ${y - 10} 8 ${y + 1} Q7 ${y + 8} 0 ${y + 9} Q-7 ${y + 8} -8 ${y + 1}Z" fill="${pelle}" ${O2}/>
+  ${occhioU(-3.5, y, 1)}${occhioU(3.5, y, -1)}${linea(`M-2.5 ${y + 5.5} Q0 ${y + 6.5} 3 ${y + 4.8}`, 1.3)}${extra}`;
+const capelliU = (c, y = -19) => `<path d="M-8.5 ${y} Q-10 ${y - 12} 0 ${y - 11.5} Q10 ${y - 12} 8.5 ${y} Q7 ${y - 6} 2 ${y - 7} Q-2 ${y - 4} -8.5 ${y}Z" fill="${c}" ${O1}/>`;
+const EROI10 = {
+  lettere: `<g><path d="M-9 -6 L-18 25 L18 25 L9 -6Z" fill="#B3202A" ${O2}/>` + figura({ tuta: '#E0661B', scuro: '#6B2E0B',
+    testa: visoU('#E8B48C') + capelliU('#2A1E14') + `<path d="M-8.5 -21 Q0 -24 8.5 -21 L8 -17 Q0 -19 -8 -17Z" fill="#14121F"/>${occhioU(-3.5, -19, 1, '#2B7FB8')}${occhioU(3.5, -19, -1, '#2B7FB8')}`,
+    extra: `<polygon points="${stellaP(0, 2, 5, 2.2)}" fill="#FFD000" ${O1}/>${linea('M-8 9 L8 9', 2.4, '#FFD000')}` }).slice(3) ,
+  sillabe: figura({ tuta: '#5B34A0', scuro: '#2A1F55',
+    testa: `<path d="M-9 -14 Q-12 0 -9 6 L-6 -10Z M9 -14 Q12 0 9 6 L6 -10Z" fill="#14121F" ${O1}/>` + visoU('#C68A5E') + `<path d="M-14 -25 Q0 -29 14 -25 Q0 -22 -14 -25Z" fill="#3E2A85" ${O2}/><path d="M-8 -26 L4 -35 L8 -26Z" fill="#3E2A85" ${O2}/><polygon points="${stellaP(1, -29, 2.6, 1.1)}" fill="#FFD000"/>`,
+    extra: `${arto('M14 10 L24 -8', '#5A3A22', 1.8)}<polygon points="${stellaP(24, -10, 4, 1.8)}" fill="#7FE7FF" ${O1}/>${linea('M-6 4 L6 4', 1.4, '#FFD000')}` }),
+  leggo: figura({ tuta: '#8A5A2A', scuro: '#3B2A1A',
+    testa: visoU('#8D5A3B') + `<path d="M-9 -18 Q-10 -31 0 -31 Q10 -31 9 -18 L9 -14 L6 -14 L6 -22 Q0 -25 -6 -22 L-6 -14 L-9 -14Z" fill="#6B4A2A" ${O2}/><circle cx="-4" cy="-26" r="3" fill="#BDEBFF" ${O1}/><circle cx="4" cy="-26" r="3" fill="#BDEBFF" ${O1}/>${linea('M-1 -26 L1 -26', 1.6)}`,
+    extra: `<path d="M-9 -6 L-4 -2 L0 -6 L4 -2 L9 -6" fill="none" stroke="#E8D3A8" stroke-width="2.4"/><path d="M8 -4 Q14 -2 18 4" stroke="#FFFFFF" stroke-width="3" fill="none" stroke-linecap="round"/>` }),
+  frasi: figura({ tuta: '#B3202A', scuro: '#2A2346',
+    testa: visoU('#E8B48C') + `<circle cx="3.4" cy="-19" r="2.6" fill="#14121F"/>${linea('M-8 -23 L8 -15', 1.2)}<path d="M-13 -24 Q0 -20 13 -24 L9 -32 Q0 -29 -9 -32Z" fill="#14121F" ${O2}/><circle cx="0" cy="-27" r="1.8" fill="#F4ECD8"/>`,
+    extra: `${arto('M16 12 L24 -10', '#C9CFDF', 1.8)}${linea('M13 10 L19 13', 2.6)}<path d="M-9 -6 L0 4 L9 -6" fill="none" stroke="#F4ECD8" stroke-width="2"/>` }),
+  italiano: figura({ tuta: '#9AA3BA', scuro: '#5C6378',
+    testa: visoU('#E8B48C') + `<path d="M-9.5 -17 Q-10.5 -31 0 -31 Q10.5 -31 9.5 -17 L6.5 -17 L6.5 -23 Q0 -25 -6.5 -23 L-6.5 -17Z" fill="#C9CFDF" ${O2}/><path d="M0 -31 Q5 -37 12 -34 Q7 -32 4 -29" fill="#B3202A" ${O1}/>`,
+    extra: `<path d="M-24 0 Q-18 -2 -12 0 Q-12 12 -18 16 Q-24 12 -24 0Z" fill="#E39A3B" ${O2}/><path d="M-18 1 L-18 13 M-22 6 L-14 6" stroke="#14121F" stroke-width="1.4"/>${linea('M-9 2 L9 2', 1.4, '#5C6378')}` }),
+  l20: figura({ tuta: '#2A2346', scuro: '#14121F',
+    testa: `<path d="M-3 -9 L-3 -12 L3 -12 L3 -9Z" fill="#2A2346" ${O1}/><path d="M-8.5 -18 Q-8.5 -30 0 -30 Q8.5 -30 8.5 -18 Q7 -10 0 -10 Q-7 -10 -8.5 -18Z" fill="#2A2346" ${O2}/><path d="M-7.5 -22 Q0 -24 7.5 -22 L7 -17 Q0 -18 -7 -17Z" fill="#E8B48C"/>
+      ${occhioU(-3.5, -19.6, 1)}${occhioU(3.5, -19.6, -1)}<path d="M-8.5 -24 Q0 -26 8.5 -24" stroke="#E0661B" stroke-width="2.6" fill="none"/><path d="M8 -24 q7 -2 9 3 M8 -24 q8 2 6 7" stroke="#E0661B" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+    extra: `${linea('M-8 4 L8 4', 2.6, '#E0661B')}<path d="M10 -6 L20 -16" stroke="#C9CFDF" stroke-width="2.4" stroke-linecap="round"/>` }),
+  l100: `<g>${arto('M-6 10 L-8 25', '#5C6378', 5)}${arto('M6 10 L8 25', '#5C6378', 5)}${arto('M-11 -4 L-18 10', '#9AA3BA', 4.5)}${arto('M11 -4 L18 10', '#9AA3BA', 4.5)}
+    <path d="M-12 -7 L12 -7 L10 12 L-10 12Z" fill="#E8C547" ${O2}/>${ombra('M1 -7 L12 -7 L10 12 L1 12Z', .15)}<circle cx="0" cy="2" r="3.6" fill="#7FE7FF" ${O1}/>
+    <path d="M-3 -7 L-3 -11 L3 -11 L3 -7Z" fill="#9AA3BA" ${O1}/><path d="M-10 -12 L-9 -27 L9 -27 L10 -12Z" fill="#E8C547" ${O2}/><path d="M-7 -23 L7 -23 L7 -17 L-7 -17Z" fill="#14121F"/><path d="M-6 -20 L6 -20" stroke="#FF5B4A" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M0 -27 L0 -32" stroke="${K}" stroke-width="2"/><circle cx="0" cy="-33" r="1.6" fill="#FF5B4A"/></g>`,
+  cifre: figura({ tuta: '#7C8B4A', scuro: '#3B4220',
+    testa: visoU('#8D5A3B') + `<path d="M-15 -25 Q0 -21 15 -25 Q0 -28 -15 -25Z" fill="#C9A27A" ${O2}/><path d="M-8 -25 Q-8 -33 0 -33 Q8 -33 8 -25Z" fill="#E0C9A0" ${O2}/>${linea('M-8 -27 Q0 -26 8 -27', 2, '#8A5A2A')}`,
+    extra: `${linea('M-9 -6 L8 10', 2, '#5A3A22')}<rect x="-5" y="-1" width="10" height="5" rx="2" fill="#2A2346" ${O1}/>` }),
+  calc: `<g><path d="M-8 -20 Q-14 -6 -10 8 L-6 -10Z" fill="#9B2452" ${O1}/>` + figura({ tuta: '#D9467A', scuro: '#4A1027',
+    testa: visoU('#E8B48C') + capelliU('#9B2452') + `<path d="M-6 -28 L-6 -33 L-3 -30 L0 -34 L3 -30 L6 -33 L6 -28Z" fill="#FFD000" ${O1}/>`,
+    extra: `${arto('M16 12 L24 -10', '#C9CFDF', 1.8)}${linea('M13 10 L19 13', 2.6)}<path d="M-9 4 L9 4" stroke="#FFD000" stroke-width="2"/>` }).slice(3),
+  forme: figura({ tuta: '#8A6A4A', scuro: '#3B2A1A',
+    testa: visoU('#C68A5E') + capelliU('#2A1E14') + `<path d="M-10 -24 Q0 -34 10 -24 Q11 -21 8 -22 Q0 -26 -8 -22 Q-11 -21 -10 -24Z" fill="#5A4632" ${O2}/><path d="M-10 -24 L-15 -21 L-9 -22Z" fill="#5A4632" ${O1}/>`,
+    extra: `<circle cx="22" cy="2" r="5" fill="#CFF3FF" ${O2}/>${linea('M18.5 5.5 L16 10', 3)}${linea('M-9 -6 L-3 4 M9 -6 L3 4', 1.4)}` }),
+};
+
+const zigzag = (cx, cy, R, r, n, rot = 0) => Array.from({ length: n * 2 }, (_, i) => { const a = rot + i * Math.PI / n, q = i % 2 ? r : R; return `${(cx + q * Math.cos(a)).toFixed(1)},${(cy + q * Math.sin(a)).toFixed(1)}`; }).join(' ');
+const ANIMALI10 = {
+  // Leo: leone
+  lettere: `<g>${arto('M-8 12 L-9 25', '#D9952E', 5)}${arto('M8 12 L9 25', '#D9952E', 5)}
+    <path d="M-12 6 Q-12 -2 0 -2 Q12 -2 12 6 L10 16 Q0 19 -10 16Z" fill="#E8A93A" ${O2}/>
+    <polygon points="${zigzag(0, -14, 19, 13, 11, .2)}" fill="#A8521A" ${O2}/>
+    <path d="M-11 -24 L-13 -30 L-6 -27Z M11 -24 L13 -30 L6 -27Z" fill="#E8A93A" ${O1}/>
+    <path d="M-11 -16 Q-11 -27 0 -27 Q11 -27 11 -16 Q11 -6 5 -2 Q0 0 -5 -2 Q-11 -6 -11 -16Z" fill="#E8A93A" ${O2}/>
+    <path d="M-5 -8 Q0 -12 5 -8 Q5 -2 0 -1 Q-5 -2 -5 -8Z" fill="#F6D9A0"/><path d="M-2.4 -9 L2.4 -9 L0 -6.5Z" fill="#4A2E1A" ${O1}/>${linea('M0 -6.5 L0 -4.5 M-2.5 -3.6 Q0 -4.4 2.5 -3.6', 1.2)}
+    ${mandorla(-4.6, -15, 2.6, '#E8A317', false, 1, 1.8)}${mandorla(4.6, -15, 2.6, '#E8A317', true, 1, 1.8)}
+    ${ombra('M3 -27 Q11 -27 11 -16 Q11 -6 5 -2 Q8 -14 3 -27Z', .12)}</g>`,
+  // Olga: gufo reale
+  sillabe: `<g>${linea('M-22 22 L24 22', 4, '#6E4E2E')}
+    <path d="M-14 -4 Q-16 18 0 21 Q16 18 14 -4 Q14 -20 0 -21 Q-14 -20 -14 -4Z" fill="#9A6A3C" ${O2}/>
+    <path d="M-7 4 Q0 0 7 4 Q8 16 0 19 Q-8 16 -7 4Z" fill="#E8D3A8"/>${[[-3, 8], [3, 8], [0, 12], [-4, 15], [4, 15]].map(([x, y]) => linea(`M${x - 1.5} ${y} l1.5 1.5 l1.5 -1.5`, 1, '#6E4E2E')).join('')}
+    <path d="M-14 -16 L-16 -27 L-7 -19Z M14 -16 L16 -27 L7 -19Z" fill="#6E4E2E" ${O1}/>
+    <path d="M-12 -10 Q-12 -19 0 -18 Q12 -19 12 -10 Q12 -3 0 -2 Q-12 -3 -12 -10Z" fill="#C9A27A" ${O1}/>
+    ${mandorla(-5.5, -10, 3.2, '#F28C1E', false, 1, 2.2)}${mandorla(5.5, -10, 3.2, '#F28C1E', true, 1, 2.2)}
+    <path d="M-1.6 -7 L1.6 -7 L0 -3Z" fill="#2A2346" ${O1}/>
+    ${[-6, -2, 2, 6].map(x => linea(`M${x} 20 L${x} 23`, 2, '#2A2346')).join('')}${ombra('M2 -21 Q14 -20 14 -4 Q16 18 2 21 Q12 2 2 -21Z', .12)}</g>`,
+  // Pio: falco
+  leggo: `<g>${linea('M-24 20 L24 20', 4, '#6E4E2E')}
+    <path d="M-6 -4 Q-12 6 -10 16 L-16 26 L-4 24 L2 16Z" fill="#5A4632" ${O2}/>
+    <path d="M-8 -6 Q-10 8 -2 18 Q8 18 9 4 Q9 -8 0 -10Z" fill="#E8D3A8" ${O2}/>${[[-3, 2], [2, 6], [-2, 10], [3, 12]].map(([x, y]) => linea(`M${x - 1.2} ${y} l1.2 1.2 l1.2 -1.2`, 1, '#6E4E2E')).join('')}
+    <path d="M-10 -8 Q-16 6 -8 16 Q-2 4 -4 -6Z" fill="#7A6048" ${O2}/>
+    <path d="M-7 -12 Q-8 -24 2 -25 Q11 -24 11 -15 Q10 -9 2 -8 Q-5 -8 -7 -12Z" fill="#5A4632" ${O2}/>
+    <path d="M9 -19 Q15 -19 15 -14 L12 -13 Q12 -16 9 -16Z" fill="#F2C230" ${O1}/>
+    <path d="M-1 -18 Q2 -14 0 -9 L-4 -9 Q-3 -14 -1 -18Z" fill="#E8D3A8"/>
+    ${mandorla(4, -18.5, 2.4, '#F2C230', false, 1, 2)}
+    ${linea('M-2 18 L-2 21 M3 18 L3 21', 2, '#F2C230')}</g>`,
+  // Gigi: giraffa
+  frasi: `<g>${arto('M-8 6 Q-4 -10 6 -22', '#E8B04A', 8)}
+    ${[[-6, 0], [-3, -7], [1, -13], [4, -18]].map(([x, y]) => `<path d="M${x - 2} ${y} l2 -2 l2 1 l0 2.5 l-2.5 1Z" fill="#A8661A"/>`).join('')}
+    <path d="M-16 6 Q-16 0 -8 -1 Q2 0 4 8 L4 14 Q-6 18 -16 14Z" fill="#E8B04A" ${O2}/>${[[-12, 6], [-6, 4], [-1, 9], [-9, 11]].map(([x, y]) => `<path d="M${x - 2.4} ${y} l2.4 -2.4 l2.6 1 l0 3 l-3 1.4Z" fill="#A8661A"/>`).join('')}
+    ${arto('M-12 14 L-13 25', '#E8B04A', 4)}${arto('M0 14 L1 25', '#E8B04A', 4)}
+    <path d="M2 -24 L1 -31 M7 -25 L8 -32" stroke="${K}" stroke-width="2"/><circle cx="1" cy="-31.5" r="1.8" fill="#6E4E2E"/><circle cx="8" cy="-32" r="1.8" fill="#6E4E2E"/>
+    <path d="M-1 -22 Q0 -29 8 -28 Q16 -27 22 -22 Q24 -18 20 -16 Q12 -15 4 -17 Q-1 -18 -1 -22Z" fill="#E8B04A" ${O2}/>
+    <path d="M-1 -24 L-6 -27 L-1 -21Z" fill="#E8B04A" ${O1}/>${mandorla(8, -23, 2.3, '#4A2E1A', false, 1, 1.8)}<circle cx="20" cy="-20" r=".9" fill="${K}"/>${linea('M16 -17 Q19 -16.5 21 -17.5', 1.1)}</g>`,
+  // Otto: polpo
+  italiano: `<g>${[[-14, 1], [-8, 1], [-2, 1], [4, 1], [10, 1], [15, 1]].map(([x], i) => arto(`M${x * .6} 2 Q${x} 12 ${x * 1.3} 16 Q${x * 1.6 + (i % 2 ? 3 : -3)} 22 ${x * 1.2 + (x < 0 ? -4 : 4)} 18`, '#C2557E', 3)).join('')}
+    ${[[-12, 14], [-5, 16], [6, 16], [13, 14]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1" fill="#F7B3CB"/>`).join('')}
+    <path d="M-13 2 Q-17 -14 -6 -24 Q4 -32 13 -22 Q19 -12 13 2 Q0 7 -13 2Z" fill="#C2557E" ${O2}/>${ombra('M4 -30 Q14 -26 16 -14 Q16 -4 13 2 Q8 4 4 4 Q14 -12 4 -30Z', .14)}
+    ${[[-6, -18], [2, -22], [8, -14]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.6" fill="#E88FB0"/>`).join('')}
+    ${mandorla(-5.5, -6, 2.8, '#F2C230', false, 1, 2)}${mandorla(5.5, -6, 2.8, '#F2C230', true, 1, 2)}</g>`,
+  // Bobo: husky
+  l20: `<g>${arto('M-7 12 L-8 25', '#7A8794', 5)}${arto('M7 12 L8 25', '#7A8794', 5)}
+    <path d="M-11 4 Q-11 -4 0 -4 Q11 -4 11 4 L10 16 Q0 19 -10 16Z" fill="#7A8794" ${O2}/><path d="M-5 0 Q0 -3 5 0 L4 14 Q0 16 -4 14Z" fill="#F4F4F4"/>
+    <path d="M-12 -18 L-13 -32 L-4 -24Z M12 -18 L13 -32 L4 -24Z" fill="#5C6670" ${O2}/><path d="M-11 -22 L-12 -29 L-7 -24Z M11 -22 L12 -29 L7 -24Z" fill="#E8C4C4"/>
+    <path d="M-12 -16 Q-12 -27 0 -27 Q12 -27 12 -16 Q12 -6 6 -3 Q0 -1 -6 -3 Q-12 -6 -12 -16Z" fill="#5C6670" ${O2}/>
+    <path d="M-9 -12 Q-6 -18 -2 -18 L0 -22 L2 -18 Q6 -18 9 -12 Q7 -4 0 -3 Q-7 -4 -9 -12Z" fill="#F4F4F4"/>
+    ${mandorla(-4.8, -15, 2.6, '#58A9E8', false, 1, 1.8)}${mandorla(4.8, -15, 2.6, '#58A9E8', true, 1, 1.8)}
+    <ellipse cx="0" cy="-9" rx="2.6" ry="1.8" fill="${K}"/>${linea('M0 -7.5 L0 -6 M-2.6 -5 Q0 -5.8 2.6 -5', 1.2)}</g>`,
+  // Zip: ghepardo
+  l100: `<g>${arto('M-14 4 L-24 14 L-30 12', '#C9922E', 3.5)}${arto('M8 4 L18 10 L24 6', '#C9922E', 3.5)}
+    <path d="M-16 -6 Q-28 -10 -34 -2" stroke="${K}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M-16 -6 Q-28 -10 -34 -2" stroke="#E8B04A" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <path d="M-18 -4 Q-14 -12 0 -11 Q12 -10 14 -4 Q12 4 0 4 Q-14 4 -18 -4Z" fill="#E8B04A" ${O2}/>
+    ${[[-12, -6], [-6, -8], [0, -6], [6, -8], [-9, -2], [-2, -1], [5, -2]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.2" fill="#2A1E14"/>`).join('')}${ombra('M-17 -2 Q0 6 14 -3 Q10 4 0 4 Q-12 4 -17 -2Z', .14)}
+    ${arto('M-12 2 L-6 10 L-12 18', '#E8B04A', 3.5)}${arto('M6 2 L14 12 L22 14', '#E8B04A', 3.5)}
+    <path d="M10 -12 Q14 -20 22 -19 Q30 -17 30 -11 Q28 -7 22 -7 Q14 -6 10 -12Z" fill="#E8B04A" ${O2}/><path d="M13 -17 L13 -22 L17 -19Z" fill="#E8B04A" ${O1}/>
+    ${mandorla(19, -14, 2.3, '#E8A317', false, 1, 1.8)}${linea('M18 -12 Q20 -8 22 -7', 1.4)}<circle cx="28.5" cy="-11.5" r="1.1" fill="${K}"/></g>`,
+  // Saltino: rana arboricola
+  cifre: `<g>${linea('M-28 20 L28 20', 4, '#6E4E2E')}
+    ${arto('M-10 8 L-20 6 L-22 18', '#7BC043', 3)}${arto('M10 8 L20 6 L22 18', '#7BC043', 3)}
+    ${[[-22, 18], [22, 18], [-9, 19], [9, 19]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.2" fill="#F28C1E" ${O1}/>`).join('')}
+    <path d="M-14 6 Q-16 -10 0 -10 Q16 -10 14 6 Q8 16 0 16 Q-8 16 -14 6Z" fill="#7BC043" ${O2}/>${ombra('M3 -10 Q16 -10 14 6 Q8 16 3 16 Q12 2 3 -10Z', .14)}
+    <path d="M-8 4 Q0 10 8 4 Q6 14 0 14 Q-6 14 -8 4Z" fill="#F4ECD8"/>
+    ${arto('M-6 10 L-9 18', '#7BC043', 3)}${arto('M6 10 L9 18', '#7BC043', 3)}
+    <circle cx="-8" cy="-10" r="5.6" fill="#7BC043" ${O2}/><circle cx="8" cy="-10" r="5.6" fill="#7BC043" ${O2}/>
+    <circle cx="-8" cy="-10.5" r="4" fill="#E53950"/><circle cx="8" cy="-10.5" r="4" fill="#E53950"/><rect x="-9.2" y="-13" width="2.4" height="5" rx="1.2" fill="${K}"/><rect x="6.8" y="-13" width="2.4" height="5" rx="1.2" fill="${K}"/>
+    ${linea('M-13 -16 L-4 -15 M13 -16 L4 -15', 2)}${linea('M-6 0 Q0 2 6 0', 1.4)}${[[-3, -4], [3, -4]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".8" fill="${K}"/>`).join('')}</g>`,
+  // Lola: lepre
+  calc: `<g>${arto('M4 10 L16 22 L24 22', '#B88A5A', 4)}
+    <path d="M-16 4 Q-22 2 -24 8 Q-20 12 -16 10Z" fill="#F4ECD8" ${O1}/>
+    <path d="M-18 6 Q-18 -6 -4 -8 Q10 -8 12 4 Q12 16 0 18 Q-14 18 -18 6Z" fill="#B88A5A" ${O2}/>${ombra('M-17 10 Q-4 20 11 8 Q8 18 -2 18 Q-14 18 -17 10Z', .14)}
+    ${arto('M-6 14 L-4 24 L2 24', '#B88A5A', 3.5)}${arto('M6 4 L10 14', '#B88A5A', 3)}
+    <path d="M2 -16 Q-2 -34 4 -34 Q8 -32 6 -16Z M8 -16 Q10 -33 16 -32 Q19 -28 11 -14Z" fill="#B88A5A" ${O2}/><path d="M3 -18 Q1 -30 4 -31 Q6 -29 5 -18Z" fill="#E8C4C4"/>
+    <path d="M0 -10 Q0 -18 8 -18 Q16 -18 18 -12 Q19 -6 14 -5 Q6 -4 2 -6 Q0 -8 0 -10Z" fill="#B88A5A" ${O2}/>
+    ${mandorla(8, -12.5, 2.4, '#E8A317', false, 1, 1.8)}<circle cx="17.5" cy="-10" r="1.2" fill="${K}"/>${linea('M14 -7 Q16 -6.4 17 -7.5', 1.1)}</g>`,
+  // Tina: tartaruga marina
+  forme: `<g>${linea('M-34 22 Q-26 18 -18 22 T-2 22 T14 22 T30 22', 2.4, '#4FA8E0')}
+    <path d="M-10 -8 L-26 -20 L-14 -4Z" fill="#7BA05B" ${O2}/><path d="M-10 10 L-24 20 L-12 8Z" fill="#7BA05B" ${O2}/><path d="M8 -6 L22 -20 L14 -2Z" fill="#7BA05B" ${O2}/><path d="M8 10 L18 20 L12 6Z" fill="#7BA05B" ${O2}/>
+    <ellipse cx="-1" cy="2" rx="16" ry="12" fill="#8A5A2A" ${O2}/>
+    <polygon points="-1,-4 5,-1 5,5 -1,8 -7,5 -7,-1" fill="#B07A4A" ${O1}/>${[[-9, -6], [7, -6], [-9, 10], [7, 10], [-14, 2], [12, 2]].map(([x, y]) => linea(`M-1 2 L${x} ${y}`, 1.2, '#5A3A1A')).join('')}
+    ${ombra('M-1 2 L15 2 Q14 12 -1 14Z', .14)}
+    <path d="M13 -4 Q18 -10 26 -8 Q32 -5 30 0 Q26 3 18 2 Q14 1 13 -4Z" fill="#9CC07A" ${O2}/>
+    ${mandorla(22, -4.5, 2.3, '#4A2E1A', false, 1, 1.8)}${linea('M25 0 Q28 0.5 29.5 -1', 1.1)}</g>`,
+};
+
+const DINO_S = DINO10;
 const MONDI = {
   dinosauri: { nome: 'Dinosauri', art: DINO_S, voce: 'con i dinosauri', fondo: '#FFF1DC' },
-  spazio: { nome: 'Spazio', art: ALIENI, voce: 'nello spazio, con gli alieni', fondo: '#E9E6FF' },
-  cartoni: { nome: 'Cartoni', art: CARTONI, voce: 'con i cartoni animati', fondo: '#FFE6F3' },
-  animali: { nome: 'Animali', art: null, voce: 'con gli animali', fondo: '#E3F6DA' },
+  spazio: { nome: 'Spazio', art: ALIENI10, voce: 'nello spazio, con gli alieni', fondo: '#E9E6FF' },
+  cartoni: { nome: 'Cartoni', art: EROI10, voce: 'con i cartoni animati', fondo: '#FFE6F3' },
+  animali: { nome: 'Animali', art: ANIMALI10, voce: 'con gli animali', fondo: '#E3F6DA' },
 };
 const mondo = () => { try { return MONDI[save.settings.mondo] ? save.settings.mondo : 'animali'; } catch (e) { return 'animali'; } };
 // gli animali prendono lo stesso stile: via le guance, sopracciglia sopra gli occhi
