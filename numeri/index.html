@@ -212,6 +212,19 @@ button{cursor:pointer}
 .toast{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:30;background:var(--paper);border:5px solid var(--sun);border-radius:26px;padding:14px 28px;font-family:var(--f-display);font-weight:800;font-size:2rem;text-align:center;box-shadow:0 10px 30px rgba(20,10,50,.25);animation:pop .35s ease-out;pointer-events:none;max-width:calc(100% - 32px)}
 .toast b{display:block;font-size:1.3rem;color:var(--sun-deep)}
 .toast.help{border-color:var(--muted);font-size:1.6rem}
+.toast.comet{border-color:var(--gold-deep);background:linear-gradient(160deg,var(--gold),var(--paper) 80%);font-size:2.2rem;padding:18px 30px}
+.toast.comet .ic{width:90px;height:90px;display:block;margin:0 auto 4px;color:var(--gold-deep)}
+.comet-ic{color:var(--gold-deep)}
+.stel-ic{color:var(--gold-deep)}
+#stelPill.bump{animation:bump .45s}
+@keyframes bump{40%{transform:scale(1.3)}}
+.cometbox{display:flex;flex-direction:column;gap:8px;margin-top:12px;background:var(--paper);border:3px solid var(--outline);border-radius:18px;padding:12px 16px;font-weight:700}
+.slots{display:grid;grid-template-columns:repeat(20,1fr);gap:2px;max-width:420px}
+.slots .ic{width:100%;height:auto;aspect-ratio:1;color:var(--line)}
+.slots .ic.on{color:var(--gold-deep)}
+.comets{display:flex;flex-wrap:wrap;gap:8px}
+.comets .ic{width:56px;height:56px}
+
 @keyframes pop{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}
 
 /* ---------- risultato, album, grandi ---------- */
@@ -297,11 +310,13 @@ h2{font-size:1.6rem}
         <div class="xptxt" id="xpTxt"></div>
       </div>
       <div class="tally">
-        <span class="pill" title="Stelle raccolte"><svg class="ic" viewBox="0 0 24 24"><use href="#i-star"/></svg><b id="starTot">0</b> stelle</span>
+        <span class="pill" title="Stelline raccolte"><svg class="ic stel-ic" viewBox="0 0 24 24"><use href="#i-star"/></svg><b id="starTot">0</b> stelline</span>
+        <span class="pill" title="Stelle comete vinte"><svg class="ic comet-ic" viewBox="0 0 24 24"><use href="#i-comet"/></svg><b id="cometTot">0</b> comete</span>
         <span class="pill" title="Risposte giuste di fila, record"><svg class="ic" viewBox="0 0 24 24"><use href="#i-flame"/></svg>record <b id="bestStreak">0</b></span>
       </div>
     </header>
     <div class="goal"><div class="gdots" id="goalDots"></div><span id="goalTxt"></span></div>
+    <div class="cometbox"><span id="cometTxt"></span><div class="slots" id="slots" aria-hidden="true"></div></div>
 
     <h2>Scegli il gioco</h2>
     <div class="games" id="gameCards"></div>
@@ -321,6 +336,7 @@ h2{font-size:1.6rem}
       <button class="btn icon" id="quit" aria-label="Torna al menu"><svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/></svg></button>
       <div class="dots" id="dots"></div>
       <span class="pill" id="streakPill" title="Giuste di fila"><svg class="ic" viewBox="0 0 24 24"><use href="#i-flame"/></svg><b id="streakN">0</b></span>
+      <span class="pill" id="stelPill" title="Stelline verso la prossima stella cometa"><svg class="ic stel-ic" viewBox="0 0 24 24"><use href="#i-star"/></svg><b id="stelN">0</b>/20</span>
       <span class="pill" title="Punti"><b id="ptsN">0</b> punti</span>
     </div>
     <div class="prompt">
@@ -349,6 +365,9 @@ h2{font-size:1.6rem}
     <div class="top"><button class="btn icon back" aria-label="Torna al menu"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>Album dei premi</h1></div>
     <h2>Traguardi</h2>
     <div class="badges" id="badgeGrid"></div>
+    <h2>Stelle comete</h2>
+    <p class="note">Ogni 20 stelline arriva una stella cometa.</p>
+    <div class="comets" id="cometGrid" style="margin-top:10px"></div>
     <h2>Adesivi</h2>
     <p class="note">Ogni livello nuovo regala un adesivo.</p>
     <div class="stickers" id="stickerGrid" style="margin-top:10px"></div>
@@ -370,7 +389,7 @@ h2{font-size:1.6rem}
     <h2>Come funziona</h2>
     <div class="prose">
       <p><b>I colori sono sempre gli stessi</b>: unità in blu, decine in rosso, centinaia in verde, sui numeri della linea, nelle domande, nei blocchi e nelle caselle. Il resto dell'app usa il giallo, così i tre colori restano legati solo al valore posizionale.</p>
-      <p><b>Le regole del gioco.</b> Ogni risposta giusta dà punti (di più in Medio e Difficile), tre giuste di fila accendono la fiamma e danno un bonus. Se sbaglia può riprovare una volta; poi l'app mostra la soluzione. I punti non si perdono mai. A fine partita arrivano da 1 a 3 stelle, i punti fanno salire di livello e ogni livello sblocca un adesivo. I traguardi premiano costanza e coraggio, e c'è un obiettivo di 3 partite al giorno.</p>
+      <p><b>Le regole del gioco.</b> Ogni risposta giusta dà una stellina e dei punti (di più in Medio e Difficile); ogni 20 stelline arriva in premio una stella cometa. Le stelline restano anche se la partita si interrompe a metà. Inoltre tre giuste di fila accendono la fiamma e danno un bonus. Se sbaglia può riprovare una volta; poi l'app mostra la soluzione. I punti non si perdono mai. A fine partita arrivano da 1 a 3 stelle, i punti fanno salire di livello e ogni livello sblocca un adesivo. I traguardi premiano costanza e coraggio, e c'è un obiettivo di 3 partite al giorno.</p>
       <p>I progressi restano salvati su questo dispositivo, in questo browser.</p>
     </div>
     <button class="btn danger" id="resetBtn">Azzera i progressi</button>
@@ -382,6 +401,7 @@ h2{font-size:1.6rem}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.4l2.95 6.07 6.67.86-4.9 4.6 1.27 6.62L12 17.3l-5.99 3.25 1.27-6.62-4.9-4.6 6.67-.86z"/></symbol>
   <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12.5 2c.6 3.6 5.5 5.6 5.5 11.2A6 6 0 0 1 6 13.4c0-2.8 1.6-4.4 2.2-6.6 1.5 1.1 2.2 2.7 2.2 2.7S13.3 6.6 12.5 2z"/></symbol>
+  <symbol id="i-comet" viewBox="0 0 24 24"><path d="M1.5 3.5l9 6.5M1 10l8.5 2.5M6 1l5.5 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".55"/><path d="M15.5 6.2l2 4.1 4.5.6-3.3 3.1.8 4.5-4-2.1-4 2.1.8-4.5-3.3-3.1 4.5-.6z"/></symbol>
   <symbol id="i-spk" viewBox="0 0 24 24"><path d="M3 9h4l5-4.5v15L7 15H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
 </svg>
 
@@ -397,6 +417,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const STAR = '<svg class="ic" viewBox="0 0 24 24"><use href="#i-star"/></svg>';
+const COMET_BIG = '<svg class="ic" viewBox="0 0 24 24"><use href="#i-comet"/></svg>';
 const SPK = '<svg class="ic" viewBox="0 0 24 24"><use href="#i-spk"/></svg>';
 const DEL = '<svg class="ic" viewBox="0 0 24 24"><path d="M9 5h11v14H9l-6-7z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 9l5 6M17 9l-5 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
 const FROG = `<g>
@@ -453,7 +474,7 @@ const colorNums = t => t.replace(/\d+/g, m => numHTML(+m));
 
 /* ---------- salvataggio ---------- */
 const KEY = 'saltino-numeri-v1';
-const DEF = { name: '', xp: 0, stars: 0, rounds: 0, bestStreak: 0, perfect: 0, badges: {}, days: {}, stats: {},
+const DEF = { name: '', xp: 0, stars: 0, stelline: 0, rounds: 0, bestStreak: 0, perfect: 0, badges: {}, days: {}, stats: {},
   settings: { voice: true, sound: true, len: 10 }, last: { game: 'l20', diff: 0, types: {} } };
 const clone = o => JSON.parse(JSON.stringify(o));
 function load() {
@@ -483,7 +504,8 @@ const BADGES = [
   { id: 'coraggio', mark: '▲', name: 'Coraggioso', desc: 'Finisci una partita difficile', test: () => ['l20', 'l100', 'cifre'].some(g => statOf(g, 2).r > 0) },
   { id: 'tutti', mark: '1·2·3', name: 'Esploratore', desc: 'Gioca a tutti e tre i giochi', test: () => ['l20', 'l100', 'cifre'].every(g => roundsOf(g) > 0) },
   { id: 'costante', mark: '3 gg', name: 'Costante', desc: 'Gioca in 3 giorni diversi', test: s => Object.keys(s.days).length >= 3 },
-  { id: 'cielo', mark: '50', name: 'Cielo stellato', desc: 'Raccogli 50 stelle', test: s => s.stars >= 50 },
+  { id: 'cielo', mark: '50', name: 'Cielo stellato', desc: 'Raccogli 50 stelline', test: s => s.stelline >= 50 },
+  { id: 'cometa', mark: '<svg class="ic comet-ic" viewBox="0 0 24 24"><use href="#i-comet"/></svg>', name: 'Prima cometa', desc: 'Vinci la prima stella cometa', test: s => s.stelline >= 20 },
 ];
 
 /* ---------- voce e suoni ---------- */
@@ -535,7 +557,7 @@ function startRound() {
   const g = save.last.game, d = save.last.diff;
   const all = GAMES[g].types.map(t => t[0]);
   const types = (save.last.types[g] || all).filter(t => all.includes(t));
-  run = { game: g, diff: d, types: types.length ? types : all, len: +save.settings.len || 10, i: 0, res: [], pts: 0, streak: 0, recent: [], bag: [], q: null, attempts: 0, locked: false, keys: null };
+  run = { stel: 0, comete: 0, game: g, diff: d, types: types.length ? types : all, len: +save.settings.len || 10, i: 0, res: [], pts: 0, streak: 0, recent: [], bag: [], q: null, attempts: 0, locked: false, keys: null };
   $('#pHero').innerHTML = heroSvg(g); document.documentElement.dataset.hero = g;
   show('game'); nextQ();
 }
@@ -575,12 +597,25 @@ function judge(ok) {
       run.res.push('good');
     } else { gain = 5; run.res.push('help'); }
     run.pts += gain; run.i++;
-    SND.ok();
-    const p = pick(PRAISE);
-    toast(p, `+${gain} punti${run.streak >= 3 && run.attempts === 0 ? ' · ' + run.streak + ' di fila!' : ''}`, 'good');
-    if (save.settings.voice) say(p);
+    save.stelline = (save.stelline || 0) + 1; run.stel++;
+    const cometa = save.stelline % 20 === 0;
+    if (cometa) run.comete++;
+    persist();
+    let wait = RM ? 900 : 1500;
+    if (cometa) {
+      SND.win();
+      toast(`${COMET_BIG}Stella cometa!`, `${save.stelline / 20}ª cometa: 20 stelline raccolte`, 'comet', 2600);
+      if (save.settings.voice) say('Evviva! Hai vinto una stella cometa!');
+      confetti(); wait = RM ? 1600 : 2800;
+    } else {
+      SND.ok();
+      const p = pick(PRAISE);
+      toast(p, `+1 stellina · +${gain} punti${run.streak >= 3 && run.attempts === 0 ? ' · ' + run.streak + ' di fila!' : ''}`, 'good');
+      if (save.settings.voice) say(p);
+    }
+    const sp = $('#stelPill'); sp.classList.remove('bump'); void sp.offsetWidth; sp.classList.add('bump');
     renderDots(); hud();
-    setTimeout(() => { if (run && run.q === q) nextQ(); }, RM ? 900 : 1500);
+    setTimeout(() => { if (run && run.q === q) nextQ(); }, wait);
   } else {
     run.attempts++; run.streak = 0; SND.soft();
     if (run.attempts >= 2 || q.oneShot) {
@@ -598,14 +633,14 @@ function judge(ok) {
     hud();
   }
 }
-function hud() { $('#streakN').textContent = run.streak; $('#ptsN').textContent = run.pts; $('#streakPill').classList.toggle('hot', run.streak >= 3); }
+function hud() { $('#stelN').textContent = (save.stelline || 0) % 20; $('#streakN').textContent = run.streak; $('#ptsN').textContent = run.pts; $('#streakPill').classList.toggle('hot', run.streak >= 3); }
 function renderDots() { $('#dots').innerHTML = Array.from({ length: run.len }, (_, i) => `<i class="dot ${run.res[i] || ''} ${i === run.i && !run.res[i] ? 'now' : ''}"></i>`).join(''); }
 let toastT;
-function toast(msg, extra, kind) {
+function toast(msg, extra, kind, ms = 1300) {
   const t = $('#toast');
   t.className = 'toast ' + kind; t.innerHTML = `<span>${msg}</span>${extra ? `<b>${extra}</b>` : ''}`;
   t.hidden = false; t.style.animation = 'none'; void t.offsetWidth; t.style.animation = '';
-  clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 1300);
+  clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, ms);
 }
 function finish() {
   const len = run.len, firsts = run.res.filter(r => r === 'good').length;
@@ -626,7 +661,7 @@ function finish() {
   const title = st === 3 ? 'Fantastico!' : st === 2 ? 'Bravissimo!' : 'Bel lavoro!';
   $('#resTitle').textContent = title;
   $('#resStars').innerHTML = [1, 2, 3].map(i => `<span class="bstar ${i <= st ? 'on' : ''}" style="--d:${i * .25}s">${STAR}</span>`).join('');
-  $('#resLine').innerHTML = `${firsts} su ${len} giuste al primo colpo · <b>+${gain} punti</b>`;
+  $('#resLine').innerHTML = `${firsts} su ${len} giuste al primo colpo · <b>+${run.stel} stelline</b> · <b>+${gain} punti</b>`;
   $('#resLvl').textContent = li.lvl;
   $('#resXp').style.width = '0';
   requestAnimationFrame(() => requestAnimationFrame(() => $('#resXp').style.width = (li.pct * 100) + '%'));
@@ -637,6 +672,7 @@ function finish() {
   }
   fresh.forEach(b => news += `<div class="news"><span class="medal" style="width:48px;height:48px;font-size:1rem">${b.mark}</span><span>Nuovo traguardo: <b>${b.name}</b></span></div>`);
   if (save.days[dk] === 3) news += `<div class="news"><span class="medal" style="width:48px;height:48px">${STAR}</span><span><b>Obiettivo di oggi raggiunto!</b> Tre partite giocate.</span></div>`;
+  if (run.comete) news = `<div class="news"><span class="comets">${COMET_BIG.replace('class="ic"', 'class="ic comet-ic"').repeat(run.comete)}</span><span>Hai vinto <b>${run.comete === 1 ? 'una stella cometa' : run.comete + ' stelle comete'}</b>!</span></div>` + news;
   $('#resNews').innerHTML = news;
   SND.win();
   if (save.settings.voice) say(title);
@@ -995,7 +1031,10 @@ function renderHome() {
   $('#hiName').textContent = save.name || 'campione';
   $('#lvlN').textContent = li.lvl; $('#xpFill').style.width = (li.pct * 100) + '%';
   $('#xpTxt').textContent = `Ancora ${li.need - li.into} punti per il livello ${li.lvl + 1}`;
-  $('#starTot').textContent = save.stars; $('#bestStreak').textContent = save.bestStreak;
+  const sl = save.stelline || 0, nc = Math.floor(sl / 20), mod = sl % 20;
+  $('#starTot').textContent = sl; $('#cometTot').textContent = nc;
+  $('#slots').innerHTML = Array.from({ length: 20 }, (_, i) => `<svg class="ic${i < mod ? ' on' : ''}" viewBox="0 0 24 24"><use href="#i-star"/></svg>`).join('');
+  $('#cometTxt').textContent = `Ancora ${20 - mod} stellin${20 - mod === 1 ? 'a' : 'e'} per la prossima stella cometa`; $('#bestStreak').textContent = save.bestStreak;
   const today = save.days[dayKey()] || 0;
   $('#goalDots').innerHTML = [0, 1, 2].map(i => `<i class="gdot ${i < today ? 'on' : ''}">${i < today ? STAR : ''}</i>`).join('');
   $('#goalTxt').textContent = today >= 3 ? 'Obiettivo di oggi raggiunto!' : `Obiettivo di oggi: 3 partite (${today} su 3)`;
@@ -1026,6 +1065,8 @@ $('#toGrandi').onclick = () => { renderGrandi(); show('grandi'); };
 document.addEventListener('keydown', e => { if (run && run.keys && !$('#game').hidden && !e.target.closest('input,select')) run.keys(e); });
 
 function renderAlbum() {
+  const nc = Math.floor((save.stelline || 0) / 20);
+  $('#cometGrid').innerHTML = nc ? COMET_BIG.replace('class="ic"', 'class="ic comet-ic"').repeat(nc) : '<p class="note">Ancora nessuna: raccogli 20 stelline!</p>';
   $('#badgeGrid').innerHTML = BADGES.map(b => `<div class="bdg ${save.badges[b.id] ? 'on' : ''}"><div class="medal">${save.badges[b.id] ? b.mark : '?'}</div><b>${b.name}</b><small>${b.desc}</small></div>`).join('');
   const n = Math.min(STK.length, lvlInfo(save.xp).lvl - 1);
   $('#stickerGrid').innerHTML = STK.map((s, i) => `<div class="stk-t ${i < n ? 'on' : ''}">${i < n ? s : i + 2}</div>`).join('');
