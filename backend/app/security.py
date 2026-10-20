@@ -15,9 +15,11 @@ def verify_password(password: str, hashed: str) -> bool:
     return pwd_context.verify(password, hashed)
 
 
-def create_access_token(user_id) -> str:
+def create_access_token(user_id, scope: str = None) -> str:
     exp = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_ttl_min)
     payload = {"sub": str(user_id), "exp": exp}
+    if scope:
+        payload["scope"] = scope      # 'giochi': vale solo per Leggo e Conto
     return jwt.encode(payload, settings.secret_key, algorithm="HS256")
 
 

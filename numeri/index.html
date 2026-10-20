@@ -398,7 +398,7 @@ h2{font-size:1.6rem}
 .seg button{font-size:1.25rem}
 .seg button[aria-pressed="true"]{background:var(--sun);box-shadow:0 0 0 5px var(--sun-deep)}
 .row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
-.form input[type=text],.form select{font-size:1.2rem;max-width:none;width:100%}
+.form input[type=text],.form input[type=password],.form select{font-size:1.2rem;max-width:none;width:100%;border:3px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--bg)}
 .vchip{display:flex;align-items:center;gap:8px;border:2.5px solid var(--outline);background:var(--paper);border-radius:999px;padding:8px 16px;font-weight:700;font-size:1.25rem;box-shadow:0 3px 0 var(--edge)}
 .vchip .vem{font-size:1.6rem;line-height:1}
 .vchip.sel{box-shadow:0 0 0 4px var(--sun),0 3px 0 var(--edge)}
@@ -450,6 +450,7 @@ h2{font-size:1.6rem}
 .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
 .tabs .chip{background:var(--paper);border:2.5px solid var(--outline)}
 .tabs .chip[aria-pressed="true"]{background:var(--sun);border-color:var(--outline);color:#1E1838}
+.msg{margin:0;font-weight:700;color:var(--sun-deep)}
 .exbtn{margin-top:14px;width:100%;font-size:1.15rem}
 .dom{font-family:var(--f-display);font-weight:700;font-size:1.7rem;text-align:center;margin:0}
 .pic-opt{font-size:3.4rem;min-width:110px;padding:8px 14px}
@@ -588,6 +589,40 @@ th,td{font-size:1.1rem}
     </div>
   </section>
 
+  <section id="accesso" hidden>
+    <p class="logo" style="margin-top:10px"><span class="l1">Leggo</span> e <span class="l2">Conto</span></p>
+    <p class="note">I giochi per imparare a leggere e a contare. Per entrare serve un accesso approvato.</p>
+    <div class="tabbed">
+      <div class="tabs"><button class="chip" data-tab="in" aria-pressed="true">Entra</button><button class="chip" data-tab="reg" aria-pressed="false">Chiedi l'accesso</button></div>
+      <form class="form" data-panel="in" id="fIn" novalidate>
+        <label for="inEmail">Email<input type="text" id="inEmail" inputmode="email" autocomplete="username"></label>
+        <label for="inPw">Password<input type="password" id="inPw" autocomplete="current-password"></label>
+        <p class="msg" id="inMsg" hidden></p>
+        <button class="btn go" type="submit" style="font-size:1.5rem">Entra</button>
+      </form>
+      <form class="form" data-panel="reg" id="fReg" hidden novalidate>
+        <p class="note" style="margin:0">Compila la richiesta: l'amministratore la controlla e ti abilita. Poi entri con email e password.</p>
+        <label for="rgNome">Nome e cognome dell'adulto<input type="text" id="rgNome" autocomplete="name" maxlength="100"></label>
+        <label for="rgEmail">Email<input type="text" id="rgEmail" inputmode="email" autocomplete="email"></label>
+        <label for="rgTel">Telefono (facoltativo)<input type="text" id="rgTel" inputmode="tel" autocomplete="tel" maxlength="40"></label>
+        <label for="rgMsg">Per chi chiedi l'accesso?<input type="text" id="rgMsg" maxlength="300" placeholder="Per esempio: mamma di Giulia, classe 1ª A"></label>
+        <label for="rgPw">Scegli una password (almeno 8 caratteri)<input type="password" id="rgPw" autocomplete="new-password"></label>
+        <label class="sw"><input type="checkbox" id="rgOk"> Accetto che nomi, foto e risultati dei bambini siano salvati nell'archivio della cooperativa, solo per far funzionare i giochi.</label>
+        <p class="msg" id="rgMsgErr" hidden></p>
+        <button class="btn go" type="submit" style="font-size:1.4rem">Invia la richiesta</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="attesa" hidden>
+    <div class="res">
+      <div class="frogbox" id="atHero"></div>
+      <h1 id="atTitle"></h1>
+      <p id="atText" class="prose" style="font-size:1.3rem"></p>
+      <div class="row" id="atBtns"><button class="btn go" id="atRetry">Controlla di nuovo</button><button class="btn" id="atOut">Esci</button></div>
+    </div>
+  </section>
+
   <section id="who" hidden>
     <p class="logo"><span class="l1">Leggo</span> e <span class="l2">Conto</span></p>
     <div class="top"><h1>Chi gioca oggi?</h1></div>
@@ -645,6 +680,7 @@ th,td{font-size:1.1rem}
     <div class="tabbed">
     <div class="tabs"><button class="chip" data-tab="imp" aria-pressed="true">Impostazioni</button><button class="chip" data-tab="ris" aria-pressed="false">Risultati</button><button class="chip" data-tab="come" aria-pressed="false">Come funziona</button></div>
     <div data-panel="imp">
+    <div class="form" id="accountBox" hidden style="margin-bottom:14px"></div>
     <div class="form">
       <label class="sw"><input type="checkbox" id="optVoice"> Leggi le domande ad alta voce</label>
       <label class="sw"><input type="checkbox" id="optSound"> Suoni</label>
@@ -668,7 +704,7 @@ th,td{font-size:1.1rem}
       <p><b>Le voci</b> (cartone animato, maestra precisa, nonno gentile, robot, supereroe, fatina) si scelgono dalla prima pagina, con «La voce». Cambiano tono, velocità e frasi; la voce di base è quella del dispositivo e si sceglie qui sopra. Le più naturali si chiamano spesso «Natural», «Avanzata» o «Google italiano».</p>
       <p><b>Lettura.</b> Le parole si leggono in STAMPATELLO MAIUSCOLO, in minuscolo o in corsivo, con le sillabe colorate a coppie (arancio e viola) e spazi più larghi a richiesta: i pulsanti stanno sopra ogni esercizio. Toccando una sillaba la voce la legge. In «Leggo da solo» il pulsante «Leggi con me» legge la frase una parola per volta, accendendola.</p>
       <p><b>Più bambini.</b> Ognuno ha il suo profilo, con foto, nome, cognome, età e classe, e i suoi premi e risultati. Si cambia con «Cambia giocatore» in alto nella prima pagina; la foto in alto apre il profilo. Bambino o bambina serve per dire «bravo» o «brava».</p>
-      <p>I profili, le foto e i risultati restano salvati solo su questo dispositivo, in questo browser: non vengono mandati da nessuna parte. Se si cancellano i dati del browser si perdono.</p>
+      <p><b>I dati.</b> Profili, foto e risultati si salvano nell'archivio della cooperativa e si ritrovano entrando con la stessa email da qualsiasi tablet. Se manca internet si gioca lo stesso e i risultati partono appena torna la rete. «Esci da questo account» toglie dal tablet i bambini di questa famiglia.</p>
     </div>
     </div>
     </div>
@@ -687,6 +723,8 @@ th,td{font-size:1.1rem}
 
 <script>
 'use strict';
+// indirizzo del server: vuoto nell'anteprima su claude.ai, dove l'app resta solo su questo dispositivo
+const API_BASE = 'https://diario-salute-api.onrender.com';
 /* ---------- utilità ---------- */
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sleep = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
@@ -836,7 +874,78 @@ function loadStore() {
 let store = loadStore();
 let prof = store.profiles.find(p => p.id === store.current) || store.profiles[0];
 let save = prof.data = normalize(prof.data);
-function persist() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); return true; } catch (e) { return false; } }
+function persist() { let ok = true; try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { ok = false; } syncLater(); return ok; }
+function setStore(s) { store = s; prof = store.profiles.find(p => p.id === store.current) || store.profiles[0]; store.current = prof.id; save = prof.data = normalize(prof.data); }
+/* ---------- accesso e salvataggio sul server ---------- */
+const TOK_KEY = 'leggoconto-token';
+let token = null; try { token = localStorage.getItem(TOK_KEY); } catch (e) {}
+async function api(path, opts = {}) {
+  const r = await fetch(API_BASE + path, { ...opts, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) } });
+  let j = null; try { j = await r.json(); } catch (e) {}
+  if (!r.ok) { const err = new Error((j && j.detail) || 'Errore ' + r.status); err.status = r.status; throw err; }
+  return j;
+}
+let syncT = null, syncing = false, syncAgain = false;
+function syncLater() {
+  if (!API_BASE || !token) return;
+  clearTimeout(syncT); syncT = setTimeout(syncNow, 1500);
+}
+// i risultati si mandano al server poco dopo ogni cambiamento; se la rete manca si riprova
+async function syncNow() {
+  if (!API_BASE || !token) return;
+  if (syncing) { syncAgain = true; return; }
+  syncing = true;
+  try { await api('/giochi/dati', { method: 'PUT', body: JSON.stringify(store) }); }
+  catch (e) { if (e.status === 403 || e.status === 401) return gateFrom(e); clearTimeout(syncT); syncT = setTimeout(syncNow, 30000); }
+  finally { syncing = false; if (syncAgain) { syncAgain = false; syncNow(); } }
+}
+window.addEventListener('online', () => syncNow());
+document.addEventListener('visibilitychange', () => { if (document.hidden) syncNow(); });
+function setToken(t) { token = t; try { t ? localStorage.setItem(TOK_KEY, t) : localStorage.removeItem(TOK_KEY); } catch (e) {} }
+function logout() {
+  setToken(null);
+  // sul tablet non restano i bambini della famiglia che esce
+  try { localStorage.removeItem(STORE_KEY); localStorage.removeItem(KEY); } catch (e) {}
+  setStore(loadStore()); show('accesso');
+}
+function attesa(kind, extra) {
+  $('#atHero').innerHTML = heroSvg(kind === 'rete' ? 'l100' : 'sillabe');
+  const T = {
+    collego: ['Mi sto collegando...', 'La prima volta della giornata può volerci fino a un minuto.'],
+    in_attesa: ['Richiesta inviata!', "L'amministratore deve ancora approvare il tuo accesso. Quando lo avrà fatto, torna qui e tocca «Controlla di nuovo»."],
+    bloccato: ['Accesso sospeso', "Il tuo accesso è stato sospeso dall'amministratore. Per informazioni rivolgiti a lui."],
+    rete: ['Non riesco a collegarmi', 'Controlla che il tablet sia collegato a internet, poi riprova.'],
+  }[kind];
+  $('#atTitle').textContent = T[0]; $('#atText').textContent = extra || T[1];
+  $('#atBtns').hidden = kind === 'collego';
+  show('attesa');
+}
+function gateFrom(e) {
+  if (e.status === 401) { logout(); toast('Rientra con la tua password', '', 'help'); return; }
+  attesa(/sospes/i.test(e.message) ? 'bloccato' : 'in_attesa');
+}
+function startApp() { renderHome(); if (store.profiles.length > 1) { renderWho(); show('who'); } else show('home'); }
+async function boot() {
+  if (!API_BASE) return startApp();
+  if (!token) return show('accesso');
+  attesa('collego');
+  try {
+    const me = await api('/giochi/io');
+    try { localStorage.setItem('leggoconto-stato', me.stato); } catch (e) {}
+    if (me.stato !== 'attivo') return attesa(me.stato === 'bloccato' ? 'bloccato' : 'in_attesa');
+    const d = await api('/giochi/dati');
+    if (d.valore && d.valore.profiles && d.valore.profiles.length) setStore(d.valore);
+    else syncNow();   // prima volta: porto sul server quello che c'e' gia' sul tablet
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) {}
+    startApp();
+  } catch (e) {
+    if (e.status) return gateFrom(e);
+    // senza rete si gioca con i dati del tablet, se l'accesso era gia' approvato
+    let last = null; try { last = localStorage.getItem('leggoconto-stato'); } catch (x) {}
+    if (last === 'attivo') { startApp(); toast('Senza rete: i risultati si salvano dopo', '', 'help'); }
+    else attesa('rete');
+  }
+}
 function switchTo(id) { prof = store.profiles.find(p => p.id === id) || store.profiles[0]; store.current = prof.id; save = prof.data = normalize(prof.data); persist(); }
 const gx = (m, f) => prof.info.genere === 'f' ? f : m;
 const fmt = t => t.replace(/\{o\}/g, gx('o', 'a'));
@@ -2302,6 +2411,12 @@ function renderAlbum() {
   $('#stickerGrid').innerHTML = STK.map((s, i) => `<div class="stk-t ${i < n ? 'on' : ''}">${i < n ? s : i + 2}</div>`).join('');
 }
 function renderGrandi() {
+  if (API_BASE && token) {
+    $('#accountBox').hidden = false;
+    $('#accountBox').innerHTML = '<b>Account</b><span id="accWho">Collegato</span><button class="btn" type="button" id="accOut">Esci da questo account</button>';
+    api('/giochi/io').then(m => { $('#accWho').textContent = `${m.nome || ''} · ${m.email}`; }).catch(() => {});
+    $('#accOut').onclick = () => { syncNow(); logout(); };
+  }
   $('#optVoice').checked = save.settings.voice; $('#optSound').checked = save.settings.sound; $('#optLen').value = String(save.settings.len);
   const rows = [];
   for (const g of Object.keys(GAMES)) for (const d of [0, 1, 2]) {
@@ -2342,8 +2457,31 @@ function confetti() {
   })(t0);
 }
 
-renderHome();
-if (store.profiles.length > 1) { renderWho(); show('who'); }
+$('#atRetry').onclick = () => boot();
+$('#atOut').onclick = () => logout();
+const msgOn = (id, t) => { const m = $(id); m.textContent = t; m.hidden = !t; };
+$('#fIn').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('#inEmail').value.trim(), password = $('#inPw').value;
+  if (!email || !password) return msgOn('#inMsg', 'Scrivi email e password');
+  msgOn('#inMsg', 'Controllo...');
+  try {
+    const r = await api('/giochi/entra', { method: 'POST', body: JSON.stringify({ email, password, dispositivo: navigator.userAgent.slice(0, 180) }) });
+    setToken(r.access_token); msgOn('#inMsg', ''); $('#inPw').value = ''; boot();
+  } catch (x) { msgOn('#inMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+});
+$('#fReg').addEventListener('submit', async e => {
+  e.preventDefault();
+  const b = { nome: $('#rgNome').value.trim(), email: $('#rgEmail').value.trim(), telefono: $('#rgTel').value.trim(), messaggio: $('#rgMsg').value.trim(), password: $('#rgPw').value };
+  if (b.nome.length < 2) return msgOn('#rgMsgErr', 'Scrivi nome e cognome');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(b.email)) return msgOn('#rgMsgErr', "Controlla l'indirizzo email");
+  if (b.password.length < 8) return msgOn('#rgMsgErr', 'La password deve avere almeno 8 caratteri');
+  if (!$('#rgOk').checked) return msgOn('#rgMsgErr', 'Per continuare serve il consenso qui sopra');
+  msgOn('#rgMsgErr', 'Invio...');
+  try { const r = await api('/giochi/registrati', { method: 'POST', body: JSON.stringify(b) }); setToken(r.access_token); msgOn('#rgMsgErr', ''); attesa('in_attesa'); }
+  catch (x) { msgOn('#rgMsgErr', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+});
+boot();
 </script>
 
 </body>

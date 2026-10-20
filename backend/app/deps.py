@@ -31,6 +31,9 @@ def get_user_id(authorization: Optional[str] = Header(None)) -> str:
     except Exception:
         raise HTTPException(status_code=401, detail="Sessione scaduta: rientra con la password")
     uid = payload.get("sub")
+    if payload.get("scope"):
+        # un token dei giochi (Leggo e Conto) non apre il Diario
+        raise HTTPException(status_code=401, detail="Token non valido")
     if not uid:
         raise HTTPException(status_code=401, detail="Token non valido")
     return uid
