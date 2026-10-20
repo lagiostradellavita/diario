@@ -54,6 +54,7 @@
 :root[data-hero="frasi"],.hero-frasi{--sun:#D46BFF;--sun-deep:#7A12A8}
 :root[data-hero="lettere"],.hero-lettere{--sun:#FFB347;--sun-deep:#A65A00}
 :root[data-hero="italiano"],.hero-italiano{--sun:#F28CE0;--sun-deep:#9B1F8A}
+:root[data-hero="treno"],.hero-treno{--sun:#FFA000;--sun-deep:#7A4A00}
 :root[data-hero="sillabe"],.hero-sillabe{--sun:#FF7A45;--sun-deep:#B23E0E}
 :root[data-hero="leggo"],.hero-leggo{--sun:#FFE03A;--sun-deep:#8F6A00}
 /* quaderno a quadretti per la matematica, a righe per la lettura */
@@ -272,6 +273,9 @@ button{cursor:pointer}
 .toast.comet{border-color:var(--gold-deep);background:linear-gradient(160deg,var(--gold),var(--paper) 80%);font-size:2.2rem;padding:18px 30px}
 .toast.comet .ic{width:90px;height:90px;display:block;margin:0 auto 4px;color:var(--gold-deep)}
 .comet-ic{color:var(--gold-deep)}
+.sun-ic{color:#FF9A00}
+.toast.sun{border-color:#FF9A00;background:radial-gradient(circle at 50% 30%,#FFF3B0,var(--paper) 75%);font-size:2.2rem;padding:18px 30px}
+.toast.sun .ic{width:110px;height:110px;display:block;margin:0 auto 4px}
 .stel-ic{color:var(--gold-deep)}
 #stelPill.bump{animation:bump .45s}
 @keyframes bump{40%{transform:scale(1.3)}}
@@ -365,6 +369,8 @@ h2{font-size:1.6rem}
 .cat-mat{background-color:color-mix(in srgb,#FFC400 50%,var(--paper));background-image:linear-gradient(var(--grid) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);background-size:24px 24px}
 .cat-art{display:flex;align-items:center;gap:12px;font-family:var(--f-body);font-weight:700;font-size:2.6rem;line-height:1}
 .cat-art svg{width:84px;height:auto}
+.cat-art .mini svg{width:46px}
+.cat-art .mini{display:flex;flex-wrap:wrap;justify-content:center;max-width:260px}
 .cat-name{font-family:var(--f-display);font-weight:800;font-size:2rem;line-height:1}
 .cat-desc{font-size:1.25rem}
 .voices{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
@@ -420,6 +426,15 @@ h2{font-size:1.6rem}
 .frase .wd{border-radius:10px;padding:0 .08em;transition:background .15s}
 .frase .wd.now{background:var(--sun);color:var(--on-sun)}
 .frase .wd.now .sy{color:var(--on-sun)}
+.trainwrap{overflow-x:auto;padding:6px 0}
+.train{display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap;justify-content:center;transition:transform 1.2s ease-in}
+.train>svg{width:76px;flex:none}
+.train.go{transform:translateX(120%)}
+.wagon{position:relative;min-width:64px;height:56px;display:grid;place-items:center;padding:0 10px 8px;border:2.5px dashed var(--muted);border-radius:12px 12px 6px 6px;background:var(--paper);font-size:1.6rem;margin-bottom:12px}
+.wagon::before,.wagon::after{content:"";position:absolute;bottom:-12px;width:16px;height:16px;border-radius:50%;background:#2A2346;border:3px solid #FFD000}
+.wagon::before{left:8px} .wagon::after{right:8px}
+.wagon.full{border:2.5px solid var(--outline);background:color-mix(in srgb,var(--sun) 55%,var(--paper))}
+.emo{width:1em;height:1em;display:inline-block;vertical-align:-.12em}
 .dom{font-family:var(--f-display);font-weight:700;font-size:1.7rem;text-align:center;margin:0}
 .pic-opt{font-size:3.4rem;min-width:110px;padding:8px 14px}
 .word-opt{font-size:2.3rem}
@@ -491,27 +506,33 @@ th,td{font-size:1.1rem}
       <div class="tally">
         <span class="pill" title="Stelline raccolte"><svg class="ic stel-ic" viewBox="0 0 24 24"><use href="#i-star"/></svg><b id="starTot">0</b> stelline</span>
         <span class="pill" title="Stelle comete vinte"><svg class="ic comet-ic" viewBox="0 0 24 24"><use href="#i-comet"/></svg><b id="cometTot">0</b> comete</span>
+        <span class="pill" title="Soli vinti: uno ogni 10 comete"><svg class="ic sun-ic" viewBox="0 0 24 24"><use href="#i-sun"/></svg><b id="sunTot">0</b> soli</span>
         <span class="pill" title="Risposte giuste di fila, record"><svg class="ic" viewBox="0 0 24 24"><use href="#i-flame"/></svg>record <b id="bestStreak">0</b></span>
       </div>
     </header>
     <p class="welcome" id="welcome"></p>
+    <h2>1. Chi ti legge le domande?</h2>
+    <div class="voices" id="voiceChips"></div>
+    <h2>2. A cosa vuoi giocare?</h2>
+    <div class="cats">
+      <button class="cat cat-let" data-cat="let"><span class="cat-art" id="artLet"></span><span class="cat-name">Italiano</span><span class="cat-desc">Leggere, lettere, sillabe e frasi</span></button>
+      <button class="cat cat-mat" data-cat="mat"><span class="cat-art" id="artMat"></span><span class="cat-name">Matematica</span><span class="cat-desc">Numeri, conti e forme</span></button>
+    </div>
     <div class="goal"><div class="gdots" id="goalDots"></div><span id="goalTxt"></span></div>
     <div class="cometbox"><span id="cometTxt"></span><div class="slots" id="slots" aria-hidden="true"></div></div>
-
-    <h2 class="sec sec-let">Lettura e italiano</h2>
-    <div class="games home" id="gamesLet"></div>
-    <h2 class="sec sec-mat">Matematica e geometria</h2>
-    <div class="games home" id="gamesMat"></div>
-    <h2>Chi ti legge le domande?</h2>
-    <div class="voices" id="voiceChips"></div>
     <nav class="foot">
       <button class="btn" id="toAlbum">Album dei premi</button>
       <button class="btn" id="toGrandi">Per i grandi</button>
     </nav>
   </section>
 
+  <section id="lista" hidden>
+    <div class="top"><button class="btn icon back" aria-label="Torna alla prima pagina"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1 id="listTitle"></h1></div>
+    <div class="games home" id="gamesList" style="margin-top:16px"></div>
+  </section>
+
   <section id="cat" hidden>
-    <div class="top"><button class="btn icon back" aria-label="Torna alla prima pagina"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1 id="catTitle"></h1></div>
+    <div class="top"><button class="btn icon" id="catBack" aria-label="Torna ai giochi"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1 id="catTitle"></h1></div>
     <div class="gamehead" id="gameHead"></div>
     <h2>Esercizi</h2>
     <div class="chips" id="typeChips"></div>
@@ -583,6 +604,9 @@ th,td{font-size:1.1rem}
     <div class="top"><button class="btn icon back" aria-label="Torna al menu"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>Album dei premi</h1></div>
     <h2>Traguardi</h2>
     <div class="badges" id="badgeGrid"></div>
+    <h2>Soli</h2>
+    <p class="note">Ogni 10 stelle comete arriva un sole.</p>
+    <div class="comets" id="sunGrid" style="margin-top:10px"></div>
     <h2>Stelle comete</h2>
     <p class="note">Ogni 20 stelline arriva una stella cometa.</p>
     <div class="comets" id="cometGrid" style="margin-top:10px"></div>
@@ -608,7 +632,7 @@ th,td{font-size:1.1rem}
     <h2>Come funziona</h2>
     <div class="prose">
       <p><b>I colori sono sempre gli stessi</b>: unità in blu, decine in rosso, centinaia in verde, sui numeri della linea, nelle domande, nei blocchi e nelle caselle. Il resto dell'app usa il giallo, così i tre colori restano legati solo al valore posizionale.</p>
-      <p><b>Le regole del gioco.</b> Ogni risposta giusta dà una stellina e dei punti (di più in Medio e Difficile); ogni 20 stelline arriva in premio una stella cometa. Le stelline restano anche se la partita si interrompe a metà. Inoltre tre giuste di fila accendono la fiamma e danno un bonus. Se sbaglia può riprovare una volta; poi l'app mostra la soluzione. I punti non si perdono mai. A fine partita arrivano da 1 a 3 stelle, i punti fanno salire di livello e ogni livello sblocca un adesivo. I traguardi premiano costanza e coraggio, e c'è un obiettivo di 3 partite al giorno.</p>
+      <p><b>Le regole del gioco.</b> Ogni risposta giusta dà punti (di più in Medio e Difficile); ogni 3 risposte giuste arriva una stellina, ogni 20 stelline una stella cometa e ogni 10 comete un sole. Le stelline restano anche se la partita si interrompe a metà. Inoltre tre giuste di fila accendono la fiamma e danno un bonus. Se sbaglia può riprovare una volta; poi l'app mostra la soluzione. I punti non si perdono mai. A fine partita arrivano da 1 a 3 stelle, i punti fanno salire di livello e ogni livello sblocca un adesivo. I traguardi premiano costanza e coraggio, e c'è un obiettivo di 3 partite al giorno.</p>
       <p><b>Più e meno</b> usa la cornice del 10: i pallini gialli sono il primo numero, quelli viola il secondo, quelli barrati sono tolti. In Difficile si passa alle barre rosse delle decine e ai cubetti blu delle unità. «Aiutino» mostra i pallini senza togliere punti.</p>
       <p><b>Le voci</b> (cartone animato, maestra precisa, nonno gentile, robot, supereroe, fatina) si scelgono nella prima pagina. Cambiano tono, velocità e frasi; la voce di base è quella del dispositivo e si sceglie qui sopra. Le più naturali si chiamano spesso «Natural», «Avanzata» o «Google italiano».</p>
       <p><b>Lettura.</b> Le parole si leggono in STAMPATELLO MAIUSCOLO, in minuscolo o in corsivo, con le sillabe colorate a coppie (arancio e viola) e spazi più larghi a richiesta: i pulsanti stanno sopra ogni esercizio. Toccando una sillaba la voce la legge. In «Leggo da solo» il pulsante «Leggi con me» legge la frase una parola per volta, accendendola.</p>
@@ -624,6 +648,7 @@ th,td{font-size:1.1rem}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.4l2.95 6.07 6.67.86-4.9 4.6 1.27 6.62L12 17.3l-5.99 3.25 1.27-6.62-4.9-4.6 6.67-.86z"/></symbol>
   <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12.5 2c.6 3.6 5.5 5.6 5.5 11.2A6 6 0 0 1 6 13.4c0-2.8 1.6-4.4 2.2-6.6 1.5 1.1 2.2 2.7 2.2 2.7S13.3 6.6 12.5 2z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5.5"/><path d="M12 1.5v3.2M12 19.3v3.2M1.5 12h3.2M19.3 12h3.2M4.6 4.6l2.3 2.3M17.1 17.1l2.3 2.3M4.6 19.4l2.3-2.3M17.1 6.9l2.3-2.3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
   <symbol id="i-comet" viewBox="0 0 24 24"><path d="M1.5 3.5l9 6.5M1 10l8.5 2.5M6 1l5.5 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".55"/><path d="M15.5 6.2l2 4.1 4.5.6-3.3 3.1.8 4.5-4-2.1-4 2.1.8-4.5-3.3-3.1 4.5-.6z"/></symbol>
   <symbol id="i-spk" viewBox="0 0 24 24"><path d="M3 9h4l5-4.5v15L7 15H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
 </svg>
@@ -641,6 +666,7 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const STAR = '<svg class="ic" viewBox="0 0 24 24"><use href="#i-star"/></svg>';
 const STAR_BIG = '<svg class="ic" viewBox="0 0 24 24"><use href="#i-star"/></svg>';
+const SUN_BIG = '<svg class="ic sun-ic" viewBox="0 0 24 24"><use href="#i-sun"/></svg>';
 const COMET_BIG = '<svg class="ic" viewBox="0 0 24 24"><use href="#i-comet"/></svg>';
 const SPK = '<svg class="ic" viewBox="0 0 24 24"><use href="#i-spk"/></svg>';
 const DEL = '<svg class="ic" viewBox="0 0 24 24"><path d="M9 5h11v14H9l-6-7z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 9l5 6M17 9l-5 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
@@ -720,7 +746,14 @@ const TURTLE = `<g><ellipse cx="-14" cy="19" rx="6" ry="5" fill="#F2C66D" ${IKs}
   <path d="M-26 14 Q-26 -21 0 -21 Q26 -21 26 14Z" fill="#C9783A" ${IKs}/>
   ${[[0, -4], [-13, 4], [13, 4], [-7, -14], [7, -14]].map(([x, y]) => `<polygon points="${hexPts(x, y, 6.5)}" fill="#E8A35E" ${IKs} stroke-width="1.5"/>`).join('')}
   <rect x="-27" y="12" width="54" height="5" rx="2.5" fill="#E8A35E" ${IKs}/></g>`;
-const HEROES = { lettere: { name: 'Leo', art: LION }, sillabe: { name: 'Olga', art: OWL }, leggo: { name: 'Pio', art: CHICK }, frasi: { name: 'Gigi', art: GIRAFFE }, italiano: { name: 'Otto', art: OCTO }, forme: { name: 'Tina', art: TURTLE }, l20: { name: 'Bobo', art: PUP }, l100: { name: 'Zip', art: HEDGE }, cifre: { name: 'Saltino', art: FROG }, calc: { name: 'Lola', art: BUNNY } };
+const ENGINE = `<g><path d="M-6 -22 q-6 -4 -2 -9 q6 -3 9 1 q6 -2 7 4" fill="#FFFFFF" stroke="#1E1838" stroke-width="1.5"/>
+  <rect x="-2" y="-20" width="8" height="12" rx="2" fill="#2A2346"/><rect x="-26" y="-14" width="16" height="30" rx="3" fill="#FF7A45" stroke="#1E1838" stroke-width="2"/>
+  <rect x="-23" y="-10" width="10" height="9" rx="2" fill="#FFF3CF" stroke="#1E1838" stroke-width="1.5"/>
+  <rect x="-12" y="-8" width="38" height="24" rx="8" fill="#FFA000" stroke="#1E1838" stroke-width="2"/>
+  <circle class="fr-eye" cx="10" cy="0" r="4.5"/><circle class="fr-eye" cx="21" cy="0" r="4.5"/><circle class="fr-pupil" cx="11" cy="0.5" r="2.5"/><circle class="fr-pupil" cx="22" cy="0.5" r="2.5"/>
+  <path class="fr-mouth" d="M11 8 Q16 12 21 8"/><circle class="fr-cheek" cx="5" cy="7" r="2.4"/>
+  ${[-18, -2, 16].map(x => `<circle cx="${x}" cy="20" r="6.5" fill="#2A2346"/><circle cx="${x}" cy="20" r="2.5" fill="#FFD000"/>`).join('')}</g>`;
+const HEROES = { treno: { name: 'Ciuf', art: ENGINE }, lettere: { name: 'Leo', art: LION }, sillabe: { name: 'Olga', art: OWL }, leggo: { name: 'Pio', art: CHICK }, frasi: { name: 'Gigi', art: GIRAFFE }, italiano: { name: 'Otto', art: OCTO }, forme: { name: 'Tina', art: TURTLE }, l20: { name: 'Bobo', art: PUP }, l100: { name: 'Zip', art: HEDGE }, cifre: { name: 'Saltino', art: FROG }, calc: { name: 'Lola', art: BUNNY } };
 const heroSvg = k => `<svg viewBox="-34 -33 68 60" aria-hidden="true">${HEROES[k].art}</svg>`;
 $('#team').innerHTML = ['l20', 'cifre', 'sillabe', 'calc', 'l100'].map(heroSvg).join('');
 
@@ -934,8 +967,11 @@ const GAMES = {
   leggo: { cat: 'let', name: 'Le Parole di Pio', desc: 'Leggi le parole e trova il disegno giusto',
     types: [['leggi', 'Leggi e trova il disegno'], ['ascolta', 'Ascolta e trova la parola'], ['smanca', 'La sillaba che manca']],
     diffs: ['Parole corte', 'Parole più lunghe', 'Parole lunghe'] },
-  frasi: { cat: 'let', name: 'Le Frasi di Gigi', desc: 'Leggi le frasi, mettile in ordine, vero o falso',
-    types: [['frasi', 'Leggi e rispondi'], ['ordina', 'Metti in ordine le parole'], ['vero', 'Vero o falso?']],
+  frasi: { cat: 'let', name: 'Le Frasi di Gigi', desc: 'Leggi le frasi, completale, vero o falso',
+    types: [['frasi', 'Leggi e rispondi'], ['completa', 'Completa la frase'], ['vero', 'Vero o falso?']],
+    diffs: ['Frasi corte', 'Frasi medie', 'Frasi lunghe'] },
+  treno: { cat: 'let', name: 'Il Treno delle Frasi di Ciuf', desc: 'Metti le parole sui vagoni e forma frasi che hanno senso',
+    types: [['treno', 'Le parole sul treno'], ['intruso', 'La parola di troppo'], ['senso', 'Ha senso o no?'], ['pezzi', 'Unisci i pezzi']],
     diffs: ['Frasi corte', 'Frasi medie', 'Frasi lunghe'] },
   italiano: { cat: 'let', name: "L'Italiano di Otto", desc: 'Articoli, uno e tanti, parole con le doppie',
     types: [['articolo', 'Il, la, lo...'], ['plurale', 'Uno e tanti'], ['doppie', 'Le doppie']],
@@ -983,7 +1019,8 @@ function Q(o) { o.say = o.say || o.text; o.html = o.html || colorNums(o.text); o
 function makeQ(g, d, type) {
   if (g === 'forme') return ({ ftrova: qFTrova, fnome: qFNome, flati: qFLati, fconta: qFConta, posizione: qPosizione })[type](d);
   if (g === 'lettere') return ({ iniziale: qIniziale, vocale: qVocale, maiusc: qMaiusc, suono: qSuono })[type](d);
-  if (g === 'frasi') return ({ frasi: qFrase, ordina: qOrdina, vero: qVero })[type](d);
+  if (g === 'frasi') return ({ frasi: qFrase, ordina: qOrdina, completa: qCompleta, vero: qVero })[type](d);
+  if (g === 'treno') return ({ treno: qTreno, intruso: q => qTreno(q, true), senso: qSenso, pezzi: qPezzi })[type](d);
   if (g === 'italiano') return ({ articolo: qArticolo, plurale: qPlurale, doppie: qDoppie })[type](d);
   if (g === 'sillabe') return ({ dividi: qDividi, quante: qQuante, componi: qComponi })[type](d);
   if (g === 'leggo') return ({ leggi: qLeggi, ascolta: qAscolta, smanca: qSMancante, frasi: qFrase })[type](d);
@@ -1025,11 +1062,18 @@ function judge(ok) {
     const stellina = save.corrette % 3 === 0;
     if (stellina) { save.stelline = (save.stelline || 0) + 1; run.stel++; }
     const cometa = stellina && save.stelline % 20 === 0;
+    const sole = cometa && save.stelline % 200 === 0;
     if (cometa) run.comete++;
     persist();
     const nm = prof.info.nome ? ' ' + prof.info.nome : '', bravo = gx('Bravo', 'Brava');
     let wait = RM ? 1000 : 1700;
-    if (cometa) {
+    if (sole) {
+      SND.win(); setTimeout(() => SND.win(), 600);
+      const m = `Incredibile${nm}! Hai vinto un sole! Sei ${gx('un fenomeno', 'una fenomena')}!`;
+      toast(`${SUN_BIG}${m}`, `10 stelle comete: ${save.stelline / 200}º sole`, 'sun', 3600);
+      if (save.settings.voice) sayEmph(m);
+      confetti(); setTimeout(confetti, 900); wait = RM ? 2000 : 3800;
+    } else if (cometa) {
       SND.win();
       const m = `${gx('Bravissimo', 'Bravissima')}${nm}, sei Suuuuper!`;
       toast(`${COMET_BIG}${m}`, `Stella cometa! ${save.stelline / 20}ª cometa`, 'comet', 3000);
@@ -1626,13 +1670,14 @@ function qProblema(d) {
 }
 
 /* ---------- lettura ---------- */
+const STRUZZO = '<svg class="emo" viewBox="0 0 60 60" aria-hidden="true"><path d="M30 41 L26 57 M36 41 L39 57" stroke="#E07B54" stroke-width="3" stroke-linecap="round"/><path d="M22 57h6M37 57h6" stroke="#E07B54" stroke-width="3" stroke-linecap="round"/><path d="M14 28 q-8 -6 -4 -12 q6 2 8 8 q0 -9 6 -11 q3 7 -1 13z" fill="#FFFFFF" stroke="#1E1838" stroke-width="1.5"/><ellipse cx="31" cy="32" rx="16" ry="11" fill="#2A2346"/><path d="M42 26 Q44 14 42 8" stroke="#F4A988" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="43" cy="7" r="5" fill="#F4A988"/><path d="M47 6 l8 2 -8 2z" fill="#FF9A2E"/><circle cx="44" cy="5.5" r="1.4" fill="#1E1838"/></svg>';
 const WORDS = [
   [0, 'ca-sa', '🏠'], [0, 'me-la', '🍎'], [0, 'lu-na', '🌙'], [0, 'pa-ne', '🍞'], [0, 'ro-sa', '🌹'], [0, 'ma-no', '✋'], [0, 'pe-ra', '🍐'],
   [0, 'ne-ve', '❄️'], [0, 'ca-ne', '🐕'], [0, 'ra-na', '🐸'], [0, 'so-le', '☀️'], [0, 'da-do', '🎲'], [0, 'na-ve', '🚢'], [0, 've-la', '⛵'],
   [0, 'to-po', '🐭'], [0, 'lu-po', '🐺'], [0, 'u-va', '🍇'], [0, 'a-pe', '🐝'], [0, 'to-ro', '🐂'], [0, 'la-na', '🧶'],
   [1, 'gat-to', '🐱'], [1, 'pal-la', '⚽'], [1, 'tre-no', '🚂'], [1, 'fra-go-la', '🍓'], [1, 'pa-ta-ta', '🥔'], [1, 'ba-na-na', '🍌'],
   [1, 'pe-co-ra', '🐑'], [1, 'gal-li-na', '🐔'], [1, 'ca-val-lo', '🐴'], [1, 'ma-ti-ta', '✏️'], [1, 'lu-ma-ca', '🐌'], [1, 'far-fal-la', '🦋'],
-  [1, 'let-to', '🛏️'], [1, 'pe-sce', '🐟'], [1, 'stel-la', '⭐'], [1, 'li-bro', '📖'], [1, 'fio-re', '🌸'], [1, 'tor-ta', '🎂'],
+  [1, 'let-to', '🛏️'], [1, 'pe-sce', '🐟'], [1, 'stel-la', '⭐'], [1, 'li-bro', '📖'], [1, 'fio-re', '🌸'], [1, 'tor-ta', '🎂'], [1, 'ti-gre', '🐯'], [1, 'del-fi-no', '🐬'], [1, 'struz-zo', STRUZZO],
   [2, 'po-mo-do-ro', '🍅'], [2, 'pal-lon-ci-no', '🎈'], [2, 'coc-co-dril-lo', '🐊'], [2, 'ar-co-ba-le-no', '🌈'], [2, 'tar-ta-ru-ga', '🐢'],
   [2, 'ca-ra-mel-la', '🍬'], [2, 'bi-ci-clet-ta', '🚲'], [2, 'e-le-fan-te', '🐘'], [2, 'ra-gno', '🕷️'], [2, 'fun-go', '🍄'], [2, 'o-ro-lo-gio', '⌚'],
   [2, 'chia-ve', '🔑'], [2, 'for-chet-ta', '🍴'], [2, 'te-le-fo-no', '☎️'], [2, 'a-e-re-o', '✈️'], [2, 'ma-glia', '👕'], [2, 'scar-pa', '👟'],
@@ -1747,7 +1792,7 @@ function qLeggi(d) {
   return Q({ text: 'Leggi la parola e tocca il disegno giusto', say: 'Leggi la parola e tocca il disegno giusto.',
     mount(st, ct) {
       st.innerHTML = `${aidsBar()}<p class="word-big rd ${aidCls()}">${wordHTML(w)}</p><p class="hint">Se non riesci, tocca le sillabe: la voce te le legge</p>`;
-      op = choiceUI(ct, shuffle([w, ...others]).map(x => ({ k: x.e, html: x.e, cls: 'pic-opt' })), w.e, async () => { say(w.w); await sleep(500); });
+      op = choiceUI(ct, shuffle([w, ...others]).map(x => ({ k: x.w, html: x.e, cls: 'pic-opt' })), w.w, async () => { say(w.w); await sleep(500); });
     },
     reveal() { op.reveal(); say(w.w); } });
 }
@@ -1858,6 +1903,77 @@ function qSMancante(d) {
     mount(st, ct) { st0 = st; st.innerHTML = `${aidsBar()}<div class="pic">${w.e}</div><div data-row>${row(false)}</div>`; op = choiceUI(ct, shuffle([ans, ...others]).map(x => ({ k: x, html: letHTML(x), cls: 'let-opt' })), ans, async () => { $('[data-row]', st).innerHTML = row(true); say(w.w); await sleep(500); }); },
     reveal() { op.reveal(); $('[data-row]', st0).innerHTML = row(true); say(w.w); } });
 }
+const TRENO = [
+  [0, 'Il cane corre.'], [0, 'La rana salta.'], [0, 'Il sole splende.'], [0, 'Io mangio la mela.'], [0, 'Il gatto dorme.'], [0, 'La mamma canta.'],
+  [0, 'Il bambino gioca.'], [0, 'Il pesce nuota.'], [0, "L'uccello vola."], [0, 'La nonna legge.'], [0, 'La tigre corre.'], [0, 'Il delfino salta.'],
+  [1, 'Il gatto beve il latte.'], [1, 'La bambina mangia una mela.'], [1, 'Il papà guida la macchina.'], [1, 'Il cane gioca con la palla.'],
+  [1, 'La maestra scrive alla lavagna.'], [1, 'Il pesce nuota nel mare.'], [1, 'Io vado a scuola.'], [1, "La mucca mangia l'erba."], [1, 'Lo struzzo corre velocissimo.'], [1, 'La tigre dorme nella foresta.'], [1, 'Il delfino gioca nel mare.'],
+  [2, 'Oggi il sole splende nel cielo azzurro.'], [2, 'Il bambino mette i libri nello zaino.'], [2, 'La nonna prepara una torta buonissima.'],
+  [2, 'Di notte la luna illumina il bosco.'], [2, 'Il pulcino segue la mamma nel prato.'], [2, 'Domani andiamo al mare con gli amici.'], [2, 'La farfalla vola sopra i fiori gialli.'],
+].map(([l, t]) => ({ l, t }));
+const SENSO = [
+  ['Il gatto beve il latte.', 'Il latte beve il gatto.'], ['La bambina mangia la mela.', 'La mela mangia la bambina.'], ["Il cane morde l'osso.", "L'osso morde il cane."],
+  ['Il papà guida la macchina.', 'La macchina guida il papà.'], ["La mucca mangia l'erba.", "L'erba mangia la mucca."], ['Il pesce nuota nel mare.', 'Il pesce nuota nel letto.'],
+  ["L'uccello vola nel cielo.", "L'uccello vola nella tazza."], ['La nonna legge il libro.', 'Il libro legge la nonna.'], ["Io bevo l'acqua.", 'Io bevo la sedia.'],
+  ['Il sole splende di giorno.', 'Il sole splende nel frigorifero.'], ['Il bambino dorme nel letto.', 'Il letto dorme nel bambino.'], ['La maestra scrive alla lavagna.', 'La lavagna scrive alla maestra.'],
+];
+const PEZZI = [['Il pesce', 'nuota nel mare.'], ["L'uccello", 'vola nel cielo.'], ['Il cane', 'abbaia forte.'], ['La mucca', 'fa il latte.'], ['Il sole', 'scalda la terra.'],
+  ['La gallina', "fa l'uovo."], ['Il bambino', 'va a scuola.'], ['La rana', 'salta nello stagno.'], ["L'ape", 'fa il miele.'], ['Il gatto', 'fa miao.'], ['Il gelato', 'è freddo.'], ['La neve', 'è bianca.'], ['Il delfino', 'salta tra le onde.'], ['Lo struzzo', 'non sa volare.'], ['La tigre', 'ruggisce forte.']];
+const COMPLETA = [['Il cane ___ la palla.', 'prende', ['vola', 'nuota']], ["L'ape fa il ___.", 'miele', ['latte', 'pane']], ["Di notte in cielo c'è la ___.", 'luna', ['mela', 'scarpa']],
+  ['Il pesce vive nel ___.', 'mare', ['letto', 'forno']], ['Mi lavo le mani con il ___.', 'sapone', ['gelato', 'libro']], ["La gallina fa l'___.", 'uovo', ['ombrello', 'orso']],
+  ["Quando piove apro l'___.", 'ombrello', ['uovo', 'armadio']], ['Il gatto fa ___.', 'miao', ['bau', 'muu']], ["D'inverno cade la ___.", 'neve', ['torta', 'palla']],
+  ['Scrivo con la ___.', 'matita', ['forchetta', 'scarpa']], ['Bevo il latte nella ___.', 'tazza', ['scarpa', 'borsa']], ['La mucca fa ___.', 'muu', ['miao', 'bau']]];
+const lineHTML = t => `<p class="frase rd ${aidCls()}">${wordsHTML(t)}</p>`;
+function qTreno(d, extra) {
+  const pool = TRENO.filter(f => f.l === d); let F, i = 0;
+  do { F = pick(pool); i++; } while (run.recent.includes(F.t) && i < 30); remember(F.t);
+  const words = F.t.split(' ');
+  let tiles = words.map((w, k) => ({ w, k }));
+  if (extra) { const o = pick(TRENO.filter(x => x.t !== F.t)).t.split(' ').filter(w => !words.includes(w) && !/[.]$/.test(w)); if (o.length) tiles.push({ w: pick(o), k: -1 }); }
+  do { tiles = shuffle(tiles); } while (tiles.filter(t => t.k >= 0).every((t, k) => t.k === k));
+  let placed = [], st0, ct0;
+  const paint = () => {
+    $('.train', st0).innerHTML = heroSvg('treno') + words.map((_, k) => placed[k] ? `<button class="wagon full rd ${aidCls()}" data-slot="${k}"><span data-raw="${placed[k].w}">${caseT(placed[k].w)}</span></button>` : '<span class="wagon"></span>').join('');
+    $('.tiles', ct0).innerHTML = tiles.map((t, k) => `<button class="btn tile rd ${aidCls()}" data-tile="${k}" ${placed.includes(t) ? 'disabled' : ''}><span data-raw="${t.w}">${caseT(t.w)}</span></button>`).join('');
+    $$('[data-slot]', st0).forEach(b => b.onclick = () => { if (run.locked) return; placed.splice(+b.dataset.slot, 1); paint(); });
+    $$('[data-tile]', ct0).forEach(b => b.onclick = () => { if (run.locked || placed.length >= words.length) return; const t = tiles[+b.dataset.tile]; placed.push(t); SND.tick(); say(plain(t.w)); paint(); });
+  };
+  const txt = extra ? 'Forma la frase: una parola è di troppo!' : 'Metti le parole sui vagoni del treno';
+  return Q({ text: txt, sub: 'La frase deve avere senso', say: extra ? 'Forma la frase. Attenzione: c\'è una parola di troppo!' : 'Metti le parole sui vagoni del treno e forma una frase che ha senso.',
+    mount(st, ct) {
+      st0 = st; ct0 = ct;
+      st.innerHTML = `${aidsBar()}<div class="trainwrap"><div class="train"></div></div>`;
+      ct.innerHTML = '<div class="tiles"></div><div class="adj" style="margin-top:14px"><button class="btn go" data-fine>Parti!</button></div>';
+      $('[data-fine]', ct).onclick = () => { if (run.locked) return; if (placed.length < words.length) { toast('Riempi tutti i vagoni', '', 'help'); return; } const ok = placed.map(t => t.w).join(' ') === F.t; if (ok) { $('.train', st0).classList.add('go'); say(F.t); } judge(ok); };
+      paint();
+    },
+    retry() { placed = []; paint(); },
+    reveal() { placed = words.map((w, k) => tiles.find(t => t.k === k)); paint(); say(F.t); } });
+}
+function qSenso(d) {
+  let S, i = 0; do { S = pick(SENSO); i++; } while (run.recent.includes(S[0]) && i < 20); remember(S[0]);
+  const opts = [S[0], S[1]].concat(d > 0 ? [pick(SENSO.filter(x => x !== S))[1]] : []);
+  let op;
+  return Q({ text: 'Quale frase ha senso?', say: 'Leggi le frasi e tocca quella che ha senso.',
+    mount(st, ct) { st.innerHTML = `${aidsBar()}<div class="pic" aria-hidden="true">🤔</div>`; op = choiceUI(ct, shuffle(opts.map((t, k) => ({ k: String(k), html: `<span class="rd ${aidCls()}">${wordsHTML(t)}</span>`, cls: 'nome-opt' }))), '0', async () => { say(S[0]); await sleep(700); }); },
+    reveal() { op.reveal(); say(S[0]); } });
+}
+function qPezzi(d) {
+  let P, i = 0; do { P = pick(PEZZI); i++; } while (run.recent.includes(P[0]) && i < 20); remember(P[0]);
+  const others = shuffle(PEZZI.filter(x => x[0] !== P[0])).slice(0, d === 0 ? 2 : 3).map(x => x[1]);
+  let op, st0;
+  return Q({ text: 'Come finisce la frase?', say: `Come finisce la frase? ${P[0]}...`,
+    mount(st, ct) { st0 = st; st.innerHTML = `${aidsBar()}<div data-l>${lineHTML(P[0] + ' ...')}</div>`; op = choiceUI(ct, shuffle([P[1], ...others]).map(t => ({ k: t, html: `<span class="rd ${aidCls()}">${wordsHTML(t)}</span>`, cls: 'nome-opt' })), P[1], async () => { $('[data-l]', st).innerHTML = lineHTML(P[0] + ' ' + P[1]); say(P[0] + ' ' + P[1]); await sleep(700); }); },
+    reveal() { op.reveal(); $('[data-l]', st0).innerHTML = lineHTML(P[0] + ' ' + P[1]); say(P[0] + ' ' + P[1]); } });
+}
+function qCompleta(d) {
+  let C, i = 0; do { C = pick(COMPLETA); i++; } while (run.recent.includes(C[0]) && i < 20); remember(C[0]);
+  const full = w => C[0].replace(/'___/, "'" + w).replace('___', w);
+  let op, st0;
+  return Q({ text: 'Completa la frase', say: 'Leggi la frase e scegli la parola che manca.',
+    mount(st, ct) { st0 = st; st.innerHTML = `${aidsBar()}<div data-l><p class="frase rd ${aidCls()}">${wordsHTML(C[0]).replace(/_+/, '<span class="blank">?</span>')}</p></div>`; op = choiceUI(ct, shuffle([C[1], ...C[2]]).map(w => ({ k: w, html: letHTML(w), cls: 'word-opt' })), C[1], async () => { $('[data-l]', st).innerHTML = lineHTML(full(C[1])); say(full(C[1])); await sleep(700); }); },
+    reveal() { op.reveal(); $('[data-l]', st0).innerHTML = lineHTML(full(C[1])); say(full(C[1])); } });
+}
 function qOrdina(d) {
   const pool = FRASI.filter(f => f.l === d); let F, i = 0;
   do { F = pick(pool); i++; } while (run.recent.includes(F.t) && i < 30); remember(F.t);
@@ -1890,6 +2006,7 @@ const NOMI = [
   ['lo', 'squalo', 'gli', 'squali', '🦈', 'm'], ['il', 'treno', 'i', 'treni', '🚂', 'm'], ['la', 'palla', 'le', 'palle', '⚽', 'f'], ['il', 'topo', 'i', 'topi', '🐭', 'm'],
   ['la', 'luna', 'le', 'lune', '🌙', 'f'], ["l'", 'orso', 'gli', 'orsi', '🐻', 'm'], ['la', 'torta', 'le', 'torte', '🎂', 'f'], ['il', 'pinguino', 'i', 'pinguini', '🐧', 'm'],
   ['la', 'chiave', 'le', 'chiavi', '🔑', 'f'], ["l'", 'anatra', 'le', 'anatre', '🦆', 'f'], ['la', 'zebra', 'le', 'zebre', '🦓', 'f'], ['il', 'pulcino', 'i', 'pulcini', '🐤', 'm'],
+  ['lo', 'struzzo', 'gli', 'struzzi', STRUZZO, 'm'], ['la', 'tigre', 'le', 'tigri', '🐯', 'f'], ['il', 'delfino', 'i', 'delfini', '🐬', 'm'],
 ].map(([a, s, ap, p, e, g]) => ({ a, s, ap, p, e, g }));
 const withArt = (a, w) => a.endsWith("'") ? a + w : a + ' ' + w;
 const indet = N => N.g === 'm' ? (N.a === 'lo' ? 'uno' : 'un') : (N.a === "l'" ? "un'" : 'una');
@@ -1934,7 +2051,7 @@ function qPlurale(d) {
 }
 const DOPPIE = [['gatto', '🐱'], ['palla', '⚽'], ['letto', '🛏️'], ['stella', '⭐'], ['gallina', '🐔'], ['cavallo', '🐴'], ['farfalla', '🦋'], ['pizza', '🍕'], ['tazza', '☕'],
   ['mucca', '🐄'], ['cappello', '🎩'], ['zucca', '🎃'], ['uccello', '🐦'], ['nonno', '👴'], ['occhiali', '👓'], ['ombrello', '☂️'], ['giraffa', '🦒'], ['carrello', '🛒'],
-  ['cammello', '🐫'], ['gallo', '🐓'], ['pennello', '🖌️'], ['caramella', '🍬'], ['forchetta', '🍴'], ['bicicletta', '🚲'], ['coccodrillo', '🐊']];
+  ['cammello', '🐫'], ['gallo', '🐓'], ['pennello', '🖌️'], ['caramella', '🍬'], ['forchetta', '🍴'], ['bicicletta', '🚲'], ['coccodrillo', '🐊'], ['struzzo', STRUZZO]];
 function qDoppie(d) {
   let D, i = 0; do { D = pick(d === 0 ? DOPPIE.slice(0, 12) : DOPPIE); i++; } while (run.recent.includes(D[0]) && i < 30); remember(D[0]);
   const w = D[0], dbl = [...w].map((c, k) => c === w[k + 1] ? k : -1).filter(k => k >= 0);
@@ -2002,7 +2119,7 @@ function qFConta(d) {
 }
 
 /* ---------- schermate ---------- */
-function show(id) { $('#toast').hidden = true; const R = document.documentElement; if (['cat', 'game', 'result'].includes(id)) R.dataset.cat = save.last.cat || 'mat'; else delete R.dataset.cat; if (!['cat', 'game', 'result'].includes(id)) delete R.dataset.hero; $$('#app > section').forEach(s => s.hidden = s.id !== id); window.scrollTo(0, 0); }
+function show(id) { $('#toast').hidden = true; const R = document.documentElement; if (['lista', 'cat', 'game', 'result'].includes(id)) R.dataset.cat = save.last.cat || 'mat'; else delete R.dataset.cat; if (!['cat', 'game', 'result'].includes(id)) delete R.dataset.hero; $$('#app > section').forEach(s => s.hidden = s.id !== id); window.scrollTo(0, 0); }
 const miniStars = n => [1, 2, 3].map(i => `<svg class="ic${i <= n ? ' on' : ''}" viewBox="0 0 24 24"><use href="#i-star"/></svg>`).join('');
 function renderHome() {
   const li = lvlInfo(save.xp), g = save.last.game;
@@ -2011,7 +2128,7 @@ function renderHome() {
   $('#lvlN').textContent = li.lvl; $('#xpFill').style.width = (li.pct * 100) + '%';
   $('#xpTxt').textContent = `Ancora ${li.need - li.into} punti per il livello ${li.lvl + 1}`;
   const sl = save.stelline || 0, nc = Math.floor(sl / 20), mod = sl % 20;
-  $('#starTot').textContent = sl; $('#cometTot').textContent = nc;
+  $('#starTot').textContent = sl; $('#cometTot').textContent = nc; $('#sunTot').textContent = Math.floor(nc / 10);
   $('#slots').innerHTML = Array.from({ length: 20 }, (_, i) => `<svg class="ic${i < mod ? ' on' : ''}" viewBox="0 0 24 24"><use href="#i-star"/></svg>`).join('');
   $('#cometTxt').textContent = `Ancora ${20 - mod} stellin${20 - mod === 1 ? 'a' : 'e'} per la prossima stella cometa`; $('#bestStreak').textContent = save.bestStreak;
   const today = save.days[dayKey()] || 0;
@@ -2020,10 +2137,16 @@ function renderHome() {
   const pc = save.settings.persona || 'cartoon';
   $('#voiceChips').innerHTML = persGrid(pc);
   $('#welcome').textContent = welcomeMsg();
-  const card = ([k, G]) => `<button class="gcard hero-${k}" data-g="${k}"><span class="gname"><span class="ghero">${heroSvg(k)}</span>${G.name}</span><span class="gdesc">${G.desc}</span><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></button>`;
-  $('#gamesLet').innerHTML = Object.entries(GAMES).filter(([, G]) => G.cat === 'let').map(card).join('');
-  $('#gamesMat').innerHTML = Object.entries(GAMES).filter(([, G]) => G.cat === 'mat').map(card).join('');
+  window.gameCard = ([k, G]) => `<button class="gcard hero-${k}" data-g="${k}"><span class="gname"><span class="ghero">${heroSvg(k)}</span>${G.name}</span><span class="gdesc">${G.desc}</span><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></button>`;
+  const minis = c => `<span class="mini">${Object.keys(GAMES).filter(k => GAMES[k].cat === c).map(heroSvg).join('')}</span>`;
+  $('#artLet').innerHTML = minis('let'); $('#artMat').innerHTML = minis('mat');
 }
+function renderList() {
+  const c = save.last.cat || 'mat';
+  $('#listTitle').textContent = c === 'let' ? 'Giochi di italiano' : 'Giochi di matematica';
+  $('#gamesList').innerHTML = Object.entries(GAMES).filter(([, G]) => G.cat === c).map(gameCard).join('');
+}
+function openList(c) { save.last.cat = c; persist(); renderList(); show('lista'); }
 function welcomeMsg() {
   const nm = prof.info.nome ? ' ' + prof.info.nome : '';
   return save.rounds ? `Ciao${nm}, ${gx('bentornato', 'bentornata')}! A cosa vuoi giocare oggi?` : `Ciao${nm}, ${gx('benvenuto', 'benvenuta')}! A cosa vuoi giocare oggi?`;
@@ -2043,7 +2166,9 @@ function renderCat() {
   $('#typeChips').innerHTML = GAMES[g].types.map(([k, n]) => `<button class="chip" data-t="${k}" aria-pressed="${on.includes(k)}">${n}</button>`).join('');
   $('#diffBtns').innerHTML = DIFF.map((n, d) => `<button class="dbtn ${d === save.last.diff ? 'sel' : ''}" data-d="${d}" aria-pressed="${d === save.last.diff}"><span class="pips">${[0, 1, 2].map(i => `<i class="${i <= d ? 'on' : ''}"></i>`).join('')}</span>${n}<small>${GAMES[g].diffs[d]}</small></button>`).join('');
 }
-['#gamesLet', '#gamesMat'].forEach(id => $(id).addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; SND.tick(); openGame(b.dataset.g); if (save.settings.voice) say(`${GAMES[b.dataset.g].name}! Scegli la difficoltà e premi Gioca.`); }));
+$$('[data-cat]').forEach(b => b.onclick = () => { SND.tick(); openList(b.dataset.cat); if (save.settings.voice) say(b.dataset.cat === 'let' ? 'Giochi di italiano! Scegli un gioco.' : 'Giochi di matematica! Scegli un gioco.'); });
+$('#catBack').onclick = () => { renderList(); show('lista'); };
+['#gamesList'].forEach(id => $(id).addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; SND.tick(); openGame(b.dataset.g); if (save.settings.voice) say(`${GAMES[b.dataset.g].name}! Scegli la difficoltà e premi Gioca.`); }));
 const persGrid = pc => Object.entries(PERSONAS).map(([k, P]) => `<button class="pcard ${k === pc ? 'sel' : ''}" data-p="${k}" aria-pressed="${k === pc}">${persSvg(k)}<b>${P.name}</b><small>${P.tag}</small></button>`).join('');
 $('#voiceChips').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; save.settings.persona = b.dataset.p; persist(); renderHome(); say(persona().hello('Saltino')); });
 /* ---------- chi gioca e profilo ---------- */
@@ -2126,6 +2251,7 @@ document.addEventListener('keydown', e => { if (run && run.keys && !$('#game').h
 
 function renderAlbum() {
   const nc = Math.floor((save.stelline || 0) / 20);
+  $('#sunGrid').innerHTML = nc >= 10 ? SUN_BIG.repeat(Math.floor(nc / 10)) : `<p class="note">Ancora nessuno: mancano ${10 - nc % 10} comete al primo sole.</p>`;
   $('#cometGrid').innerHTML = nc ? COMET_BIG.replace('class="ic"', 'class="ic comet-ic"').repeat(nc) : '<p class="note">Ancora nessuna: raccogli 20 stelline!</p>';
   $('#badgeGrid').innerHTML = BADGES.map(b => `<div class="bdg ${save.badges[b.id] ? 'on' : ''}"><div class="medal">${save.badges[b.id] ? b.mark : '?'}</div><b>${b.name}</b><small>${b.desc}</small></div>`).join('');
   const n = Math.min(STK.length, lvlInfo(save.xp).lvl - 1);
