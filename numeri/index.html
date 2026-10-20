@@ -15,13 +15,13 @@
 /* Layout: una colonna centrata da tablet; schermate a turno (menu, gioco, risultato, album, grandi).
    Blu, rosso e verde sono riservati a unità, decine e centinaia: l'interfaccia usa il giallo di Saltino. */
 :root{
-  --bg:#F3EEFF; --paper:#FFFFFF; --ink:#1E1838; --muted:#554D74; --line:#D9D2F0; --edge:#1E1838;
-  --outline:#1E1838; --dot:#E2D7FF; --band1:#FFD54A; --band2:#FF9BC2;
+  --bg:#EADFFF; --paper:#FFFFFF; --ink:#1E1838; --muted:#4F4570; --line:#D3C8F2; --edge:#1E1838;
+  --outline:#1E1838; --dot:#CDB8FF; --band1:#FFD000; --band2:#FF4FA0;
   --fur:#D08A45; --fur-dark:#8C5426; --fur-light:#F8DFC0; --nose:#2A1E14; --tongue:#FF7F9E; --collar:#7A5CFF;
   --hh:#8D6BE8; --hh-dark:#5634B0; --hh-face:#FFE0C2;
   --bn:#F7AECB; --bn-dark:#D96A9B; --bn-light:#FFE6F0; --bn-nose:#C9417F;
   --ow:#E8955A; --ow-dark:#A85A2A; --ow-light:#FFE8CF; --s4:#FF9F68;
-  --sy1:#D96000; --sy2:#6741D9; --grid:#D9CFF4; --rule:#CFC4EF; --margin:#F3A6C6;
+  --sy1:#D96000; --sy2:#6741D9; --grid:#C8B4FA; --rule:#BFAAF6; --margin:#FF6FB0;
   --sun:#FFC83D; --sun-deep:#E88A0C; --sun-soft:color-mix(in srgb,var(--sun) 30%,var(--paper)); --gold:#FFC83D; --gold-deep:#E88A0C; --on-sun:#3A2600; --focus:#7A5CFF;
   --u:#1C6BE0; --da:#DA2B2A; --h:#178F48;
   --u-soft:#DDE8FC; --da-soft:#FBE0DF; --h-soft:#DAF1E2;
@@ -46,18 +46,18 @@
   --sy1:#FF9A3D; --sy2:#B197FC; --grid:#2B2450; --rule:#2E2756; --margin:#5B2A4F;
 }
 /* ogni gioco prende i colori del suo personaggio (mai blu, rosso o verde: sono di u, da, h) */
-:root[data-hero="l20"],.hero-l20{--sun:#F4A95C;--sun-deep:#A8612A}
-:root[data-hero="l100"],.hero-l100{--sun:#B39AF5;--sun-deep:#5634B0}
-:root[data-hero="cifre"],.hero-cifre{--sun:#FFC83D;--sun-deep:#E88A0C}
-:root[data-hero="calc"],.hero-calc{--sun:#F59ABF;--sun-deep:#A8366F}
-:root[data-hero="forme"],.hero-forme{--sun:#E3A3F5;--sun-deep:#8A2BA8}
-:root[data-hero="sillabe"],.hero-sillabe{--sun:#FF9F68;--sun-deep:#B5532A}
-:root[data-hero="leggo"],.hero-leggo{--sun:#FFD25E;--sun-deep:#A87400}
+:root[data-hero="l20"],.hero-l20{--sun:#FF9A2E;--sun-deep:#B55A00}
+:root[data-hero="l100"],.hero-l100{--sun:#9B6BFF;--sun-deep:#4B22C0}
+:root[data-hero="cifre"],.hero-cifre{--sun:#FFC400;--sun-deep:#D97700}
+:root[data-hero="calc"],.hero-calc{--sun:#FF5FA2;--sun-deep:#B0185E}
+:root[data-hero="forme"],.hero-forme{--sun:#D46BFF;--sun-deep:#7A12A8}
+:root[data-hero="sillabe"],.hero-sillabe{--sun:#FF7A45;--sun-deep:#B23E0E}
+:root[data-hero="leggo"],.hero-leggo{--sun:#FFD000;--sun-deep:#A06C00}
 /* quaderno a quadretti per la matematica, a righe per la lettura */
 :root[data-cat="mat"] body{background-image:linear-gradient(var(--grid) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);background-size:28px 28px}
 :root[data-cat="let"] body{background-image:linear-gradient(90deg,transparent 30px,var(--margin) 30px,var(--margin) 33px,transparent 33px),linear-gradient(transparent 34px,var(--rule) 34px,var(--rule) 36px);background-size:100% 100%,100% 36px}
-:root[data-hero] body{background-color:color-mix(in srgb,var(--sun) 14%,var(--bg))}
-:root[data-hero] .prompt{background:linear-gradient(110deg,color-mix(in srgb,var(--sun) 45%,var(--paper)),var(--paper) 70%)}
+:root[data-hero] body{background-color:color-mix(in srgb,var(--sun) 26%,var(--bg))}
+:root[data-hero] .prompt{background:linear-gradient(110deg,color-mix(in srgb,var(--sun) 70%,var(--paper)),color-mix(in srgb,var(--sun) 15%,var(--paper)) 80%)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background-color:var(--bg);background-image:radial-gradient(var(--dot) 3.5px,transparent 4.5px);background-size:30px 30px;color:var(--ink);font-family:var(--f-body);font-size:20px;line-height:1.45}
@@ -98,7 +98,7 @@ button{cursor:pointer}
 .gdot .ic{width:18px;height:18px}
 
 .games{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.gcard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;border:4px solid transparent;border-radius:22px;background:linear-gradient(160deg,color-mix(in srgb,var(--sun) 38%,var(--paper)),var(--paper) 75%);box-shadow:0 4px 0 var(--edge);padding:14px 16px 12px}
+.gcard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;border:4px solid transparent;border-radius:22px;background:linear-gradient(160deg,color-mix(in srgb,var(--sun) 65%,var(--paper)),color-mix(in srgb,var(--sun) 12%,var(--paper)) 80%);box-shadow:0 4px 0 var(--edge);padding:14px 16px 12px}
 .gcard.sel{border-color:var(--sun-deep)}
 .gart{display:block;width:100%;height:56px}
 .gart svg{width:100%;height:100%}
@@ -283,9 +283,10 @@ tr:last-child td{border-bottom:0}
 .danger{margin-top:20px;font-size:1rem}
 #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
 /* contorno a fumetto e testi grandi */
-.btn,.pill,.goal,.gcard,.dbtn,.prompt,.stage,.news,.bdg,.form,.tablewrap,.stk-t.on{border:3px solid var(--outline)}
+.btn,.pill,.goal,.gcard,.dbtn,.prompt,.stage,.news,.bdg,.form,.tablewrap,.stk-t.on{border:4px solid var(--outline)}
+.gcard,.dbtn,.prompt,.stage,.goal,.cometbox,.form,.cat{box-shadow:0 6px 0 var(--edge)}
 .gcard.sel,.dbtn.sel{border-color:var(--outline);box-shadow:0 0 0 6px var(--sun-deep),0 5px 0 var(--edge)}
-.hero{background:linear-gradient(120deg,var(--band1),var(--band2));border:3px solid var(--outline);border-radius:28px;padding:14px 16px;box-shadow:0 5px 0 var(--edge)}
+.hero{background:linear-gradient(120deg,var(--band1),#FF9A2E 50%,var(--band2));border:4px solid var(--outline);border-radius:28px;padding:14px 16px;box-shadow:0 5px 0 var(--edge)}
 .team{display:flex;align-items:flex-end;flex:none}
 .team svg{width:72px;height:auto}
 .team svg+svg{margin-left:-8px}
@@ -317,13 +318,38 @@ h2{font-size:1.6rem}
 /* prima pagina */
 .cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
 .cat{display:flex;flex-direction:column;align-items:center;gap:8px;border:3px solid var(--outline);border-radius:26px;box-shadow:0 6px 0 var(--edge);padding:18px 16px;text-align:center}
-.cat-let{background-color:color-mix(in srgb,#FF9F68 26%,var(--paper));background-image:linear-gradient(transparent 30px,var(--rule) 30px,var(--rule) 32px);background-size:100% 32px}
-.cat-mat{background-color:color-mix(in srgb,#FFC83D 26%,var(--paper));background-image:linear-gradient(var(--grid) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);background-size:24px 24px}
+.cat-let{background-color:color-mix(in srgb,#FF7A45 50%,var(--paper));background-image:linear-gradient(transparent 30px,var(--rule) 30px,var(--rule) 32px);background-size:100% 32px}
+.cat-mat{background-color:color-mix(in srgb,#FFC400 50%,var(--paper));background-image:linear-gradient(var(--grid) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);background-size:24px 24px}
 .cat-art{display:flex;align-items:center;gap:12px;font-family:var(--f-body);font-weight:700;font-size:2.6rem;line-height:1}
 .cat-art svg{width:84px;height:auto}
 .cat-name{font-family:var(--f-display);font-weight:800;font-size:2rem;line-height:1}
 .cat-desc{font-size:1.25rem}
-.voices{display:flex;flex-wrap:wrap;gap:10px}
+.voices{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.pcard{display:flex;flex-direction:column;align-items:center;gap:4px;border:4px solid var(--outline);border-radius:22px;background:var(--paper);box-shadow:0 5px 0 var(--edge);padding:10px 8px 12px;text-align:center}
+.pcard svg{width:84px;height:auto}
+.pcard b{font-family:var(--f-display);font-size:1.3rem;line-height:1.1}
+.pcard small{font-size:1.05rem;color:var(--ink);line-height:1.2}
+.pcard.sel{background:color-mix(in srgb,var(--sun) 45%,var(--paper));box-shadow:0 0 0 6px var(--sun-deep),0 5px 0 var(--edge)}
+.players{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+.player{display:flex;flex-direction:column;align-items:center;gap:8px;border:4px solid var(--outline);border-radius:24px;background:linear-gradient(160deg,color-mix(in srgb,var(--band1) 55%,var(--paper)),var(--paper));box-shadow:0 6px 0 var(--edge);padding:14px 10px;text-align:center}
+.player b{font-family:var(--f-display);font-size:1.5rem;line-height:1.1}
+.player small{font-size:1.1rem}
+.player.add{background:var(--paper);border-style:dashed}
+.av{width:96px;height:96px;border-radius:50%;border:4px solid var(--outline);object-fit:cover;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:2.6rem;color:#1E1838;flex:none;overflow:hidden;background:var(--paper)}
+.av.sm{width:64px;height:64px;font-size:1.8rem}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.plus{font-size:3rem;line-height:1;font-family:var(--f-display);font-weight:800}
+.me{display:flex;align-items:center;gap:12px;width:100%;flex-wrap:wrap}
+.me .team{flex-wrap:wrap;min-width:0}
+.me .team svg{width:52px}
+.me .btn{font-size:1.1rem;padding:8px 14px}
+.photo{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.filebtn{display:inline-block;cursor:pointer}
+.seg{display:flex;gap:10px;flex-wrap:wrap}
+.seg button{font-size:1.25rem}
+.seg button[aria-pressed="true"]{background:var(--sun);box-shadow:0 0 0 5px var(--sun-deep)}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.form input[type=text],.form select{font-size:1.2rem;max-width:none;width:100%}
 .vchip{display:flex;align-items:center;gap:8px;border:3px solid var(--outline);background:var(--paper);border-radius:999px;padding:8px 16px;font-weight:700;font-size:1.25rem;box-shadow:0 3px 0 var(--edge)}
 .vchip .vem{font-size:1.6rem;line-height:1}
 .vchip.sel{box-shadow:0 0 0 5px var(--sun),0 3px 0 var(--edge)}
@@ -410,7 +436,7 @@ th,td{font-size:1.1rem}
 <div id="app">
   <section id="home">
     <header class="hero">
-      <div class="team" id="team"></div>
+      <div class="me"><button class="av sm" id="meAv" aria-label="Modifica il profilo"></button><button class="btn" id="switchBtn">Cambia giocatore</button><div class="team" id="team" style="margin-left:auto"></div></div>
       <div class="who">
         <p class="hello">Ciao <span id="hiName">campione</span>!</p>
         <div class="lvl"><span class="badge-l">Livello <span id="lvlN">1</span></span><div class="xpbar"><i id="xpFill"></i></div></div>
@@ -479,6 +505,34 @@ th,td{font-size:1.1rem}
     </div>
   </section>
 
+  <section id="who" hidden>
+    <div class="top"><h1>Chi gioca oggi?</h1></div>
+    <p class="note">Tocca la tua foto. Ogni bambino ha i suoi premi e i suoi risultati.</p>
+    <div class="players" id="playerGrid" style="margin-top:14px"></div>
+  </section>
+
+  <section id="profilo" hidden>
+    <div class="top"><button class="btn icon" id="profBack" aria-label="Indietro"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1 id="profTitle">Il mio profilo</h1></div>
+    <div class="form" style="margin-top:16px">
+      <div class="photo"><div class="av" id="pfAv"></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label class="btn filebtn" for="pfFile">Scegli una foto</label>
+          <input type="file" id="pfFile" accept="image/*" hidden>
+          <button class="btn" type="button" id="pfNoPhoto">Togli la foto</button>
+        </div></div>
+      <div class="row2">
+        <label for="pfNome">Nome<input type="text" id="pfNome" maxlength="20" autocomplete="off"></label>
+        <label for="pfCognome">Cognome<input type="text" id="pfCognome" maxlength="30" autocomplete="off"></label>
+        <label for="pfEta">Età<select id="pfEta"><option value="">–</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option></select></label>
+        <label for="pfClasse">Classe<select id="pfClasse"><option value="">–</option><option>Scuola dell'infanzia</option><option>1ª primaria</option><option>2ª primaria</option><option>3ª primaria</option><option>4ª primaria</option><option>5ª primaria</option></select></label>
+      </div>
+      <div><b>Sei un bambino o una bambina?</b><div class="seg" id="pfGen" style="margin-top:8px"><button class="btn" type="button" data-gen="m">Bambino</button><button class="btn" type="button" data-gen="f">Bambina</button></div></div>
+      <div><b>Chi ti legge le domande?</b><div class="voices" id="pfVoices" style="margin-top:10px"></div></div>
+      <button class="btn go" type="button" id="pfSave" style="font-size:1.6rem">Salva</button>
+      <button class="btn danger" type="button" id="pfDel">Elimina questo profilo</button>
+    </div>
+  </section>
+
   <section id="album" hidden>
     <div class="top"><button class="btn icon back" aria-label="Torna al menu"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>Album dei premi</h1></div>
     <h2>Traguardi</h2>
@@ -495,16 +549,15 @@ th,td{font-size:1.1rem}
     <div class="top"><button class="btn icon back" aria-label="Torna al menu"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>Per i grandi</h1></div>
     <h2>Impostazioni</h2>
     <div class="form">
-      <label for="kidName">Nome del bambino<input type="text" id="kidName" maxlength="20" autocomplete="off"></label>
       <label class="sw"><input type="checkbox" id="optVoice"> Leggi le domande ad alta voce</label>
       <label class="sw"><input type="checkbox" id="optSound"> Suoni</label>
-      <label for="optVoiceName">Voce<select id="optVoiceName"></select></label>
-      <button class="btn" id="tryVoice" type="button" style="align-self:flex-start">Prova la voce</button>
       <label for="optLen">Domande per partita
         <select id="optLen"><option value="5">5</option><option value="8">8</option><option value="10">10</option></select>
       </label>
     </div>
-    <h2>Come sta andando</h2>
+    <h2>Tutti i bambini</h2>
+    <div class="tablewrap"><table id="kidsTable"></table></div>
+    <h2 id="statTitle">Come sta andando</h2>
     <div class="tablewrap"><table id="statTable"></table></div>
     <h2>Come funziona</h2>
     <div class="prose">
@@ -513,7 +566,8 @@ th,td{font-size:1.1rem}
       <p><b>Più e meno</b> usa la cornice del 10: i pallini gialli sono il primo numero, quelli viola il secondo, quelli barrati sono tolti. In Difficile si passa alle barre rosse delle decine e ai cubetti blu delle unità. «Aiutino» mostra i pallini senza togliere punti.</p>
       <p><b>Le voci</b> (cartone animato, maestra precisa, nonno gentile, robot, supereroe, fatina) si scelgono nella prima pagina. Cambiano tono, velocità e frasi; la voce di base è quella del dispositivo e si sceglie qui sopra. Le più naturali si chiamano spesso «Natural», «Avanzata» o «Google italiano».</p>
       <p><b>Lettura.</b> Le parole si leggono in STAMPATELLO MAIUSCOLO, in minuscolo o in corsivo, con le sillabe colorate a coppie (arancio e viola) e spazi più larghi a richiesta: i pulsanti stanno sopra ogni esercizio. Toccando una sillaba la voce la legge. In «Leggo da solo» il pulsante «Leggi con me» legge la frase una parola per volta, accendendola.</p>
-      <p>I progressi restano salvati su questo dispositivo, in questo browser.</p>
+      <p><b>Più bambini.</b> Ognuno ha il suo profilo, con foto, nome, cognome, età e classe, e i suoi premi e risultati. Si cambia con «Cambia giocatore» in alto nella prima pagina; la foto in alto apre il profilo. Bambino o bambina serve per dire «bravo» o «brava».</p>
+      <p>I profili, le foto e i risultati restano salvati solo su questo dispositivo, in questo browser: non vengono mandati da nessuna parte. Se si cancellano i dati del browser si perdono.</p>
     </div>
     <button class="btn danger" id="resetBtn">Azzera i progressi</button>
   </section>
@@ -629,8 +683,29 @@ function load() {
   } catch (e) {}
   return clone(DEF);
 }
-let save = load();
-function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
+// ogni bambino ha il suo profilo; i dati restano solo su questo dispositivo
+const STORE_KEY = 'saltino-giocatori-v1';
+const uid = () => Math.random().toString(36).slice(2, 10);
+const normalize = s => s ? { ...clone(DEF), ...s, settings: { ...DEF.settings, ...(s.settings || {}) }, last: { ...clone(DEF.last), ...(s.last || {}) } } : clone(DEF);
+const newInfo = () => ({ nome: '', cognome: '', eta: '', classe: '', genere: '', foto: '' });
+function loadStore() {
+  try { const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s && s.profiles && s.profiles.length) return s; } catch (e) {}
+  const old = load(), p = { id: uid(), info: { ...newInfo(), nome: old.name || '' }, data: old };
+  return { current: p.id, profiles: [p] };
+}
+let store = loadStore();
+let prof = store.profiles.find(p => p.id === store.current) || store.profiles[0];
+let save = prof.data = normalize(prof.data);
+function persist() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); return true; } catch (e) { return false; } }
+function switchTo(id) { prof = store.profiles.find(p => p.id === id) || store.profiles[0]; store.current = prof.id; save = prof.data = normalize(prof.data); persist(); }
+const gx = (m, f) => prof.info.genere === 'f' ? f : m;
+const fmt = t => t.replace(/\{o\}/g, gx('o', 'a'));
+const AVC = ['#FFD000', '#FF9A2E', '#FF5FA2', '#9B6BFF', '#D46BFF', '#FF7A45'];
+function avatarHTML(p) {
+  if (p.info.foto) return `<img src="${p.info.foto}" alt="">`;
+  const n = (p.info.nome || '?').trim()[0] || '?', c = AVC[[...p.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % AVC.length];
+  return `<span style="background:${c};width:100%;height:100%;display:grid;place-items:center">${n.toUpperCase()}</span>`;
+}
 const dayKey = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
 function lvlInfo(xp) { let l = 1; while (xp >= 50 * (l + 1) * l) l++; const base = 50 * l * (l - 1), next = 50 * (l + 1) * l; return { lvl: l, into: xp - base, need: next - base, pct: (xp - base) / (next - base) }; }
 const STK = Array.from('🐸🦊🐼🐨🦁🐯🐵🐧🦄🐙🦋🐢🐬🦉🐞🐝🦒🐘🦓🦔🐳🦜🦩🐹🐰🐻🐮🐷🐤🦖');
@@ -662,28 +737,55 @@ function itVoices() { try { return speechSynthesis.getVoices().filter(v => /^it/
 // la voce scelta dai grandi, altrimenti la piu' naturale disponibile sul dispositivo
 function bestVoice() {
   const vs = itVoices(); if (!vs.length) return null;
-  const chosen = save.settings.voiceName && vs.find(v => v.name === save.settings.voiceName);
-  if (chosen) return chosen;
   const score = v => (/natural|neural|enhanced|avanzat|premium|online/i.test(v.name) ? 10 : 0) + (/google/i.test(v.name) ? 6 : 0) + (/alice|federica|elsa|isabella|paola|emma|bianca/i.test(v.name) ? 4 : 0);
   return vs.slice().sort((a, b) => score(b) - score(a))[0];
 }
-function loadVoices() { itVoice = bestVoice(); if (!$('#grandi').hidden) fillVoices(); }
+function loadVoices() { itVoice = bestVoice(); }
 if ('speechSynthesis' in window) { loadVoices(); try { speechSynthesis.addEventListener('voiceschanged', loadVoices); } catch (e) {} }
 // le voci sono personaggi: stesso motore del dispositivo, tono, velocita' e frasi diverse
+const SK = 'fill="#FFD2B0" stroke="#1E1838" stroke-width="2.5"', IK = 'stroke="#1E1838" stroke-width="2.5"';
+const PERS_ART = {
+  cartoon: `<path d="M-13 -19 L0 -36 L13 -19Z" fill="#FFD000" ${IK} stroke-linejoin="round"/><circle cy="-36" r="4.5" fill="#FF7A45" ${IK}/>
+    <circle cy="2" r="23" fill="#FF5FA2" ${IK}/><ellipse cx="-8" cy="-3" rx="6.5" ry="8" fill="#fff" ${IK}/><ellipse cx="8" cy="-3" rx="6.5" ry="8" fill="#fff" ${IK}/>
+    <circle cx="-7" cy="-2" r="3.6" fill="#1E1838"/><circle cx="9" cy="-2" r="3.6" fill="#1E1838"/><path d="M-11 9 Q0 22 11 9Z" fill="#7A1F3D" ${IK} stroke-linejoin="round"/>
+    <circle cx="-16" cy="8" r="3.5" fill="#FFB3D1"/><circle cx="16" cy="8" r="3.5" fill="#FFB3D1"/>`,
+  maestra: `<circle cy="-26" r="9" fill="#6B3E26" ${IK}/><ellipse cy="0" rx="23" ry="24" fill="#6B3E26" ${IK}/><ellipse cy="4" rx="17" ry="19" ${SK}/>
+    <path d="M-17 -2 Q-12 -18 0 -14 Q12 -18 17 -2 Q10 -11 0 -8 Q-10 -11 -17 -2Z" fill="#6B3E26"/>
+    <rect x="-15" y="-2" width="12" height="10" rx="3" fill="#ffffff66" ${IK}/><rect x="3" y="-2" width="12" height="10" rx="3" fill="#ffffff66" ${IK}/><path d="M-3 2 h6" ${IK}/>
+    <circle cx="-9" cy="3" r="2.2" fill="#1E1838"/><circle cx="9" cy="3" r="2.2" fill="#1E1838"/><path d="M-5 14 Q0 17 5 14" fill="none" ${IK} stroke-linecap="round"/>
+    <path d="M-12 25 Q0 31 12 25" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray=".1 5.5" stroke-linecap="round"/>`,
+  nonno: `<circle cx="-21" cy="2" r="5" ${SK}/><circle cx="21" cy="2" r="5" ${SK}/><circle cy="0" r="21" ${SK}/>
+    <path d="M-20 -4 q-5 -10 3 -15 M20 -4 q5 -10 -3 -15" fill="none" stroke="#F4F4F4" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="-8" cy="-4" r="6.5" fill="#ffffff55" ${IK}/><circle cx="8" cy="-4" r="6.5" fill="#ffffff55" ${IK}/><path d="M-1.5 -4 h3" ${IK}/>
+    <circle cx="-8" cy="-4" r="2.2" fill="#1E1838"/><circle cx="8" cy="-4" r="2.2" fill="#1E1838"/><ellipse cy="4" rx="4" ry="3.2" fill="#F4A988"/>
+    <path d="M-15 10 Q-7 3 0 8 Q7 3 15 10 Q7 16 0 12 Q-7 16 -15 10Z" fill="#F4F4F4" ${IK} stroke-linejoin="round"/>`,
+  robot: `<path d="M0 -20 V-30" ${IK}/><circle cy="-32" r="4.5" fill="#FF7A45" ${IK}/><rect x="-27" y="-6" width="6" height="12" rx="2" fill="#7D8BB0" ${IK}/><rect x="21" y="-6" width="6" height="12" rx="2" fill="#7D8BB0" ${IK}/>
+    <rect x="-22" y="-20" width="44" height="40" rx="10" fill="#A9B6D8" ${IK}/><rect x="-16" y="-13" width="32" height="18" rx="5" fill="#2A2346"/>
+    <circle cx="-7" cy="-4" r="4" fill="#FFD000"/><circle cx="7" cy="-4" r="4" fill="#FFD000"/><rect x="-10" y="9" width="20" height="6" rx="2" fill="#fff" ${IK}/><path d="M-3 9 v6 M3 9 v6" ${IK}/>`,
+  eroe: `<path d="M-25 28 L-15 -2 L15 -2 L25 28Z" fill="#FF7A45" ${IK} stroke-linejoin="round"/><circle cy="-4" r="18" ${SK}/>
+    <path d="M-18 -9 Q-13 -27 3 -23 Q15 -25 18 -9 Q8 -16 -2 -14 Q-10 -16 -18 -9Z" fill="#2A2346"/>
+    <path d="M-17 -6 Q-8 -12 0 -6 Q8 -12 17 -6 L15 2 Q8 -2 0 2 Q-8 -2 -15 2Z" fill="#7A3FF2" ${IK} stroke-linejoin="round"/>
+    <ellipse cx="-7" cy="-4" rx="3" ry="2.4" fill="#fff"/><ellipse cx="7" cy="-4" rx="3" ry="2.4" fill="#fff"/><path d="M-6 6 Q0 11 6 6" fill="none" ${IK} stroke-linecap="round"/>
+    <polygon points="0,15 2.6,20.5 8.5,21 4,25 5.3,30.8 0,27.8 -5.3,30.8 -4,25 -8.5,21 -2.6,20.5" fill="#FFD000" ${IK} stroke-width="1.5"/>`,
+  fata: `<ellipse cx="-22" cy="4" rx="11" ry="17" fill="#D9C6FF" ${IK} transform="rotate(-25 -22 4)"/><ellipse cx="22" cy="4" rx="11" ry="17" fill="#D9C6FF" ${IK} transform="rotate(25 22 4)"/>
+    <ellipse cy="0" rx="20" ry="22" fill="#FFD25E" ${IK}/><ellipse cy="4" rx="15" ry="17" ${SK}/><path d="M-15 0 Q-10 -15 0 -11 Q10 -15 15 0 Q8 -8 0 -6 Q-8 -8 -15 0Z" fill="#FFD25E"/>
+    <polygon points="0,-30 2.4,-25 8,-24.5 3.8,-21 5,-15.5 0,-18.3 -5,-15.5 -3.8,-21 -8,-24.5 -2.4,-25" fill="#FF5FA2" ${IK} stroke-width="1.5"/>
+    <circle cx="-6" cy="3" r="2.6" fill="#1E1838"/><circle cx="6" cy="3" r="2.6" fill="#1E1838"/><path d="M-5 12 Q0 16 5 12" fill="none" ${IK} stroke-linecap="round"/>
+    <circle cx="-11" cy="9" r="2.6" fill="#FFB3D1"/><circle cx="11" cy="9" r="2.6" fill="#FFB3D1"/>`,
+};
+const persSvg = k => `<svg viewBox="-32 -38 64 70" aria-hidden="true">${PERS_ART[k]}</svg>`;
 const PERSONAS = {
-  cartoon: { name: 'Cartone animato', icon: '🎈', pitch: 1.75, rate: 1.05, pref: 'f', praise: ['Evviva!', 'Yuppi!', 'Wow, fortissimo!', 'Super stellare!', 'Che spettacolo!'], retry: ['Ops! Riprova!', 'Ehi, quasi! Ancora!', 'Niente paura, ritenta!'], hello: n => `Ciao ciao! Sono ${n}! Giochiamo?` },
-  maestra: { name: 'Maestra precisa', icon: '👩‍🏫', pitch: 1.0, rate: .85, pref: 'f', praise: ['Corretto.', 'Molto bene.', 'Esatto.', 'Ottimo lavoro.'], retry: ['Non è corretto. Guarda con attenzione e riprova.', 'Riprova, con calma.'], hello: () => 'Buongiorno. Mettiamoci al lavoro.' },
-  nonno: { name: 'Nonno gentile', icon: '👴', pitch: .75, rate: .82, pref: 'm', praise: ['Bravo, tesoro!', 'Proprio così!', 'Che bello, hai indovinato!'], retry: ['Su, riprova piano piano.', 'Quasi, tesoro. Riprova.'], hello: () => 'Ciao tesoro, giochiamo un po\' insieme?' },
-  robot: { name: 'Robot', icon: '🤖', pitch: .3, rate: .9, pref: 'm', praise: ['Risposta esatta. Bip bip!', 'Calcolo perfetto!', 'Bravura al massimo!'], retry: ['Errore. Riprovare.', 'Bip. Nuovo tentativo richiesto.'], hello: () => 'Bip bop. Robot acceso. Iniziamo.' },
-  eroe: { name: 'Supereroe', icon: '🦸', pitch: 1.15, rate: 1.1, pref: 'm', praise: ['Missione compiuta!', 'Super potere!', 'Colpo da campione!'], retry: ['Un eroe non si arrende! Riprova!', 'Quasi! Ritenta, eroe!'], hello: () => 'Pronto per la missione? Si parte!' },
-  fata: { name: 'Fatina', icon: '🧚', pitch: 1.5, rate: .9, pref: 'f', praise: ['Che magia!', 'Scintille di bravura!', 'Incantevole!'], retry: ['Un po\' di polvere magica e riprova.', 'Quasi! Riprova, piccolo mago.'], hello: () => 'Ciao! Sono la fatina dei giochi.' },
+  cartoon: { name: 'Bolla', tag: 'voce da cartone animato', pitch: 1.75, rate: 1.05, pref: 'f', praise: ['Evviva!', 'Yuppi!', 'Wow, fortissim{o}!', 'Super stellare!', 'Che spettacolo!'], retry: ['Ops! Riprova!', 'Ehi, quasi! Ancora!', 'Niente paura, ritenta!'], hello: n => `Ciao ciao${prof.info.nome ? ' ' + prof.info.nome : ''}! Sono ${n}! Giochiamo?` },
+  maestra: { name: 'Maestra Rita', tag: 'voce da maestra precisa', pitch: 1.0, rate: .85, pref: 'f', praise: ['Corretto.', 'Molto bene.', 'Esatto.', 'Ottimo lavoro.', 'Brav{o}.'], retry: ['Non è corretto. Guarda con attenzione e riprova.', 'Riprova, con calma.'], hello: () => `Buongiorno${prof.info.nome ? ' ' + prof.info.nome : ''}. Mettiamoci al lavoro.` },
+  nonno: { name: 'Nonno Pino', tag: 'voce calma e gentile', pitch: .75, rate: .82, pref: 'm', praise: ['Brav{o}, tesoro!', 'Proprio così!', 'Che bello, hai indovinato!'], retry: ['Su, riprova piano piano.', 'Quasi, tesoro. Riprova.'], hello: () => `Ciao ${prof.info.nome || 'tesoro'}, giochiamo un po' insieme?` },
+  robot: { name: 'Robottino', tag: 'voce da robot', pitch: .3, rate: .9, pref: 'm', praise: ['Risposta esatta. Bip bip!', 'Calcolo perfetto!', 'Bravura al massimo!'], retry: ['Errore. Riprovare.', 'Bip. Nuovo tentativo richiesto.'], hello: () => 'Bip bop. Robot acceso. Iniziamo.' },
+  eroe: { name: 'Super Leo', tag: 'voce da supereroe', pitch: 1.15, rate: 1.1, pref: 'm', praise: ['Missione compiuta!', 'Super potere!', 'Colpo da campione!'], retry: ['Un eroe non si arrende! Riprova!', 'Quasi! Ritenta, eroe!'], hello: () => 'Pronto per la missione? Si parte!' },
+  fata: { name: 'Fata Lilla', tag: 'voce da fatina', pitch: 1.5, rate: .9, pref: 'f', praise: ['Che magia!', 'Scintille di bravura!', 'Incantevole!'], retry: ['Un po\' di polvere magica e riprova.', 'Quasi! Riprova, piccol{o} mag{o}.'], hello: () => `Ciao${prof.info.nome ? ' ' + prof.info.nome : ''}! Sono la fatina dei giochi.` },
 };
 const persona = () => PERSONAS[save.settings.persona] || PERSONAS.cartoon;
 const FEM = /alice|federica|elsa|isabella|paola|emma|bianca|carla|silvia|giulia|chiara|elena|female/i, MAS = /luca|diego|cosimo|giorgio|benigno|lorenzo|marco|pietro|giuseppe|\bmale/i;
 function voiceFor(P) {
   const vs = itVoices(); if (!vs.length) return null;
-  const chosen = save.settings.voiceName && vs.find(v => v.name === save.settings.voiceName);
-  if (chosen) return chosen;
   const score = v => (/natural|neural|enhanced|avanzat|premium|online/i.test(v.name) ? 10 : 0) + (/google/i.test(v.name) ? 6 : 0) + ((P.pref === 'm' ? MAS : FEM).test(v.name) ? 8 : 0);
   return vs.slice().sort((a, b) => score(b) - score(a))[0];
 }
@@ -836,7 +938,7 @@ function judge(ok) {
       confetti(); wait = RM ? 1600 : 2800;
     } else {
       SND.ok();
-      const p = pick(persona().praise);
+      const p = fmt(pick(persona().praise));
       toast(p, `+1 stellina · +${gain} punti${run.streak >= 3 && run.attempts === 0 ? ' · ' + run.streak + ' di fila!' : ''}`, 'good');
       if (save.settings.voice) say(p);
     }
@@ -853,7 +955,7 @@ function judge(ok) {
       renderDots();
       $('#nextRow').hidden = false;
     } else {
-      const m = pick(persona().retry);
+      const m = fmt(pick(persona().retry));
       toast(m, '', 'help'); if (save.settings.voice) say(m);
       if (q.retry) q.retry();
     }
@@ -885,7 +987,7 @@ function finish() {
   const li = lvlInfo(save.xp);
   $('#rHero').innerHTML = heroSvg(run.game);
   show('result');
-  const title = st === 3 ? 'Fantastico!' : st === 2 ? 'Bravissimo!' : 'Bel lavoro!';
+  const title = st === 3 ? 'Fantastico!' : st === 2 ? gx('Bravissimo!', 'Bravissima!') : 'Bel lavoro!';
   $('#resTitle').textContent = title;
   $('#resStars').innerHTML = [1, 2, 3].map(i => `<span class="bstar ${i <= st ? 'on' : ''}" style="--d:${i * .25}s">${STAR}</span>`).join('');
   $('#resLine').innerHTML = `${firsts} su ${len} giuste al primo colpo · <b>+${run.stel} stelline</b> · <b>+${gain} punti</b>`;
@@ -1562,7 +1664,8 @@ function renderHome() {
 $('#artLet').innerHTML = heroSvg('sillabe') + '<span class="rd col"><span class="sy0">A</span><span class="sy1">b</span><span class="sy0">c</span></span>';
 $('#artMat').innerHTML = heroSvg('calc') + `<span>${numHTML(1)} + ${numHTML(2)}</span>`;
   const li = lvlInfo(save.xp), g = save.last.game;
-  $('#hiName').textContent = save.name || 'campione';
+  $('#hiName').textContent = prof.info.nome || gx('campione', 'campionessa');
+  $('#meAv').innerHTML = avatarHTML(prof);
   $('#lvlN').textContent = li.lvl; $('#xpFill').style.width = (li.pct * 100) + '%';
   $('#xpTxt').textContent = `Ancora ${li.need - li.into} punti per il livello ${li.lvl + 1}`;
   const sl = save.stelline || 0, nc = Math.floor(sl / 20), mod = sl % 20;
@@ -1573,7 +1676,7 @@ $('#artMat').innerHTML = heroSvg('calc') + `<span>${numHTML(1)} + ${numHTML(2)}<
   $('#goalDots').innerHTML = [0, 1, 2].map(i => `<i class="gdot ${i < today ? 'on' : ''}">${i < today ? STAR : ''}</i>`).join('');
   $('#goalTxt').textContent = today >= 3 ? 'Obiettivo di oggi raggiunto!' : `Obiettivo di oggi: 3 partite (${today} su 3)`;
   const pc = save.settings.persona || 'cartoon';
-  $('#voiceChips').innerHTML = Object.entries(PERSONAS).map(([k, P]) => `<button class="vchip ${k === pc ? 'sel' : ''}" data-p="${k}" aria-pressed="${k === pc}"><span class="vem" aria-hidden="true">${P.icon}</span>${P.name}</button>`).join('');
+  $('#voiceChips').innerHTML = persGrid(pc);
 }
 function openCat(c) {
   save.last.cat = c; save.last.gameBy = save.last.gameBy || {};
@@ -1590,7 +1693,66 @@ function renderCat() {
 }
 $('#gameCards').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; save.last.game = b.dataset.g; (save.last.gameBy = save.last.gameBy || {})[save.last.cat] = b.dataset.g; persist(); renderCat(); SND.tick(); });
 $$('[data-cat]').forEach(b => b.onclick = () => { SND.tick(); openCat(b.dataset.cat); });
+const persGrid = pc => Object.entries(PERSONAS).map(([k, P]) => `<button class="pcard ${k === pc ? 'sel' : ''}" data-p="${k}" aria-pressed="${k === pc}">${persSvg(k)}<b>${P.name}</b><small>${P.tag}</small></button>`).join('');
 $('#voiceChips').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; save.settings.persona = b.dataset.p; persist(); renderHome(); say(persona().hello('Saltino')); });
+/* ---------- chi gioca e profilo ---------- */
+function renderWho() {
+  $('#playerGrid').innerHTML = store.profiles.map(p => `<button class="player" data-pid="${p.id}"><span class="av">${avatarHTML(p)}</span><b>${p.info.nome || 'Senza nome'}</b><small>${[p.info.classe, p.info.eta ? p.info.eta + ' anni' : ''].filter(Boolean).join(' · ') || 'tocca per giocare'}</small></button>`).join('')
+    + '<button class="player add" data-pid="new"><span class="av"><span class="plus">+</span></span><b>Aggiungi</b><small>un bambino o una bambina</small></button>';
+}
+$('#playerGrid').addEventListener('click', e => {
+  const b = e.target.closest('[data-pid]'); if (!b) return; SND.tick();
+  if (b.dataset.pid === 'new') return openProfile(null);
+  switchTo(b.dataset.pid); renderHome(); show('home'); say(persona().hello('Saltino'));
+});
+let draft = null, delArm = false;
+function openProfile(p) {
+  draft = { id: p ? p.id : null, info: { ...(p ? p.info : newInfo()) }, persona: p ? (p.data.settings.persona || 'cartoon') : 'cartoon' };
+  $('#profTitle').textContent = p ? 'Il mio profilo' : 'Nuovo giocatore';
+  $('#pfNome').value = draft.info.nome; $('#pfCognome').value = draft.info.cognome; $('#pfEta').value = draft.info.eta; $('#pfClasse').value = draft.info.classe;
+  $('#pfDel').hidden = !p || store.profiles.length < 2; delArm = false; $('#pfDel').textContent = 'Elimina questo profilo';
+  paintDraft(); show('profilo');
+}
+function paintDraft() {
+  $('#pfAv').innerHTML = avatarHTML({ id: draft.id || 'x', info: draft.info });
+  $('#pfNoPhoto').hidden = !draft.info.foto;
+  $$('#pfGen [data-gen]').forEach(b => b.setAttribute('aria-pressed', String(draft.info.genere === b.dataset.gen)));
+  $('#pfVoices').innerHTML = persGrid(draft.persona);
+}
+['Nome', 'Cognome'].forEach(f => $('#pf' + f).addEventListener('input', e => { draft.info[f.toLowerCase()] = e.target.value.trim(); if (f === 'Nome') paintDraft(); }));
+$('#pfEta').addEventListener('change', e => draft.info.eta = e.target.value);
+$('#pfClasse').addEventListener('change', e => draft.info.classe = e.target.value);
+$('#pfGen').addEventListener('click', e => { const b = e.target.closest('[data-gen]'); if (b) { draft.info.genere = b.dataset.gen; paintDraft(); } });
+$('#pfVoices').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; draft.persona = b.dataset.p; paintDraft(); const P = PERSONAS[b.dataset.p], old = save.settings.persona; save.settings.persona = b.dataset.p; say(`Ciao! Sono ${P.name}.`); save.settings.persona = old; });
+$('#pfNoPhoto').onclick = () => { draft.info.foto = ''; paintDraft(); };
+// la foto si rimpicciolisce a 200 pixel quadrati prima di salvarla
+$('#pfFile').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  const url = URL.createObjectURL(f), img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas'), S = 200; c.width = c.height = S;
+    const m = Math.min(img.width, img.height), x = c.getContext('2d');
+    x.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S);
+    draft.info.foto = c.toDataURL('image/jpeg', .8); URL.revokeObjectURL(url); paintDraft();
+  };
+  img.onerror = () => toast('Questa foto non si apre: prova con un\'altra', '', 'help');
+  img.src = url; e.target.value = '';
+});
+$('#pfSave').onclick = () => {
+  let p = draft.id && store.profiles.find(x => x.id === draft.id);
+  if (!p) { p = { id: uid(), info: {}, data: clone(DEF) }; store.profiles.push(p); }
+  p.info = { ...draft.info }; p.data = normalize(p.data); p.data.settings.persona = draft.persona;
+  switchTo(p.id);
+  if (!persist()) { toast('Spazio pieno: prova con una foto più piccola', '', 'help'); return; }
+  renderHome(); show('home'); toast('Profilo salvato', '', 'good');
+};
+$('#pfDel').onclick = () => {
+  if (!delArm) { delArm = true; $('#pfDel').textContent = 'Tocca ancora: si cancellano anche premi e risultati'; return; }
+  store.profiles = store.profiles.filter(x => x.id !== draft.id); switchTo(store.profiles[0].id); renderWho(); show('who');
+};
+$('#profBack').onclick = () => { renderHome(); show('home'); };
+$('#meAv').onclick = () => openProfile(prof);
+$('#switchBtn').onclick = () => { renderWho(); show('who'); };
 $('#diffBtns').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (!b) return; save.last.diff = +b.dataset.d; persist(); renderCat(); SND.tick(); });
 $('#typeChips').addEventListener('click', e => {
   const b = e.target.closest('[data-t]'); if (!b) return;
@@ -1618,33 +1780,29 @@ function renderAlbum() {
   const n = Math.min(STK.length, lvlInfo(save.xp).lvl - 1);
   $('#stickerGrid').innerHTML = STK.map((s, i) => `<div class="stk-t ${i < n ? 'on' : ''}">${i < n ? s : i + 2}</div>`).join('');
 }
-function fillVoices() {
-  const vs = itVoices(), sel = $('#optVoiceName');
-  sel.innerHTML = `<option value="">${vs.length ? 'Automatica (la più naturale)' : 'Voce del dispositivo'}</option>` + vs.map(v => `<option value="${v.name.replace(/"/g, '&quot;')}">${v.name}</option>`).join('');
-  sel.value = vs.some(v => v.name === save.settings.voiceName) ? save.settings.voiceName : '';
-}
 function renderGrandi() {
-  fillVoices();
-  $('#kidName').value = save.name; $('#optVoice').checked = save.settings.voice; $('#optSound').checked = save.settings.sound; $('#optLen').value = String(save.settings.len);
+  $('#optVoice').checked = save.settings.voice; $('#optSound').checked = save.settings.sound; $('#optLen').value = String(save.settings.len);
   const rows = [];
   for (const g of Object.keys(GAMES)) for (const d of [0, 1, 2]) {
     const s = statOf(g, d);
     rows.push(`<tr><td>${GAMES[g].name}</td><td>${DIFF[d]}</td><td class="n">${s.r}</td><td class="n">${s.t ? Math.round(100 * s.c / s.t) + '%' : '–'}</td><td>${s.r ? `<span class="gbest">${miniStars(s.best)}</span>` : '–'}</td></tr>`);
   }
   $('#statTable').innerHTML = `<thead><tr><th>Gioco</th><th>Difficoltà</th><th>Partite</th><th>Giuste al 1° colpo</th><th>Migliore</th></tr></thead><tbody>${rows.join('')}</tbody>`;
-  resetArm = false; $('#resetBtn').textContent = 'Azzera i progressi';
+  $('#statTitle').textContent = `Come sta andando ${prof.info.nome || 'questo giocatore'}`;
+  const krows = store.profiles.map(p => {
+    const d = normalize(p.data), t = Object.values(d.stats).reduce((a, x) => ({ c: a.c + x.c, t: a.t + x.t }), { c: 0, t: 0 });
+    return `<tr><td>${[p.info.nome, p.info.cognome].filter(Boolean).join(' ') || 'Senza nome'}</td><td class="n">${p.info.eta || '–'}</td><td>${p.info.classe || '–'}</td><td class="n">${d.rounds}</td><td class="n">${d.stelline || 0}</td><td class="n">${Math.floor((d.stelline || 0) / 20)}</td><td class="n">${lvlInfo(d.xp).lvl}</td><td class="n">${t.t ? Math.round(100 * t.c / t.t) + '%' : '–'}</td></tr>`;
+  });
+  $('#kidsTable').innerHTML = `<thead><tr><th>Nome</th><th>Età</th><th>Classe</th><th>Partite</th><th>Stelline</th><th>Comete</th><th>Livello</th><th>Giuste al 1° colpo</th></tr></thead><tbody>${krows.join('')}</tbody>`;
+  resetArm = false; $('#resetBtn').textContent = 'Azzera i progressi di questo giocatore';
 }
-$('#kidName').addEventListener('input', e => { save.name = e.target.value.trim(); persist(); });
 $('#optVoice').addEventListener('change', e => { save.settings.voice = e.target.checked; persist(); });
 $('#optSound').addEventListener('change', e => { save.settings.sound = e.target.checked; persist(); });
-$('#optVoiceName').addEventListener('change', e => { save.settings.voiceName = e.target.value; persist(); itVoice = bestVoice(); });
-$('#tryVoice').onclick = () => say(persona().hello('Saltino'));
 $('#optLen').addEventListener('change', e => { save.settings.len = +e.target.value; persist(); });
 let resetArm = false;
 $('#resetBtn').onclick = () => {
   if (!resetArm) { resetArm = true; $('#resetBtn').textContent = 'Tocca ancora per confermare: si perdono stelle, livelli e premi'; return; }
-  const keep = { name: save.name, settings: save.settings };
-  save = { ...clone(DEF), ...keep }; persist(); renderGrandi(); toast('Progressi azzerati', '', 'help');
+  save = prof.data = { ...clone(DEF), settings: save.settings }; persist(); renderGrandi(); toast('Progressi azzerati', '', 'help');
 };
 
 function confetti() {
@@ -1662,6 +1820,7 @@ function confetti() {
 }
 
 renderHome();
+if (store.profiles.length > 1) { renderWho(); show('who'); }
 </script>
 
 </body>
