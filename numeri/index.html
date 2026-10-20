@@ -589,6 +589,43 @@ th,td{font-size:1.1rem}
 #resLine{font-size:1.4rem;font-weight:700}
 .note{font-size:1.2rem;font-weight:700;color:var(--ink)}
 .hint{font-size:1.3rem;color:#1E1838}
+/* pagine piene: testi grandi e icone distribuite su tutta la pagina */
+#gamesList > *{min-width:0;width:100%}
+.gc-txt small{overflow-wrap:anywhere}
+.top h1{font-size:2rem}
+.btn.icon{width:52px;height:52px;flex:none}
+h2{font-size:1.75rem}
+#cat:not([hidden]){display:flex;flex-direction:column;min-height:calc(100svh - 72px)}
+#cat .gamehead{flex-direction:column;text-align:center;gap:12px;padding:20px 18px;flex:1 1 auto;justify-content:center;max-height:340px}
+#cat .gamehead .gc-ic{width:150px;height:150px}
+#cat .gamehead .gc-ic svg{width:122px}
+#cat .gamehead p{font-size:1.6rem;line-height:1.25}
+#cat h2{margin:22px 0 12px;text-align:center}
+#cat .diffs{gap:10px}
+#cat .dbtn{min-height:140px;justify-content:center;gap:6px;font-size:1.7rem;padding:12px 6px}
+#cat .dbtn small{font-size:1.15rem;line-height:1.2}
+#cat .pips{gap:6px} #cat .pips i{width:20px;height:20px}
+#cat .play{display:flex;align-items:center;justify-content:center;gap:14px;min-height:96px;font-size:2.6rem;margin-top:24px}
+#cat .play svg{width:46px;height:46px}
+#cat .exbtn{display:flex;align-items:center;justify-content:center;gap:12px;min-height:68px;font-size:1.4rem;margin-top:16px}
+#cat .exbtn svg{width:30px;height:30px;flex:none}
+#typeChips .chip{font-size:1.3rem;padding:12px 18px}
+#album .tally{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#album .tally .pill{flex-direction:column;justify-content:center;gap:4px;border-radius:22px;padding:14px 8px;font-size:1.35rem;min-height:110px;text-align:center}
+#album .tally .pill .ic{width:40px;height:40px}
+#album .tally .pill b{font-size:2rem;line-height:1}
+.tabs{gap:10px}
+.tabs .chip{font-size:1.35rem;padding:10px 18px}
+#album .goal,#album .cometbox{font-size:1.4rem;padding:16px 18px}
+#album .gdots i,#album .gdots span{transform:scale(1.25)}
+#grandi .form label{font-size:1.35rem}
+#grandi .form label.sw input{width:28px;height:28px}
+#grandi select{font-size:1.35rem;min-height:54px}
+#resetBtn{font-size:1.25rem;padding:14px 20px;margin-top:16px}
+#accesso .note{font-size:1.3rem}
+#accesso .form label{font-size:1.35rem}
+#accesso .form input{font-size:1.3rem;min-height:54px}
+.linkbtn{font-size:1.2rem;padding:8px 0}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -635,7 +672,7 @@ th,td{font-size:1.1rem}
     <div class="gamehead" id="gameHead"></div>
     <h2>Difficoltà</h2>
     <div class="diffs" id="diffBtns"></div>
-    <button class="btn go play" id="play">Gioca!</button>
+    <button class="btn go play" id="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Gioca!</button>
     <button class="btn exbtn" id="exToggle" aria-expanded="false"></button>
     <div class="chips" id="typeChips" hidden style="margin-top:12px"></div>
   </section>
@@ -763,7 +800,7 @@ th,td{font-size:1.1rem}
       <span class="pill"><svg class="ic stel-ic" viewBox="0 0 24 24"><use href="#i-star"/></svg><b id="starTot">0</b> stelline</span>
       <span class="pill"><svg class="ic comet-ic" viewBox="0 0 24 24"><use href="#i-comet"/></svg><b id="cometTot">0</b> comete</span>
       <span class="pill"><svg class="ic sun-ic" viewBox="0 0 24 24"><use href="#i-sun"/></svg><b id="sunTot">0</b> soli</span>
-      <span class="pill"><svg class="ic" viewBox="0 0 24 24"><use href="#i-flame"/></svg>record <b id="bestStreak">0</b></span>
+      <span class="pill"><svg class="ic" viewBox="0 0 24 24"><use href="#i-flame"/></svg><b id="bestStreak">0</b> di fila</span>
     </div>
     <div class="tabbed">
       <div class="tabs"><button class="chip" data-tab="oggi" aria-pressed="true">Oggi</button><button class="chip" data-tab="cielo" aria-pressed="false">Comete e soli</button><button class="chip" data-tab="trag" aria-pressed="false">Traguardi</button><button class="chip" data-tab="ades" aria-pressed="false">Adesivi</button></div>
@@ -2455,7 +2492,7 @@ function renderCat() {
   document.documentElement.dataset.hero = g;
   $('#gameHead').innerHTML = `<span class="gc-ic">${heroSvg(g)}</span><p>${GAMES[g].desc}</p>`;
   const on = save.last.types[g] || GAMES[g].types.map(t => t[0]);
-  $('#exToggle').textContent = `${$('#typeChips').hidden ? 'Scegli gli esercizi' : 'Chiudi gli esercizi'} (${on.length} su ${GAMES[g].types.length})`;
+  $('#exToggle').innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5l1.6 1.6L8.5 5M4 12.5l1.6 1.6 2.9-3.1M4 18.5l1.6 1.6 2.9-3.1" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.5 7h9M11.5 13h9M11.5 19h9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>${$('#typeChips').hidden ? 'Scegli gli esercizi' : 'Chiudi gli esercizi'} (${on.length} su ${GAMES[g].types.length})`;
   $('#typeChips').innerHTML = GAMES[g].types.map(([k, n]) => `<button class="chip" data-t="${k}" aria-pressed="${on.includes(k)}">${n}</button>`).join('');
   $('#diffBtns').innerHTML = DIFF.map((n, d) => `<button class="dbtn ${d === save.last.diff ? 'sel' : ''}" data-d="${d}" aria-pressed="${d === save.last.diff}"><span class="pips">${[0, 1, 2].map(i => `<i class="${i <= d ? 'on' : ''}"></i>`).join('')}</span>${n}<small>${GAMES[g].diffs[d]}</small></button>`).join('');
 }
