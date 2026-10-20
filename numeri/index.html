@@ -18,7 +18,7 @@
   --outline:#1E1838; --dot:#E2D7FF; --band1:#FFD54A; --band2:#FF9BC2;
   --fur:#D08A45; --fur-dark:#8C5426; --fur-light:#F8DFC0; --nose:#2A1E14; --tongue:#FF7F9E; --collar:#7A5CFF;
   --hh:#8D6BE8; --hh-dark:#5634B0; --hh-face:#FFE0C2;
-  --sun:#FFC83D; --sun-deep:#E88A0C; --sun-soft:#FFF0C4; --on-sun:#3A2600; --focus:#7A5CFF;
+  --sun:#FFC83D; --sun-deep:#E88A0C; --sun-soft:color-mix(in srgb,var(--sun) 30%,var(--paper)); --gold:#FFC83D; --gold-deep:#E88A0C; --on-sun:#3A2600; --focus:#7A5CFF;
   --u:#1C6BE0; --da:#DA2B2A; --h:#178F48;
   --u-soft:#DDE8FC; --da-soft:#FBE0DF; --h-soft:#DAF1E2;
   --eye:#FFFFFF; --pupil:#2A2346; --cheek:#FF9DB2;
@@ -28,17 +28,23 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#17132A; --paper:#241E3E; --ink:#F7F4FF; --muted:#C2BBE0; --line:#3A3262; --edge:#0B0816;
   --outline:#0B0816; --dot:#221C3C; --band1:#4A3A8C; --band2:#6E2D5C;
-  --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:#4A3A16; --on-sun:#3A2600; --focus:#A28CFF;
+  --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:color-mix(in srgb,var(--sun) 28%,var(--paper)); --on-sun:#3A2600; --focus:#A28CFF;
   --u:#5B9BFF; --da:#FF6663; --h:#3FCB78;
   --u-soft:#1D2D52; --da-soft:#4A1F27; --h-soft:#173D29; color-scheme:dark;
 }}
 :root[data-theme="dark"]{
   --bg:#17132A; --paper:#241E3E; --ink:#F7F4FF; --muted:#C2BBE0; --line:#3A3262; --edge:#0B0816;
   --outline:#0B0816; --dot:#221C3C; --band1:#4A3A8C; --band2:#6E2D5C;
-  --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:#4A3A16; --on-sun:#3A2600; --focus:#A28CFF;
+  --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:color-mix(in srgb,var(--sun) 28%,var(--paper)); --on-sun:#3A2600; --focus:#A28CFF;
   --u:#5B9BFF; --da:#FF6663; --h:#3FCB78;
   --u-soft:#1D2D52; --da-soft:#4A1F27; --h-soft:#173D29; color-scheme:dark;
 }
+/* ogni gioco prende i colori del suo personaggio (mai blu, rosso o verde: sono di u, da, h) */
+:root[data-hero="l20"],.hero-l20{--sun:#F4A95C;--sun-deep:#A8612A}
+:root[data-hero="l100"],.hero-l100{--sun:#B39AF5;--sun-deep:#5634B0}
+:root[data-hero="cifre"],.hero-cifre{--sun:#FFC83D;--sun-deep:#E88A0C}
+:root[data-hero] body{background-color:color-mix(in srgb,var(--sun) 16%,var(--bg));background-image:radial-gradient(color-mix(in srgb,var(--sun) 40%,var(--bg)) 3.5px,transparent 4.5px)}
+:root[data-hero] .prompt{background:linear-gradient(110deg,color-mix(in srgb,var(--sun) 45%,var(--paper)),var(--paper) 70%)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background-color:var(--bg);background-image:radial-gradient(var(--dot) 3.5px,transparent 4.5px);background-size:30px 30px;color:var(--ink);font-family:var(--f-body);font-size:20px;line-height:1.45}
@@ -79,8 +85,8 @@ button{cursor:pointer}
 .gdot .ic{width:18px;height:18px}
 
 .games{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.gcard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;border:4px solid transparent;border-radius:22px;background:var(--paper);box-shadow:0 4px 0 var(--edge);padding:14px 16px 12px}
-.gcard.sel{border-color:var(--sun-deep);background:linear-gradient(var(--sun-soft),var(--paper) 70%)}
+.gcard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;border:4px solid transparent;border-radius:22px;background:linear-gradient(160deg,color-mix(in srgb,var(--sun) 38%,var(--paper)),var(--paper) 75%);box-shadow:0 4px 0 var(--edge);padding:14px 16px 12px}
+.gcard.sel{border-color:var(--sun-deep)}
 .gart{display:block;width:100%;height:56px}
 .gart svg{width:100%;height:100%}
 .gname{font-family:var(--f-display);font-size:1.35rem;font-weight:800;line-height:1.1}
@@ -160,7 +166,7 @@ button{cursor:pointer}
 .hop.back{stroke-dasharray:8 7}
 .hoplab{font-family:var(--f-display);font-weight:800;font-size:20px;fill:var(--ink)}
 .frogpos{transition:transform .13s ease-out}
-.fr-body{fill:var(--sun)} .fr-foot{fill:var(--sun-deep)} .fr-belly{fill:#FFF3CF}
+.fr-body{fill:var(--gold)} .fr-foot{fill:var(--gold-deep)} .fr-belly{fill:#FFF3CF}
 .fr-eye{fill:var(--eye)} .fr-pupil{fill:var(--pupil)} .fr-cheek{fill:var(--cheek)}
 .fr-mouth{fill:none;stroke:var(--pupil);stroke-width:2.5;stroke-linecap:round}
 
@@ -250,7 +256,7 @@ tr:last-child td{border-bottom:0}
 #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
 /* contorno a fumetto e testi grandi */
 .btn,.pill,.goal,.gcard,.dbtn,.prompt,.stage,.news,.bdg,.form,.tablewrap,.stk-t.on{border:3px solid var(--outline)}
-.gcard.sel,.dbtn.sel{border-color:var(--outline);box-shadow:0 0 0 5px var(--sun),0 5px 0 var(--edge)}
+.gcard.sel,.dbtn.sel{border-color:var(--outline);box-shadow:0 0 0 6px var(--sun-deep),0 5px 0 var(--edge)}
 .hero{background:linear-gradient(120deg,var(--band1),var(--band2));border:3px solid var(--outline);border-radius:28px;padding:14px 16px;box-shadow:0 5px 0 var(--edge)}
 .team{display:flex;align-items:flex-end;flex:none}
 .team svg{width:72px;height:auto}
@@ -275,9 +281,9 @@ h2{font-size:1.6rem}
 .lg{font-size:1.05rem;font-weight:700}
 .note,.bdg small{color:var(--ink)}
 .pp-fur{fill:var(--fur)} .pp-dark{fill:var(--fur-dark)} .pp-light{fill:var(--fur-light)} .pp-nose{fill:var(--nose)}
-.pp-tongue{fill:var(--tongue)} .pp-collar{fill:var(--collar)} .pp-badge{fill:var(--sun);stroke:var(--sun-deep);stroke-width:1.2}
-.hh-dark{fill:var(--hh-dark)} .hh-body{fill:var(--hh)} .hh-face{fill:var(--hh-face)} .hh-band{fill:var(--sun-deep)}
-.hh-shoe{fill:var(--sun);stroke:var(--sun-deep);stroke-width:1.5}
+.pp-tongue{fill:var(--tongue)} .pp-collar{fill:var(--collar)} .pp-badge{fill:var(--gold);stroke:var(--gold-deep);stroke-width:1.2}
+.hh-dark{fill:var(--hh-dark)} .hh-body{fill:var(--hh)} .hh-face{fill:var(--hh-face)} .hh-band{fill:var(--gold-deep)}
+.hh-shoe{fill:var(--gold);stroke:var(--gold-deep);stroke-width:1.5}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -530,7 +536,7 @@ function startRound() {
   const all = GAMES[g].types.map(t => t[0]);
   const types = (save.last.types[g] || all).filter(t => all.includes(t));
   run = { game: g, diff: d, types: types.length ? types : all, len: +save.settings.len || 10, i: 0, res: [], pts: 0, streak: 0, recent: [], bag: [], q: null, attempts: 0, locked: false, keys: null };
-  $('#pHero').innerHTML = heroSvg(g);
+  $('#pHero').innerHTML = heroSvg(g); document.documentElement.dataset.hero = g;
   show('game'); nextQ();
 }
 function pickType() { if (!run.bag.length) run.bag = shuffle(run.types.concat(run.types)); return run.bag.pop(); }
@@ -982,7 +988,7 @@ function qRicalca(d) {
 }
 
 /* ---------- schermate ---------- */
-function show(id) { $$('#app > section').forEach(s => s.hidden = s.id !== id); window.scrollTo(0, 0); }
+function show(id) { if (id !== 'game' && id !== 'result') delete document.documentElement.dataset.hero; $$('#app > section').forEach(s => s.hidden = s.id !== id); window.scrollTo(0, 0); }
 const miniStars = n => [1, 2, 3].map(i => `<svg class="ic${i <= n ? ' on' : ''}" viewBox="0 0 24 24"><use href="#i-star"/></svg>`).join('');
 function renderHome() {
   const li = lvlInfo(save.xp), g = save.last.game;
@@ -993,7 +999,7 @@ function renderHome() {
   const today = save.days[dayKey()] || 0;
   $('#goalDots').innerHTML = [0, 1, 2].map(i => `<i class="gdot ${i < today ? 'on' : ''}">${i < today ? STAR : ''}</i>`).join('');
   $('#goalTxt').textContent = today >= 3 ? 'Obiettivo di oggi raggiunto!' : `Obiettivo di oggi: 3 partite (${today} su 3)`;
-  $('#gameCards').innerHTML = Object.entries(GAMES).map(([k, G]) => `<button class="gcard ${k === g ? 'sel' : ''}" data-g="${k}" aria-pressed="${k === g}"><span class="gart">${ART[k]}</span><span class="gname"><span class="ghero">${heroSvg(k)}</span>${G.name}</span><span class="gdesc">${G.desc}</span><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></button>`).join('');
+  $('#gameCards').innerHTML = Object.entries(GAMES).map(([k, G]) => `<button class="gcard hero-${k} ${k === g ? 'sel' : ''}" data-g="${k}" aria-pressed="${k === g}"><span class="gart">${ART[k]}</span><span class="gname"><span class="ghero">${heroSvg(k)}</span>${G.name}</span><span class="gdesc">${G.desc}</span><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></button>`).join('');
   const on = save.last.types[g] || GAMES[g].types.map(t => t[0]);
   $('#typeChips').innerHTML = GAMES[g].types.map(([k, n]) => `<button class="chip" data-t="${k}" aria-pressed="${on.includes(k)}">${n}</button>`).join('');
   $('#diffBtns').innerHTML = DIFF.map((n, d) => `<button class="dbtn ${d === save.last.diff ? 'sel' : ''}" data-d="${d}" aria-pressed="${d === save.last.diff}"><span class="pips">${[0, 1, 2].map(i => `<i class="${i <= d ? 'on' : ''}"></i>`).join('')}</span>${n}<small>${GAMES[g].diffs[d]}</small></button>`).join('');
