@@ -15,8 +15,8 @@
 /* Layout: una colonna centrata da tablet; schermate a turno (menu, gioco, risultato, album, grandi).
    Blu, rosso e verde sono riservati a unità, decine e centinaia: l'interfaccia usa il giallo di Saltino. */
 :root{
-  --bg:#EADFFF; --paper:#FFFFFF; --ink:#1E1838; --muted:#4F4570; --line:#D3C8F2; --edge:#1E1838;
-  --outline:#1E1838; --dot:#CDB8FF; --band1:#FFD000; --band2:#FF4FA0;
+  --bg:#DECBFF; --paper:#FFFFFF; --ink:#1E1838; --muted:#4F4570; --line:#D3C8F2; --edge:#1E1838;
+  --outline:#1E1838; --dot:#BE9CFF; --band1:#FFD000; --band2:#FF4FA0;
   --fur:#D08A45; --fur-dark:#8C5426; --fur-light:#F8DFC0; --nose:#2A1E14; --tongue:#FF7F9E; --collar:#7A5CFF;
   --hh:#8D6BE8; --hh-dark:#5634B0; --hh-face:#FFE0C2;
   --bn:#F7AECB; --bn-dark:#D96A9B; --bn-light:#FFE6F0; --bn-nose:#C9417F;
@@ -59,8 +59,9 @@
 /* quaderno a quadretti per la matematica, a righe per la lettura */
 :root[data-cat="mat"] body{background-image:linear-gradient(var(--grid) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);background-size:28px 28px}
 :root[data-cat="let"] body{background-image:linear-gradient(90deg,transparent 30px,var(--margin) 30px,var(--margin) 33px,transparent 33px),linear-gradient(transparent 34px,var(--rule) 34px,var(--rule) 36px);background-size:100% 100%,100% 36px}
-:root[data-hero] body{background-color:color-mix(in srgb,var(--sun) 26%,var(--bg))}
-:root[data-hero] .prompt{background:linear-gradient(110deg,color-mix(in srgb,var(--sun) 70%,var(--paper)),color-mix(in srgb,var(--sun) 15%,var(--paper)) 80%)}
+:root[data-hero] body{background-color:color-mix(in srgb,var(--sun) 42%,var(--bg))}
+:root[data-hero] .stage{background:color-mix(in srgb,var(--sun) 12%,var(--paper))}
+:root[data-hero] .prompt{background:linear-gradient(110deg,color-mix(in srgb,var(--sun) 92%,var(--paper)),color-mix(in srgb,var(--sun) 40%,var(--paper)) 85%)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background-color:var(--bg);background-image:radial-gradient(var(--dot) 3.5px,transparent 4.5px);background-size:30px 30px;color:var(--ink);font-family:var(--f-body);font-size:20px;line-height:1.45}
@@ -101,7 +102,7 @@ button{cursor:pointer}
 .gdot .ic{width:18px;height:18px}
 
 .games{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.gcard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;border:4px solid transparent;border-radius:22px;background:linear-gradient(160deg,color-mix(in srgb,var(--sun) 65%,var(--paper)),color-mix(in srgb,var(--sun) 12%,var(--paper)) 80%);box-shadow:0 4px 0 var(--edge);padding:14px 16px 12px}
+.gcard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;border:4px solid transparent;border-radius:22px;background:linear-gradient(160deg,color-mix(in srgb,var(--sun) 90%,var(--paper)),color-mix(in srgb,var(--sun) 40%,var(--paper)) 85%);box-shadow:0 4px 0 var(--edge);padding:14px 16px 12px}
 .gcard.sel{border-color:var(--sun-deep)}
 .gart{display:block;width:100%;height:56px}
 .gart svg{width:100%;height:100%}
@@ -221,6 +222,17 @@ button{cursor:pointer}
 .dg.c-u{color:var(--u)} .dg.c-da{color:var(--da)} .dg.c-h{color:var(--h)}
 .dg.pick{border-style:solid;border-color:var(--sun-deep);background:var(--sun-soft)}
 .dg.nope{animation:shake .4s}
+.abaco{width:min(100%,330px);height:auto;display:block;margin:0 auto}
+.rod{stroke:var(--ink);stroke-width:4} .abase{fill:var(--ink)}
+.bead{stroke:var(--outline);stroke-width:2} .bd-u{fill:var(--u)} .bd-da{fill:var(--da)} .bd-h{fill:var(--h)}
+.rodlab{font-family:var(--f-display);font-weight:800;font-size:24px}
+.abtn{display:grid;grid-template-columns:repeat(var(--n),1fr);width:min(100%,330px);margin:0 auto;padding:0 4%}
+.abcol{display:flex;justify-content:center;gap:6px}
+.abb{width:50px;height:50px;padding:0;border-radius:50%;font-size:1.8rem}
+.cuberows{display:flex;flex-direction:column;align-items:center;gap:4px}
+.crow{display:flex;gap:3px;padding:3px;border:3px dashed transparent;border-radius:8px}
+.crow .blk-u{width:19px;height:19px}
+.cuberows.show .crow.full{border-color:var(--da);background:var(--da-soft)}
 .trace{display:flex;justify-content:center;gap:12px}
 .tc{display:flex;flex-direction:column;align-items:center;gap:8px}
 .cv canvas{display:block;width:clamp(88px,26vw,150px);aspect-ratio:3/4;border-radius:18px;border:3px solid var(--line);background:var(--bg);touch-action:none}
@@ -231,16 +243,16 @@ button{cursor:pointer}
 .toast.help{border-color:var(--muted);font-size:1.6rem}
 .toast.star{border-color:var(--gold-deep);background:linear-gradient(160deg,color-mix(in srgb,var(--gold) 60%,var(--paper)),var(--paper) 80%)}
 .toast.star .ic{width:64px;height:64px;display:block;margin:0 auto 4px;color:var(--gold-deep)}
-.welcome{position:relative;margin:16px 0 0;background:var(--paper);border:4px solid var(--outline);border-radius:24px;padding:12px 18px;font-family:var(--f-display);font-weight:700;font-size:1.6rem;line-height:1.2;box-shadow:0 6px 0 var(--edge)}
-.sec{display:inline-block;border:4px solid var(--outline);border-radius:16px;padding:4px 14px;box-shadow:0 4px 0 var(--edge)}
-.sec-let{background-color:color-mix(in srgb,#FF7A45 45%,var(--paper));background-image:linear-gradient(transparent 26px,var(--rule) 26px,var(--rule) 28px);background-size:100% 28px}
-.sec-mat{background-color:color-mix(in srgb,#FFC400 50%,var(--paper));background-image:linear-gradient(var(--grid) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);background-size:20px 20px}
+.welcome{position:relative;margin:16px 0 0;background:color-mix(in srgb,var(--band1) 45%,var(--paper));border:2.5px solid var(--outline);border-radius:24px;padding:12px 18px;font-family:var(--f-display);font-weight:700;font-size:1.6rem;line-height:1.2;box-shadow:0 4px 0 var(--edge)}
+.sec{display:inline-block;border:2.5px solid var(--outline);border-radius:16px;padding:4px 14px;box-shadow:0 4px 0 var(--edge)}
+.sec-let{background-color:color-mix(in srgb,#FF7A45 80%,var(--paper));background-image:linear-gradient(transparent 26px,var(--rule) 26px,var(--rule) 28px);background-size:100% 28px}
+.sec-mat{background-color:color-mix(in srgb,#FFC400 85%,var(--paper));background-image:linear-gradient(var(--grid) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);background-size:20px 20px}
 .games.home{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
 .games.home .gcard{align-items:center;text-align:center;padding:12px 10px}
 .games.home .gname{flex-direction:column;gap:4px;font-size:1.35rem}
 .games.home .ghero{width:78px}
 .games.home .gdesc{font-size:1.05rem}
-.gamehead{display:flex;align-items:center;gap:16px;background:linear-gradient(120deg,color-mix(in srgb,var(--sun) 70%,var(--paper)),var(--paper));border:4px solid var(--outline);border-radius:24px;padding:12px 16px;box-shadow:0 6px 0 var(--edge);margin-top:14px}
+.gamehead{display:flex;align-items:center;gap:16px;background:linear-gradient(120deg,var(--sun),color-mix(in srgb,var(--sun) 35%,var(--paper)));border:2.5px solid var(--outline);border-radius:24px;padding:12px 16px;box-shadow:0 4px 0 var(--edge);margin-top:14px}
 .gamehead svg{width:110px;flex:none}
 .gamehead p{margin:0;font-size:1.3rem}
 .logo{font-family:var(--f-display);font-weight:800;font-size:2.6rem;line-height:1;margin:0 0 6px}
@@ -263,7 +275,7 @@ button{cursor:pointer}
 .stel-ic{color:var(--gold-deep)}
 #stelPill.bump{animation:bump .45s}
 @keyframes bump{40%{transform:scale(1.3)}}
-.cometbox{display:flex;flex-direction:column;gap:8px;margin-top:12px;background:var(--paper);border:3px solid var(--outline);border-radius:18px;padding:12px 16px;font-weight:700}
+.cometbox{display:flex;flex-direction:column;gap:8px;margin-top:12px;background:var(--paper);border:2.5px solid var(--outline);border-radius:18px;padding:12px 16px;font-weight:700}
 .slots{display:grid;grid-template-columns:repeat(20,1fr);gap:2px;max-width:420px}
 .slots .ic{width:100%;height:auto;aspect-ratio:1;color:var(--line)}
 .slots .ic.on{color:var(--gold-deep)}
@@ -314,10 +326,10 @@ tr:last-child td{border-bottom:0}
 .danger{margin-top:20px;font-size:1rem}
 #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
 /* contorno a fumetto e testi grandi */
-.btn,.pill,.goal,.gcard,.dbtn,.prompt,.stage,.news,.bdg,.form,.tablewrap,.stk-t.on{border:4px solid var(--outline)}
-.gcard,.dbtn,.prompt,.stage,.goal,.cometbox,.form,.cat{box-shadow:0 6px 0 var(--edge)}
-.gcard.sel,.dbtn.sel{border-color:var(--outline);box-shadow:0 0 0 6px var(--sun-deep),0 5px 0 var(--edge)}
-.hero{background:linear-gradient(120deg,var(--band1),#FF9A2E 50%,var(--band2));border:4px solid var(--outline);border-radius:28px;padding:14px 16px;box-shadow:0 5px 0 var(--edge)}
+.btn,.pill,.goal,.gcard,.dbtn,.prompt,.stage,.news,.bdg,.form,.tablewrap,.stk-t.on{border:2.5px solid var(--outline)}
+.gcard,.dbtn,.prompt,.stage,.goal,.cometbox,.form,.cat{box-shadow:0 4px 0 var(--edge)}
+.gcard.sel,.dbtn.sel{border-color:var(--outline);box-shadow:0 0 0 4px var(--sun-deep),0 4px 0 var(--edge)}
+.hero{background:linear-gradient(120deg,var(--band1),#FF9A2E 50%,var(--band2));border:2.5px solid var(--outline);border-radius:28px;padding:14px 16px;box-shadow:0 4px 0 var(--edge)}
 .team{display:flex;align-items:flex-end;flex:none}
 .team svg{width:72px;height:auto}
 .team svg+svg{margin-left:-8px}
@@ -348,7 +360,7 @@ h2{font-size:1.6rem}
 .ow-beak{fill:var(--gold-deep)} .ow-book{fill:var(--bn-dark);stroke:var(--pupil);stroke-width:1.2} .ow-page{stroke:var(--paper);stroke-width:1.5} .ow-feet{fill:var(--gold-deep)}
 /* prima pagina */
 .cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-.cat{display:flex;flex-direction:column;align-items:center;gap:8px;border:3px solid var(--outline);border-radius:26px;box-shadow:0 6px 0 var(--edge);padding:18px 16px;text-align:center}
+.cat{display:flex;flex-direction:column;align-items:center;gap:8px;border:2.5px solid var(--outline);border-radius:26px;box-shadow:0 4px 0 var(--edge);padding:18px 16px;text-align:center}
 .cat-let{background-color:color-mix(in srgb,#FF7A45 50%,var(--paper));background-image:linear-gradient(transparent 30px,var(--rule) 30px,var(--rule) 32px);background-size:100% 32px}
 .cat-mat{background-color:color-mix(in srgb,#FFC400 50%,var(--paper));background-image:linear-gradient(var(--grid) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);background-size:24px 24px}
 .cat-art{display:flex;align-items:center;gap:12px;font-family:var(--f-body);font-weight:700;font-size:2.6rem;line-height:1}
@@ -356,17 +368,17 @@ h2{font-size:1.6rem}
 .cat-name{font-family:var(--f-display);font-weight:800;font-size:2rem;line-height:1}
 .cat-desc{font-size:1.25rem}
 .voices{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-.pcard{display:flex;flex-direction:column;align-items:center;gap:4px;border:4px solid var(--outline);border-radius:22px;background:var(--paper);box-shadow:0 5px 0 var(--edge);padding:10px 8px 12px;text-align:center}
+.pcard{display:flex;flex-direction:column;align-items:center;gap:4px;border:2.5px solid var(--outline);border-radius:22px;background:var(--paper);box-shadow:0 4px 0 var(--edge);padding:10px 8px 12px;text-align:center}
 .pcard svg{width:84px;height:auto}
 .pcard b{font-family:var(--f-display);font-size:1.3rem;line-height:1.1}
 .pcard small{font-size:1.05rem;color:var(--ink);line-height:1.2}
-.pcard.sel{background:color-mix(in srgb,var(--sun) 45%,var(--paper));box-shadow:0 0 0 6px var(--sun-deep),0 5px 0 var(--edge)}
+.pcard.sel{background:color-mix(in srgb,var(--sun) 75%,var(--paper));box-shadow:0 0 0 4px var(--sun-deep),0 4px 0 var(--edge)}
 .players{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
-.player{display:flex;flex-direction:column;align-items:center;gap:8px;border:4px solid var(--outline);border-radius:24px;background:linear-gradient(160deg,color-mix(in srgb,var(--band1) 55%,var(--paper)),var(--paper));box-shadow:0 6px 0 var(--edge);padding:14px 10px;text-align:center}
+.player{display:flex;flex-direction:column;align-items:center;gap:8px;border:2.5px solid var(--outline);border-radius:24px;background:linear-gradient(160deg,color-mix(in srgb,var(--band1) 85%,var(--paper)),color-mix(in srgb,var(--band2) 35%,var(--paper)));box-shadow:0 4px 0 var(--edge);padding:14px 10px;text-align:center}
 .player b{font-family:var(--f-display);font-size:1.5rem;line-height:1.1}
 .player small{font-size:1.1rem}
 .player.add{background:var(--paper);border-style:dashed}
-.av{width:96px;height:96px;border-radius:50%;border:4px solid var(--outline);object-fit:cover;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:2.6rem;color:#1E1838;flex:none;overflow:hidden;background:var(--paper)}
+.av{width:96px;height:96px;border-radius:50%;border:2.5px solid var(--outline);object-fit:cover;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:2.6rem;color:#1E1838;flex:none;overflow:hidden;background:var(--paper)}
 .av.sm{width:64px;height:64px;font-size:1.8rem}
 .av img{width:100%;height:100%;object-fit:cover;display:block}
 .plus{font-size:3rem;line-height:1;font-family:var(--f-display);font-weight:800}
@@ -381,9 +393,9 @@ h2{font-size:1.6rem}
 .seg button[aria-pressed="true"]{background:var(--sun);box-shadow:0 0 0 5px var(--sun-deep)}
 .row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
 .form input[type=text],.form select{font-size:1.2rem;max-width:none;width:100%}
-.vchip{display:flex;align-items:center;gap:8px;border:3px solid var(--outline);background:var(--paper);border-radius:999px;padding:8px 16px;font-weight:700;font-size:1.25rem;box-shadow:0 3px 0 var(--edge)}
+.vchip{display:flex;align-items:center;gap:8px;border:2.5px solid var(--outline);background:var(--paper);border-radius:999px;padding:8px 16px;font-weight:700;font-size:1.25rem;box-shadow:0 3px 0 var(--edge)}
 .vchip .vem{font-size:1.6rem;line-height:1}
-.vchip.sel{box-shadow:0 0 0 5px var(--sun),0 3px 0 var(--edge)}
+.vchip.sel{box-shadow:0 0 0 4px var(--sun),0 3px 0 var(--edge)}
 /* lettura */
 .rd{font-family:var(--f-body);font-weight:700}
 .rd.f-cors{font-family:"Playwrite IT Moderna",var(--f-body);font-weight:400}
@@ -432,7 +444,7 @@ h2{font-size:1.6rem}
 .xline{stroke:var(--ink);stroke-width:4;stroke-linecap:round}
 .eq{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:.25em;font-family:var(--f-body);font-weight:700;font-size:clamp(2.8rem,13vw,4.6rem);line-height:1.1}
 .eq .op{color:var(--ink)}
-.eqq{display:inline-grid;place-items:center;min-width:1.3em;padding:0 .15em;border-radius:16px;background:var(--sun);border:3px solid var(--outline);color:var(--on-sun)}
+.eqq{display:inline-grid;place-items:center;min-width:1.3em;padding:0 .15em;border-radius:16px;background:var(--sun);border:2.5px solid var(--outline);color:var(--on-sun)}
 .blkrow{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:14px}
 .opbig{font-family:var(--f-display);font-weight:800;font-size:3rem;line-height:1}
 .story{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
@@ -934,9 +946,9 @@ const GAMES = {
   l100: { cat: 'mat', name: 'La Corsa di Zip', desc: 'La linea del 100: salti da 10 e da 1',
     types: [['trova', 'Trova il numero'], ['quale', 'Che numero è?'], ['salti', 'Salti'], ['vicini', 'Prima e dopo']],
     diffs: ['Le decine', 'Tutti i numeri', 'Senza aiuti'] },
-  cifre: { cat: 'mat', name: 'I Colori di Saltino', desc: 'Scrivi i numeri: unità blu, decine rosse, centinaia verdi',
-    types: [['costruisci', 'Conta i blocchi'], ['dettato', 'Dettato'], ['ricalca', 'Ricalca'], ['posto', 'h da u']],
-    diffs: ['Fino a 20', 'Fino a 99', 'Fino a 999'] },
+  cifre: { cat: 'mat', name: 'Unità e Decine di Saltino', desc: 'Distingui unità e decine: abaco, blocchi, cifre colorate',
+    types: [['cambio', '10 unità = 1 decina'], ['abaco', "L'abaco"], ['quanteda', 'Quante decine? Quante unità?'], ['scomponi', 'Scomponi il numero'], ['costruisci', 'Conta i blocchi'], ['posto', 'Tocca la cifra'], ['dettato', 'Dettato'], ['ricalca', 'Ricalca']],
+    diffs: ['Fino a 20', 'Fino a 99', 'Con le centinaia'] },
   calc: { cat: 'mat', name: 'I Conti di Lola', desc: 'Contare, addizioni e sottrazioni',
     types: [['conta', 'Conta e somma'], ['calcola', 'Quanto fa?'], ['mancante', 'Il numero che manca'], ['amici', 'Amici del 10'], ['problemi', 'Problemi']],
     diffs: ['Fino a 10', 'Fino a 20', 'Fino a 100'] },
@@ -976,7 +988,7 @@ function makeQ(g, d, type) {
   if (g === 'sillabe') return ({ dividi: qDividi, quante: qQuante, componi: qComponi })[type](d);
   if (g === 'leggo') return ({ leggi: qLeggi, ascolta: qAscolta, smanca: qSMancante, frasi: qFrase })[type](d);
   if (g === 'calc') return ({ conta: qConta, calcola: qCalcola, mancante: qMancante, amici: qAmici, problemi: qProblema })[type](d);
-  if (g === 'cifre') return ({ costruisci: qCostruisci, dettato: qDettato, ricalca: qRicalca, posto: qPosto })[type](d);
+  if (g === 'cifre') return ({ cambio: qCambio, abaco: qAbaco, quanteda: qQuanteDa, scomponi: qScomponi, costruisci: qCostruisci, dettato: qDettato, ricalca: qRicalca, posto: qPosto })[type](d);
   const cfg = lcfg(g, d);
   return ({ trova: qTrova, quale: qQuale, salti: qSalti, vicini: qVicini })[type](cfg, g, d);
 }
@@ -1043,12 +1055,14 @@ function judge(ok) {
     if (run.attempts >= 2 || q.oneShot) {
       run.locked = true; run.res.push('help'); run.i++;
       if (q.reveal) q.reveal();
-      const m = q.oneShot ? `Guarda dove arriva ${HEROES[run.game].name}` : 'Ecco la risposta giusta';
+      const nm = prof.info.nome ? ' ' + prof.info.nome : '';
+      const m = q.oneShot ? `Guarda dove arriva ${HEROES[run.game].name}. Non fa niente${nm}, la prossima la indovini!` : `Non fa niente${nm}! Ecco la risposta giusta: la prossima ce la fai!`;
       toast(m, '', 'help'); if (save.settings.voice) say(m);
       renderDots();
       $('#nextRow').hidden = false;
     } else {
-      const m = fmt(pick(persona().retry));
+      const nm = prof.info.nome ? ' ' + prof.info.nome : '';
+      const m = pick([`Coraggio${nm}, riprova!`, `Quasi${nm}! Ce la puoi fare!`, `Non ti preoccupare${nm}: sbagliando si impara. Riprova!`, `Sei sulla strada giusta${nm}, prova ancora!`, `Pensaci con calma${nm}: ce la fai!`, fmt(pick(persona().retry))]);
       toast(m, '', 'help'); if (save.settings.voice) say(m);
       if (q.retry) q.retry();
     }
@@ -1083,7 +1097,7 @@ function finish() {
   const title = st === 3 ? 'Fantastico!' : st === 2 ? gx('Bravissimo!', 'Bravissima!') : 'Bel lavoro!';
   $('#resTitle').textContent = title;
   $('#resStars').innerHTML = [1, 2, 3].map(i => `<span class="bstar ${i <= st ? 'on' : ''}" style="--d:${i * .25}s">${STAR}</span>`).join('');
-  $('#resLine').innerHTML = `${firsts} su ${len} giuste al primo colpo · <b>+${run.stel} stelline</b> · <b>+${gain} punti</b>`;
+  $('#resLine').innerHTML = `${firsts} su ${len} giuste al primo colpo · <b>+${run.stel} stelline</b> · <b>+${gain} punti</b>` + (st === 1 ? `<br>Ogni partita ti fa diventare ${gx('più bravo', 'più brava')}: riprova e vedrai!` : '');
   $('#resLvl').textContent = li.lvl;
   $('#resXp').style.width = '0';
   requestAnimationFrame(() => requestAnimationFrame(() => $('#resXp').style.width = (li.pct * 100) + '%'));
@@ -1358,6 +1372,70 @@ function qDettato(d) {
       bx = boxesUI(ct, cols, n);
     },
     reveal() { bx.fill(n); } });
+}
+const POW = { h: 100, da: 10, u: 1 };
+const digitOf = (n, c) => Math.floor(n / POW[c]) % 10;
+const plainNum = n => `<span class="num">${n}</span>`;
+function abacoSVG(vals, cols) {
+  const W = cols.length * 90 + 40;
+  return `<svg class="abaco" viewBox="0 0 ${W} 212" aria-hidden="true"><rect class="abase" x="15" y="176" width="${W - 30}" height="10" rx="4"/>${cols.map((c, i) => {
+    const x = 65 + i * 90; let b = '';
+    for (let k = 0; k < vals[i]; k++) b += `<ellipse class="bead bd-${c}" cx="${x}" cy="${167 - k * 15}" rx="26" ry="7.5"/>`;
+    return `<line class="rod" x1="${x}" x2="${x}" y1="22" y2="176"/>${b}<text class="rodlab c-${c}" x="${x}" y="206" text-anchor="middle">${c}</text>`;
+  }).join('')}</svg>`;
+}
+function qAbaco(d) {
+  const n = cifreN(d, true), cols = colsFor(d), fai = Math.random() < .6; let vals = cols.map(() => 0), st0, op;
+  const paint = () => { $('[data-ab]', st0).innerHTML = abacoSVG(vals, cols); };
+  if (!fai) {
+    return Q({ text: "Che numero c'è sull'abaco?", sub: 'Palline rosse = decine, palline blu = unità' + (d === 2 ? ', verdi = centinaia' : ''),
+      mount(st, ct) { st0 = st; vals = cols.map(c => digitOf(n, c)); st.innerHTML = '<div data-ab></div>'; paint(); op = choiceUI(ct, distract(n, d === 2 ? 999 : 99, nOpt(d)).map(v => ({ k: v, html: plainNum(v) })), n); },
+      reveal() { op.reveal(); } });
+  }
+  return Q({ text: `Fai il numero ${n} sull'abaco`, html: `Fai il numero ${d ? plainNum(n) : numHTML(n)} sull'abaco`, sub: 'Usa + e − per mettere le palline',
+    say: `Fai il numero ${n} sull'abaco. Le palline rosse sono le decine, quelle blu le unità.`,
+    mount(st, ct) {
+      st0 = st;
+      st.innerHTML = `<div data-ab></div><div class="abtn" style="--n:${cols.length}">${cols.map((c, i) => `<div class="abcol"><button class="btn abb" data-i="${i}" data-s="1" aria-label="Aggiungi ${NAME[c]}">+</button><button class="btn abb" data-i="${i}" data-s="-1" aria-label="Togli ${NAME[c]}">−</button></div>`).join('')}</div>`;
+      paint();
+      $$('.abb', st).forEach(b => b.onclick = () => { if (run.locked) return; const i = +b.dataset.i; vals[i] = Math.max(0, Math.min(9, vals[i] + +b.dataset.s)); SND.tick(); paint(); });
+      ct.innerHTML = '<div class="adj"><button class="btn go" data-fine>Fatto</button></div>';
+      $('[data-fine]', ct).onclick = () => { if (run.locked) return; judge(cols.reduce((a, c, i) => a + vals[i] * POW[c], 0) === n); };
+    },
+    reveal() { vals = cols.map(c => digitOf(n, c)); paint(); } });
+}
+function qQuanteDa(d) {
+  const n = cifreN(d, true), pl = placesOf(n), ask = d === 0 ? pick(['da', 'u']) : pick(pl), ans = digitOf(n, ask); let op, st0;
+  const vals = [...new Set([ans, ...[...String(n)].map(Number), n, ans + 1].filter(v => v !== undefined))].slice(0, nOpt(d) + 1);
+  const opts = [ans, ...vals.filter(v => v !== ans)].slice(0, nOpt(d));
+  const big = col => `<div class="bignum">${[...String(n)].map((c, i) => `<span class="dg ${col ? 'c-' + pl[i] : ''} ${col && pl[i] === ask ? 'pick' : ''}">${c}</span>`).join('')}</div>`;
+  return Q({ text: `Quante ${NAME[ask]} ci sono nel numero ${n}?`, html: `Quante <b class="c-${ask}">${NAME[ask]}</b> ci sono nel numero ${d ? plainNum(n) : numHTML(n)}?`,
+    mount(st, ct) { st0 = st; st.innerHTML = big(d === 0) + legend(colsFor(d)); op = choiceUI(ct, shuffle(opts).map(v => ({ k: v, html: plainNum(v) })), ans, async () => { st.innerHTML = big(true) + legend(colsFor(d)); await sleep(500); }); },
+    reveal() { op.reveal(); st0.innerHTML = big(true) + legend(colsFor(d)); } });
+}
+function qScomponi(d) {
+  let n, i = 0; do { n = cifreN(d, true); i++; } while (new Set(String(n)).size < String(n).length && i < 20);
+  const cols = d === 2 ? ['h', 'da', 'u'] : ['da', 'u'], dg = cols.map(c => digitOf(n, c));
+  const lab = arr => cols.map((c, k) => `<b class="c-${c}">${arr[k]} ${c}</b>`).join(' e ');
+  const wrong1 = dg.slice().reverse(), wrong2 = dg.map((v, k) => k === 0 ? v * 10 : v);
+  const sets = [dg, wrong1, wrong2, dg.map((v, k) => k === dg.length - 1 ? (v + 1) % 10 : v)].slice(0, nOpt(d));
+  let op;
+  return Q({ text: `Come si scompone il numero ${n}?`, html: `Come si scompone il numero ${d ? plainNum(n) : numHTML(n)}?`, sub: 'La cifra a destra sono le unità',
+    mount(st, ct) { st.innerHTML = `<div class="bignum"><span class="dg">${n}</span></div>${legend(cols)}`; op = choiceUI(ct, shuffle(sets.map((a, k) => ({ k: String(k), html: lab(a), cls: 'nome-opt' }))), '0', async () => { say(cols.map((c, k) => `${dg[k]} ${dg[k] === 1 ? { h: 'centinaio', da: 'decina', u: 'unità' }[c] : NAME[c]}`).join(' e ')); await sleep(700); }); },
+    reveal() { op.reveal(); } });
+}
+function qCambio(d) {
+  const n = d === 0 ? rnd(11, 19) : d === 1 ? rnd(21, 59) : rnd(61, 99); remember(n);
+  const rows = Array.from({ length: Math.ceil(n / 10) }, (_, k) => Math.min(10, n - k * 10)); let bx, st0;
+  return Q({ text: 'Conta i cubetti blu e scrivi quante decine e quante unità', sub: '10 unità fanno 1 decina',
+    say: 'Conta i cubetti. Ricorda: dieci unità fanno una decina. Scrivi quante decine e quante unità.',
+    mount(st, ct) {
+      st0 = st;
+      st.innerHTML = `<div class="cuberows">${rows.map(k => `<div class="crow ${k === 10 ? 'full' : ''}">${CUBE.repeat(k)}</div>`).join('')}</div><button class="btn aiuto" data-aiuto>Aiutino</button>${legend(['da', 'u'])}`;
+      $('[data-aiuto]', st).onclick = e => { $('.cuberows', st).classList.add('show'); e.currentTarget.hidden = true; say('Ogni fila di dieci cubetti è una decina.'); };
+      bx = boxesUI(ct, ['da', 'u'], n);
+    },
+    reveal() { $('.cuberows', st0).classList.add('show'); bx.fill(n); } });
 }
 function qPosto(d) {
   const n = cifreN(d, true), cols = colsFor(d), s = String(n), pl = placesOf(n), ask = pick(pl);
