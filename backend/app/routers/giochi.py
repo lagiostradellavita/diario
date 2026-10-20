@@ -1,13 +1,16 @@
 import json
+import os
 import secrets
 from typing import Any, Optional
-from fastapi import APIRouter, Body, Depends, Header, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from ..deps import get_session
 from ..security import hash_password, verify_password, create_access_token, decode_token
 from .auth import get_admin
+from ..config import settings
+from .. import posta
 
 # «Leggo e Conto», i giochi per bambini. Stesso servizio del Diario, ma utenti
 # e dati separati: un token dei giochi porta scope 'giochi' e non apre il
@@ -17,6 +20,8 @@ router = APIRouter(prefix="/giochi", tags=["giochi"])
 
 SCOPE = "giochi"
 MAX_DATI = 4_000_000   # i profili con le foto rimpicciolite stanno ben sotto
+BACKOFFICE = os.getenv("GIOCHI_BACKOFFICE_URL") or "https://lagiostradellavita.github.io/diario/numeri/admin.html"
+APP_URL = os.getenv("GIOCHI_APP_URL") or "https://lagiostradellavita.github.io/diario/numeri/"
 
 
 def get_giochi_uid(authorization: Optional[str] = Header(None)) -> str:
@@ -64,7 +69,7 @@ def _risposta(uid, email, nome, stato):
 
 
 @router.post("/registrati", status_code=201)
-def registrati(body: RegistratiIn, db: Session = Depends(get_session)):
+def registrati(body: RegistratiIn, avvisi: BackgroundTasks, db: Session = Depends(get_session)):
     """Chiunque puo' chiedere l'accesso, ma nasce «in_attesa»: gioca solo
     dopo che l'amministratore lo approva dal backoffice."""
     email = (body.email or "").strip().lower()
@@ -78,6 +83,11 @@ def registrati(body: RegistratiIn, db: Session = Depends(get_session)):
     ), {"e": email, "n": body.nome.strip()[:100], "t": (body.telefono or "").strip()[:40] or None,
         "m": (body.messaggio or "").strip()[:1000] or None, "h": hash_password(body.password)}).scalar()
     db.commit()   # confermo prima di rispondere: la schermata rilegge subito lo stato
+    # avviso all'amministratore, dopo la risposta: la famiglia non aspetta la posta
+    avvisi.add_task(posta.manda, settings.admin_email, "Leggo e Conto: nuova richiesta d'accesso da " + body.nome.strip(),
+                    "E' arrivata una nuova richiesta d'accesso a Leggo e Conto.\n\n"
+                    f"Nome: {body.nome.strip()}\nEmail: {email}\nTelefono: {body.telefono or '-'}\n"
+                    f"Per chi: {body.messaggio or '-'}\n\nPer approvarla o rifiutarla apri il backoffice:\n{BACKOFFICE}\n")
     return _risposta(uid, email, body.nome.strip(), "in_attesa")
 
 
@@ -162,6 +172,12 @@ def _riassunto_bambini(valore) -> list:
     return out
 
 
+@router.get("/admin/posta")
+def stato_posta(_admin: str = Depends(get_admin)):
+    """Dice al backoffice se gli avvisi via email possono partire."""
+    return {"configurata": posta.configurata(), "destinatario": settings.admin_email}
+
+
 @router.get("/admin/utenti")
 def admin_utenti(db: Session = Depends(get_session), _admin: str = Depends(get_admin)):
     righe = db.execute(text(
@@ -192,9 +208,16 @@ def _cambia_stato(db, uid, stato):
 
 
 @router.post("/admin/utenti/{uid}/approva")
-def approva(uid: str, db: Session = Depends(get_session), _admin: str = Depends(get_admin)):
-    """Approva chi e' in attesa, o riattiva chi era bloccato."""
-    return _cambia_stato(db, uid, "attivo")
+def approva(uid: str, avvisi: BackgroundTasks, db: Session = Depends(get_session), _admin: str = Depends(get_admin)):
+    """Approva chi e' in attesa, o riattiva chi era bloccato. La famiglia
+    riceve un'email, se la posta e' configurata."""
+    row = db.execute(text("select email, nome, stato from giochi_utenti where id = :i"), {"i": uid}).mappings().first()
+    out = _cambia_stato(db, uid, "attivo")
+    if row and row["stato"] != "attivo":
+        avvisi.add_task(posta.manda, row["email"], "Leggo e Conto: il tuo accesso e' attivo",
+                        f"Ciao {row['nome'] or ''},\n\nil tuo accesso a Leggo e Conto e' stato approvato. "
+                        f"Entra con la tua email e la tua password da qui:\n{APP_URL}\n\nBuon divertimento!\n")
+    return out
 
 
 @router.post("/admin/utenti/{uid}/blocca")

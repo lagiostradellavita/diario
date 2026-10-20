@@ -3,10 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Leggo e Conto">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body>
 <title>Leggo e Conto</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#FFC400">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap">
@@ -21,7 +29,7 @@
   --hh:#8D6BE8; --hh-dark:#5634B0; --hh-face:#FFE0C2;
   --bn:#F7AECB; --bn-dark:#D96A9B; --bn-light:#FFE6F0; --bn-nose:#C9417F;
   --ow:#E8955A; --ow-dark:#A85A2A; --ow-light:#FFE8CF; --s4:#FF9F68;
-  --sy1:#D96000; --sy2:#6741D9; --grid:#F3C978; --rule:#EDBE66; --margin:#FF6FB0;
+  --sy1:#D96000; --sy2:#6741D9; --grid:#F8DFA6; --rule:#F5D89A; --margin:#FF6FB0;
   --sun:#FFC83D; --sun-deep:#E88A0C; --sun-soft:color-mix(in srgb,var(--sun) 30%,var(--paper)); --gold:#FFC83D; --gold-deep:#E88A0C; --on-sun:#3A2600; --focus:#7A5CFF;
   --u:#1C6BE0; --da:#DA2B2A; --h:#178F48;
   --u-soft:#DDE8FC; --da-soft:#FBE0DF; --h-soft:#DAF1E2;
@@ -35,7 +43,7 @@
   --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:color-mix(in srgb,var(--sun) 28%,var(--paper)); --on-sun:#3A2600; --focus:#A28CFF;
   --u:#5B9BFF; --da:#FF6663; --h:#3FCB78;
   --u-soft:#1D2D52; --da-soft:#4A1F27; --h-soft:#173D29; color-scheme:dark;
-  --sy1:#FF9A3D; --sy2:#B197FC; --grid:#3A3122; --rule:#3E3424; --margin:#5B2A4F;
+  --sy1:#FF9A3D; --sy2:#B197FC; --grid:#2A241A; --rule:#2C251B; --margin:#5B2A4F;
 }}
 :root[data-theme="dark"]{
   --bg:#1E1A14; --paper:#2C251C; --ink:#FFF8EC; --muted:#D9C9A8; --line:#4A3E2C; --edge:#0B0816;
@@ -43,7 +51,7 @@
   --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:color-mix(in srgb,var(--sun) 28%,var(--paper)); --on-sun:#3A2600; --focus:#A28CFF;
   --u:#5B9BFF; --da:#FF6663; --h:#3FCB78;
   --u-soft:#1D2D52; --da-soft:#4A1F27; --h-soft:#173D29; color-scheme:dark;
-  --sy1:#FF9A3D; --sy2:#B197FC; --grid:#3A3122; --rule:#3E3424; --margin:#5B2A4F;
+  --sy1:#FF9A3D; --sy2:#B197FC; --grid:#2A241A; --rule:#2C251B; --margin:#5B2A4F;
 }
 /* ogni gioco prende i colori del suo personaggio (mai blu, rosso o verde: sono di u, da, h) */
 :root[data-hero="l20"],.hero-l20{--sun:#FF9A2E;--sun-deep:#B55A00}
@@ -57,6 +65,14 @@
 :root[data-hero="treno"],.hero-treno{--sun:#FFA000;--sun-deep:#7A4A00}
 :root[data-hero="sillabe"],.hero-sillabe{--sun:#FF7A45;--sun-deep:#B23E0E}
 :root[data-hero="leggo"],.hero-leggo{--sun:#FFE03A;--sun-deep:#8F6A00}
+/* i colori di chi gioca: celeste e azzurro per i bambini, fucsia per le bambine */
+:root[data-gen="m"]{--bg:#DDF1FF;--dot:#AEDCFF;--band1:#9ADFFF;--bandm:#5CC2FF;--band2:#2F9BEA;--grid:#C9E8FC;--rule:#C9E8FC}
+:root[data-gen="f"]{--bg:#FFE1F3;--dot:#FFB9DF;--band1:#FFA6E0;--bandm:#FF5CC6;--band2:#E62AA5;--grid:#FBD0EA;--rule:#FBD0EA}
+@media (prefers-color-scheme: dark){
+  :root[data-gen="m"]:not([data-theme="light"]){--bg:#0E1C27;--dot:#16303F;--band1:#1D5F86;--bandm:#1A7FB8;--band2:#1567A6;--grid:#132633;--rule:#132633}
+  :root[data-gen="f"]:not([data-theme="light"]){--bg:#2A0F20;--dot:#40172F;--band1:#8A1F66;--bandm:#B0237E;--band2:#8A1468;--grid:#33142A;--rule:#33142A}}
+:root[data-theme="dark"][data-gen="m"]{--bg:#0E1C27;--dot:#16303F;--band1:#1D5F86;--bandm:#1A7FB8;--band2:#1567A6;--grid:#132633;--rule:#132633}
+:root[data-theme="dark"][data-gen="f"]{--bg:#2A0F20;--dot:#40172F;--band1:#8A1F66;--bandm:#B0237E;--band2:#8A1468;--grid:#33142A;--rule:#33142A}
 /* quaderno a quadretti per la matematica, a righe per la lettura */
 :root[data-cat="mat"] body{background-image:linear-gradient(var(--grid) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);background-size:28px 28px}
 :root[data-cat="let"] body{background-image:linear-gradient(90deg,transparent 30px,var(--margin) 30px,var(--margin) 33px,transparent 33px),linear-gradient(transparent 34px,var(--rule) 34px,var(--rule) 36px);background-size:100% 100%,100% 36px}
@@ -333,7 +349,7 @@ tr:last-child td{border-bottom:0}
 .btn,.pill,.goal,.gcard,.dbtn,.prompt,.stage,.news,.bdg,.form,.tablewrap,.stk-t.on{border:2.5px solid var(--outline)}
 .gcard,.dbtn,.prompt,.stage,.goal,.cometbox,.form,.cat{box-shadow:0 4px 0 var(--edge)}
 .gcard.sel,.dbtn.sel{border-color:var(--outline);box-shadow:0 0 0 4px var(--sun-deep),0 4px 0 var(--edge)}
-.hero{background:linear-gradient(120deg,var(--band1),#FF9A2E 50%,var(--band2));border:2.5px solid var(--outline);border-radius:28px;padding:14px 16px;box-shadow:0 4px 0 var(--edge)}
+.hero{background:linear-gradient(120deg,var(--band1),var(--bandm,#FF9A2E) 50%,var(--band2));border:2.5px solid var(--outline);border-radius:28px;padding:14px 16px;box-shadow:0 4px 0 var(--edge)}
 .team{display:flex;align-items:flex-end;flex:none}
 .team svg{width:72px;height:auto}
 .team svg+svg{margin-left:-8px}
@@ -373,8 +389,8 @@ h2{font-size:1.6rem}
 .cat:hover .tb2,.cat:focus-visible .tb2{animation:hop .6s ease-in-out infinite alternate}
 .cat:active{transform:scale(.97)}
 @keyframes hop{to{transform:translateY(-8px)}}
-.cat-let{background-color:#FFB37A!important;background-image:linear-gradient(transparent 30px,rgba(30,24,56,.14) 30px,rgba(30,24,56,.14) 32px)!important}
-.cat-mat{background-color:#FFE066!important;background-image:linear-gradient(rgba(30,24,56,.12) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(30,24,56,.12) 1.5px,transparent 1.5px)!important}
+.cat-let{background-color:#FFB37A!important;background-image:linear-gradient(transparent 30px,rgba(30,24,56,.06) 30px,rgba(30,24,56,.06) 32px)!important}
+.cat-mat{background-color:#FFE066!important;background-image:linear-gradient(rgba(30,24,56,.05) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(30,24,56,.05) 1.5px,transparent 1.5px)!important}
 .cat .cat-name,.cat .cat-desc{color:#1E1838}
 .cat-art svg{width:84px;height:auto}
 .cat-art .mini svg{width:46px}
@@ -2267,6 +2283,7 @@ function qFConta(d) {
 function show(id) { $('#toast').hidden = true; const R = document.documentElement; if (['lista', 'cat', 'game', 'result'].includes(id)) R.dataset.cat = save.last.cat || 'mat'; else delete R.dataset.cat; if (!['cat', 'game', 'result'].includes(id)) delete R.dataset.hero; $$('#app > section').forEach(s => s.hidden = s.id !== id); window.scrollTo(0, 0); }
 const miniStars = n => [1, 2, 3].map(i => `<svg class="ic${i <= n ? ' on' : ''}" viewBox="0 0 24 24"><use href="#i-star"/></svg>`).join('');
 function renderHome() {
+  if (prof.info.genere) document.documentElement.dataset.gen = prof.info.genere; else delete document.documentElement.dataset.gen;
   const li = lvlInfo(save.xp), g = save.last.game;
   $('#hiName').textContent = prof.info.nome || gx('campione', 'campionessa');
   $('#meAv').innerHTML = avatarHTML(prof);
@@ -2503,5 +2520,6 @@ $('#fReg').addEventListener('submit', async e => {
 boot();
 </script>
 
+<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function(){});</script>
 </body>
 </html>

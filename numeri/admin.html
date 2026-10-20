@@ -50,6 +50,7 @@ button,input{font:inherit;color:inherit}
 .pw{margin-top:8px;font-weight:700}
 .pw code{font-size:1.2rem;background:var(--bg);padding:2px 8px;border-radius:8px;user-select:all}
 .empty{color:var(--muted)}
+.alert{margin-top:16px;background:#FF9A2E;color:#1E1838;font-weight:700;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .tablewrap{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;min-width:520px}
 th,td{text-align:left;padding:7px 8px;border-bottom:2px solid var(--line);font-size:.95rem;vertical-align:top}
@@ -72,6 +73,8 @@ th{font-family:var(--f-display);color:var(--muted)}
   </form>
 
   <div id="panel" hidden>
+    <div class="card alert" id="alert" hidden></div>
+    <p class="empty" id="mailInfo" style="margin:12px 0 0"></p>
     <div class="tabs" id="tabs">
       <button data-t="in_attesa" aria-pressed="true">Da approvare<span class="n" id="n-in_attesa">0</span></button>
       <button data-t="attivo" aria-pressed="false">Attivi<span class="n" id="n-attivo">0</span></button>
@@ -118,7 +121,13 @@ $('#tabs').addEventListener('click', function (e) {
 });
 function load() {
   return api('/giochi/admin/utenti').then(function (j) {
-    utenti = j.utenti; $('#login').hidden = true; $('#panel').hidden = false; $('#hBtns').hidden = false; render();
+    utenti = j.utenti; $('#login').hidden = true; $('#panel').hidden = false; $('#hBtns').hidden = false;
+    var n = utenti.filter(function (u) { return u.stato === 'in_attesa'; }).length;
+    document.title = (n ? '(' + n + ') ' : '') + 'Leggo e Conto · Backoffice';
+    $('#alert').hidden = !n;
+    $('#alert').innerHTML = n ? '<span>' + (n === 1 ? 'C\u2019è 1 richiesta d\u2019accesso da approvare' : 'Ci sono ' + n + ' richieste d\u2019accesso da approvare') + '</span><button class="btn" id="goWait">Vedi</button>' : '';
+    if (n) $('#goWait').onclick = function () { document.querySelector('#tabs [data-t="in_attesa"]').click(); };
+    render();
   }).catch(function (x) {
     if (x.status === 401 || x.status === 403) { $('#out').onclick(); msg(x.status === 403 ? 'Questo account non è l’amministratore' : 'Rientra con la password'); }
     else msg('Non riesco a collegarmi al server');
@@ -162,6 +171,14 @@ $('#list').addEventListener('click', function (e) {
   call.then(function () { delete delArm[id]; if (a !== 'pw') delete pwArm[id]; return load(); })
     .catch(function (x) { b.disabled = false; alert('Non riuscito: ' + x.message); });
 });
+function mailInfo() {
+  api('/giochi/admin/posta').then(function (j) {
+    $('#mailInfo').textContent = j.configurata ? 'Gli avvisi via email sono attivi: le richieste nuove arrivano a ' + j.destinatario + '.' : 'Gli avvisi via email non sono ancora attivi (manca la casella di posta su Render). Le richieste nuove si vedono qui, e la pagina si aggiorna da sola ogni minuto.';
+  }).catch(function () {});
+}
+// la pagina aperta controlla da sola ogni minuto se sono arrivate richieste
+setInterval(function () { if (tok && !document.hidden) load(); }, 60000);
+var _load = load; load = function () { var r = _load(); mailInfo(); return r; };
 if (tok) load();
 </script>
 </body>
