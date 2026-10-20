@@ -15,13 +15,13 @@
 /* Layout: una colonna centrata da tablet; schermate a turno (menu, gioco, risultato, album, grandi).
    Blu, rosso e verde sono riservati a unità, decine e centinaia: l'interfaccia usa il giallo di Saltino. */
 :root{
-  --bg:#DECBFF; --paper:#FFFFFF; --ink:#1E1838; --muted:#4F4570; --line:#D3C8F2; --edge:#1E1838;
-  --outline:#1E1838; --dot:#BE9CFF; --band1:#FFD000; --band2:#FF4FA0;
+  --bg:#FFEFC2; --paper:#FFFFFF; --ink:#1E1838; --muted:#5C4A2E; --line:#EAD7A6; --edge:#1E1838;
+  --outline:#1E1838; --dot:#FFD27A; --band1:#FFD000; --band2:#FF4FA0;
   --fur:#D08A45; --fur-dark:#8C5426; --fur-light:#F8DFC0; --nose:#2A1E14; --tongue:#FF7F9E; --collar:#7A5CFF;
   --hh:#8D6BE8; --hh-dark:#5634B0; --hh-face:#FFE0C2;
   --bn:#F7AECB; --bn-dark:#D96A9B; --bn-light:#FFE6F0; --bn-nose:#C9417F;
   --ow:#E8955A; --ow-dark:#A85A2A; --ow-light:#FFE8CF; --s4:#FF9F68;
-  --sy1:#D96000; --sy2:#6741D9; --grid:#C8B4FA; --rule:#BFAAF6; --margin:#FF6FB0;
+  --sy1:#D96000; --sy2:#6741D9; --grid:#F3C978; --rule:#EDBE66; --margin:#FF6FB0;
   --sun:#FFC83D; --sun-deep:#E88A0C; --sun-soft:color-mix(in srgb,var(--sun) 30%,var(--paper)); --gold:#FFC83D; --gold-deep:#E88A0C; --on-sun:#3A2600; --focus:#7A5CFF;
   --u:#1C6BE0; --da:#DA2B2A; --h:#178F48;
   --u-soft:#DDE8FC; --da-soft:#FBE0DF; --h-soft:#DAF1E2;
@@ -30,20 +30,20 @@
   --f-body:"Andika","Trebuchet MS",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#17132A; --paper:#241E3E; --ink:#F7F4FF; --muted:#C2BBE0; --line:#3A3262; --edge:#0B0816;
-  --outline:#0B0816; --dot:#221C3C; --band1:#4A3A8C; --band2:#6E2D5C;
+  --bg:#1E1A14; --paper:#2C251C; --ink:#FFF8EC; --muted:#D9C9A8; --line:#4A3E2C; --edge:#0B0816;
+  --outline:#0B0816; --dot:#2E271D; --band1:#7A5200; --band2:#7A2D50;
   --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:color-mix(in srgb,var(--sun) 28%,var(--paper)); --on-sun:#3A2600; --focus:#A28CFF;
   --u:#5B9BFF; --da:#FF6663; --h:#3FCB78;
   --u-soft:#1D2D52; --da-soft:#4A1F27; --h-soft:#173D29; color-scheme:dark;
-  --sy1:#FF9A3D; --sy2:#B197FC; --grid:#2B2450; --rule:#2E2756; --margin:#5B2A4F;
+  --sy1:#FF9A3D; --sy2:#B197FC; --grid:#3A3122; --rule:#3E3424; --margin:#5B2A4F;
 }}
 :root[data-theme="dark"]{
-  --bg:#17132A; --paper:#241E3E; --ink:#F7F4FF; --muted:#C2BBE0; --line:#3A3262; --edge:#0B0816;
-  --outline:#0B0816; --dot:#221C3C; --band1:#4A3A8C; --band2:#6E2D5C;
+  --bg:#1E1A14; --paper:#2C251C; --ink:#FFF8EC; --muted:#D9C9A8; --line:#4A3E2C; --edge:#0B0816;
+  --outline:#0B0816; --dot:#2E271D; --band1:#7A5200; --band2:#7A2D50;
   --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:color-mix(in srgb,var(--sun) 28%,var(--paper)); --on-sun:#3A2600; --focus:#A28CFF;
   --u:#5B9BFF; --da:#FF6663; --h:#3FCB78;
   --u-soft:#1D2D52; --da-soft:#4A1F27; --h-soft:#173D29; color-scheme:dark;
-  --sy1:#FF9A3D; --sy2:#B197FC; --grid:#2B2450; --rule:#2E2756; --margin:#5B2A4F;
+  --sy1:#FF9A3D; --sy2:#B197FC; --grid:#3A3122; --rule:#3E3424; --margin:#5B2A4F;
 }
 /* ogni gioco prende i colori del suo personaggio (mai blu, rosso o verde: sono di u, da, h) */
 :root[data-hero="l20"],.hero-l20{--sun:#FF9A2E;--sun-deep:#B55A00}
@@ -367,11 +367,19 @@ h2{font-size:1.6rem}
 .cat{display:flex;flex-direction:column;align-items:center;gap:8px;border:2.5px solid var(--outline);border-radius:26px;box-shadow:0 4px 0 var(--edge);padding:18px 16px;text-align:center}
 .cat-let{background-color:color-mix(in srgb,#FF7A45 50%,var(--paper));background-image:linear-gradient(transparent 30px,var(--rule) 30px,var(--rule) 32px);background-size:100% 32px}
 .cat-mat{background-color:color-mix(in srgb,#FFC400 50%,var(--paper));background-image:linear-gradient(var(--grid) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);background-size:24px 24px}
-.cat-art{display:flex;align-items:center;gap:12px;font-family:var(--f-body);font-weight:700;font-size:2.6rem;line-height:1}
+.cat-art{display:flex;flex-direction:column;align-items:center;gap:8px;font-family:var(--f-body);font-weight:700;font-size:2.6rem;line-height:1}
+.cat .toys{width:min(62%,220px);height:auto;filter:drop-shadow(0 6px 0 rgba(30,24,56,.18))}
+.cat{transition:transform .15s}
+.cat:hover .tb2,.cat:focus-visible .tb2{animation:hop .6s ease-in-out infinite alternate}
+.cat:active{transform:scale(.97)}
+@keyframes hop{to{transform:translateY(-8px)}}
+.cat-let{background-color:#FFB37A!important;background-image:linear-gradient(transparent 30px,rgba(30,24,56,.14) 30px,rgba(30,24,56,.14) 32px)!important}
+.cat-mat{background-color:#FFE066!important;background-image:linear-gradient(rgba(30,24,56,.12) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(30,24,56,.12) 1.5px,transparent 1.5px)!important}
+.cat .cat-name,.cat .cat-desc{color:#1E1838}
 .cat-art svg{width:84px;height:auto}
 .cat-art .mini svg{width:46px}
 .cat-art .mini{display:flex;flex-wrap:wrap;justify-content:center;max-width:260px}
-.cat-name{font-family:var(--f-display);font-weight:800;font-size:2rem;line-height:1}
+.cat-name{font-family:var(--f-display);font-weight:800;font-size:2.6rem;line-height:1}
 .cat-desc{font-size:1.25rem}
 .voices{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .pcard{display:flex;flex-direction:column;align-items:center;gap:4px;border:2.5px solid var(--outline);border-radius:22px;background:var(--paper);box-shadow:0 4px 0 var(--edge);padding:10px 8px 12px;text-align:center}
@@ -523,7 +531,7 @@ th,td{font-size:1.1rem}
     </header>
     <p class="welcome" id="welcome"></p>
     <div class="menu">
-      <button class="mtile mt-play" id="mPlay"><span class="mt-art" id="mPlayArt"></span><b>Gioca</b><small>Italiano o matematica</small></button>
+      <button class="mtile mt-play" id="mPlay"><span class="mt-art" id="mPlayArt"></span><b>Gioca</b><small>Lettere o numeri</small></button>
       <button class="mtile mt-voice" id="mVoice"><span class="mt-art" id="mVoiceArt"></span><b>La voce</b><small id="mVoiceName"></small></button>
       <button class="mtile mt-prizes" id="mPrizes"><span class="mt-art"><svg class="ic stel-ic" viewBox="0 0 24 24"><use href="#i-star"/></svg><svg class="ic comet-ic" viewBox="0 0 24 24"><use href="#i-comet"/></svg><svg class="ic sun-ic" viewBox="0 0 24 24"><use href="#i-sun"/></svg></span><b>I miei premi</b><small id="mPrizeTxt"></small></button>
       <button class="mtile mt-grandi" id="toGrandi"><span class="mt-art"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span><b>Per i grandi</b><small>Impostazioni e risultati</small></button>
@@ -531,10 +539,10 @@ th,td{font-size:1.1rem}
   </section>
 
   <section id="scelta" hidden>
-    <div class="top"><button class="btn icon back" aria-label="Indietro"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>A cosa vuoi giocare?</h1></div>
+    <div class="top"><button class="btn icon back" aria-label="Indietro"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>Con cosa vuoi giocare?</h1></div>
     <div class="cats" style="margin-top:16px">
-      <button class="cat cat-let" data-cat="let"><span class="cat-art" id="artLet"></span><span class="cat-name">Italiano</span><span class="cat-desc">Leggere, lettere, sillabe e frasi</span></button>
-      <button class="cat cat-mat" data-cat="mat"><span class="cat-art" id="artMat"></span><span class="cat-name">Matematica</span><span class="cat-desc">Numeri, conti e forme</span></button>
+      <button class="cat cat-let" data-cat="let"><span class="cat-art" id="artLet"></span><span class="cat-name">Lettere</span><span class="cat-desc">Leggere, sillabe, parole e frasi</span></button>
+      <button class="cat cat-mat" data-cat="mat"><span class="cat-art" id="artMat"></span><span class="cat-name">Numeri</span><span class="cat-desc">Contare, conti e forme</span></button>
     </div>
   </section>
 
@@ -2276,14 +2284,25 @@ function renderHome() {
   $('#welcome').textContent = welcomeMsg();
   window.gameCard = ([k, G]) => `<button class="gcard hero-${k}" data-g="${k}"><span class="gname"><span class="ghero">${heroSvg(k)}</span>${G.name}</span><span class="gdesc">${G.desc}</span><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></button>`;
   const minis = c => `<span class="mini">${Object.keys(GAMES).filter(k => GAMES[k].cat === c).map(heroSvg).join('')}</span>`;
-  $('#artLet').innerHTML = minis('let'); $('#artMat').innerHTML = minis('mat');
+  $('#artLet').innerHTML = toyBlocks(['A', 'B', 'C'], 'let') + minis('let'); $('#artMat').innerHTML = toyBlocks(['1', '2', '3'], 'mat') + minis('mat');
   $('#mPlayArt').innerHTML = heroSvg('cifre') + heroSvg('sillabe');
   $('#mVoiceArt').innerHTML = persSvg(pc); $('#mVoiceName').textContent = PERSONAS[pc].name;
   $('#mPrizeTxt').textContent = `${sl} stelline · ${nc} comete`;
 }
+// tre cubi giocattolo: le lettere su arancio, rosa e giallo; le cifre in blu, perche' sono unita'
+function toyBlocks(ch, kind) {
+  const C = [['#FF9A2E', '#FFC27A', '#C46A10'], ['#FF5FA2', '#FF9CC7', '#B8306E'], ['#FFD000', '#FFE680', '#C49A00']];
+  const cube = (x, y, k) => { const [f, t, sd] = C[k], S = 46;
+    return `<g class="tb tb${k}"><polygon points="${x},${y} ${x + 13},${y - 11} ${x + S + 13},${y - 11} ${x + S},${y}" fill="${t}" stroke="#1E1838" stroke-width="2.5" stroke-linejoin="round"/>
+      <polygon points="${x + S},${y} ${x + S + 13},${y - 11} ${x + S + 13},${y + S - 11} ${x + S},${y + S}" fill="${sd}" stroke="#1E1838" stroke-width="2.5" stroke-linejoin="round"/>
+      <rect x="${x}" y="${y}" width="${S}" height="${S}" rx="5" fill="${f}" stroke="#1E1838" stroke-width="2.5"/>
+      <rect x="${x + 5}" y="${y + 5}" width="${S - 10}" height="${S - 10}" rx="4" fill="#FFFFFF" opacity=".85"/>
+      <text x="${x + S / 2}" y="${y + S / 2 + 11}" text-anchor="middle" font-family="Andika, sans-serif" font-weight="700" font-size="31" fill="${kind === 'mat' ? 'var(--u)' : '#1E1838'}">${ch[k]}</text></g>`; };
+  return `<svg class="toys" viewBox="0 0 140 128" aria-hidden="true">${cube(12, 76, 0)}${cube(68, 76, 1)}${cube(40, 26, 2)}</svg>`;
+}
 function renderList() {
   const c = save.last.cat || 'mat';
-  $('#listTitle').textContent = c === 'let' ? 'Giochi di italiano' : 'Giochi di matematica';
+  $('#listTitle').textContent = c === 'let' ? 'Giochi con le lettere' : 'Giochi con i numeri';
   $('#gamesList').innerHTML = Object.entries(GAMES).filter(([, G]) => G.cat === c).map(gameCard).join('');
 }
 function openList(c) { save.last.cat = c; persist(); renderList(); show('lista'); }
@@ -2308,7 +2327,7 @@ function renderCat() {
   $('#typeChips').innerHTML = GAMES[g].types.map(([k, n]) => `<button class="chip" data-t="${k}" aria-pressed="${on.includes(k)}">${n}</button>`).join('');
   $('#diffBtns').innerHTML = DIFF.map((n, d) => `<button class="dbtn ${d === save.last.diff ? 'sel' : ''}" data-d="${d}" aria-pressed="${d === save.last.diff}"><span class="pips">${[0, 1, 2].map(i => `<i class="${i <= d ? 'on' : ''}"></i>`).join('')}</span>${n}<small>${GAMES[g].diffs[d]}</small></button>`).join('');
 }
-$$('[data-cat]').forEach(b => b.onclick = () => { SND.tick(); openList(b.dataset.cat); if (save.settings.voice) say(b.dataset.cat === 'let' ? 'Giochi di italiano! Scegli un gioco.' : 'Giochi di matematica! Scegli un gioco.'); });
+$$('[data-cat]').forEach(b => b.onclick = () => { SND.tick(); openList(b.dataset.cat); if (save.settings.voice) say(b.dataset.cat === 'let' ? 'Evviva, le lettere! Scegli un gioco.' : 'Evviva, i numeri! Scegli un gioco.'); });
 $('#catBack').onclick = () => { renderList(); show('lista'); };
 ['#gamesList'].forEach(id => $(id).addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; SND.tick(); openGame(b.dataset.g); if (save.settings.voice) say(`${GAMES[b.dataset.g].name}! Scegli la difficoltà e premi Gioca.`); }));
 const persGrid = pc => Object.entries(PERSONAS).map(([k, P]) => `<button class="pcard ${k === pc ? 'sel' : ''}" data-p="${k}" aria-pressed="${k === pc}">${persSvg(k)}<b>${P.name}</b><small>${P.tag}</small></button>`).join('');
@@ -2387,7 +2406,7 @@ $('#nextBtn').onclick = () => nextQ();
 $('#again').onclick = () => startRound();
 $('#menu').onclick = () => { renderCat(); show('cat'); };
 $$('.back').forEach(b => b.onclick = () => { renderHome(); show('home'); });
-$('#mPlay').onclick = () => { SND.tick(); show('scelta'); if (save.settings.voice) say('Vuoi giocare con l\'italiano o con la matematica?'); };
+$('#mPlay').onclick = () => { SND.tick(); show('scelta'); if (save.settings.voice) say('Con cosa vuoi giocare? Con le lettere o con i numeri?'); };
 $('#mVoice').onclick = () => { SND.tick(); renderHome(); show('voce'); };
 $('#mPrizes').onclick = () => { SND.tick(); renderHome(); renderAlbum(); show('album'); };
 $('#listBack').onclick = () => show('scelta');
