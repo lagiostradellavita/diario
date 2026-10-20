@@ -998,11 +998,8 @@ const GAMES = {
   leggo: { cat: 'let', name: 'Le Parole di Pio', desc: 'Leggi le parole e trova il disegno giusto',
     types: [['leggi', 'Leggi e trova il disegno'], ['ascolta', 'Ascolta e trova la parola'], ['smanca', 'La sillaba che manca']],
     diffs: ['Parole corte', 'Parole più lunghe', 'Parole lunghe'] },
-  frasi: { cat: 'let', name: 'Le Frasi di Gigi', desc: 'Leggi le frasi, completale, vero o falso',
-    types: [['frasi', 'Leggi e rispondi'], ['completa', 'Completa la frase'], ['vero', 'Vero o falso?']],
-    diffs: ['Frasi corte', 'Frasi medie', 'Frasi lunghe'] },
-  treno: { cat: 'let', name: 'Il Treno delle Frasi di Ciuf', desc: 'Metti le parole sui vagoni e forma frasi che hanno senso',
-    types: [['treno', 'Le parole sul treno'], ['intruso', 'La parola di troppo'], ['senso', 'Ha senso o no?'], ['pezzi', 'Unisci i pezzi']],
+  frasi: { cat: 'let', name: 'Le Frasi di Gigi', desc: 'Leggi, completa e componi frasi che hanno senso, anche sul treno delle parole',
+    types: [['treno', 'Le parole sul treno'], ['intruso', 'La parola di troppo'], ['senso', 'Ha senso o no?'], ['pezzi', 'Unisci i pezzi'], ['completa', 'Completa la frase'], ['frasi', 'Leggi e rispondi'], ['vero', 'Vero o falso?']],
     diffs: ['Frasi corte', 'Frasi medie', 'Frasi lunghe'] },
   italiano: { cat: 'let', name: "L'Italiano di Otto", desc: 'Articoli, uno e tanti, parole con le doppie',
     types: [['articolo', 'Il, la, lo...'], ['plurale', 'Uno e tanti'], ['doppie', 'Le doppie']],
@@ -1037,6 +1034,7 @@ const ART = {
 /* ---------- partita ---------- */
 let run = null;
 function startRound() {
+  if (!GAMES[save.last.game]) save.last.game = 'frasi';
   const g = save.last.game, d = save.last.diff;
   const all = GAMES[g].types.map(t => t[0]);
   const types = (save.last.types[g] || all).filter(t => all.includes(t));
@@ -1050,8 +1048,7 @@ function Q(o) { o.say = o.say || o.text; o.html = o.html || colorNums(o.text); o
 function makeQ(g, d, type) {
   if (g === 'forme') return ({ ftrova: qFTrova, fnome: qFNome, flati: qFLati, fconta: qFConta, posizione: qPosizione })[type](d);
   if (g === 'lettere') return ({ iniziale: qIniziale, vocale: qVocale, maiusc: qMaiusc, suono: qSuono })[type](d);
-  if (g === 'frasi') return ({ frasi: qFrase, ordina: qOrdina, completa: qCompleta, vero: qVero })[type](d);
-  if (g === 'treno') return ({ treno: qTreno, intruso: q => qTreno(q, true), senso: qSenso, pezzi: qPezzi })[type](d);
+  if (g === 'frasi') return ({ frasi: qFrase, ordina: qOrdina, completa: qCompleta, vero: qVero, treno: qTreno, intruso: q => qTreno(q, true), senso: qSenso, pezzi: qPezzi })[type](d);
   if (g === 'italiano') return ({ articolo: qArticolo, plurale: qPlurale, doppie: qDoppie })[type](d);
   if (g === 'sillabe') return ({ dividi: qDividi, quante: qQuante, componi: qComponi })[type](d);
   if (g === 'leggo') return ({ leggi: qLeggi, ascolta: qAscolta, smanca: qSMancante, frasi: qFrase })[type](d);
@@ -2192,6 +2189,7 @@ function openCat(c) {
   persist(); renderCat(); show('cat');
 }
 function renderCat() {
+  if (!GAMES[save.last.game]) save.last.game = 'frasi';
   const c = save.last.cat || 'mat', g = save.last.game;
   $('#catTitle').textContent = GAMES[g].name;
   document.documentElement.dataset.hero = g;
