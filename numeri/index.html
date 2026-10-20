@@ -654,6 +654,7 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
 :root[data-cat] #scena{opacity:.3}
 #app{position:relative;z-index:1}
 .mondi{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.mondo-t{min-height:180px!important}
 .mondo-t{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;min-height:200px;border:2.5px solid var(--outline);border-radius:24px;background:var(--mf);box-shadow:0 4px 0 var(--edge);padding:12px 8px 14px;font-family:var(--f-display)}
 .mondo-t .m-sc{position:absolute;inset:auto 0 0 0;height:70%;opacity:.55}
 .mondo-t .m-sc svg{width:100%;height:100%;display:block}
@@ -672,6 +673,26 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
 /* nomi di forme e posizioni: uno sotto l'altro, interi */
 .opts:has(.nome-opt){grid-template-columns:1fr!important;max-width:420px}
 .opt.nome-opt{overflow-wrap:anywhere}
+/* testi dentro i giochi: niente sotto i 22 pixel sullo schermo del telefono */
+.m20 .lab{font-size:50px} .m100 .lab{font-size:40px}
+.bub-t{font-size:48px} .hoplab{font-size:34px}
+.hint{font-size:1.4rem;line-height:1.3}
+.aiuto,.btn.aiuto{font-size:1.4rem;padding:10px 18px}
+.aids .chip{font-size:1.4rem;padding:6px 12px}
+#stelDots{font-size:1.1em!important}
+.lg{font-size:1.45rem;padding:4px 14px} .lg b{font-size:1.45rem}
+.box .bl{font-size:1.4rem}
+.none{font-size:1.45rem;font-weight:700}
+#stage .btn:not(.icon),#controls > .btn:not(.key):not(.opt):not(.go):not(.icon){font-size:1.4rem}
+.key.go{font-size:1.5rem}
+.cv + .btn,.trace .btn{font-size:1.3rem}
+/* ogni mondo ha il suo sfondo: colore chiaro, motivi sparsi su tutta la pagina, scenario in fondo */
+:root[data-mondo="dinosauri"]{--bg:#FFF5E4} :root[data-mondo="spazio"]{--bg:#F0ECFF} :root[data-mondo="cartoni"]{--bg:#FFF8E6}
+:root[data-mondo="animali"]{--bg:#F0F8E8} :root[data-mondo="bambole"]{--bg:#FFF0F7} :root[data-mondo="kpop"]{--bg:#F5EEFF}
+#scena{top:0;height:auto!important;background-size:200px 200px;background-repeat:repeat;display:flex;align-items:flex-end;opacity:1!important}
+#scena svg{height:150px!important;opacity:.8}
+:root[data-cat] #scena{opacity:.6!important}
+:root[data-cat] #scena svg{opacity:.35}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -1216,6 +1237,14 @@ const SCENE = {
     <circle cx="330" cy="40" r="20" fill="#FFC9A8"/><ellipse cx="330" cy="40" rx="34" ry="8" fill="none" stroke="#C9A0FF" stroke-width="4"/>
     <g transform="translate(70 30) rotate(30)"><path d="M0 -24 Q10 -12 10 10 L-10 10 Q-10 -12 0 -24Z" fill="#E9ECF5"/><circle cy="-6" r="4" fill="#9FD6FF"/><path d="M-10 4 l-7 10 h7Z M10 4 l7 10 h-7Z" fill="#FFB0CC"/><path d="M-5 12 l5 12 l5 -12Z" fill="#FFC14D"/></g>
     ${[[20, 20], [140, 14], [200, 40], [250, 18], [390, 14], [110, 60], [380, 70], [180, 70]].map(([x, y]) => `<polygon points="${stellaPts(x, y, 5, 2.2)}" fill="#FFD966"/>`).join('')}`,
+  bambole: `<path d="M0 120 V100 Q200 90 400 100 V120Z" fill="#FFD3E6"/>
+    <g transform="translate(300 34)"><path d="M0 30 L36 0 L72 30Z" fill="#FF9EC8"/><rect x="6" y="30" width="60" height="44" fill="#FFE6F2"/><rect x="28" y="50" width="16" height="24" rx="8" fill="#FFB0CC"/><rect x="12" y="38" width="12" height="10" rx="2" fill="#CFEFFF"/><rect x="48" y="38" width="12" height="10" rx="2" fill="#CFEFFF"/></g>
+    ${[[50, 40, 9], [110, 22, 6], [220, 30, 7], [380, 20, 5]].map(([x, y, r]) => `<path d="M${x} ${y + r * .9} C${x - r * 1.6} ${y - r * .2} ${x - r * .8} ${y - r * 1.4} ${x} ${y - r * .4} C${x + r * .8} ${y - r * 1.4} ${x + r * 1.6} ${y - r * .2} ${x} ${y + r * .9}Z" fill="#FFB0CC"/>`).join('')}
+    <g transform="translate(150 96)"><path d="M0 0 L-14 -8 L-14 8Z M0 0 L14 -8 L14 8Z" fill="#E37BB0"/><circle r="4" fill="#D9467A"/></g>`,
+  kpop: `${[60, 200, 340].map((x, i) => `<path d="M${x} 0 L${x - 40} 104 L${x + 40} 104Z" fill="${['#FFB0E0', '#C9B6FF', '#A8E6FF'][i]}" opacity=".55"/>`).join('')}
+    <path d="M0 120 V100 H400 V120Z" fill="#B9A6F0"/><path d="M0 100 H400" stroke="#8E7AD6" stroke-width="3"/>
+    ${[[30, 70], [370, 64], [130, 40], [270, 44]].map(([x, y]) => `<path d="M${x} ${y} v-18 l10 -3 v18" fill="none" stroke="#9B6BFF" stroke-width="3"/><circle cx="${x - 3}" cy="${y}" r="4" fill="#9B6BFF"/><circle cx="${x + 7}" cy="${y - 3}" r="4" fill="#9B6BFF"/>`).join('')}
+    ${[[100, 16], [300, 12], [200, 60]].map(([x, y]) => `<polygon points="${stellaPts(x, y, 6, 2.6)}" fill="#FFD966"/>`).join('')}`,
   cartoni: `<path d="M40 120 A160 160 0 0 1 360 120" fill="none" stroke="#FFB0CC" stroke-width="12"/><path d="M52 120 A148 148 0 0 1 348 120" fill="none" stroke="#FFD98A" stroke-width="12"/><path d="M64 120 A136 136 0 0 1 336 120" fill="none" stroke="#B9E8A8" stroke-width="12"/><path d="M76 120 A124 124 0 0 1 324 120" fill="none" stroke="#A8D8FF" stroke-width="12"/><path d="M88 120 A112 112 0 0 1 312 120" fill="none" stroke="#D7C2FF" stroke-width="12"/>
     ${[[30, 104], [370, 100]].map(([x, y]) => `<g fill="#FFFFFF" stroke="#E2E6F0" stroke-width="2"><circle cx="${x - 14}" cy="${y}" r="12"/><circle cx="${x}" cy="${y - 8}" r="16"/><circle cx="${x + 16}" cy="${y}" r="12"/></g>`).join('')}
     ${[[110, 30, '#FF8FB0'], [290, 22, '#FFD000'], [200, 14, '#9FD6FF']].map(([x, y, f]) => `<path d="M${x} ${y + 14} q-4 10 2 20" stroke="#B9BED0" stroke-width="1.5" fill="none"/><ellipse cx="${x}" cy="${y}" rx="10" ry="13" fill="${f}"/>`).join('')}`,
@@ -1480,16 +1509,15 @@ const ANIMALI10 = {
     ${mandorla(-5.5, -10, 3.2, '#F28C1E', false, 1, 2.2)}${mandorla(5.5, -10, 3.2, '#F28C1E', true, 1, 2.2)}
     <path d="M-1.6 -7 L1.6 -7 L0 -3Z" fill="#2A2346" ${O1}/>
     ${[-6, -2, 2, 6].map(x => linea(`M${x} 20 L${x} 23`, 2, '#2A2346')).join('')}${ombra('M2 -21 Q14 -20 14 -4 Q16 18 2 21 Q12 2 2 -21Z', .12)}</g>`,
-  // Pio: falco
-  leggo: `<g>${linea('M-24 20 L24 20', 4, '#6E4E2E')}
-    <path d="M-6 -4 Q-12 6 -10 16 L-16 26 L-4 24 L2 16Z" fill="#5A4632" ${O2}/>
-    <path d="M-8 -6 Q-10 8 -2 18 Q8 18 9 4 Q9 -8 0 -10Z" fill="#E8D3A8" ${O2}/>${[[-3, 2], [2, 6], [-2, 10], [3, 12]].map(([x, y]) => linea(`M${x - 1.2} ${y} l1.2 1.2 l1.2 -1.2`, 1, '#6E4E2E')).join('')}
-    <path d="M-10 -8 Q-16 6 -8 16 Q-2 4 -4 -6Z" fill="#7A6048" ${O2}/>
-    <path d="M-7 -12 Q-8 -24 2 -25 Q11 -24 11 -15 Q10 -9 2 -8 Q-5 -8 -7 -12Z" fill="#5A4632" ${O2}/>
-    <path d="M9 -19 Q15 -19 15 -14 L12 -13 Q12 -16 9 -16Z" fill="#F2C230" ${O1}/>
-    <path d="M-1 -18 Q2 -14 0 -9 L-4 -9 Q-3 -14 -1 -18Z" fill="#E8D3A8"/>
-    ${mandorla(4, -18.5, 2.4, '#F2C230', false, 1, 2)}
-    ${linea('M-2 18 L-2 21 M3 18 L3 21', 2, '#F2C230')}</g>`,
+  // Pio: aquila
+  leggo: `<g>${linea('M-24 21 L24 21', 4, '#6E4E2E')}
+    <path d="M-6 -2 Q-12 8 -10 16 L-18 27 L-4 25 L2 16Z" fill="#F4F4F4" ${O2}/>${linea('M-14 24 L-8 18 M-9 25 L-5 18', 1, '#C9CFDF')}
+    <path d="M-9 -6 Q-11 8 -2 18 Q9 18 10 4 Q10 -8 0 -10Z" fill="#5A3A1E" ${O2}/>${[[-3, 2], [3, 6], [-2, 10], [4, 12]].map(([x, y]) => linea(`M${x - 1.4} ${y} l1.4 1.4 l1.4 -1.4`, 1, '#3A2412')).join('')}
+    <path d="M-11 -8 Q-18 6 -9 17 Q-2 4 -4 -6Z" fill="#6E4A28" ${O2}/>${ombra('M-11 -8 Q-18 6 -9 17 Q-10 4 -11 -8Z', .2)}
+    <path d="M-7 -11 Q-9 -25 2 -26 Q12 -25 12 -16 Q11 -9 3 -7 Q-4 -7 -7 -11Z" fill="#F4F4F4" ${O2}/>
+    <path d="M9 -20 Q17 -21 17 -14 Q16 -11 13 -11 L13 -13 Q14 -16 10 -15Z" fill="#F2C230" ${O2}/>
+    ${mandorla(4, -18.5, 2.5, '#F2C230', false, 1, 2.2)}
+    ${linea('M-3 18 L-3 22 M3 18 L3 22', 2.4, '#F2C230')}</g>`,
   // Gigi: giraffa
   frasi: `<g>${arto('M-8 6 Q-4 -10 6 -22', '#E8B04A', 8)}
     ${[[-6, 0], [-3, -7], [1, -13], [4, -18]].map(([x, y]) => `<path d="M${x - 2} ${y} l2 -2 l2 1 l0 2.5 l-2.5 1Z" fill="#A8661A"/>`).join('')}
@@ -1512,14 +1540,14 @@ const ANIMALI10 = {
     <path d="M-9 -12 Q-6 -18 -2 -18 L0 -22 L2 -18 Q6 -18 9 -12 Q7 -4 0 -3 Q-7 -4 -9 -12Z" fill="#F4F4F4"/>
     ${mandorla(-4.8, -15, 2.6, '#58A9E8', false, 1, 1.8)}${mandorla(4.8, -15, 2.6, '#58A9E8', true, 1, 1.8)}
     <ellipse cx="0" cy="-9" rx="2.6" ry="1.8" fill="${K}"/>${linea('M0 -7.5 L0 -6 M-2.6 -5 Q0 -5.8 2.6 -5', 1.2)}</g>`,
-  // Zip: ghepardo
-  l100: `<g>${arto('M-14 4 L-24 14 L-30 12', '#C9922E', 3.5)}${arto('M8 4 L18 10 L24 6', '#C9922E', 3.5)}
-    <path d="M-16 -6 Q-28 -10 -34 -2" stroke="${K}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M-16 -6 Q-28 -10 -34 -2" stroke="#E8B04A" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-    <path d="M-18 -4 Q-14 -12 0 -11 Q12 -10 14 -4 Q12 4 0 4 Q-14 4 -18 -4Z" fill="#E8B04A" ${O2}/>
-    ${[[-12, -6], [-6, -8], [0, -6], [6, -8], [-9, -2], [-2, -1], [5, -2]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.2" fill="#2A1E14"/>`).join('')}${ombra('M-17 -2 Q0 6 14 -3 Q10 4 0 4 Q-12 4 -17 -2Z', .14)}
-    ${arto('M-12 2 L-6 10 L-12 18', '#E8B04A', 3.5)}${arto('M6 2 L14 12 L22 14', '#E8B04A', 3.5)}
-    <path d="M10 -12 Q14 -20 22 -19 Q30 -17 30 -11 Q28 -7 22 -7 Q14 -6 10 -12Z" fill="#E8B04A" ${O2}/><path d="M13 -17 L13 -22 L17 -19Z" fill="#E8B04A" ${O1}/>
-    ${mandorla(19, -14, 2.3, '#E8A317', false, 1, 1.8)}${linea('M18 -12 Q20 -8 22 -7', 1.4)}<circle cx="28.5" cy="-11.5" r="1.1" fill="${K}"/></g>`,
+  // Zip: struzzo, il corridore
+  l100: `<g>${arto('M-2 6 L-10 14 L-14 24', '#E8A3A3', 2.6)}${linea('M-14 24 l-5 0', 2)}
+    <path d="M-12 -2 Q-24 -10 -30 -2 Q-26 0 -28 4 Q-22 4 -20 8Z" fill="#F4F4F4" ${O2}/>
+    <path d="M-16 0 Q-14 -12 0 -12 Q12 -11 12 0 Q10 10 -2 10 Q-14 10 -16 0Z" fill="#2A2346" ${O2}/>${[[-10, -4], [-4, -6], [2, -4], [-6, 2], [2, 3]].map(([x, y]) => linea(`M${x} ${y} q2 2 4 0`, 1.2, '#6A6080')).join('')}
+    ${arto('M8 -6 Q14 -18 12 -28', '#E8A3A3', 3.2)}
+    <path d="M8 -29 Q11 -33 16 -31 Q18 -29 24 -28 Q23 -25 17 -25 Q11 -24 8 -29Z" fill="#E8A3A3" ${O2}/><path d="M17 -27 L24 -27.5" stroke="${K}" stroke-width="1"/>
+    ${mandorla(13, -29, 1.9, '#4A2E1A', false, 1, 1.6)}<path d="M8 -31 L6 -34 L10 -32Z" fill="#2A2346"/>
+    ${arto('M4 6 L12 14 L8 24', '#E8A3A3', 2.8)}${linea('M8 24 l7 0 M8 24 l2 -2', 2)}</g>`,
   // Saltino: rana arboricola
   cifre: `<g>${linea('M-28 20 L28 20', 4, '#6E4E2E')}
     ${arto('M-10 8 L-20 6 L-22 18', '#7BC043', 3)}${arto('M10 8 L20 6 L22 18', '#7BC043', 3)}
@@ -1548,12 +1576,167 @@ const ANIMALI10 = {
     ${mandorla(22, -4.5, 2.3, '#4A2E1A', false, 1, 1.8)}${linea('M25 0 Q28 0.5 29.5 -1', 1.1)}</g>`,
 };
 
+// viso con ciglia e labbra, per bambole e cantanti
+const occhioD = (x, y, dir = 1, iride = '#5A3A22') => `<path d="M${x - 2.7} ${y} Q${x} ${y - 2.6} ${x + 2.7} ${y - .2} Q${x} ${y + 1.7} ${x - 2.7} ${y}Z" fill="#fff"/><circle cx="${x + dir * .2}" cy="${y - .3}" r="1.45" fill="${iride}"/><circle cx="${x + dir * .2}" cy="${y - .3}" r=".75" fill="${K}"/>
+  ${linea(`M${x - 2.8} ${y - .2} Q${x} ${y - 2.9} ${x + 2.9} ${y - .4}`, 1.1)}${linea(dir > 0 ? `M${x - 2.6} ${y - .6} l-1.2 -1.2` : `M${x + 2.7} ${y - .7} l1.2 -1.2`, .9)}${linea(`M${x - 2.4} ${y - 4} Q${x} ${y - 4.8} ${x + 2.4} ${y - 4}`, 1)}`;
+const visoD = (pelle, iride, y = -19) => `<path d="M-3 -9 L-3 -12 L3 -12 L3 -9Z" fill="${pelle}" ${O1}/><path d="M-8 ${y + 1} Q-8 ${y - 10} 0 ${y - 10} Q8 ${y - 10} 8 ${y + 1} Q7 ${y + 8} 0 ${y + 9} Q-7 ${y + 8} -8 ${y + 1}Z" fill="${pelle}" ${O2}/>
+  ${occhioD(-3.5, y, 1, iride)}${occhioD(3.5, y, -1, iride)}<path d="M-2 ${y + 5} Q0 ${y + 6.6} 2 ${y + 5} Q0 ${y + 5.6} -2 ${y + 5}Z" fill="#D9467A" stroke="#9B2452" stroke-width=".6"/>`;
+const CAPELLI = {
+  lunghi: (c, f = '') => [`<path d="M-9 -22 Q-12 -6 -10 6 L10 6 Q12 -6 9 -22Z" fill="${c}" ${O1}/>`, `<path d="M-8.6 -19 Q-10 -31 0 -30.5 Q10 -31 8.6 -19 Q6 -25 0 -25 Q-3 -22 -8.6 -19Z" fill="${c}" ${O1}/>${f}`],
+  onde: (c, f = '') => [`<path d="M-9 -22 Q-14 -14 -10 -8 Q-14 -2 -10 4 L10 4 Q14 -2 10 -8 Q14 -14 9 -22Z" fill="${c}" ${O1}/>`, `<path d="M-8.6 -19 Q-10 -31 0 -30.5 Q10 -31 8.6 -19 Q4 -26 -2 -24 Q-6 -23 -8.6 -19Z" fill="${c}" ${O1}/>${f}`],
+  chignon: (c, f = '') => [``, `<circle cx="0" cy="-31" r="5" fill="${c}" ${O1}/><path d="M-8.6 -19 Q-10 -30 0 -29.5 Q10 -30 8.6 -19 Q6 -25 0 -26 Q-6 -25 -8.6 -19Z" fill="${c}" ${O1}/>${f}`],
+  coda: (c, f = '') => [`<path d="M7 -26 Q20 -26 16 -6 Q14 2 12 -4 Q15 -14 8 -20Z" fill="${c}" ${O1}/>`, `<path d="M-8.6 -18 Q-10 -30 0 -29.5 Q10 -30 8.6 -18 Q4 -23 -4 -22 Q-7 -21 -8.6 -18Z" fill="${c}" ${O1}/>${f}`],
+  trecce: (c, f = '') => [`${[-1, 1].map(s => `<path d="M${s * 8} -20 Q${s * 12} -8 ${s * 9} 6" stroke="${K}" stroke-width="6.5" fill="none" stroke-linecap="round"/><path d="M${s * 8} -20 Q${s * 12} -8 ${s * 9} 6" stroke="${c}" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-dasharray="3 1"/>`).join('')}`, `<path d="M-8.6 -18 Q-10 -30 0 -29.5 Q10 -30 8.6 -18 L0 -24Z" fill="${c}" ${O1}/>${f}`],
+  ricci: (c, f = '') => [`<circle cx="-10" cy="-27" r="6" fill="${c}" ${O1}/><circle cx="10" cy="-27" r="6" fill="${c}" ${O1}/>`, `<path d="M-8.6 -18 Q-10 -30 0 -29.5 Q10 -30 8.6 -18 Q4 -24 0 -23 Q-4 -24 -8.6 -18Z" fill="${c}" ${O1}/>${f}`],
+  caschetto: (c, f = '') => [`<path d="M-10 -20 Q-11 -10 -9 -9 L9 -9 Q11 -10 10 -20Z" fill="${c}" ${O1}/>`, `<path d="M-9 -16 Q-11 -31 0 -30.5 Q11 -31 9 -16 Q8 -22 0 -21 Q-8 -22 -9 -16Z" fill="${c}" ${O1}/>${f}`],
+};
+function ragazza({ pelle = '#F2C29B', iride = '#5A3A22', capelli, stile = 'lunghi', abito, gonna, scuro = '#14121F', calze, sopra = '', mano = '', fronte = '', pantaloni = false }) {
+  const [dietro, avanti] = CAPELLI[stile](capelli, fronte);
+  const gambe = pantaloni ? `${arto('M-4 6 L-6 24', gonna, 4.6)}${arto('M4 6 L6 24', gonna, 4.6)}`
+    : `${arto('M-4 10 L-5 23', calze || pelle, 2.6)}${arto('M4 10 L5 23', calze || pelle, 2.6)}`;
+  return `<g>${dietro}${gambe}<path d="M-8 24 h6 M2 24 h6" stroke="${scuro}" stroke-width="3.4" stroke-linecap="round"/>
+    ${arto('M-7 -4 Q-13 4 -14 11', abito, 3.2)}${arto('M7 -4 Q13 4 14 11', abito, 3.2)}<circle cx="-14" cy="12" r="2.2" fill="${pelle}" ${O1}/><circle cx="14" cy="12" r="2.2" fill="${pelle}" ${O1}/>
+    ${pantaloni ? '' : `<path d="M-6 2 L-13 14 Q0 17 13 14 L6 2Z" fill="${gonna}" ${O2}/>${ombra('M1 2 L6 2 L13 14 Q8 15.5 2 16Z', .14)}`}
+    <path d="M-7 -6 Q0 -9 7 -6 L6 4 Q0 5 -6 4Z" fill="${abito}" ${O2}/>${sopra}
+    ${visoD(pelle, iride)}${avanti}${mano}</g>`;
+}
+const BAMBOLE10 = {
+  lettere: ragazza({ capelli: '#F2C94C', stile: 'onde', abito: '#FF7FB6', gonna: '#FF5FA2', iride: '#2B7FB8', fronte: `<path d="M-6 -29 L-6 -34 L-3 -31 L0 -35 L3 -31 L6 -34 L6 -29Z" fill="#FFD000" ${O1}/>`, sopra: `<circle cx="0" cy="-2" r="1.6" fill="#FFD000"/>` }),
+  sillabe: ragazza({ pelle: '#8D5A3B', capelli: '#1E1410', stile: 'ricci', abito: '#9B6BFF', gonna: '#7B4FD9', fronte: `<path d="M-3 -29 l3 -3 l3 3 l-3 2Z" fill="#FFD000" ${O1}/>` }),
+  leggo: ragazza({ capelli: '#C2185B', stile: 'chignon', abito: '#FFC94D', gonna: '#FFB347', fronte: `<path d="M-6 -35 L-2 -32 L-6 -29Z M6 -35 L2 -32 L6 -29Z" fill="#FF5FA2" ${O1}/><circle cx="0" cy="-32" r="1.6" fill="#FF5FA2"/>` }),
+  frasi: ragazza({ pelle: '#E8B48C', capelli: '#5A3A22', stile: 'trecce', abito: '#7FD6C2', gonna: '#3FB8A0', fronte: `${[-6, -2, 2, 6].map((x, i) => `<circle cx="${x}" cy="${-28 - (i === 1 || i === 2 ? 1 : 0)}" r="1.8" fill="${['#FF5FA2', '#FFD000', '#9B6BFF', '#FF8A00'][i]}" ${O1}/>`).join('')}` }),
+  italiano: ragazza({ capelli: '#2A1E14', stile: 'caschetto', abito: '#FF8A00', gonna: '#E0661B', mano: `<path d="M15 8 h7 v7 h-7Z" fill="#FF5FA2" ${O1}/>${linea('M16 8 Q18.5 4 21 8', 1.2)}` }),
+  l20: ragazza({ pelle: '#C68A5E', capelli: '#1E1410', stile: 'coda', abito: '#E91E63', gonna: '#FF7FB6', fronte: `<path d="M8 -24 l4 -3 l0 5Z" fill="#FFD000" ${O1}/>` }),
+  l100: ragazza({ capelli: '#F2C94C', stile: 'lunghi', abito: '#B38BFF', gonna: '#D7C2FF', iride: '#3FA77A', fronte: `<path d="M-10 -26 Q0 -32 10 -26" stroke="#FF5FA2" stroke-width="2.4" fill="none"/>` }),
+  cifre: ragazza({ pelle: '#8D5A3B', capelli: '#3B2A1A', stile: 'onde', abito: '#FFD54A', gonna: '#FFB347', fronte: `<circle cx="-7" cy="-26" r="2.4" fill="#FF5FA2" ${O1}/><circle cx="-7" cy="-26" r="1" fill="#FFD000"/>` }),
+  calc: ragazza({ capelli: '#9B2452', stile: 'chignon', abito: '#FFFFFF', gonna: '#FFB0CC', fronte: `<path d="M-6 -29 L-6 -33 L-3 -31 L0 -34 L3 -31 L6 -33 L6 -29Z" fill="#C9CFDF" ${O1}/>` }),
+  forme: ragazza({ pelle: '#E8B48C', capelli: '#E0661B', stile: 'trecce', abito: '#4FC3C9', gonna: '#2F9C93', fronte: `<path d="M-12 -26 Q0 -36 12 -26 Q0 -29 -12 -26Z" fill="#F4ECD8" ${O1}/><path d="M-8 -27 Q0 -33 8 -27" stroke="#FF5FA2" stroke-width="1.6" fill="none"/>` }),
+};
+const cuffia = `<path d="M-9 -20 Q-9 -31 0 -31 Q9 -31 9 -20" stroke="${K}" stroke-width="1.6" fill="none"/><rect x="-11" y="-22" width="3.5" height="6" rx="1.5" fill="#2A2346"/><path d="M-9.5 -16 Q-8 -11 -3 -11.5" stroke="${K}" stroke-width="1.2" fill="none"/><circle cx="-3" cy="-11.5" r="1.2" fill="${K}"/>`;
+const bastone = c => `${linea('M14 12 L20 -2', 1.8)}<circle cx="20.5" cy="-4" r="3.6" fill="${c}" ${O1}/><circle cx="20.5" cy="-4" r="1.6" fill="#fff" opacity=".8"/>`;
+const giacca = (c, d) => `<path d="M-7 -6 L-9 4 L-3 4 L-2 -6Z M7 -6 L9 4 L3 4 L2 -6Z" fill="${c}" ${O1}/>`;
+const KPOP10 = {
+  lettere: ragazza({ capelli: '#FF8FC8', stile: 'lunghi', abito: '#2A2346', gonna: '#FF5FA2', calze: '#2A2346', sopra: giacca('#FF5FA2') + `<polygon points="${stellaP(0, -1, 2.6, 1.1)}" fill="#FFD000"/>`, fronte: cuffia }),
+  sillabe: ragazza({ pelle: '#E8B48C', capelli: '#9B6BFF', stile: 'caschetto', abito: '#FFFFFF', gonna: '#7B4FD9', calze: '#2A2346', mano: bastone('#B38BFF'), fronte: `<polygon points="${stellaP(6, -25, 2.6, 1.1)}" fill="#FFD000" ${O1}/>` }),
+  leggo: ragazza({ capelli: '#7FE7FF', stile: 'coda', abito: '#FFD54A', gonna: '#2A2346', pantaloni: true, sopra: `<path d="M-5 -2 h10" stroke="#2A2346" stroke-width="2"/>`, fronte: cuffia }),
+  frasi: ragazza({ pelle: '#C68A5E', capelli: '#1E1410', stile: 'chignon', abito: '#E91E63', gonna: '#14121F', calze: '#14121F', sopra: giacca('#14121F'), mano: bastone('#FF5FA2') }),
+  italiano: ragazza({ capelli: '#C9CFDF', stile: 'onde', abito: '#7B4FD9', gonna: '#C9A0FF', calze: '#FFFFFF', fronte: `<path d="M-10 -25 Q0 -31 10 -25" stroke="#14121F" stroke-width="2.6" fill="none"/>`, sopra: `<path d="M-3 -6 L0 -1 L3 -6" fill="none" stroke="#FFD000" stroke-width="1.4"/>` }),
+  l20: ragazza({ capelli: '#FF5B4A', stile: 'trecce', abito: '#14121F', gonna: '#FF8A00', calze: '#14121F', fronte: `<path d="M-10 -24 Q0 -36 10 -24 Q12 -22 15 -22 Q14 -19 9 -21 Q0 -26 -9 -21Z" fill="#14121F" ${O1}/>` + cuffia }),
+  l100: ragazza({ pelle: '#E8B48C', capelli: '#2A2346', stile: 'lunghi', abito: '#4FC3C9', gonna: '#FFFFFF', pantaloni: true, sopra: giacca('#FFFFFF'), mano: bastone('#7FE7FF') }),
+  cifre: ragazza({ pelle: '#8D5A3B', capelli: '#FFD54A', stile: 'ricci', abito: '#FF5FA2', gonna: '#2A2346', calze: '#FF5FA2', fronte: cuffia }),
+  calc: ragazza({ capelli: '#FFB0CC', stile: 'chignon', abito: '#FFFFFF', gonna: '#FF7FB6', calze: '#FFFFFF', sopra: `<path d="M-7 -6 Q0 -2 7 -6" fill="none" stroke="#FF5FA2" stroke-width="2"/>`, mano: bastone('#FF7FB6'), fronte: `<rect x="-8" y="-24" width="6" height="3" rx="1.5" fill="#14121F" opacity=".85"/><rect x="2" y="-24" width="6" height="3" rx="1.5" fill="#14121F" opacity=".85"/>` }),
+  forme: ragazza({ capelli: '#3E7CB1', stile: 'caschetto', abito: '#E8C547', gonna: '#2A2346', pantaloni: true, sopra: giacca('#2A2346'), fronte: cuffia }),
+};
+// animali verosimili: occhi veri (iride, pupilla, riflesso), niente sopracciglia, colori naturali, linee sottili
+const OV = `stroke="${K}" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"`;
+const occhioR = (x, y, r, iride = '#3B2410', pup = 'tonda') => `<circle cx="${x}" cy="${y}" r="${r}" fill="${iride}" stroke="${K}" stroke-width="${(r * .25).toFixed(2)}"/>${pup === 'verticale' ? `<ellipse cx="${x}" cy="${y}" rx="${(r * .22).toFixed(2)}" ry="${(r * .8).toFixed(2)}" fill="${K}"/>` : pup === 'orizzontale' ? `<ellipse cx="${x}" cy="${y}" rx="${(r * .75).toFixed(2)}" ry="${(r * .25).toFixed(2)}" fill="${K}"/>` : `<circle cx="${x}" cy="${y}" r="${(r * .52).toFixed(2)}" fill="${K}"/>`}<circle cx="${(x + r * .35).toFixed(2)}" cy="${(y - r * .35).toFixed(2)}" r="${(r * .24).toFixed(2)}" fill="#fff"/>`;
+const pelo = (pts, c, w = .9) => pts.map(([x, y, dx, dy]) => `<path d="M${x} ${y} l${dx} ${dy}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`).join('');
+const zampa = (d, c, w) => `<path d="${d}" fill="none" stroke="${K}" stroke-width="${w + 2.6}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const VERI = {
+  // Leo: leone, di fianco
+  lettere: (() => { const c = '#D9A55A', d = '#B07C38', m = '#7A3F18'; return `<g>
+    ${zampa('M-17 4 L-18 24', d, 4.2)}${zampa('M8 4 L9 24', d, 4.2)}
+    <path d="M-21 -2 Q-29 -4 -31 6 Q-31 12 -28 13" fill="none" stroke="${K}" stroke-width="3.6" stroke-linecap="round"/><path d="M-21 -2 Q-29 -4 -31 6 Q-31 12 -28 13" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="-27.5" cy="14" rx="2.6" ry="3.4" fill="${m}" ${OV}/>
+    <path d="M-22 -1 Q-21 -10 -8 -10 L8 -10 Q15 -8 15 0 L14 7 Q-2 10 -20 7 Q-24 3 -22 -1Z" fill="${c}" ${OV}/>${ombra('M-20 5 Q-2 9 14 5 L14 7 Q-2 10 -20 7Z', .2)}
+    ${zampa('M-12 5 L-12 25', c, 4.4)}${zampa('M12 4 L13 25', c, 4.4)}
+    <path d="M6 -14 Q4 -28 17 -30 Q30 -30 31 -18 Q32 -4 22 0 Q12 4 7 -4 Q4 -8 6 -14Z" fill="${m}" ${OV}/>${pelo([[8, -24, -3, -2], [10, -28, -2, -3], [16, -31, 0, -2], [26, -28, 2, -2], [7, -10, -3, 1], [9, -3, -2, 3], [16, 1, 0, 3]], '#5A2A0E', 1.2)}
+    <path d="M14 -18 Q16 -25 24 -24 Q30 -22 31 -16 Q31 -11 27 -9 Q22 -7 17 -9 Q13 -12 14 -18Z" fill="${c}" ${OV}/>
+    <path d="M24 -15 Q29 -16 31 -14 Q31 -10 27 -9 Q24 -10 24 -15Z" fill="#F0D6A8"/><path d="M29 -16 Q31.5 -16 31.4 -14 Q30 -13.2 28.6 -14Z" fill="#3A2214"/>
+    <path d="M27 -10 Q28.5 -9.4 30 -10" stroke="${K}" stroke-width=".9" fill="none"/>${occhioR(22.5, -18, 1.5, '#C88A1E')}
+    <path d="M15 -23 Q14 -27 18 -26" fill="${c}" ${OV}/></g>`; })(),
+  // Olga: gufo reale
+  sillabe: `<g>${zampa('M-26 22 L26 22', '#6E4E2E', 3.4)}
+    <path d="M-14 -4 Q-15 17 0 21 Q15 17 14 -4 Q13 -21 0 -22 Q-13 -21 -14 -4Z" fill="#8A6038" ${OV}/>
+    <path d="M-8 2 Q0 -2 8 2 Q9 15 0 19 Q-9 15 -8 2Z" fill="#D9B98A"/>${pelo([[-5, 4, 0, 3], [-1, 3, 0, 3.4], [3, 4, 0, 3], [6, 7, 0, 3], [-6, 9, 0, 3], [-2, 9, 0, 3.4], [2, 9, 0, 3.4], [-4, 14, 0, 2.6], [1, 14, 0, 2.6], [4, 13, 0, 2.6]], '#5A3A1A', 1.1)}
+    <path d="M-14 -4 Q-17 8 -12 16 Q-10 6 -11 -4Z M14 -4 Q17 8 12 16 Q10 6 11 -4Z" fill="#6E4A28" ${OV}/>${pelo([[-13, 2, 1, 3], [-12, 8, 1, 3], [13, 2, -1, 3], [12, 8, -1, 3]], '#3A2412', 1)}
+    <path d="M-12 -15 L-14 -28 L-7 -19Z M12 -15 L14 -28 L7 -19Z" fill="#6E4A28" ${OV}/>
+    <path d="M-12 -10 Q-12 -19 0 -18 Q12 -19 12 -10 Q12 -2 0 -1 Q-12 -2 -12 -10Z" fill="#C9965A" ${OV}/><path d="M0 -18 L0 -7" stroke="#8A6038" stroke-width="1.2"/>
+    ${occhioR(-5.4, -10.5, 3.2, '#F28C1E')}${occhioR(5.4, -10.5, 3.2, '#F28C1E')}
+    <path d="M-1.5 -7 L1.5 -7 L0 -2.5Z" fill="#2A2346" ${OV}/>
+    ${[-6, -3, 3, 6].map(x => `<path d="M${x} 19.5 l-1 3 M${x} 19.5 l1 3" stroke="${K}" stroke-width="1.2"/>`).join('')}</g>`,
+  // Pio: aquila calva
+  leggo: `<g>${zampa('M-26 21 L26 21', '#6E4E2E', 3.4)}
+    <path d="M-7 -2 Q-13 9 -11 16 L-19 27 L-5 25 L1 16Z" fill="#F4F4F4" ${OV}/>${pelo([[-15, 24, 5, -6], [-10, 25, 4, -7]], '#C9CFDF', 1)}
+    <path d="M-9 -6 Q-11 8 -2 18 Q9 18 10 4 Q10 -8 0 -10Z" fill="#4A2E16" ${OV}/>${pelo([[-3, 2, 1.2, 1.4], [3, 6, 1.2, 1.4], [-2, 10, 1.2, 1.4], [4, 12, 1.2, 1.4], [0, 14, 1.2, 1.4]], '#2A190A', 1)}
+    <path d="M-11 -8 Q-18 6 -9 17 Q-2 4 -4 -6Z" fill="#5C3A1C" ${OV}/>${pelo([[-12, 0, 2, 2], [-12, 5, 2, 2], [-11, 10, 2, 2]], '#2A190A', 1)}
+    <path d="M-7 -11 Q-9 -25 2 -26 Q12 -25 12 -16 Q11 -9 3 -7 Q-4 -7 -7 -11Z" fill="#F7F7F2" ${OV}/>${pelo([[-5, -10, -1, 2], [0, -8, 0, 2], [5, -8, 1, 2]], '#D8D8D0', 1)}
+    <path d="M9 -20 Q17 -21 17 -14 Q16 -10 13 -11 L13 -13 Q14 -16 10 -15Z" fill="#F2B90C" ${OV}/>
+    <path d="M1.5 -20 Q5 -21.5 7.5 -20" stroke="#C9C2B0" stroke-width="1.6" fill="none" stroke-linecap="round"/>${occhioR(4.5, -18.3, 1.7, '#F2C230')}
+    ${[-3, 3].map(x => `<path d="M${x} 17 L${x} 21 M${x} 21 l-1.5 1.4 M${x} 21 l1.5 1.4" stroke="#F2B90C" stroke-width="2" stroke-linecap="round"/>`).join('')}</g>`,
+  // Gigi: giraffa intera
+  frasi: (() => { const c = '#E3B05A', d = '#9A5A1E'; const macchie = [[-14, -2], [-8, -4], [-2, -3], [-12, 3], [-5, 2], [1, 1], [8, -6], [11, -12], [13, -18]]; return `<g>
+    ${zampa('M-14 3 L-15 25', '#C99A48', 2.6)}${zampa('M2 2 L3 25', '#C99A48', 2.6)}
+    <path d="M-18 -2 Q-24 2 -26 10" fill="none" stroke="${K}" stroke-width="2.4"/><path d="M-26 10 l-1 3 l2 0Z" fill="${K}"/>
+    <path d="M-18 -4 Q-14 -8 4 -8 Q8 -6 7 2 Q-6 6 -18 4 Q-20 0 -18 -4Z" fill="${c}" ${OV}/>
+    <path d="M3 -7 Q9 -16 13 -27 L17 -25 Q14 -14 7 -1Z" fill="${c}" ${OV}/>
+    ${macchie.map(([x, y]) => `<path d="M${x - 1.8} ${y} l1.6 -1.8 l2 .6 l.3 2.2 l-2 1.4 l-1.8 -.6Z" fill="${d}"/>`).join('')}
+    ${zampa('M-10 3 L-10 25', c, 2.8)}${zampa('M5 2 L6 25', c, 2.8)}
+    <path d="M12 -27 L11 -32 M15 -27 L15 -32" stroke="${K}" stroke-width="1.6"/><circle cx="11" cy="-32.2" r="1.3" fill="#4A2E16"/><circle cx="15" cy="-32.2" r="1.3" fill="#4A2E16"/>
+    <path d="M10 -26 Q12 -30 18 -29 Q25 -27 28 -23 Q28 -20 25 -20 Q19 -20 14 -22 Q10 -23 10 -26Z" fill="${c}" ${OV}/><path d="M10 -27 L6 -29 L10 -25Z" fill="${c}" ${OV}/>
+    ${occhioR(16, -25.4, 1.3, '#2A190A')}<circle cx="26.5" cy="-22.6" r=".6" fill="${K}"/>${linea('M22 -20.6 Q25 -20.2 27 -21', .9)}</g>`; })(),
+  // Otto: polpo
+  italiano: (() => { const c = '#D9542B', d = '#A8361A'; return `<g>
+    ${[[-16, 16], [-10, 20], [-4, 22], [3, 22], [9, 20], [15, 16]].map(([x, y], i) => `<path d="M${(x * .45).toFixed(1)} 2 Q${x} ${y - 8} ${x + (i % 2 ? 3 : -3)} ${y} Q${x + (i % 2 ? 6 : -6)} ${y + 4} ${x + (i % 2 ? 2 : -2)} ${y + 2}" fill="none" stroke="${K}" stroke-width="4.6" stroke-linecap="round"/><path d="M${(x * .45).toFixed(1)} 2 Q${x} ${y - 8} ${x + (i % 2 ? 3 : -3)} ${y} Q${x + (i % 2 ? 6 : -6)} ${y + 4} ${x + (i % 2 ? 2 : -2)} ${y + 2}" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round"/>`).join('')}
+    ${[[-12, 12], [-7, 15], [-2, 16], [4, 16], [9, 14], [13, 11]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".8" fill="#F7C9B0"/>`).join('')}
+    <path d="M-10 4 Q-14 -6 -10 -18 Q-4 -30 8 -27 Q17 -22 14 -10 Q12 0 10 4 Q0 8 -10 4Z" fill="${c}" ${OV}/>${ombra('M4 -27 Q17 -22 14 -10 Q12 0 10 4 Q6 6 2 6 Q12 -10 4 -27Z', .18)}
+    ${[[-4, -20], [2, -22], [-6, -12], [5, -15], [0, -8]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.3" fill="${d}"/>`).join('')}
+    <ellipse cx="-8" cy="-2" rx="3.2" ry="3" fill="#F2C230" stroke="${K}" stroke-width="1"/><ellipse cx="-8" cy="-2" rx="2.2" ry=".7" fill="${K}"/>
+    <ellipse cx="8" cy="-2" rx="3.2" ry="3" fill="#F2C230" stroke="${K}" stroke-width="1"/><ellipse cx="8" cy="-2" rx="2.2" ry=".7" fill="${K}"/></g>`; })(),
+  // Bobo: husky, di fianco
+  l20: (() => { const c = '#7A8794', w = '#F2F2F2'; return `<g>
+    ${zampa('M-15 4 L-16 24', '#5C6670', 3.6)}${zampa('M8 4 L9 24', '#5C6670', 3.6)}
+    <path d="M-20 -4 Q-28 -10 -24 -18 Q-20 -12 -18 -8" fill="${c}" ${OV}/><path d="M-23 -16 Q-21 -12 -19 -9" stroke="${w}" stroke-width="1.6" fill="none"/>
+    <path d="M-21 -2 Q-18 -10 -4 -9 L8 -9 Q15 -8 14 1 L12 7 Q-4 9 -19 6 Q-23 3 -21 -2Z" fill="${c}" ${OV}/><path d="M-19 5 Q-4 8 12 6 Q8 2 -4 3 Q-14 3 -19 5Z" fill="${w}"/>
+    ${zampa('M-11 5 L-11 25', w, 3.8)}${zampa('M11 4 L12 25', w, 3.8)}
+    <path d="M7 -10 Q8 -20 16 -22 L20 -30 L22 -21 Q26 -20 28 -16 L33 -13 Q33 -9 28 -9 Q22 -6 16 -6 Q9 -5 7 -10Z" fill="${c}" ${OV}/><path d="M14 -24 L15 -31 L19 -23Z" fill="${c}" ${OV}/>
+    <path d="M18 -15 Q24 -16 33 -12 Q32 -9 28 -9 Q22 -6 16 -7 Q12 -9 18 -15Z" fill="${w}"/><path d="M21 -19 Q24 -21 26 -18 Q23 -17 21 -19Z" fill="${w}"/>
+    <ellipse cx="32.5" cy="-12.6" rx="1.4" ry="1.1" fill="${K}"/>${linea('M27 -8.6 Q30 -8 32 -9', .9)}${occhioR(22.5, -16.4, 1.4, '#58A9E8')}</g>`; })(),
+  // Zip: struzzo
+  l100: `<g>${zampa('M-2 6 L-9 14 L-12 24', '#E3A890', 2)}${linea('M-12 24 l-5 .4 M-12 24 l-3 -1', 1.6)}
+    <path d="M-12 -2 Q-24 -10 -31 -3 Q-26 -1 -29 3 Q-22 4 -20 7Z" fill="#F7F5EE" ${OV}/>${pelo([[-26, -4, 3, 2], [-24, 1, 3, 1]], '#C9C2B0', 1)}
+    <path d="M-16 0 Q-14 -12 0 -12 Q12 -11 12 0 Q10 10 -2 10 Q-14 10 -16 0Z" fill="#23202E" ${OV}/>${pelo([[-10, -5, 3, 2], [-4, -7, 3, 2], [2, -5, 3, 2], [-7, 1, 3, 2], [1, 3, 3, 2]], '#4A4660', 1.1)}
+    ${zampa('M8 -6 Q14 -18 12 -27', '#E3A890', 2.6)}
+    <path d="M8 -28 Q11 -33 16 -31 Q19 -29 24 -28 Q23 -25.5 17 -25.4 Q11 -24 8 -28Z" fill="#E3A890" ${OV}/><path d="M17 -27.3 L24 -27.8" stroke="${K}" stroke-width=".8"/>
+    ${occhioR(13.6, -28.8, 1.7, '#2A190A')}${linea('M12 -30.6 l-.4 -1 M13.6 -31 l0 -1.1 M15.2 -30.6 l.4 -1', .7)}
+    ${zampa('M4 6 L12 14 L8 24', '#E3A890', 2.2)}${linea('M8 24 l7 0 M8 24 l2 -2', 1.6)}</g>`,
+  // Saltino: rana dagli occhi rossi, di fianco
+  cifre: `<g>${zampa('M-28 21 L28 21', '#6E4E2E', 3.2)}
+    ${zampa('M-12 8 L-22 12 L-14 18', '#7BC043', 2.6)}${[[-14, 18], [-17, 19], [-11, 19]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.5" fill="#F28C1E" ${OV}/>`).join('')}
+    <path d="M-20 6 Q-22 -6 -8 -10 Q8 -14 18 -8 Q24 -4 22 4 Q16 12 0 12 Q-16 12 -20 6Z" fill="#6FBF3A" ${OV}/>
+    <path d="M-16 7 Q-4 10 12 7 Q4 4 -6 4 Q-14 4 -16 7Z" fill="#3E7CB1" opacity=".9"/><path d="M-14 6 l3 -2 M-8 5.6 l3 -2" stroke="#F2C230" stroke-width="1.2"/>
+    <path d="M-14 10 Q0 14 18 7" fill="none" stroke="#F4ECD8" stroke-width="2"/>
+    ${zampa('M8 8 L12 16 L8 19', '#7BC043', 2.4)}${[[8, 19], [5, 19.5], [11, 19.5]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.4" fill="#F28C1E" ${OV}/>`).join('')}
+    <circle cx="11" cy="-10" r="6" fill="#6FBF3A" ${OV}/>${occhioR(11, -10.5, 4.6, '#E53950', 'verticale')}
+    ${linea('M16 -2 Q20 -1 22 1', 1)}<circle cx="21" cy="-4" r=".6" fill="${K}"/></g>`,
+  // Lola: lepre
+  calc: (() => { const c = '#A9825A', d = '#7A5A3A'; return `<g>
+    ${zampa('M4 10 L16 22 L25 22', d, 3.6)}
+    <path d="M-17 2 Q-23 0 -24 6 Q-20 9 -16 8Z" fill="#F7F5EE" ${OV}/>
+    <path d="M-18 6 Q-18 -6 -4 -8 Q10 -8 12 4 Q12 16 0 18 Q-14 18 -18 6Z" fill="${c}" ${OV}/>${pelo([[-12, 0, 2, 1], [-6, -3, 2, 1], [0, -2, 2, 1], [-10, 6, 2, 1], [-3, 4, 2, 1]], d, .9)}${ombra('M-17 10 Q-4 20 11 8 Q8 18 -2 18 Q-14 18 -17 10Z', .16)}
+    ${zampa('M-6 14 L-4 24 L2 24', c, 3)}${zampa('M6 4 L9 15', c, 2.6)}
+    <path d="M2 -16 Q-3 -34 3 -34 Q8 -32 6 -16Z M8 -16 Q10 -33 16 -32 Q19 -28 11 -14Z" fill="${c}" ${OV}/><path d="M3 -33 Q1 -31 2 -29 L4 -31Z M15 -31 Q17 -30 16 -28 L14 -29Z" fill="${K}"/><path d="M3 -18 Q1 -29 4 -30 Q6 -28 5 -18Z" fill="#E8C4B8"/>
+    <path d="M0 -10 Q0 -18 8 -18 Q16 -18 18 -12 Q19 -6 14 -5 Q6 -4 2 -6 Q0 -8 0 -10Z" fill="${c}" ${OV}/>
+    ${occhioR(8.6, -12.4, 2.1, '#C88A1E')}<circle cx="17.6" cy="-10" r=".9" fill="#5A3A22"/>${linea('M14 -7 Q16 -6.4 17 -7.5', .9)}${linea('M16 -9 l5 -1 M16 -8.4 l5 1', .5, '#5A3A22')}</g>`; })(),
+  // Tina: tartaruga marina
+  forme: `<g>${linea('M-34 23 Q-26 19 -18 23 T-2 23 T14 23 T30 23', 2, '#4FA8E0')}
+    <path d="M-10 -6 Q-22 -16 -30 -18 Q-24 -8 -13 -1Z" fill="#8FAE6A" ${OV}/><path d="M-11 9 Q-20 16 -26 18 Q-18 10 -12 6Z" fill="#8FAE6A" ${OV}/>
+    <path d="M7 -5 Q18 -18 26 -19 Q22 -8 12 -1Z" fill="#8FAE6A" ${OV}/><path d="M7 9 Q14 17 19 18 Q15 10 11 6Z" fill="#8FAE6A" ${OV}/>
+    ${[[-24, -14], [-19, -10], [20, -15], [16, -10]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".9" fill="#5A7A40"/>`).join('')}
+    <ellipse cx="-1" cy="2" rx="15" ry="11" fill="#6E4A28" ${OV}/>
+    <path d="M-6 -3 L4 -3 L6 2 L4 7 L-6 7 L-8 2Z" fill="#9A6A3A" ${OV}/>${[[-6, -3, -10, -7], [4, -3, 7, -8], [-6, 7, -10, 11], [4, 7, 8, 11], [-8, 2, -15, 2], [6, 2, 13, 2]].map(([a, b, c2, d2]) => linea(`M${a} ${b} L${c2} ${d2}`, 1.1, '#3A2412')).join('')}
+    ${[[-11, -4], [9, -4], [-11, 8], [9, 8]].map(([x, y]) => `<path d="M${x - 2} ${y} l2 -1.4 l2 1.4 l-2 1.4Z" fill="#9A6A3A" opacity=".7"/>`).join('')}
+    <path d="M13 -3 Q17 -8 24 -7 Q30 -5 30 -1 Q28 3 22 3 Q16 3 13 -3Z" fill="#9CB97A" ${OV}/>${pelo([[18, -5, 1, 1], [21, -6, 1, 1], [20, -2, 1, 1]], '#5A7A40', .9)}
+    ${occhioR(23.4, -3.2, 1.4, '#3B2410')}${linea('M26 1 Q28 1.2 29.6 0', .9)}</g>`,
+};
 const DINO_S = DINO10;
 const MONDI = {
   dinosauri: { nome: 'Dinosauri', art: DINO_S, voce: 'con i dinosauri', fondo: '#FFF1DC' },
   spazio: { nome: 'Spazio', art: ALIENI10, voce: 'nello spazio, con gli alieni', fondo: '#E9E6FF' },
   cartoni: { nome: 'Cartoni', art: EROI10, voce: 'con i cartoni animati', fondo: '#FFE6F3' },
-  animali: { nome: 'Animali', art: ANIMALI10, voce: 'con gli animali', fondo: '#E3F6DA' },
+  animali: { nome: 'Animali', art: VERI, voce: 'con gli animali', fondo: '#E3F6DA' },
+  bambole: { nome: 'Bambole', art: BAMBOLE10, voce: 'con le bambole', fondo: '#FFE3F1' },
+  kpop: { nome: 'K-pop', art: KPOP10, voce: 'con le cantanti del kei pop', fondo: '#EDE3FF' },
 };
 const mondo = () => { try { return MONDI[save.settings.mondo] ? save.settings.mondo : 'animali'; } catch (e) { return 'animali'; } };
 // gli animali prendono lo stesso stile: via le guance, sopracciglia sopra gli occhi
@@ -1789,10 +1972,10 @@ function voiceFor(P) {
   return vs.slice().sort((a, b) => score(b) - score(a))[0];
 }
 // la velocita' la scelgono i grandi; di base lenta, per chi sta imparando a leggere
-const VEL = { lenta: .72, normale: .88, veloce: 1 };
+const VEL = { lenta: .8, normale: .92, veloce: 1.04 };
 function utter(t, piano) {
   const P = persona(), u = new SpeechSynthesisUtterance(t); u.lang = 'it-IT'; const v = voiceFor(P); if (v) u.voice = v;
-  u.pitch = P.pitch; u.rate = Math.max(.45, P.rate * (VEL[save.settings.vel] || VEL.lenta) * (piano ? .72 : 1)); return u;
+  u.pitch = Math.min(2, P.pitch * 1.12 + .06); u.rate = Math.max(.45, P.rate * (VEL[save.settings.vel] || VEL.lenta) * (piano ? .74 : 1)); return u;
 }
 // una sillaba o una parola da sola si dice piano; nelle frasi la parte fra «» si stacca e si dice piano.
 // Il punto in fondo evita che il telefono tagli l'ultima sillaba.
@@ -1816,17 +1999,37 @@ function say(t) {
   try { parla(t); } catch (e) {}
 }
 // le lodi si dicono con enfasi: un po' piu' acute e veloci
-function sayEmph(t, dopo) {
-  karaokeTok++;
-  let fatto = false; const poi = () => { if (!fatto) { fatto = true; if (dopo) dopo(); } };
-  if (!('speechSynthesis' in window)) return poi();
-  try {
-    parla(t, poi, u => { u.pitch = Math.min(2, u.pitch * 1.2 + .1); });
-    setTimeout(poi, 1500 + t.length * 110);   // se il dispositivo non avvisa la fine della frase
-  } catch (e) { poi(); }
+// la voce ha finito? onend sull'iPhone a volte arriva in anticipo o non arriva: si guarda anche speaking
+function voceFinita(maxMs = 8000) {
+  return new Promise(res => {
+    if (!('speechSynthesis' in window)) return res();
+    const t0 = Date.now(), chk = () => (!speechSynthesis.speaking && !speechSynthesis.pending) || Date.now() - t0 > maxMs ? res() : setTimeout(chk, 120);
+    setTimeout(chk, 60);
+  });
 }
-// prima il complimento, poi gli applausi: piu' forti e lunghi per stelline, comete e soli
-function festa(m, forte) { const clap = () => applausi(forte); if (save.settings.voice) sayEmph(m, clap); else clap(); }
+// dice la frase senza interrompere niente e risolve quando l'ha finita davvero
+function parlaP(t, mod) {
+  return new Promise(res => {
+    if (!('speechSynthesis' in window)) return res();
+    let fatto = false; const fine = () => { if (!fatto) { fatto = true; res(); } };
+    setTimeout(fine, 2500 + t.length * 150 / (VEL[save.settings.vel] || VEL.lenta));
+    try {
+      const ps = pezzi(t); if (!ps.length) return fine();
+      ps.forEach((x, i) => { const u = utter(x.t, x.piano); if (mod) mod(u); if (i === ps.length - 1) { u.onend = () => voceFinita(4000).then(fine); u.onerror = fine; } speechSynthesis.speak(u); });
+    } catch (e) { fine(); }
+  });
+}
+function sayEmph(t, dopo) { karaokeTok++; voceFinita(7000).then(() => parlaP(t, u => { u.pitch = Math.min(2, u.pitch * 1.15 + .1); })).then(() => { if (dopo) dopo(); }); }
+// l'ordine e' sempre lo stesso: finisce la lettura in corso, poi il complimento, poi il suono del mondo con gli applausi
+let festaTok = 0;
+async function festa(m, forte) {
+  const tok = ++festaTok;
+  await voceFinita(7000); if (tok !== festaTok) return;
+  if (save.settings.voice) { karaokeTok++; await parlaP(m, u => { u.pitch = Math.min(2, u.pitch * 1.15 + .1); }); }
+  if (tok !== festaTok) return;
+  await new Promise(r => setTimeout(r, 150));
+  await suonoVittoria(forte);
+}
 function speakWait(t) {
   return new Promise(res => {
     let done = false; const fin = () => { if (!done) { done = true; res(); } };
@@ -1849,14 +2052,48 @@ function wavUrl(buf) {
   for (let i = 0; i < n; i++) b.setInt16(44 + i * 2, Math.max(-1, Math.min(1, d[i] * k)) * 32767, true);
   return URL.createObjectURL(new Blob([b], { type: 'audio/wav' }));
 }
-function preparaApplausi() {
+// il suono di vittoria cambia con l'ambientazione: si prepara una volta per mondo, poi arrivano gli applausi
+function sfx(c, m, forte) {
+  const D = c.destination, nb = (() => { const n = c.sampleRate, b = c.createBuffer(1, n, n), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; return b; })();
+  const osc = (type, f0, f1, t, dur, vol, out = D) => { const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(g).connect(out); o.start(t); o.stop(t + dur + .02); return o; };
+  const rumore = (t, dur, vol, tipo, f) => { const s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain(); s.buffer = nb; fl.type = tipo; fl.frequency.value = f; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); s.connect(fl).connect(g).connect(D); s.start(t); s.stop(t + dur); };
+  const nota = (f, t, dur, vol, type = 'triangle') => osc(type, f, f * 1.001, t, dur, vol);
+  const fanfara = t => [523, 659, 784, 1047].forEach((f, i) => nota(f, t + i * .11, i === 3 ? .5 : .16, .22));
+  let fine = .9;
+  if (m === 'spazio') {
+    const n = forte ? 5 : 3; for (let i = 0; i < n; i++) osc('square', 1800, 160, i * .17, .16, .16);
+    osc('sine', 300, 1400, n * .17, .4, .25); fine = n * .17 + .45;
+  } else if (m === 'dinosauri') {
+    const o = c.createOscillator(), lfo = c.createOscillator(), lg = c.createGain(), lp = c.createBiquadFilter(), g = c.createGain();
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(140, 0); o.frequency.exponentialRampToValueAtTime(70, .8); lfo.frequency.value = 9; lg.gain.value = 18; lfo.connect(lg).connect(o.frequency);
+    lp.type = 'lowpass'; lp.frequency.value = 700; g.gain.setValueAtTime(.0001, 0); g.gain.exponentialRampToValueAtTime(.5, .12); g.gain.exponentialRampToValueAtTime(.0001, .85);
+    o.connect(lp).connect(g).connect(D); o.start(0); o.stop(.9); lfo.start(0); lfo.stop(.9); rumore(0, .8, .25, 'lowpass', 900);
+    [.95, 1.2].forEach(t => osc('sine', 90, 35, t, .25, .7)); fine = 1.45;
+  } else if (m === 'cartoni') {
+    const o = c.createOscillator(), lfo = c.createOscillator(), lg = c.createGain(), g = c.createGain();
+    o.type = 'sine'; o.frequency.value = 330; lfo.frequency.value = 16; lg.gain.setValueAtTime(140, 0); lg.gain.exponentialRampToValueAtTime(2, .55); lfo.connect(lg).connect(o.frequency);
+    g.gain.setValueAtTime(.4, 0); g.gain.exponentialRampToValueAtTime(.0001, .6); o.connect(g).connect(D); o.start(0); o.stop(.62); lfo.start(0); lfo.stop(.62);
+    osc('sine', 500, 1600, .6, .35, .3); fine = 1;
+  } else if (m === 'animali') {
+    [0, .12, .24, .55, .67].forEach(t => osc('sine', 2600, 3900, t, .08, .22)); osc('sine', 3400, 2400, .82, .12, .2); fine = 1;
+  } else if (m === 'bambole') {
+    for (let i = 0; i < 9; i++) nota(1600 + Math.random() * 1800, i * .08, .25, .12);
+    [1047, 1319, 1568].forEach((f, i) => nota(f, .72 + i * .02, .7, .16, 'sine')); fine = 1.3;
+  } else if (m === 'kpop') {
+    [0, .4].forEach(t => osc('sine', 160, 45, t, .18, .8)); [.2, .6].forEach(t => rumore(t, .12, .35, 'highpass', 1800));
+    [523, 659, 784, 1047, 784, 1047].forEach((f, i) => nota(f, .05 + i * .1, .12, .14, 'square')); fine = .85;
+  }
+  if (forte) { fanfara(fine); fine += .7; }
+  return fine;
+}
+function preparaSuoni(m) {
   const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext; if (!OC) return;
   [false, true].forEach(forte => {
+    const k = `${m}-${forte ? 'forte' : 'piano'}`; if (clapUrl[k] || clapUrl[k + ':in-corso']) return; clapUrl[k + ':in-corso'] = true;
     try {
-      const sr = 22050, dur = forte ? 3.4 : 1.8, c = new OC(1, Math.round(sr * dur), sr);
-      clapGraph(c, forte, 0);
-      if (forte) [784, 988, 1175, 1568].forEach((f, i) => { const o = c.createOscillator(), g = c.createGain(), t = i * .13; o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.25, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .22); o.connect(g).connect(c.destination); o.start(t); o.stop(t + .25); });
-      const r = c.startRendering(), ok = b => { clapUrl[forte ? 'forte' : 'piano'] = wavUrl(b); };
+      const sr = 22050, prova = new OC(1, sr * 8, sr), fine = sfx(prova, m, forte);
+      const c = new OC(1, Math.round(sr * (fine + (forte ? 3.4 : 1.8))), sr); sfx(c, m, forte); clapGraph(c, forte, fine);
+      const r = c.startRendering(), ok = b => { clapUrl[k] = wavUrl(b); clapUrl[k + ':dur'] = b.duration; };
       if (r && r.then) r.then(ok); else c.oncomplete = e => ok(e.renderedBuffer);
     } catch (e) {}
   });
@@ -1885,19 +2122,22 @@ function sbloccaAudio() {
   // una frase vuota detta durante il tocco sblocca la voce per tutto il resto
   try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) {}
   if (guidaInAttesa) { const k = guidaInAttesa; guidaInAttesa = null; setTimeout(() => { if (!guidaDetta[k] && !speechSynthesis.speaking && !speechSynthesis.pending && !$('#' + k).hidden) { guidaDetta[k] = true; say(guidaTesto(k)); } }, 250); }
-  try { clapEl.muted = true; clapEl.src = clapUrl.piano || 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA='; const p = clapEl.play(); if (p && p.then) p.then(() => { clapEl.pause(); clapEl.muted = false; }, () => { clapEl.muted = false; }); else clapEl.muted = false; } catch (e) {}
+  try { clapEl.muted = true; clapEl.src = clapUrl[mondo() + '-piano'] || 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA='; const p = clapEl.play(); if (p && p.then) p.then(() => { clapEl.pause(); clapEl.muted = false; }, () => { clapEl.muted = false; }); else clapEl.muted = false; } catch (e) {}
 }
 ['pointerdown', 'touchend', 'click'].forEach(ev => addEventListener(ev, sbloccaAudio, { capture: true, passive: true }));
-preparaApplausi();
-// applausi: tanti colpi brevi di rumore filtrato, a caso nel tempo
-function applausi(forte) {
-  if (!save.settings.sound) return;
-  const url = clapUrl[forte ? 'forte' : 'piano'];
-  if (url) {
-    try { clapEl.muted = false; clapEl.volume = 1; clapEl.src = url; clapEl.currentTime = 0; const p = clapEl.play(); if (p && p.catch) p.catch(() => applausiWeb(forte)); return; } catch (e) {}
-  }
-  applausiWeb(forte);
+setTimeout(() => preparaSuoni(mondo()), 300);
+// suono del mondo e applausi; risolve quando sono finiti
+function suonoVittoria(forte) {
+  return new Promise(res => {
+    if (!save.settings.sound) return res();
+    const k = `${mondo()}-${forte ? 'forte' : 'piano'}`, url = clapUrl[k];
+    if (!url) { preparaSuoni(mondo()); applausiWeb(forte); return setTimeout(res, forte ? 3400 : 1800); }
+    let fatto = false; const fine = () => { if (!fatto) { fatto = true; clapEl.onended = null; res(); } };
+    setTimeout(fine, (clapUrl[k + ':dur'] || 4) * 1000 + 600);
+    try { clapEl.muted = false; clapEl.volume = 1; clapEl.src = url; clapEl.currentTime = 0; clapEl.onended = fine; const p = clapEl.play(); if (p && p.catch) p.catch(() => { applausiWeb(forte); }); } catch (e) { fine(); }
+  });
 }
+const applausi = forte => suonoVittoria(forte);
 function applausiWeb(forte) {
   try {
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
@@ -2050,34 +2290,37 @@ function judge(ok) {
     if (cometa) run.comete++;
     persist();
     const nm = prof.info.nome ? ' ' + prof.info.nome : '', bravo = gx('Bravo', 'Brava');
-    let wait = RM ? 1200 : 3000;
+    // i complimenti cambiano: si pesca a caso, mai uno dei tre detti per ultimi
+    const vario = (k, L) => { const st = (vario.st = vario.st || {}), ult = st[k] || [], ok = L.filter(x => !ult.includes(x)), m = pick(ok.length ? ok : L); st[k] = [...ult, m].slice(-3); return m; };
+    let p;   // i suoni partono solo dopo la voce: li fa festa()
     if (sole) {
-      SND.win(); setTimeout(() => SND.win(), 600);
-      const m = `Incredibile${nm}! Hai vinto un sole! Sei ${gx('un fenomeno', 'una fenomena')}!`;
+      const m = vario('sole', [`Incredibile${nm}! Hai vinto un sole! Sei ${gx('un fenomeno', 'una fenomena')}!`, `Un sole intero${nm}! Sei ${gx('un vero campione', 'una vera campionessa')}!`,
+        `Dieci comete, un sole${nm}! Sei ${gx('leggendario', 'leggendaria')}!`, `Che impresa${nm}! Il sole è tuo!`]);
       toast(`${SUN_BIG}${m}`, `10 stelle comete: ${save.stelline / 200}º sole`, 'sun', 3600);
-      festa(m, true);
-      confetti(); setTimeout(confetti, 900); wait = RM ? 3000 : 6000;
+      p = festa(m, true);
+      confetti(); setTimeout(confetti, 900);
     } else if (cometa) {
-      SND.win();
-      const m = `${gx('Bravissimo', 'Bravissima')}${nm}, sei Suuuuper!`;
+      const m = vario('cometa', [`${gx('Bravissimo', 'Bravissima')}${nm}, sei Suuuuper!`, `Una stella cometa${nm}! Sei ${gx('un mito', 'un mito')}!`, `Spettacolare${nm}! Hai vinto una stella cometa!`,
+        `Che impresa${nm}! Una stella cometa tutta per te!`, `Venti stelline, una cometa${nm}! Sei ${gx('fortissimo', 'fortissima')}!`]);
       toast(`${COMET_BIG}${m}`, `Stella cometa! ${save.stelline / 20}ª cometa`, 'comet', 3000);
-      festa(m, true);
-      confetti(); wait = RM ? 3000 : 5600;
+      p = festa(m, true);
+      confetti();
     } else if (stellina) {
-      SND.win();
-      const m = `${bravo}${nm}, sei ${gx('un campione', 'una campionessa')}!`;
+      const m = vario('stellina', [`${bravo}${nm}, sei ${gx('un campione', 'una campionessa')}!`, `Una stellina per te${nm}! Sei un asso!`, `Stellina conquistata${nm}! Sei ${gx('bravissimo', 'bravissima')}!`,
+        `Super${nm}! Un'altra stellina!`, `Tre giuste, una stellina${nm}! Sei ${gx('un fuoriclasse', 'una fuoriclasse')}!`, `Che talento${nm}! Ecco una stellina!`]);
       toast(`${STAR_BIG}${m}`, `+1 stellina · +${gain} punti`, 'star', 2200);
-      festa(m, true);
-      wait = RM ? 2800 : 5000;
+      p = festa(m, true);
     } else {
-      SND.ok();
-      const m = `${bravo}${nm}, continua così!`;
+      const m = vario('giusta', [`${bravo}${nm}, continua così!`, `Esatto${nm}! Ottimo lavoro!`, `Giusto${nm}! Che occhio!`, `Perfetto${nm}!`, `Grande${nm}! Risposta giusta!`,
+        `Ben fatto${nm}!`, `Sì${nm}! Proprio così!`, `Fantastico${nm}, vai alla grande!`, `Ottimo${nm}! Ci hai preso!`, `Wow${nm}, sei ${gx('fortissimo', 'fortissima')}!`,
+        `Complimenti${nm}, risposta esatta!`, `Che ${gx('bravo', 'brava')}${nm}! Avanti così!`, `Centro${nm}! Hai fatto benissimo!`, `Eccellente${nm}!`, `${gx('Mitico', 'Mitica')}${nm}!`]);
       toast(m, `+${gain} punti${run.streak >= 3 && run.attempts === 0 ? ' · ' + run.streak + ' di fila!' : ''}`, 'good', 1600);
-      festa(m, false);
+      p = festa(m, false);
     }
     const sp = $('#stelPill'); sp.classList.remove('bump'); void sp.offsetWidth; sp.classList.add('bump');
     renderDots(); hud();
-    setTimeout(() => { if (run && run.q === q) nextQ(); }, wait);
+    // la domanda dopo arriva quando complimento e applausi sono finiti
+    Promise.race([p, new Promise(r => setTimeout(r, 20000))]).then(() => setTimeout(() => { if (run && run.q === q) nextQ(); }, RM ? 200 : 500));
   } else {
     run.attempts++; run.streak = 0; SND.soft();
     if (run.attempts >= 2 || q.oneShot) {
@@ -2145,10 +2388,10 @@ function finish() {
 }
 
 /* ---------- linea dei numeri ---------- */
-const LINE = { W: 1000, P: 44, Y: 135, H: 215 };
+const LINE = { W: 1000, P: 44, Y: 175, H: 268 };
 function lcfg(g, d) {
   if (g === 'l20') return { max: 20, lab: [5, 5, 10][d], hi: [10, 20, 20][d], step: 1, minw: 520, hero: HEROES.l20 };
-  return { max: 100, lab: [50, 10, 50][d], hi: 100, step: d === 0 ? 10 : 1, minw: 700, hero: HEROES.l100 };
+  return { max: 100, lab: [10, 10, 50][d], hi: 100, step: d === 0 ? 10 : 1, minw: 700, hero: HEROES.l100 };
 }
 const isLab = (cfg, v) => v === 0 || v === cfg.max || v % cfg.lab === 0;
 function targetFor(cfg) {
@@ -2203,15 +2446,15 @@ function lineView(st, cfg) {
     pin(v, cls = 'mine') { put('pin-' + cls, `<g class="pin ${cls}" transform="translate(${X(v)} ${Y})"><path d="M0 -6 L-11 -30 A14 14 0 1 1 11 -30 Z"/><circle class="pin-dot" cy="-39" r="5.5"/></g>`); },
     arrow(v) { put('arrow', `<g class="arrow" transform="translate(${X(v)} ${Y})"><path d="M-9 -80 h18 v32 h14 L0 -12 L-23 -48 h14 z"/></g>`); },
     bubble(v, cls = 'sol') {
-      const w = String(v).length * 19 + 30;
-      put('bub-' + v, `<g class="bubble ${cls}" transform="translate(${X(v)} ${Y})"><rect x="${-w / 2}" y="-124" width="${w}" height="46" rx="14"/><path class="bub-tail" d="M-8 -79 L0 -66 L8 -79Z"/><text class="bub-t" y="-90" text-anchor="middle">${tsp(v)}</text></g>`);
+      const w = String(v).length * 28 + 34;
+      put('bub-' + v, `<g class="bubble ${cls}" transform="translate(${X(v)} ${Y})"><rect x="${-w / 2}" y="-130" width="${w}" height="58" rx="16"/><path class="bub-tail" d="M-9 -73 L0 -60 L9 -73Z"/><text class="bub-t" y="-87" text-anchor="middle">${tsp(v)}</text></g>`);
     },
     ask(v) { put('ask', `<g class="bubble ask" transform="translate(${X(v)} ${Y})"><rect x="-24" y="-124" width="48" height="46" rx="14"/><path class="bub-tail" d="M-8 -79 L0 -66 L8 -79Z"/><text class="bub-t" y="-90" text-anchor="middle">?</text></g>`); },
     unask() { if (named.ask) { named.ask.remove(); delete named.ask; } },
     unarrow() { if (named.arrow) { named.arrow.remove(); delete named.arrow; } },
     flag(v) { put('flag', `<g transform="translate(${X(v)} ${Y})"><line class="flag-pole" y1="0" y2="-64"/><path class="flag-cloth" d="M0 -64 L32 -54 L0 -44Z"/></g>`); },
     frog(v) {
-      if (!frogEl) frogEl = add(gF, `<g class="frogpos"><g transform="scale(.95)">${cfg.hero.art}</g></g>`);
+      if (!frogEl) frogEl = add(gF, `<g class="frogpos"><g transform="translate(0 -26) scale(1.9)">${cfg.hero.art}</g></g>`);
       frogEl.style.transition = 'none'; setT(frogEl, X(v), Y - 26); void frogEl.getBoundingClientRect(); frogEl.style.transition = '';
     },
     clearHops() { gH.innerHTML = ''; },
@@ -2640,6 +2883,8 @@ STORIE.forEach(x => { x.m = ['animali']; });
 STORIE.push(...[
   ['dinosauri', 'l20', 'ossi', false], ['dinosauri', 'calc', 'uova', true], ['dinosauri', 'cifre', 'foglie', true], ['dinosauri', 'l100', 'pigne', true],
   ['spazio', 'l20', 'stelle', true], ['spazio', 'calc', 'razzi', false], ['spazio', 'cifre', 'pietre lunari', true], ['spazio', 'l100', 'pianeti', false],
+  ['bambole', 'l20', 'fiocchi', false], ['bambole', 'calc', 'collane', true], ['bambole', 'cifre', 'vestiti', false], ['bambole', 'l100', 'perline', true],
+  ['kpop', 'l20', 'biglietti', false], ['kpop', 'calc', 'canzoni', true], ['kpop', 'cifre', 'dischi', false], ['kpop', 'l100', 'adesivi', false],
   ['cartoni', 'l20', 'palloncini', false], ['cartoni', 'calc', 'caramelle', true], ['cartoni', 'cifre', 'gelati', false], ['cartoni', 'l100', 'regali', false],
 ].map(([m, k, cose, f]) => ({ k, cose, f, m: [m] })));
 function qProblema(d) {
@@ -2722,12 +2967,18 @@ WORDS.push(...[
   ['dinosauri', 2, 'vul-ca-no', '🌋'], ['dinosauri', 2, 'di-no-sau-ro', '🦕'], ['dinosauri', 2, 'roc-cia', '🪨'], ['dinosauri', 2, 'fo-glia', '🍃'], ['dinosauri', 2, 'im-pron-ta', '🐾'],
   ['spazio', 1, 'raz-zo', '🚀'], ['spazio', 1, 'ter-ra', '🌍'], ['spazio', 1, 'co-me-ta', '☄️'], ['spazio', 2, 'pia-ne-ta', '🪐'], ['spazio', 2, 'a-lie-no', '👽'],
   ['spazio', 2, 'a-stro-nau-ta', '🧑‍🚀'], ['spazio', 2, 'te-le-sco-pio', '🔭'], ['spazio', 2, 'sa-tel-li-te', '🛰️'],
+  ['bambole', 0, 'fo-to', '📸'], ['bambole', 1, 'cuo-re', '❤️'], ['bambole', 1, 've-sti-to', '👗'], ['bambole', 1, 'bor-sa', '👜'], ['bambole', 1, 'fioc-co', '🎀'],
+  ['bambole', 1, 'col-la-na', '📿'], ['bambole', 2, 'spec-chio', '🪞'], ['bambole', 2, 'ros-set-to', '💄'],
+  ['kpop', 0, 'lu-ce', '💡'], ['kpop', 1, 'mu-si-ca', '🎵'], ['kpop', 1, 'di-sco', '💿'], ['kpop', 1, 'tam-bu-ro', '🥁'], ['kpop', 1, 'can-zo-ne', '🎶'],
+  ['kpop', 2, 'mi-cro-fo-no', '🎤'], ['kpop', 2, 'chi-tar-ra', '🎸'], ['kpop', 2, 'cuf-fie', '🎧'], ['kpop', 2, 'bal-le-ri-na', '💃'],
   ['cartoni', 0, 'fa-ta', '🧚'], ['cartoni', 0, 'ma-go', '🧙'], ['cartoni', 1, 'ge-la-to', '🍦'], ['cartoni', 1, 're-ga-lo', '🎁'], ['cartoni', 1, 'co-ro-na', '👑'],
   ['cartoni', 1, 'dra-go', '🐉'], ['cartoni', 1, 'ro-bot', '🤖'], ['cartoni', 1, 'mo-stro', '👾'], ['cartoni', 2, 'fan-ta-sma', '👻'], ['cartoni', 2, 'bac-chet-ta', '🪄'], ['cartoni', 2, 'prin-ci-pes-sa', '👸'],
 ].map(([m, l, s, e]) => ({ l, s: s.split('-'), w: s.replace(/-/g, ''), e, m: [m] })));
 segna(WORDS, 'animali', /^(cane|rana|topo|lupo|ape|toro|gatto|pecora|gallina|cavallo|lumaca|farfalla|pesce|tigre|delfino|struzzo|coccodrillo|tartaruga|elefante|ragno|canguro|pinguino|giraffa|coniglio|scimmia)$/, x => x.w);
 segna(WORDS, 'spazio', /^(luna|sole|stella)$/, x => x.w);
 segna(WORDS, 'cartoni', /^(torta|palloncino|caramella|arcobaleno|castello)$/, x => x.w);
+segna(WORDS, 'bambole', /^(rosa|casa|corona|principessa|castello|fata|stella)$/, x => x.w);
+segna(WORDS, 'kpop', /^(stella|telefono|luna)$/, x => x.w);
 function pickWord(d, not) {
   const pool = WORDS.filter(x => x.l === d && x.w !== not); let w, i = 0;
   do { w = dalMondo(pool, x => x.w); i++; } while (run.recent.includes(w.w) && i < 40);
@@ -2938,6 +3189,18 @@ FRASI.push(...[
   ['spazio', 1, "L'a-stro-nau-ta guar-da le stel-le.", "Che cosa guarda l'astronauta?", '⭐', ['🍎', '🐟']],
   ['spazio', 2, 'Il di-sco vo-lan-te at-ter-ra vi-ci-no al-la ca-sa.', 'Che cosa atterra vicino alla casa?', '🛸', ['✈️', '🚂']],
   ['spazio', 2, 'Con il te-le-sco-pio Lu-ca ve-de la lu-na.', 'Che cosa vede Luca?', '🌙', ['🌈', '🌳']],
+  ['bambole', 0, 'La bam-bo-la ha un fioc-co.', 'Che cosa ha la bambola?', '🎀', ['🍎', '🚗']],
+  ['bambole', 0, 'Il ve-sti-to è ro-sa.', 'Che cosa è rosa?', '👗', ['🐸', '🌳']],
+  ['bambole', 1, 'La bam-bo-la si guar-da nel-lo spec-chio.', 'Dove si guarda la bambola?', '🪞', ['🚂', '⚽']],
+  ['bambole', 1, 'Sa-ra met-te la col-la-na.', 'Che cosa mette Sara?', '📿', ['🧢', '🧤']],
+  ['bambole', 2, 'La bam-bo-la va al-la fe-sta con le scar-pe nuo-ve.', 'Che cosa ha di nuovo la bambola?', '👠', ['🎒', '☂️']],
+  ['bambole', 2, "Nel-la ca-sa del-le bam-bo-le c'è un pic-co-lo let-to.", "Che cosa c'è nella casa delle bambole?", '🛏️', ['🚀', '🐘']],
+  ['kpop', 0, 'La can-tan-te can-ta.', 'Chi canta?', '👩‍🎤', ['👵', '🐢']],
+  ['kpop', 0, 'Il di-sco gi-ra.', 'Che cosa gira?', '💿', ['🍎', '🏠']],
+  ['kpop', 1, 'Mi-na can-ta con il mi-cro-fo-no.', 'Con che cosa canta Mina?', '🎤', ['🍴', '🔑']],
+  ['kpop', 1, 'Le ra-gaz-ze bal-la-no sul pal-co.', 'Che cosa fanno le ragazze?', '💃', ['😴', '🏊']],
+  ['kpop', 2, 'Le ra-gaz-ze a-scol-ta-no la mu-si-ca con le cuf-fie.', 'Con che cosa ascoltano la musica?', '🎧', ['🧤', '🥄']],
+  ['kpop', 2, 'Al con-cer-to Lu-ca suo-na la chi-tar-ra.', 'Che cosa suona Luca?', '🎸', ['🥕', '🧸']],
   ['cartoni', 0, 'La fa-ta vo-la.', 'Chi vola?', '🧚', ['🐢', '🐌']],
   ['cartoni', 0, 'Il ma-go ri-de.', 'Chi ride?', '🧙', ['🐟', '👶']],
   ['cartoni', 1, 'Il ro-bot bal-la con il mo-stro.', 'Con chi balla il robot?', '👾', ['🐶', '👵']],
@@ -2948,16 +3211,22 @@ FRASI.push(...[
 TRENO.push(...[
   ['dinosauri', 0, 'Il dinosauro mangia.'], ['dinosauri', 0, 'Il vulcano fuma.'], ['dinosauri', 1, 'Il dinosauro trova un osso.'], ['dinosauri', 1, "Il cucciolo esce dall'uovo."], ['dinosauri', 2, 'Il grande dinosauro mangia le foglie della palma.'],
   ['spazio', 0, 'Il razzo vola.'], ['spazio', 0, "L'alieno ride."], ['spazio', 1, 'La luna brilla nel cielo.'], ['spazio', 1, "L'astronauta guarda le stelle."], ['spazio', 2, 'Il disco volante atterra vicino alla casa.'],
+  ['bambole', 0, 'La bambola sorride.'], ['bambole', 0, 'Il vestito è rosa.'], ['bambole', 1, 'La bambola ha un fiocco rosso.'], ['bambole', 1, 'Sara pettina la bambola.'], ['bambole', 2, 'La bambola va alla festa con le scarpe nuove.'],
+  ['kpop', 0, 'La cantante canta.'], ['kpop', 0, 'Il gruppo balla.'], ['kpop', 1, 'Mina canta una canzone.'], ['kpop', 1, 'Il pubblico batte le mani.'], ['kpop', 2, 'Al concerto tutti cantano la canzone insieme.'],
   ['cartoni', 0, 'La fata vola.'], ['cartoni', 0, 'Il mago ride.'], ['cartoni', 1, 'Il robot balla con il mostro.'], ['cartoni', 1, 'La principessa ha la corona.'], ['cartoni', 2, 'Il drago buono mangia un gelato al cioccolato.'],
 ].map(([m, l, t]) => ({ l, t, m: [m] })));
 SENSO.push(...[
   ['dinosauri', 'Il dinosauro mangia le foglie.', 'Le foglie mangiano il dinosauro.'], ['dinosauri', "Il cucciolo esce dall'uovo.", "L'uovo esce dal cucciolo."],
   ['spazio', 'Il razzo vola nello spazio.', 'Il razzo vola nella tazza.'], ['spazio', 'Il pianeta ha gli anelli.', 'Gli anelli hanno il pianeta.'],
+  ['bambole', 'La bambola ha un vestito nuovo.', 'Il vestito ha una bambola nuova.'], ['bambole', 'Sara pettina i capelli della bambola.', 'I capelli pettinano Sara.'],
+  ['kpop', 'La cantante canta una canzone.', 'La canzone canta la cantante.'], ['kpop', 'Il gruppo balla sul palco.', 'Il palco balla sul gruppo.'],
   ['cartoni', 'La fata ha la bacchetta magica.', 'La bacchetta magica ha la fata.'], ['cartoni', 'Il drago vola nel cielo.', 'Il drago vola nel cassetto.'],
 ].map(([m, a, b]) => Object.assign([a, b], { m: [m] })));
 COMPLETA.push(...[
   ['dinosauri', "Il cucciolo esce dall'___.", 'uovo', ['ombrello', 'armadio']], ['dinosauri', 'Il vulcano fa tanto ___.', 'fumo', ['latte', 'pane']],
   ['spazio', 'Il razzo vola nello ___.', 'spazio', ['zaino', 'stagno']], ['spazio', 'Di notte in cielo brillano le ___.', 'stelle', ['scarpe', 'sedie']],
+  ['bambole', 'La bambola si guarda nello ___.', 'specchio', ['zaino', 'stagno']], ['bambole', 'Sui capelli ha un bel ___ rosa.', 'fiocco', ['trattore', 'cocomero']],
+  ['kpop', 'La cantante canta con il ___.', 'microfono', ['cuscino', 'martello']], ['kpop', 'Ascolto la musica con le ___.', 'cuffie', ['forchette', 'scarpe']],
   ['cartoni', 'La fata ha la ___ magica.', 'bacchetta', ['forchetta', 'scarpa']], ['cartoni', 'La principessa vive nel ___.', 'castello', ['frigorifero', 'cestino']],
 ].map(([m, a, b, c]) => Object.assign([a, b, c], { m: [m] })));
 segna(FRASI, 'animali', /\b(ca-ne|ra-na|to-po|gat-to|far-fal-la|tar-ta-ru-ga|pin-gui-no)\b/, x => x.t);
@@ -3165,9 +3434,30 @@ function show(id) { if (typeof guida === 'function') guida(id); $('#toast').hidd
 const miniStars = n => [1, 2, 3].map(i => `<svg class="ic${i <= n ? ' on' : ''}" viewBox="0 0 24 24"><use href="#i-star"/></svg>`).join('');
 // l'ambientazione la sceglie il bambino la prima volta; i grandi la cambiano da Per i grandi
 function applicaMondo() {
-  const R = document.documentElement, m = mondo(); R.dataset.mondo = m; R.dataset.theme = 'light';
-  const sc = $('#scena'); if (sc && sc.dataset.m !== m) { sc.dataset.m = m; sc.innerHTML = `<svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${SCENE[m]}</svg>`; }
+  const R = document.documentElement, m = mondo(); R.dataset.mondo = m; R.dataset.theme = 'light'; preparaSuoni(m);
+  const sc = $('#scena'); if (sc && sc.dataset.m !== m) { sc.dataset.m = m; sc.style.backgroundImage = motivoURL(m); sc.innerHTML = `<svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${SCENE[m]}</svg>`; }
 }
+// motivi sparsi su tutta la pagina, molto chiari: una mattonella che si ripete
+const MOTIVI = {
+  dinosauri: `<g fill="#B07C38">${[[30, 40, 20], [140, 120, -15]].map(([x, y, r]) => `<g transform="translate(${x} ${y}) rotate(${r})"><ellipse rx="7" ry="9"/><ellipse cx="-7" cy="-11" rx="2.6" ry="4"/><ellipse cx="0" cy="-13" rx="2.6" ry="4"/><ellipse cx="7" cy="-11" rx="2.6" ry="4"/></g>`).join('')}</g>
+    <g stroke="#6FA84A" stroke-width="3" fill="none" stroke-linecap="round"><path d="M150 40 q-12 -20 -4 -36 M150 40 q10 -16 4 -32"/><path d="M50 170 q-12 -20 -4 -36 M50 170 q10 -16 4 -32"/></g>
+    <path d="M90 80 l16 -6 M88 76 a3 3 0 1 1 3 6 M108 72 a3 3 0 1 1 -2 6" stroke="#B07C38" stroke-width="3" fill="none"/>`,
+  spazio: `${[[20, 30, 6], [120, 20, 4], [170, 90, 7], [60, 110, 4], [100, 170, 6], [180, 180, 3]].map(([x, y, r]) => `<polygon points="${stellaPts(x, y, r, r * .42)}" fill="#8E7AD6"/>`).join('')}
+    <circle cx="70" cy="60" r="10" fill="#C9A0FF"/><ellipse cx="70" cy="60" rx="17" ry="4" fill="none" stroke="#8E7AD6" stroke-width="2"/>
+    <circle cx="150" cy="140" r="7" fill="#7FC8F8"/><path d="M20 160 l20 -10" stroke="#C9A0FF" stroke-width="3" stroke-linecap="round"/><circle cx="42" cy="149" r="3.5" fill="#C9A0FF"/>`,
+  cartoni: `${Array.from({ length: 6 }, (_, i) => Array.from({ length: 6 }, (_, j) => `<circle cx="${10 + i * 12}" cy="${10 + j * 12}" r="${2.6 - (i + j) * .2}" fill="#FF8FB0"/>`).join('')).join('')}
+    <polygon points="${zigzag(140, 140, 26, 14, 9)}" fill="#FFD966"/><text x="140" y="146" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="16" fill="#E0661B">POW</text>
+    <polygon points="${stellaPts(150, 40, 9, 4)}" fill="#7FC8F8"/>`,
+  animali: `<g fill="#8FB46A">${[[40, 40, 10], [150, 130, -20]].map(([x, y, r]) => `<g transform="translate(${x} ${y}) rotate(${r})"><ellipse rx="7" ry="6"/><circle cx="-7" cy="-9" r="3"/><circle cx="-2" cy="-12" r="3"/><circle cx="4" cy="-12" r="3"/><circle cx="9" cy="-8" r="3"/></g>`).join('')}</g>
+    <path d="M140 40 q14 -14 26 -4 q-12 14 -26 4Z M40 150 q14 -14 26 -4 q-12 14 -26 4Z" fill="#B6D98F"/><path d="M140 40 l22 -6 M40 150 l22 -6" stroke="#8FB46A" stroke-width="1.5"/>`,
+  bambole: `${[[30, 40, 9], [160, 60, 7], [90, 150, 10], [180, 170, 6]].map(([x, y, r]) => `<path d="M${x} ${y + r * .9} C${x - r * 1.6} ${y - r * .2} ${x - r * .8} ${y - r * 1.4} ${x} ${y - r * .4} C${x + r * .8} ${y - r * 1.4} ${x + r * 1.6} ${y - r * .2} ${x} ${y + r * .9}Z" fill="#FFA6CC"/>`).join('')}
+    <g transform="translate(100 70)"><path d="M0 0 L-14 -8 L-14 8Z M0 0 L14 -8 L14 8Z" fill="#E37BB0"/><circle r="4" fill="#D9467A"/></g>
+    <polygon points="${stellaPts(40, 130, 6, 2.4)}" fill="#C9A0FF"/>`,
+  kpop: `${[[30, 50], [140, 160]].map(([x, y]) => `<path d="M${x} ${y} v-22 l14 -4 v22" fill="none" stroke="#9B6BFF" stroke-width="3"/><circle cx="${x - 3}" cy="${y}" r="5" fill="#9B6BFF"/><circle cx="${x + 11}" cy="${y - 4}" r="5" fill="#9B6BFF"/>`).join('')}
+    ${[[150, 40, 8], [60, 140, 6], [180, 100, 5], [100, 100, 4]].map(([x, y, r]) => `<polygon points="${stellaPts(x, y, r, r * .35)}" fill="#FF8FC8"/>`).join('')}
+    <path d="M100 20 l3 8 l8 3 l-8 3 l-3 8 l-3 -8 l-8 -3 l8 -3Z" fill="#7FE7FF"/>`,
+};
+const motivoURL = m => `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><g opacity=".4">${MOTIVI[m]}</g></svg>`)}")`;
 const mondiHTML = () => Object.entries(MONDI).map(([k, M]) => `<button class="mondo-t" data-mondo="${k}" aria-pressed="${k === mondo()}" style="--mf:${M.fondo}">
   <span class="m-sc"><svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${SCENE[k]}</svg></span>
   <span class="m-ch">${['lettere', 'l20', 'sillabe'].map(g => heroIn(k, g)).join('')}</span><b>${M.nome}</b></button>`).join('');
@@ -3263,7 +3553,7 @@ $('#playerGrid').addEventListener('click', e => {
 var guidaDetta = {}, guidaInAttesa = null;
 function guidaTesto(k) {
   if (k === 'accesso') return "Ciao! Questa è Leggo e Conto: tanti giochi per imparare a leggere e a contare. Per cominciare, un grande scrive la sua email e la sua password, e tocca Entra. Se non avete ancora l'accesso, toccate: Chiedi l'accesso.";
-  if (k === 'mondo') return `Dove vuoi giocare${prof.info.nome ? ', ' + prof.info.nome : ''}? Con i dinosauri, nello spazio con gli alieni, con i cartoni animati, o con gli animali? Tocca il tuo mondo.`;
+  if (k === 'mondo') return `Dove vuoi giocare${prof.info.nome ? ', ' + prof.info.nome : ''}? Con i dinosauri, nello spazio, con gli eroi dei cartoni, con gli animali, con le bambole o con le cantanti del kei pop? Tocca il tuo mondo.`;
   if (k === 'who') return 'Ciao! Chi gioca oggi? Tocca la tua foto. Se sei nuovo, tocca Aggiungi.';
   if (k === 'home') return `${welcomeMsg()} Tocca Gioca, per giocare con le lettere o con i numeri. Con La voce, scegli chi ti legge le domande. In I miei premi, trovi le stelline che hai vinto.`;
   return '';
@@ -3332,7 +3622,7 @@ $('#typeChips').addEventListener('click', e => {
   save.last.types[g] = on; persist(); renderCat();
 });
 $('#play').onclick = () => { SND.tick(); startRound(); };
-$('#quit').onclick = () => { run = null; karaokeTok++; try { speechSynthesis.cancel(); } catch (e) {} renderCat(); show('cat'); };
+$('#quit').onclick = () => { run = null; karaokeTok++; festaTok++; try { clapEl.pause(); } catch (e) {} try { speechSynthesis.cancel(); } catch (e) {} renderCat(); show('cat'); };
 $('#say').onclick = () => { if (run && run.q) say(run.q.say); };
 $('#nextBtn').onclick = () => nextQ();
 $('#again').onclick = () => startRound();
