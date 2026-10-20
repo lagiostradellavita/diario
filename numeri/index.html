@@ -21,15 +21,16 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playwrite+IT+Moderna&display=swap">
 <style>
 /* Layout: una colonna centrata da tablet; schermate a turno (menu, gioco, risultato, album, grandi).
-   Blu, rosso e verde sono riservati a unità, decine e centinaia: l'interfaccia usa il giallo di Saltino. */
+   Blu, rosso e verde sono riservati a unità, decine e centinaia: l'interfaccia usa arancio, fucsia, giallo e viola su fondo bianco. */
 :root{
-  --bg:#FFEFC2; --paper:#FFFFFF; --ink:#1E1838; --muted:#5C4A2E; --line:#EAD7A6; --edge:#1E1838;
-  --outline:#1E1838; --dot:#FFD27A; --band1:#FFD000; --band2:#FF4FA0;
+  --bg:#FFFFFF; --paper:#FFFFFF; --ink:#1E1838; --muted:#5C4A2E; --line:#EAD7A6; --edge:#1E1838;
+  --outline:#1E1838; --dot:#ECEEF3;
+  --t1:#FF6B00; --t2:#E6007E; --t3:#FFC300; --t4:#7B2FF7; --tt1:#FFFFFF; --tt2:#FFFFFF; --tt3:#1E1838; --tt4:#FFFFFF; --band1:#FF8A00; --bandm:#FF3D7F; --band2:#E6007E;
   --fur:#D08A45; --fur-dark:#8C5426; --fur-light:#F8DFC0; --nose:#2A1E14; --tongue:#FF7F9E; --collar:#7A5CFF;
   --hh:#8D6BE8; --hh-dark:#5634B0; --hh-face:#FFE0C2;
   --bn:#F7AECB; --bn-dark:#D96A9B; --bn-light:#FFE6F0; --bn-nose:#C9417F;
   --ow:#E8955A; --ow-dark:#A85A2A; --ow-light:#FFE8CF; --s4:#FF9F68;
-  --sy1:#D96000; --sy2:#6741D9; --grid:#F8DFA6; --rule:#F5D89A; --margin:#FF6FB0;
+  --sy1:#D96000; --sy2:#6741D9; --grid:#E4E7EF; --rule:#E4E7EF; --margin:#FF6FB0;
   --sun:#FFC83D; --sun-deep:#E88A0C; --sun-soft:color-mix(in srgb,var(--sun) 30%,var(--paper)); --gold:#FFC83D; --gold-deep:#E88A0C; --on-sun:#3A2600; --focus:#7A5CFF;
   --u:#1C6BE0; --da:#DA2B2A; --h:#178F48;
   --u-soft:#DDE8FC; --da-soft:#FBE0DF; --h-soft:#DAF1E2;
@@ -38,7 +39,7 @@
   --f-body:"Andika","Trebuchet MS",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#1E1A14; --paper:#2C251C; --ink:#FFF8EC; --muted:#D9C9A8; --line:#4A3E2C; --edge:#0B0816;
+  --bg:#15131C; --paper:#24212E; --ink:#FFF8EC; --muted:#D9C9A8; --line:#4A3E2C; --edge:#0B0816;
   --outline:#0B0816; --dot:#2E271D; --band1:#7A5200; --band2:#7A2D50;
   --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:color-mix(in srgb,var(--sun) 28%,var(--paper)); --on-sun:#3A2600; --focus:#A28CFF;
   --u:#5B9BFF; --da:#FF6663; --h:#3FCB78;
@@ -46,7 +47,7 @@
   --sy1:#FF9A3D; --sy2:#B197FC; --grid:#2A241A; --rule:#2C251B; --margin:#5B2A4F;
 }}
 :root[data-theme="dark"]{
-  --bg:#1E1A14; --paper:#2C251C; --ink:#FFF8EC; --muted:#D9C9A8; --line:#4A3E2C; --edge:#0B0816;
+  --bg:#15131C; --paper:#24212E; --ink:#FFF8EC; --muted:#D9C9A8; --line:#4A3E2C; --edge:#0B0816;
   --outline:#0B0816; --dot:#2E271D; --band1:#7A5200; --band2:#7A2D50;
   --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:color-mix(in srgb,var(--sun) 28%,var(--paper)); --on-sun:#3A2600; --focus:#A28CFF;
   --u:#5B9BFF; --da:#FF6663; --h:#3FCB78;
@@ -460,17 +461,23 @@ h2{font-size:1.6rem}
 .wagon.full{border:2.5px solid var(--outline);background:color-mix(in srgb,var(--sun) 55%,var(--paper))}
 .emo{width:1em;height:1em;display:inline-block;vertical-align:-.12em}
 .menu{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
-.mtile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:170px;border:2.5px solid var(--outline);border-radius:24px;box-shadow:0 4px 0 var(--edge);padding:14px 10px;text-align:center}
-.mtile b{font-family:var(--f-display);font-size:1.7rem;line-height:1}
-.mtile small{font-size:1.05rem;line-height:1.2}
+.mtile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:200px;border:2.5px solid var(--outline);border-radius:24px;box-shadow:0 4px 0 var(--edge);padding:14px 10px;text-align:center}
+.mtile b{font-family:var(--f-display);font-size:2.1rem;font-weight:800;line-height:1}
+.mtile small{font-size:1.2rem;font-weight:700;line-height:1.2}
+/* icona grande in un cerchio bianco: si capisce cosa fa il riquadro anche senza leggere */
+.bic{position:relative;width:96px;height:96px;border-radius:50%;background:#FFFFFF;border:3px solid #1E1838;box-shadow:0 4px 0 rgba(30,24,56,.35);display:grid;place-items:center;flex:none}
+.bic>svg{width:58px;height:58px;color:var(--tile)}
+.bic-mini{position:absolute;right:-12px;bottom:-10px;width:46px;height:46px;border-radius:50%;background:#FFFFFF;border:2.5px solid #1E1838;display:grid;place-items:center;overflow:hidden}
+.bic-mini svg{width:40px;height:auto}
 .mt-art{display:flex;align-items:center;justify-content:center;gap:2px;min-height:76px}
 .mt-art svg{width:72px;height:auto}
 .mt-art .ic{width:46px;height:46px}
-.mt-play{background:linear-gradient(160deg,#FFD000,#FF9A2E)}
-.mt-voice{background:linear-gradient(160deg,#FF8FCF,#D46BFF)}
-.mt-prizes{background:linear-gradient(160deg,#FFE680,#FFC400)}
-.mt-grandi{background:linear-gradient(160deg,color-mix(in srgb,#9B6BFF 45%,var(--paper)),color-mix(in srgb,#9B6BFF 75%,var(--paper)))}
-.mtile b,.mtile small,.mtile .ic{color:#1E1838}
+.mt-play{--tile:var(--t1);background:var(--t1)}
+.mt-voice{--tile:var(--t2);background:var(--t2)}
+.mt-prizes{--tile:var(--t3);background:var(--t3)}
+.mt-grandi{--tile:var(--t4);background:var(--t4)}
+.mt-play b,.mt-play small{color:var(--tt1)} .mt-voice b,.mt-voice small{color:var(--tt2)} .mt-prizes b,.mt-prizes small{color:var(--tt3)} .mt-grandi b,.mt-grandi small{color:var(--tt4)}
+.mt-prizes .bic>svg{color:#E0A400}
 .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
 .tabs .chip{background:var(--paper);border:2.5px solid var(--outline)}
 .tabs .chip[aria-pressed="true"]{background:var(--sun);border-color:var(--outline);color:#1E1838}
@@ -534,6 +541,24 @@ th,td{font-size:1.1rem}
 .gbar .dots{flex:1 1 100%;order:9;margin-top:4px}
 .opt.word-opt{font-size:1.9rem}.opt.nome-opt{font-size:1.6rem}.opt.let-opt{font-size:2.6rem}.opt.vf{font-size:1.8rem}.opt.pic-opt{font-size:3.4rem}
 .games.home{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+ /* elenco dei giochi: una scheda grande per riga, personaggio in un cerchio bianco */
+#gamesList{grid-template-columns:1fr;gap:14px;max-width:720px;margin-inline:auto}
+@media (min-width:820px){#gamesList{grid-template-columns:1fr 1fr}}
+.gc-row{flex-direction:row!important;align-items:center!important;text-align:left!important;gap:14px;padding:14px 14px 14px 12px!important;min-height:132px;background:var(--sun)!important;border:2.5px solid var(--outline)!important}
+.gc-ic{width:104px;height:104px;flex:none;border-radius:50%;background:#FFFFFF;border:3px solid #1E1838;display:grid;place-items:center;box-shadow:0 4px 0 rgba(30,24,56,.3)}
+.gc-ic svg{width:84px;height:auto}
+.gc-txt{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.gc-txt b{font-family:var(--f-display);font-size:1.6rem;font-weight:800;line-height:1.05;color:#1E1838}
+.gc-txt small{font-size:1.15rem;font-weight:700;line-height:1.25;color:#1E1838}
+.gc-txt .gbest .ic{width:20px;height:20px;color:rgba(255,255,255,.75)}
+.gc-txt .gbest .ic.on{color:#1E1838}
+.gc-go{font-family:var(--f-display);font-size:3rem;font-weight:800;line-height:1;color:#1E1838;flex:none}
+/* pagina del gioco: testi piu' grandi */
+.gamehead p{font-size:1.45rem;font-weight:700;color:#1E1838}
+.gamehead .gc-ic svg{width:84px}
+.dbtn{font-size:1.6rem}
+.dbtn small{font-size:1.2rem;font-weight:700}
+.exbtn{font-size:1.3rem}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -549,10 +574,10 @@ th,td{font-size:1.1rem}
     </header>
     <p class="welcome" id="welcome"></p>
     <div class="menu">
-      <button class="mtile mt-play" id="mPlay"><span class="mt-art" id="mPlayArt"></span><b>Gioca</b><small>Lettere o numeri</small></button>
-      <button class="mtile mt-voice" id="mVoice"><span class="mt-art" id="mVoiceArt"></span><b>La voce</b><small id="mVoiceName"></small></button>
-      <button class="mtile mt-prizes" id="mPrizes"><span class="mt-art"><svg class="ic stel-ic" viewBox="0 0 24 24"><use href="#i-star"/></svg><svg class="ic comet-ic" viewBox="0 0 24 24"><use href="#i-comet"/></svg><svg class="ic sun-ic" viewBox="0 0 24 24"><use href="#i-sun"/></svg></span><b>I miei premi</b><small id="mPrizeTxt"></small></button>
-      <button class="mtile mt-grandi" id="toGrandi"><span class="mt-art"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span><b>Per i grandi</b><small>Impostazioni e risultati</small></button>
+      <button class="mtile mt-play" id="mPlay"><span class="bic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span><b>Gioca</b><small>Lettere o numeri</small><span class="mt-art" id="mPlayArt" hidden></span></button>
+      <button class="mtile mt-voice" id="mVoice"><span class="bic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4.5v15L7 15H3z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.2 5.8a8.8 8.8 0 0 1 0 12.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span class="bic-mini" id="mVoiceArt"></span></span><b>La voce</b><small id="mVoiceName"></small></button>
+      <button class="mtile mt-prizes" id="mPrizes"><span class="bic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span><b>I miei premi</b><small id="mPrizeTxt"></small></button>
+      <button class="mtile mt-grandi" id="toGrandi"><span class="bic"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6c.7.2 1.3.5 1.9.9l2.3-1.4 2.4 2.4-1.4 2.3c.4.6.7 1.2.9 1.9l2.6.5v3.4l-2.6.5c-.2.7-.5 1.3-.9 1.9l1.4 2.3-2.4 2.4-2.3-1.4c-.6.4-1.2.7-1.9.9l-.5 2.6h-3.4l-.5-2.6c-.7-.2-1.3-.5-1.9-.9l-2.3 1.4-2.4-2.4 1.4-2.3c-.4-.6-.7-1.2-.9-1.9L2 13.7v-3.4l2.6-.5c.2-.7.5-1.3.9-1.9L4.1 5.6l2.4-2.4 2.3 1.4c.6-.4 1.2-.7 1.9-.9zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg></span><b>Per i grandi</b><small>Impostazioni e risultati</small></button>
     </div>
   </section>
 
@@ -2359,7 +2384,7 @@ function renderHome() {
   const pc = save.settings.persona || 'cartoon';
   $('#voiceChips').innerHTML = persGrid(pc);
   $('#welcome').textContent = welcomeMsg();
-  window.gameCard = ([k, G]) => `<button class="gcard hero-${k}" data-g="${k}"><span class="gname"><span class="ghero">${heroSvg(k)}</span>${G.name}</span><span class="gdesc">${G.desc}</span><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></button>`;
+  window.gameCard = ([k, G]) => `<button class="gcard gc-row hero-${k}" data-g="${k}"><span class="gc-ic">${heroSvg(k)}</span><span class="gc-txt"><b>${G.name}</b><small>${G.desc}</small><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></span><span class="gc-go" aria-hidden="true">›</span></button>`;
   const minis = c => `<span class="mini">${Object.keys(GAMES).filter(k => GAMES[k].cat === c).map(heroSvg).join('')}</span>`;
   $('#artLet').innerHTML = toyBlocks(['A', 'B', 'C'], 'let') + minis('let'); $('#artMat').innerHTML = toyBlocks(['1', '2', '3'], 'mat') + minis('mat');
   $('#mPlayArt').innerHTML = heroSvg('cifre') + heroSvg('sillabe');
@@ -2398,7 +2423,7 @@ function renderCat() {
   const c = save.last.cat || 'mat', g = save.last.game;
   $('#catTitle').textContent = GAMES[g].name;
   document.documentElement.dataset.hero = g;
-  $('#gameHead').innerHTML = `${heroSvg(g)}<p>${GAMES[g].desc}. Scegli gli esercizi e la difficoltà, poi premi <b>Gioca!</b></p>`;
+  $('#gameHead').innerHTML = `<span class="gc-ic">${heroSvg(g)}</span><p>${GAMES[g].desc}</p>`;
   const on = save.last.types[g] || GAMES[g].types.map(t => t[0]);
   $('#exToggle').textContent = `${$('#typeChips').hidden ? 'Scegli gli esercizi' : 'Chiudi gli esercizi'} (${on.length} su ${GAMES[g].types.length})`;
   $('#typeChips').innerHTML = GAMES[g].types.map(([k, n]) => `<button class="chip" data-t="${k}" aria-pressed="${on.includes(k)}">${n}</button>`).join('');
