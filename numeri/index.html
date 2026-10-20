@@ -559,6 +559,36 @@ th,td{font-size:1.1rem}
 .dbtn{font-size:1.6rem}
 .dbtn small{font-size:1.2rem;font-weight:700}
 .exbtn{font-size:1.3rem}
+/* leggibilita' per un bambino di 6 anni, su ogni pagina */
+.gbar .pill[title="Punti"]{display:none}
+#streakPill:not(.hot){display:none}
+.gbar{flex-wrap:wrap;justify-content:space-between}
+.gbar .dots{flex:1 1 100%;order:9;justify-content:center;gap:8px;margin-top:8px}
+.dot{width:20px;height:20px}
+#stelPill{font-size:1.35rem;padding:8px 16px}
+@media (max-width:560px){.prompt .frogbox{display:none}.prompt{padding:14px 12px 14px 16px}}
+#say{width:54px;height:54px;flex:none}
+.opts{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:520px;margin:0 auto}
+.opts:has(> :nth-child(3):last-child),.opts:has(> :nth-child(5)){grid-template-columns:repeat(3,minmax(0,1fr))}
+.opts:has(.sent){grid-template-columns:1fr!important}
+.opts:has(.word-opt){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.opts:has(.word-opt) > .opt:last-child:nth-child(odd){grid-column:1/-1}
+.opt{min-width:0!important;width:100%;padding:12px 8px}
+.opt.shape-opt{width:100%;padding:12px}
+.opt.nome-opt{font-size:1.55rem}
+.opt.word-opt{font-size:1.6rem;overflow-wrap:anywhere}
+.aids{flex-wrap:nowrap;gap:6px}
+.aids .chip{font-size:.95rem;padding:4px 10px}
+.cv canvas{width:clamp(110px,38vw,190px)}
+.trace:has(.tc:nth-child(3)) .cv canvas{width:clamp(96px,28vw,160px)}
+.pcard b{font-size:1.45rem} .pcard small{font-size:1.15rem;font-weight:700}
+.pcard svg{width:96px}
+.bdg b{font-size:1.25rem} .bdg small{font-size:1.08rem;font-weight:700}
+#atText{font-size:1.45rem;font-weight:700}
+.news{font-size:1.3rem;font-weight:700}
+#resLine{font-size:1.4rem;font-weight:700}
+.note{font-size:1.2rem;font-weight:700;color:var(--ink)}
+.hint{font-size:1.3rem;color:#1E1838}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -1958,7 +1988,7 @@ const wordHTML = w => `<span class="w">${w.s.map(sylHTML).join('')}</span>`;
 const FONT_LBL = { maiu: 'ABC', mini: 'abc', cors: 'corsivo' };
 function aidsBar() {
   const r = RD();
-  return `<div class="aids"><button class="chip" data-aid="font" title="Cambia carattere">Aa: ${FONT_LBL[r.font]}</button><button class="chip" data-aid="colori" aria-pressed="${r.colori}">Sillabe a colori</button><button class="chip" data-aid="spazi" aria-pressed="${r.spazi}">Spazi larghi</button></div>`;
+  return `<div class="aids"><button class="chip" data-aid="font" title="Cambia carattere">Aa ${FONT_LBL[r.font]}</button><button class="chip" data-aid="colori" aria-pressed="${r.colori}" title="Sillabe a colori">Colori</button><button class="chip" data-aid="spazi" aria-pressed="${r.spazi}" title="Spazi larghi">Spazi</button></div>`;
 }
 function applyAids() {
   const c = aidCls().split(' ');
@@ -2201,7 +2231,7 @@ function qSenso(d) {
   const opts = [S[0], S[1]].concat(d > 0 ? [pick(SENSO.filter(x => x !== S))[1]] : []);
   let op;
   return Q({ text: 'Quale frase ha senso?', say: 'Leggi le frasi e tocca quella che ha senso.',
-    mount(st, ct) { st.innerHTML = `${aidsBar()}<div class="pic" aria-hidden="true">🤔</div>`; op = choiceUI(ct, shuffle(opts.map((t, k) => ({ k: String(k), html: `<span class="rd ${aidCls()}">${wordsHTML(t)}</span>`, cls: 'nome-opt' }))), '0', async () => { say(S[0]); await sleep(700); }); },
+    mount(st, ct) { st.innerHTML = `${aidsBar()}<div class="pic" aria-hidden="true">🤔</div>`; op = choiceUI(ct, shuffle(opts.map((t, k) => ({ k: String(k), html: `<span class="rd ${aidCls()}">${wordsHTML(t)}</span>`, cls: 'nome-opt sent' }))), '0', async () => { say(S[0]); await sleep(700); }); },
     reveal() { op.reveal(); say(S[0]); } });
 }
 function qPezzi(d) {
@@ -2209,7 +2239,7 @@ function qPezzi(d) {
   const others = shuffle(PEZZI.filter(x => x[0] !== P[0])).slice(0, d === 0 ? 2 : 3).map(x => x[1]);
   let op, st0;
   return Q({ text: 'Come finisce la frase?', say: `Come finisce la frase? ${P[0]}...`,
-    mount(st, ct) { st0 = st; st.innerHTML = `${aidsBar()}<div data-l>${lineHTML(P[0] + ' ...')}</div>`; op = choiceUI(ct, shuffle([P[1], ...others]).map(t => ({ k: t, html: `<span class="rd ${aidCls()}">${wordsHTML(t)}</span>`, cls: 'nome-opt' })), P[1], async () => { $('[data-l]', st).innerHTML = lineHTML(P[0] + ' ' + P[1]); say(P[0] + ' ' + P[1]); await sleep(700); }); },
+    mount(st, ct) { st0 = st; st.innerHTML = `${aidsBar()}<div data-l>${lineHTML(P[0] + ' ...')}</div>`; op = choiceUI(ct, shuffle([P[1], ...others]).map(t => ({ k: t, html: `<span class="rd ${aidCls()}">${wordsHTML(t)}</span>`, cls: 'nome-opt sent' })), P[1], async () => { $('[data-l]', st).innerHTML = lineHTML(P[0] + ' ' + P[1]); say(P[0] + ' ' + P[1]); await sleep(700); }); },
     reveal() { op.reveal(); $('[data-l]', st0).innerHTML = lineHTML(P[0] + ' ' + P[1]); say(P[0] + ' ' + P[1]); } });
 }
 function qCompleta(d) {
@@ -2217,7 +2247,7 @@ function qCompleta(d) {
   const full = w => C[0].replace(/'___/, "'" + w).replace('___', w);
   let op, st0;
   return Q({ text: 'Completa la frase', say: 'Leggi la frase e scegli la parola che manca.',
-    mount(st, ct) { st0 = st; st.innerHTML = `${aidsBar()}<div data-l><p class="frase rd ${aidCls()}">${wordsHTML(C[0]).replace(/_+/, '<span class="blank">?</span>')}</p></div>`; op = choiceUI(ct, shuffle([C[1], ...C[2]]).map(w => ({ k: w, html: letHTML(w), cls: 'word-opt' })), C[1], async () => { $('[data-l]', st).innerHTML = lineHTML(full(C[1])); say(full(C[1])); await sleep(700); }); },
+    mount(st, ct) { st0 = st; st.innerHTML = `${aidsBar()}<div data-l><p class="frase rd ${aidCls()}">${C[0].split(' ').map(w => w.includes('___') ? (w.split('___')[0] ? `<span data-raw="${w.split('___')[0]}">${caseT(w.split('___')[0])}</span>` : '') + '<span class="blank">?</span>' + `<span data-raw="${w.split('___')[1]}">${caseT(w.split('___')[1])}</span>` : `<span data-raw="${w}" data-sy="${plain(w)}">${caseT(w)}</span>`).join(' ')}</p></div>`; op = choiceUI(ct, shuffle([C[1], ...C[2]]).map(w => ({ k: w, html: letHTML(w), cls: 'word-opt' })), C[1], async () => { $('[data-l]', st).innerHTML = lineHTML(full(C[1])); say(full(C[1])); await sleep(700); }); },
     reveal() { op.reveal(); $('[data-l]', st0).innerHTML = lineHTML(full(C[1])); say(full(C[1])); } });
 }
 function qOrdina(d) {
