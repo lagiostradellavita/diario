@@ -435,6 +435,22 @@ h2{font-size:1.6rem}
 .wagon::before{left:8px} .wagon::after{right:8px}
 .wagon.full{border:2.5px solid var(--outline);background:color-mix(in srgb,var(--sun) 55%,var(--paper))}
 .emo{width:1em;height:1em;display:inline-block;vertical-align:-.12em}
+.menu{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.mtile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:170px;border:2.5px solid var(--outline);border-radius:24px;box-shadow:0 4px 0 var(--edge);padding:14px 10px;text-align:center}
+.mtile b{font-family:var(--f-display);font-size:1.7rem;line-height:1}
+.mtile small{font-size:1.05rem;line-height:1.2}
+.mt-art{display:flex;align-items:center;justify-content:center;gap:2px;min-height:76px}
+.mt-art svg{width:72px;height:auto}
+.mt-art .ic{width:46px;height:46px}
+.mt-play{background:linear-gradient(160deg,#FFD000,#FF9A2E)}
+.mt-voice{background:linear-gradient(160deg,#FF8FCF,#D46BFF)}
+.mt-prizes{background:linear-gradient(160deg,#FFE680,#FFC400)}
+.mt-grandi{background:linear-gradient(160deg,color-mix(in srgb,#9B6BFF 45%,var(--paper)),color-mix(in srgb,#9B6BFF 75%,var(--paper)))}
+.mtile b,.mtile small,.mtile .ic{color:#1E1838}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+.tabs .chip{background:var(--paper);border:2.5px solid var(--outline)}
+.tabs .chip[aria-pressed="true"]{background:var(--sun);border-color:var(--outline);color:#1E1838}
+.exbtn{margin-top:14px;width:100%;font-size:1.15rem}
 .dom{font-family:var(--f-display);font-weight:700;font-size:1.7rem;text-align:center;margin:0}
 .pic-opt{font-size:3.4rem;min-width:110px;padding:8px 14px}
 .word-opt{font-size:2.3rem}
@@ -497,48 +513,49 @@ th,td{font-size:1.1rem}
 <div id="app">
   <section id="home">
     <header class="hero">
-      <div class="me"><button class="av sm" id="meAv" aria-label="Modifica il profilo"></button><button class="btn" id="switchBtn">Cambia giocatore</button><div class="team" id="team" style="margin-left:auto"></div></div>
+      <div class="me"><button class="av sm" id="meAv" aria-label="Modifica il profilo"></button><button class="btn" id="switchBtn">Cambia giocatore</button></div>
       <div class="who">
         <p class="hello">Ciao <span id="hiName">campione</span>!</p>
         <div class="lvl"><span class="badge-l">Livello <span id="lvlN">1</span></span><div class="xpbar"><i id="xpFill"></i></div></div>
         <div class="xptxt" id="xpTxt"></div>
       </div>
-      <div class="tally">
-        <span class="pill" title="Stelline raccolte"><svg class="ic stel-ic" viewBox="0 0 24 24"><use href="#i-star"/></svg><b id="starTot">0</b> stelline</span>
-        <span class="pill" title="Stelle comete vinte"><svg class="ic comet-ic" viewBox="0 0 24 24"><use href="#i-comet"/></svg><b id="cometTot">0</b> comete</span>
-        <span class="pill" title="Soli vinti: uno ogni 10 comete"><svg class="ic sun-ic" viewBox="0 0 24 24"><use href="#i-sun"/></svg><b id="sunTot">0</b> soli</span>
-        <span class="pill" title="Risposte giuste di fila, record"><svg class="ic" viewBox="0 0 24 24"><use href="#i-flame"/></svg>record <b id="bestStreak">0</b></span>
-      </div>
     </header>
     <p class="welcome" id="welcome"></p>
-    <h2>1. Chi ti legge le domande?</h2>
-    <div class="voices" id="voiceChips"></div>
-    <h2>2. A cosa vuoi giocare?</h2>
-    <div class="cats">
+    <div class="menu">
+      <button class="mtile mt-play" id="mPlay"><span class="mt-art" id="mPlayArt"></span><b>Gioca</b><small>Italiano o matematica</small></button>
+      <button class="mtile mt-voice" id="mVoice"><span class="mt-art" id="mVoiceArt"></span><b>La voce</b><small id="mVoiceName"></small></button>
+      <button class="mtile mt-prizes" id="mPrizes"><span class="mt-art"><svg class="ic stel-ic" viewBox="0 0 24 24"><use href="#i-star"/></svg><svg class="ic comet-ic" viewBox="0 0 24 24"><use href="#i-comet"/></svg><svg class="ic sun-ic" viewBox="0 0 24 24"><use href="#i-sun"/></svg></span><b>I miei premi</b><small id="mPrizeTxt"></small></button>
+      <button class="mtile mt-grandi" id="toGrandi"><span class="mt-art"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span><b>Per i grandi</b><small>Impostazioni e risultati</small></button>
+    </div>
+  </section>
+
+  <section id="scelta" hidden>
+    <div class="top"><button class="btn icon back" aria-label="Indietro"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>A cosa vuoi giocare?</h1></div>
+    <div class="cats" style="margin-top:16px">
       <button class="cat cat-let" data-cat="let"><span class="cat-art" id="artLet"></span><span class="cat-name">Italiano</span><span class="cat-desc">Leggere, lettere, sillabe e frasi</span></button>
       <button class="cat cat-mat" data-cat="mat"><span class="cat-art" id="artMat"></span><span class="cat-name">Matematica</span><span class="cat-desc">Numeri, conti e forme</span></button>
     </div>
-    <div class="goal"><div class="gdots" id="goalDots"></div><span id="goalTxt"></span></div>
-    <div class="cometbox"><span id="cometTxt"></span><div class="slots" id="slots" aria-hidden="true"></div></div>
-    <nav class="foot">
-      <button class="btn" id="toAlbum">Album dei premi</button>
-      <button class="btn" id="toGrandi">Per i grandi</button>
-    </nav>
+  </section>
+
+  <section id="voce" hidden>
+    <div class="top"><button class="btn icon back" aria-label="Indietro"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>Chi ti legge le domande?</h1></div>
+    <p class="note">Tocca un personaggio per sentire la sua voce.</p>
+    <div class="voices" id="voiceChips" style="margin-top:12px"></div>
   </section>
 
   <section id="lista" hidden>
-    <div class="top"><button class="btn icon back" aria-label="Torna alla prima pagina"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1 id="listTitle"></h1></div>
+    <div class="top"><button class="btn icon" id="listBack" aria-label="Torna alla scelta"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1 id="listTitle"></h1></div>
     <div class="games home" id="gamesList" style="margin-top:16px"></div>
   </section>
 
   <section id="cat" hidden>
     <div class="top"><button class="btn icon" id="catBack" aria-label="Torna ai giochi"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1 id="catTitle"></h1></div>
     <div class="gamehead" id="gameHead"></div>
-    <h2>Esercizi</h2>
-    <div class="chips" id="typeChips"></div>
     <h2>Difficoltà</h2>
     <div class="diffs" id="diffBtns"></div>
     <button class="btn go play" id="play">Gioca!</button>
+    <button class="btn exbtn" id="exToggle" aria-expanded="false"></button>
+    <div class="chips" id="typeChips" hidden style="margin-top:12px"></div>
   </section>
 
   <section id="game" hidden>
@@ -594,30 +611,40 @@ th,td{font-size:1.1rem}
         <label for="pfClasse">Classe<select id="pfClasse"><option value="">–</option><option>Scuola dell'infanzia</option><option>1ª primaria</option><option>2ª primaria</option><option>3ª primaria</option><option>4ª primaria</option><option>5ª primaria</option></select></label>
       </div>
       <div><b>Sei un bambino o una bambina?</b><div class="seg" id="pfGen" style="margin-top:8px"><button class="btn" type="button" data-gen="m">Bambino</button><button class="btn" type="button" data-gen="f">Bambina</button></div></div>
-      <div><b>Chi ti legge le domande?</b><div class="voices" id="pfVoices" style="margin-top:10px"></div></div>
+      <div id="pfVoices" hidden></div>
       <button class="btn go" type="button" id="pfSave" style="font-size:1.6rem">Salva</button>
       <button class="btn danger" type="button" id="pfDel">Elimina questo profilo</button>
     </div>
   </section>
 
   <section id="album" hidden>
-    <div class="top"><button class="btn icon back" aria-label="Torna al menu"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>Album dei premi</h1></div>
-    <h2>Traguardi</h2>
-    <div class="badges" id="badgeGrid"></div>
-    <h2>Soli</h2>
-    <p class="note">Ogni 10 stelle comete arriva un sole.</p>
-    <div class="comets" id="sunGrid" style="margin-top:10px"></div>
-    <h2>Stelle comete</h2>
-    <p class="note">Ogni 20 stelline arriva una stella cometa.</p>
-    <div class="comets" id="cometGrid" style="margin-top:10px"></div>
-    <h2>Adesivi</h2>
-    <p class="note">Ogni livello nuovo regala un adesivo.</p>
-    <div class="stickers" id="stickerGrid" style="margin-top:10px"></div>
+    <div class="top"><button class="btn icon back" aria-label="Indietro"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>I miei premi</h1></div>
+    <div class="tally" style="margin-top:12px">
+      <span class="pill"><svg class="ic stel-ic" viewBox="0 0 24 24"><use href="#i-star"/></svg><b id="starTot">0</b> stelline</span>
+      <span class="pill"><svg class="ic comet-ic" viewBox="0 0 24 24"><use href="#i-comet"/></svg><b id="cometTot">0</b> comete</span>
+      <span class="pill"><svg class="ic sun-ic" viewBox="0 0 24 24"><use href="#i-sun"/></svg><b id="sunTot">0</b> soli</span>
+      <span class="pill"><svg class="ic" viewBox="0 0 24 24"><use href="#i-flame"/></svg>record <b id="bestStreak">0</b></span>
+    </div>
+    <div class="tabbed">
+      <div class="tabs"><button class="chip" data-tab="oggi" aria-pressed="true">Oggi</button><button class="chip" data-tab="cielo" aria-pressed="false">Comete e soli</button><button class="chip" data-tab="trag" aria-pressed="false">Traguardi</button><button class="chip" data-tab="ades" aria-pressed="false">Adesivi</button></div>
+      <div data-panel="oggi">
+        <div class="goal"><div class="gdots" id="goalDots"></div><span id="goalTxt"></span></div>
+        <div class="cometbox"><span id="cometTxt"></span><div class="slots" id="slots" aria-hidden="true"></div></div>
+      </div>
+      <div data-panel="cielo" hidden>
+        <h2>Soli</h2><p class="note">Ogni 10 stelle comete arriva un sole.</p><div class="comets" id="sunGrid" style="margin-top:10px"></div>
+        <h2>Stelle comete</h2><p class="note">Ogni 20 stelline arriva una stella cometa.</p><div class="comets" id="cometGrid" style="margin-top:10px"></div>
+      </div>
+      <div data-panel="trag" hidden><div class="badges" id="badgeGrid" style="margin-top:12px"></div></div>
+      <div data-panel="ades" hidden><p class="note">Ogni livello nuovo regala un adesivo.</p><div class="stickers" id="stickerGrid" style="margin-top:10px"></div></div>
+    </div>
   </section>
 
   <section id="grandi" hidden>
     <div class="top"><button class="btn icon back" aria-label="Torna al menu"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1>Per i grandi</h1></div>
-    <h2>Impostazioni</h2>
+    <div class="tabbed">
+    <div class="tabs"><button class="chip" data-tab="imp" aria-pressed="true">Impostazioni</button><button class="chip" data-tab="ris" aria-pressed="false">Risultati</button><button class="chip" data-tab="come" aria-pressed="false">Come funziona</button></div>
+    <div data-panel="imp">
     <div class="form">
       <label class="sw"><input type="checkbox" id="optVoice"> Leggi le domande ad alta voce</label>
       <label class="sw"><input type="checkbox" id="optSound"> Suoni</label>
@@ -625,21 +652,26 @@ th,td{font-size:1.1rem}
         <select id="optLen"><option value="5">5</option><option value="8">8</option><option value="10">10</option></select>
       </label>
     </div>
+    <button class="btn danger" id="resetBtn">Azzera i progressi</button>
+    </div>
+    <div data-panel="ris" hidden>
     <h2>Tutti i bambini</h2>
     <div class="tablewrap"><table id="kidsTable"></table></div>
     <h2 id="statTitle">Come sta andando</h2>
     <div class="tablewrap"><table id="statTable"></table></div>
-    <h2>Come funziona</h2>
-    <div class="prose">
+    </div>
+    <div data-panel="come" hidden>
+    <div class="prose" style="margin-top:12px">
       <p><b>I colori sono sempre gli stessi</b>: unità in blu, decine in rosso, centinaia in verde, sui numeri della linea, nelle domande, nei blocchi e nelle caselle. Il resto dell'app usa il giallo, così i tre colori restano legati solo al valore posizionale.</p>
       <p><b>Le regole del gioco.</b> Ogni risposta giusta dà punti (di più in Medio e Difficile); ogni 3 risposte giuste arriva una stellina, ogni 20 stelline una stella cometa e ogni 10 comete un sole. Le stelline restano anche se la partita si interrompe a metà. Inoltre tre giuste di fila accendono la fiamma e danno un bonus. Se sbaglia può riprovare una volta; poi l'app mostra la soluzione. I punti non si perdono mai. A fine partita arrivano da 1 a 3 stelle, i punti fanno salire di livello e ogni livello sblocca un adesivo. I traguardi premiano costanza e coraggio, e c'è un obiettivo di 3 partite al giorno.</p>
       <p><b>Più e meno</b> usa la cornice del 10: i pallini gialli sono il primo numero, quelli viola il secondo, quelli barrati sono tolti. In Difficile si passa alle barre rosse delle decine e ai cubetti blu delle unità. «Aiutino» mostra i pallini senza togliere punti.</p>
-      <p><b>Le voci</b> (cartone animato, maestra precisa, nonno gentile, robot, supereroe, fatina) si scelgono nella prima pagina. Cambiano tono, velocità e frasi; la voce di base è quella del dispositivo e si sceglie qui sopra. Le più naturali si chiamano spesso «Natural», «Avanzata» o «Google italiano».</p>
+      <p><b>Le voci</b> (cartone animato, maestra precisa, nonno gentile, robot, supereroe, fatina) si scelgono dalla prima pagina, con «La voce». Cambiano tono, velocità e frasi; la voce di base è quella del dispositivo e si sceglie qui sopra. Le più naturali si chiamano spesso «Natural», «Avanzata» o «Google italiano».</p>
       <p><b>Lettura.</b> Le parole si leggono in STAMPATELLO MAIUSCOLO, in minuscolo o in corsivo, con le sillabe colorate a coppie (arancio e viola) e spazi più larghi a richiesta: i pulsanti stanno sopra ogni esercizio. Toccando una sillaba la voce la legge. In «Leggo da solo» il pulsante «Leggi con me» legge la frase una parola per volta, accendendola.</p>
       <p><b>Più bambini.</b> Ognuno ha il suo profilo, con foto, nome, cognome, età e classe, e i suoi premi e risultati. Si cambia con «Cambia giocatore» in alto nella prima pagina; la foto in alto apre il profilo. Bambino o bambina serve per dire «bravo» o «brava».</p>
       <p>I profili, le foto e i risultati restano salvati solo su questo dispositivo, in questo browser: non vengono mandati da nessuna parte. Se si cancellano i dati del browser si perdono.</p>
     </div>
-    <button class="btn danger" id="resetBtn">Azzera i progressi</button>
+    </div>
+    </div>
   </section>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -755,7 +787,6 @@ const ENGINE = `<g><path d="M-6 -22 q-6 -4 -2 -9 q6 -3 9 1 q6 -2 7 4" fill="#FFF
   ${[-18, -2, 16].map(x => `<circle cx="${x}" cy="20" r="6.5" fill="#2A2346"/><circle cx="${x}" cy="20" r="2.5" fill="#FFD000"/>`).join('')}</g>`;
 const HEROES = { treno: { name: 'Ciuf', art: ENGINE }, lettere: { name: 'Leo', art: LION }, sillabe: { name: 'Olga', art: OWL }, leggo: { name: 'Pio', art: CHICK }, frasi: { name: 'Gigi', art: GIRAFFE }, italiano: { name: 'Otto', art: OCTO }, forme: { name: 'Tina', art: TURTLE }, l20: { name: 'Bobo', art: PUP }, l100: { name: 'Zip', art: HEDGE }, cifre: { name: 'Saltino', art: FROG }, calc: { name: 'Lola', art: BUNNY } };
 const heroSvg = k => `<svg viewBox="-34 -33 68 60" aria-hidden="true">${HEROES[k].art}</svg>`;
-$('#team').innerHTML = ['l20', 'cifre', 'sillabe', 'calc', 'l100'].map(heroSvg).join('');
 
 /* ---------- numeri in parole e in colore ---------- */
 const UN = ['zero','uno','due','tre','quattro','cinque','sei','sette','otto','nove','dieci','undici','dodici','tredici','quattordici','quindici','sedici','diciassette','diciotto','diciannove'];
@@ -2140,6 +2171,9 @@ function renderHome() {
   window.gameCard = ([k, G]) => `<button class="gcard hero-${k}" data-g="${k}"><span class="gname"><span class="ghero">${heroSvg(k)}</span>${G.name}</span><span class="gdesc">${G.desc}</span><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></button>`;
   const minis = c => `<span class="mini">${Object.keys(GAMES).filter(k => GAMES[k].cat === c).map(heroSvg).join('')}</span>`;
   $('#artLet').innerHTML = minis('let'); $('#artMat').innerHTML = minis('mat');
+  $('#mPlayArt').innerHTML = heroSvg('cifre') + heroSvg('sillabe');
+  $('#mVoiceArt').innerHTML = persSvg(pc); $('#mVoiceName').textContent = PERSONAS[pc].name;
+  $('#mPrizeTxt').textContent = `${sl} stelline · ${nc} comete`;
 }
 function renderList() {
   const c = save.last.cat || 'mat';
@@ -2151,7 +2185,7 @@ function welcomeMsg() {
   const nm = prof.info.nome ? ' ' + prof.info.nome : '';
   return save.rounds ? `Ciao${nm}, ${gx('bentornato', 'bentornata')}! A cosa vuoi giocare oggi?` : `Ciao${nm}, ${gx('benvenuto', 'benvenuta')}! A cosa vuoi giocare oggi?`;
 }
-const openGame = k => { save.last.game = k; save.last.cat = GAMES[k].cat; persist(); renderCat(); show('cat'); };
+const openGame = k => { $('#typeChips').hidden = true; save.last.game = k; save.last.cat = GAMES[k].cat; persist(); renderCat(); show('cat'); };
 function openCat(c) {
   save.last.cat = c; save.last.gameBy = save.last.gameBy || {};
   if (!GAMES[save.last.game] || GAMES[save.last.game].cat !== c) save.last.game = save.last.gameBy[c] || Object.keys(GAMES).find(k => GAMES[k].cat === c);
@@ -2163,6 +2197,7 @@ function renderCat() {
   document.documentElement.dataset.hero = g;
   $('#gameHead').innerHTML = `${heroSvg(g)}<p>${GAMES[g].desc}. Scegli gli esercizi e la difficoltà, poi premi <b>Gioca!</b></p>`;
   const on = save.last.types[g] || GAMES[g].types.map(t => t[0]);
+  $('#exToggle').textContent = `${$('#typeChips').hidden ? 'Scegli gli esercizi' : 'Chiudi gli esercizi'} (${on.length} su ${GAMES[g].types.length})`;
   $('#typeChips').innerHTML = GAMES[g].types.map(([k, n]) => `<button class="chip" data-t="${k}" aria-pressed="${on.includes(k)}">${n}</button>`).join('');
   $('#diffBtns').innerHTML = DIFF.map((n, d) => `<button class="dbtn ${d === save.last.diff ? 'sel' : ''}" data-d="${d}" aria-pressed="${d === save.last.diff}"><span class="pips">${[0, 1, 2].map(i => `<i class="${i <= d ? 'on' : ''}"></i>`).join('')}</span>${n}<small>${GAMES[g].diffs[d]}</small></button>`).join('');
 }
@@ -2245,7 +2280,18 @@ $('#nextBtn').onclick = () => nextQ();
 $('#again').onclick = () => startRound();
 $('#menu').onclick = () => { renderCat(); show('cat'); };
 $$('.back').forEach(b => b.onclick = () => { renderHome(); show('home'); });
-$('#toAlbum').onclick = () => { renderAlbum(); show('album'); };
+$('#mPlay').onclick = () => { SND.tick(); show('scelta'); if (save.settings.voice) say('Vuoi giocare con l\'italiano o con la matematica?'); };
+$('#mVoice').onclick = () => { SND.tick(); renderHome(); show('voce'); };
+$('#mPrizes').onclick = () => { SND.tick(); renderHome(); renderAlbum(); show('album'); };
+$('#listBack').onclick = () => show('scelta');
+$('#exToggle').onclick = () => { const c = $('#typeChips'); c.hidden = !c.hidden; $('#exToggle').setAttribute('aria-expanded', String(!c.hidden)); renderCat(); };
+// schede: una sola sezione visibile per volta
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-tab]'); if (!t) return;
+  const box = t.closest('.tabbed');
+  $$('[data-tab]', box).forEach(b => b.setAttribute('aria-pressed', String(b === t)));
+  $$('[data-panel]', box).forEach(pn => pn.hidden = pn.dataset.panel !== t.dataset.tab);
+});
 $('#toGrandi').onclick = () => { renderGrandi(); show('grandi'); };
 document.addEventListener('keydown', e => { if (run && run.keys && !$('#game').hidden && !e.target.closest('input,select')) run.keys(e); });
 
@@ -2262,8 +2308,10 @@ function renderGrandi() {
   const rows = [];
   for (const g of Object.keys(GAMES)) for (const d of [0, 1, 2]) {
     const s = statOf(g, d);
+    if (!s.r) continue;
     rows.push(`<tr><td>${GAMES[g].name}</td><td>${DIFF[d]}</td><td class="n">${s.r}</td><td class="n">${s.t ? Math.round(100 * s.c / s.t) + '%' : '–'}</td><td>${s.r ? `<span class="gbest">${miniStars(s.best)}</span>` : '–'}</td></tr>`);
   }
+  if (!rows.length) rows.push('<tr><td colspan="5">Non ha ancora finito nessuna partita.</td></tr>');
   $('#statTable').innerHTML = `<thead><tr><th>Gioco</th><th>Difficoltà</th><th>Partite</th><th>Giuste al 1° colpo</th><th>Migliore</th></tr></thead><tbody>${rows.join('')}</tbody>`;
   $('#statTitle').textContent = `Come sta andando ${prof.info.nome || 'questo giocatore'}`;
   const krows = store.profiles.map(p => {
