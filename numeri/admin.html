@@ -50,6 +50,7 @@ button,input{font:inherit;color:inherit}
 .pw{margin-top:8px;font-weight:700}
 .pw code{font-size:1.2rem;background:var(--bg);padding:2px 8px;border-radius:8px;user-select:all}
 .empty{color:var(--muted)}
+.linkbtn{background:none;border:0;padding:2px 0;font-weight:700;text-decoration:underline;color:var(--ink);cursor:pointer;align-self:flex-start}
 .alert{margin-top:16px;background:#FF9A2E;color:#1E1838;font-weight:700;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .tablewrap{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;min-width:520px}
@@ -70,6 +71,15 @@ th{font-family:var(--f-display);color:var(--muted)}
     <label for="pw">Password<input id="pw" type="password" autocomplete="current-password"></label>
     <p class="msg" id="lmsg" hidden></p>
     <button class="btn go" type="submit">Entra</button>
+    <button class="linkbtn" type="button" id="lost">Password dimenticata?</button>
+  </form>
+
+  <form class="card form" id="nuova" novalidate hidden>
+    <p style="margin:0"><b>Scegli la password nuova</b> dell'amministratore (vale anche per il Diario).</p>
+    <label for="np1">Password nuova (almeno 8 caratteri)<input id="np1" type="password" autocomplete="new-password"></label>
+    <label for="np2">Riscrivila<input id="np2" type="password" autocomplete="new-password"></label>
+    <p class="msg" id="nmsg" hidden></p>
+    <button class="btn go" type="submit">Salva la password</button>
   </form>
 
   <div id="panel" hidden>
@@ -179,7 +189,29 @@ function mailInfo() {
 // la pagina aperta controlla da sola ogni minuto se sono arrivate richieste
 setInterval(function () { if (tok && !document.hidden) load(); }, 60000);
 var _load = load; load = function () { var r = _load(); mailInfo(); return r; };
-if (tok) load();
+// password dimenticata: link via email; il link riporta qui con ?recupero=
+var recCode = null; try { var m = location.search.match(/[?&]recupero=([^&#]+)/); if (m) recCode = decodeURIComponent(m[1]); } catch (e) {}
+$('#lost').onclick = function () {
+  var em = $('#em').value.trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return msg('Scrivi prima la tua email qui sopra, poi tocca di nuovo «Password dimenticata?»');
+  msg('Invio...');
+  api('/auth/recupero', { method: 'POST', body: JSON.stringify({ email: em, dove: 'backoffice' }) }).then(function (r) {
+    msg(r.posta ? 'Se l\u2019email è quella dell\u2019amministratore, ti è arrivato un link: aprilo entro un\u2019ora.' : 'L\u2019invio delle email non è ancora attivo. Per rientrare: su Render, servizio diario-salute-api, scheda Environment, aggiungi ADMIN_NUOVA_PASSWORD con la password che vuoi; dopo il riavvio entra con quella e poi cancella la variabile.');
+  }).catch(function (x) { msg(x.status ? x.message : 'Non riesco a collegarmi al server'); });
+};
+$('#nuova').addEventListener('submit', function (e) {
+  e.preventDefault();
+  var n = $('#np1').value, nm = function (t) { $('#nmsg').textContent = t; $('#nmsg').hidden = !t; };
+  if (n.length < 8) return nm('La password deve avere almeno 8 caratteri');
+  if (n !== $('#np2').value) return nm('Le due password non sono uguali');
+  nm('Salvo...');
+  api('/auth/recupero/conferma', { method: 'POST', body: JSON.stringify({ codice: recCode, nuova: n }) }).then(function (r) {
+    recCode = null; try { history.replaceState(null, '', location.pathname); } catch (x) {}
+    $('#nuova').hidden = true; $('#login').hidden = false; $('#em').value = r.email || ''; msg('Password cambiata: entra con quella nuova.');
+  }).catch(function (x) { nm(x.status ? x.message : 'Non riesco a collegarmi al server'); });
+});
+if (recCode) { $('#login').hidden = true; $('#nuova').hidden = false; }
+else if (tok) load();
 </script>
 </body>
 </html>

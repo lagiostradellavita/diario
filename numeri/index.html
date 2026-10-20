@@ -475,6 +475,8 @@ h2{font-size:1.6rem}
 .tabs .chip{background:var(--paper);border:2.5px solid var(--outline)}
 .tabs .chip[aria-pressed="true"]{background:var(--sun);border-color:var(--outline);color:#1E1838}
 .msg{margin:0;font-weight:700;color:var(--sun-deep)}
+.lost{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0}
+.linkbtn{background:none;border:0;padding:4px 0;font-weight:700;text-decoration:underline;color:var(--ink);cursor:pointer;font-size:1.05rem}
 .exbtn{margin-top:14px;width:100%;font-size:1.15rem}
 .dom{font-family:var(--f-display);font-weight:700;font-size:1.7rem;text-align:center;margin:0}
 .pic-opt{font-size:3.4rem;min-width:110px;padding:8px 14px}
@@ -623,6 +625,7 @@ th,td{font-size:1.1rem}
         <label for="inPw">Password<input type="password" id="inPw" autocomplete="current-password"></label>
         <p class="msg" id="inMsg" hidden></p>
         <button class="btn go" type="submit" style="font-size:1.5rem">Entra</button>
+        <p class="lost"><button class="linkbtn" type="button" id="lostPw">Password dimenticata?</button><button class="linkbtn" type="button" id="lostEm">Email dimenticata?</button></p>
       </form>
       <form class="form" data-panel="reg" id="fReg" hidden novalidate>
         <p class="note" style="margin:0">Compila la richiesta: l'amministratore la controlla e ti abilita. Poi entri con email e password.</p>
@@ -636,6 +639,29 @@ th,td{font-size:1.1rem}
         <button class="btn go" type="submit" style="font-size:1.4rem">Invia la richiesta</button>
       </form>
     </div>
+  </section>
+
+  <section id="recupero" hidden>
+    <div class="top"><button class="btn icon" id="recBack" aria-label="Torna all'accesso"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1 id="recTitle"></h1></div>
+    <form class="form" id="fLost" novalidate style="margin-top:14px">
+      <p class="note" style="margin:0">Scrivi l'email con cui ti sei registrato: ti mandiamo un link per scegliere una password nuova.</p>
+      <label for="lostEmail">Email<input type="text" id="lostEmail" inputmode="email" autocomplete="email"></label>
+      <p class="msg" id="lostMsg" hidden></p>
+      <button class="btn go" type="submit">Mandami il link</button>
+    </form>
+    <form class="form" id="fRem" novalidate hidden style="margin-top:14px">
+      <p class="note" style="margin:0">Scrivi il nome e il telefono che hai messo nella richiesta d'accesso: ti mostriamo l'email, in parte nascosta.</p>
+      <label for="remNome">Nome e cognome<input type="text" id="remNome" autocomplete="name"></label>
+      <label for="remTel">Telefono<input type="text" id="remTel" inputmode="tel" autocomplete="tel"></label>
+      <p class="msg" id="remMsg" hidden></p>
+      <button class="btn go" type="submit">Cerca la mia email</button>
+    </form>
+    <form class="form" id="fNew" novalidate hidden style="margin-top:14px">
+      <label for="newPw">Password nuova (almeno 8 caratteri)<input type="password" id="newPw" autocomplete="new-password"></label>
+      <label for="newPw2">Riscrivila<input type="password" id="newPw2" autocomplete="new-password"></label>
+      <p class="msg" id="newMsg" hidden></p>
+      <button class="btn go" type="submit">Salva la password</button>
+    </form>
   </section>
 
   <section id="attesa" hidden>
@@ -930,8 +956,9 @@ function logout() {
   setToken(null);
   // sul tablet non restano i bambini della famiglia che esce
   try { localStorage.removeItem(STORE_KEY); localStorage.removeItem(KEY); } catch (e) {}
-  setStore(loadStore()); show('accesso');
+  setStore(loadStore()); toLogin();
 }
+function toLogin() { show('accesso'); const t = $('#accesso [data-tab="in"]'); if (t) t.click(); }
 function attesa(kind, extra) {
   $('#atHero').innerHTML = heroSvg(kind === 'rete' ? 'l100' : 'sillabe');
   const T = {
@@ -951,6 +978,7 @@ function gateFrom(e) {
 function startApp() { renderHome(); if (store.profiles.length > 1) { renderWho(); show('who'); } else show('home'); }
 async function boot() {
   if (!API_BASE) return startApp();
+  if (recCode) return openRec('nuova');
   if (!token) return show('accesso');
   attesa('collego');
   try {
@@ -2494,6 +2522,49 @@ function confetti() {
 }
 
 $('#atRetry').onclick = () => boot();
+// password ed email dimenticate
+let recCode = null;
+try { const m = location.search.match(/[?&]recupero=([^&#]+)/); if (m) recCode = decodeURIComponent(m[1]); } catch (e) {}
+function openRec(kind) {
+  $('#recTitle').textContent = { pw: 'Password dimenticata', em: 'Email dimenticata', nuova: 'Scegli la password nuova' }[kind];
+  $('#fLost').hidden = kind !== 'pw'; $('#fRem').hidden = kind !== 'em'; $('#fNew').hidden = kind !== 'nuova';
+  ['#lostMsg', '#remMsg', '#newMsg'].forEach(id => msgOn(id, ''));
+  $('#recBack').hidden = kind === 'nuova';
+  show('recupero');
+}
+$('#lostPw').onclick = () => { $('#lostEmail').value = $('#inEmail').value; openRec('pw'); };
+$('#lostEm').onclick = () => openRec('em');
+$('#recBack').onclick = () => toLogin();
+$('#fLost').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('#lostEmail').value.trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return msgOn('#lostMsg', "Controlla l'indirizzo email");
+  msgOn('#lostMsg', 'Invio...');
+  try {
+    const r = await api('/giochi/recupero', { method: 'POST', body: JSON.stringify({ email }) });
+    msgOn('#lostMsg', r.posta ? "Se l'email è registrata, ti è arrivato un link: aprilo entro un'ora. Guarda anche nella posta indesiderata." : "L'invio delle email non è ancora attivo: chiedi all'amministratore una password provvisoria.");
+  } catch (x) { msgOn('#lostMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+});
+$('#fRem').addEventListener('submit', async e => {
+  e.preventDefault();
+  msgOn('#remMsg', 'Cerco...');
+  try {
+    const r = await api('/giochi/ricorda-email', { method: 'POST', body: JSON.stringify({ nome: $('#remNome').value, telefono: $('#remTel').value }) });
+    msgOn('#remMsg', r.email ? `La tua email è ${r.email}` : "Non la trovo con questi dati: chiedi all'amministratore.");
+  } catch (x) { msgOn('#remMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+});
+$('#fNew').addEventListener('submit', async e => {
+  e.preventDefault();
+  const nuova = $('#newPw').value;
+  if (nuova.length < 8) return msgOn('#newMsg', 'La password deve avere almeno 8 caratteri');
+  if (nuova !== $('#newPw2').value) return msgOn('#newMsg', 'Le due password non sono uguali');
+  msgOn('#newMsg', 'Salvo...');
+  try {
+    const r = await api('/giochi/recupero/conferma', { method: 'POST', body: JSON.stringify({ codice: recCode, nuova }) });
+    recCode = null; try { history.replaceState(null, '', location.pathname); } catch (x) {}
+    $('#inEmail').value = r.email || ''; toLogin(); msgOn('#inMsg', 'Password cambiata: entra con quella nuova.');
+  } catch (x) { msgOn('#newMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+});
 $('#atOut').onclick = () => logout();
 const msgOn = (id, t) => { const m = $(id); m.textContent = t; m.hidden = !t; };
 $('#fIn').addEventListener('submit', async e => {

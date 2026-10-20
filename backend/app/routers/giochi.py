@@ -10,7 +10,7 @@ from ..deps import get_session
 from ..security import hash_password, verify_password, create_access_token, decode_token
 from .auth import get_admin
 from ..config import settings
-from .. import posta
+from .. import posta, recupero
 
 # «Leggo e Conto», i giochi per bambini. Stesso servizio del Diario, ma utenti
 # e dati separati: un token dei giochi porta scope 'giochi' e non apre il
@@ -109,6 +109,68 @@ def entra(body: EntraIn, db: Session = Depends(get_session)):
                    {"u": row["id"]})
         db.commit()
     return _risposta(row["id"], row["email"], row["nome"], row["stato"])
+
+
+class RecuperoIn(BaseModel):
+    email: str
+
+
+class ConfermaIn(BaseModel):
+    codice: str
+    nuova: str = Field(min_length=8)
+
+
+class RicordaIn(BaseModel):
+    nome: str
+    telefono: str
+
+
+@router.post("/recupero")
+def chiedi_recupero(body: RecuperoIn, avvisi: BackgroundTasks, db: Session = Depends(get_session)):
+    """Password dimenticata: link via email. Stessa risposta che l'email esista o no."""
+    email = (body.email or "").strip().lower()
+    row = db.execute(text("select id, nome from giochi_utenti where email = :e"), {"e": email}).mappings().first()
+    if row and posta.configurata():
+        codice = recupero.crea(db, "giochi", row["id"])
+        db.commit()
+        avvisi.add_task(posta.manda, email, "Leggo e Conto: nuova password",
+                        recupero.testo_email(row["nome"], f"{APP_URL}?recupero={codice}", "Leggo e Conto"))
+    return {"ok": True, "posta": posta.configurata()}
+
+
+@router.post("/recupero/conferma")
+def conferma_recupero(body: ConfermaIn, db: Session = Depends(get_session)):
+    uid = recupero.usa(db, "giochi", body.codice)
+    if not uid:
+        raise HTTPException(400, "Il link non vale piu': chiedine un altro")
+    db.execute(text("update giochi_utenti set password_hash = :h where id = :i"),
+               {"h": hash_password(body.nuova), "i": uid})
+    email = db.execute(text("select email from giochi_utenti where id = :i"), {"i": uid}).scalar()
+    db.commit()
+    return {"ok": True, "email": email}
+
+
+def _maschera(email: str) -> str:
+    """ma***@gm***.com: abbastanza per riconoscerla, non per copiarla."""
+    loc, _, dom = email.partition("@")
+    nome_dom, _, tld = dom.rpartition(".")
+    return f"{loc[:2]}***@{nome_dom[:2]}***.{tld}"
+
+
+@router.post("/ricorda-email")
+def ricorda_email(body: RicordaIn, db: Session = Depends(get_session)):
+    """Email dimenticata: con nome e telefono scritti nella richiesta mostra
+    l'email nascosta a meta'. Servono tutti e due, e devono indicare una
+    persona sola."""
+    cifre = "".join(c for c in (body.telefono or "") if c.isdigit())
+    nome = " ".join((body.nome or "").lower().split())
+    if len(cifre) < 6 or len(nome) < 2:
+        raise HTTPException(400, "Scrivi nome e cognome e il numero di telefono")
+    righe = db.execute(text("select email, nome, telefono from giochi_utenti where telefono is not null")).mappings().all()
+    trovate = [r["email"] for r in righe
+               if " ".join((r["nome"] or "").lower().split()) == nome
+               and "".join(c for c in r["telefono"] if c.isdigit()).endswith(cifre[-9:])]
+    return {"email": _maschera(trovate[0]) if len(trovate) == 1 else None}
 
 
 @router.get("/io")

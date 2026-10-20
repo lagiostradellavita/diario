@@ -1,13 +1,14 @@
 import json
 import secrets
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from ..deps import get_session, get_user_id
 from ..security import hash_password, verify_password, create_access_token
 from ..config import settings
+from .. import posta, recupero
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -108,6 +109,45 @@ def login(body: LoginIn, db: Session = Depends(get_session)):
 class PasswordIn(BaseModel):
     attuale: str
     nuova: str = Field(min_length=8)
+
+
+class RecuperoIn(BaseModel):
+    email: str
+    dove: Optional[str] = "diario"     # 'diario' | 'backoffice': dove porta il link
+
+
+class ConfermaIn(BaseModel):
+    codice: str
+    nuova: str = Field(min_length=8)
+
+
+@router.post("/recupero")
+def chiedi_recupero(body: RecuperoIn, avvisi: BackgroundTasks, db: Session = Depends(get_session)):
+    """Password dimenticata: manda un link per sceglierne una nuova.
+
+    Risponde allo stesso modo che l'email esista o no, cosi' non si puo' usare
+    per scoprire chi e' iscritto. 'posta' dice solo se le email possono partire."""
+    email = (body.email or "").strip().lower()
+    row = db.execute(text("select id, nome from utenti where email = :e"), {"e": email}).mappings().first()
+    if row and posta.configurata():
+        codice = recupero.crea(db, "diario", row["id"])
+        db.commit()
+        base = recupero.DIARIO_URL + ("numeri/admin.html" if body.dove == "backoffice" else "")
+        avvisi.add_task(posta.manda, email, "Diario Salute: nuova password",
+                        recupero.testo_email(row["nome"], f"{base}?recupero={codice}", "Diario Salute"))
+    return {"ok": True, "posta": posta.configurata()}
+
+
+@router.post("/recupero/conferma")
+def conferma_recupero(body: ConfermaIn, db: Session = Depends(get_session)):
+    uid = recupero.usa(db, "diario", body.codice)
+    if not uid:
+        raise HTTPException(400, "Il link non vale piu': chiedine un altro")
+    db.execute(text("update utenti set password_hash = :h where id = :i"),
+               {"h": hash_password(body.nuova), "i": uid})
+    email = db.execute(text("select email from utenti where id = :i"), {"i": uid}).scalar()
+    db.commit()
+    return {"ok": True, "email": email}
 
 
 @router.post("/cambia-password")
