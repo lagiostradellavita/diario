@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Leggo e Conto · Backoffice</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Andika:wght@400;700&display=swap">
+<style>
+/* Backoffice di Leggo e Conto: una colonna, schede per stato, una scheda per famiglia. */
+:root{
+  --bg:#FFEFC2; --paper:#FFFFFF; --ink:#1E1838; --muted:#5C4A2E; --line:#EAD7A6; --edge:#1E1838;
+  --sun:#FFC400; --sun-deep:#B86A00; --wait:#FF9A2E; --ok:#2E9E5B; --stop:#B0185E;
+  --f-display:"Baloo 2","Trebuchet MS",system-ui,sans-serif; --f-body:"Andika","Trebuchet MS",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1E1A14;--paper:#2C251C;--ink:#FFF8EC;--muted:#D9C9A8;--line:#4A3E2C;--edge:#0B0816;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1E1A14;--paper:#2C251C;--ink:#FFF8EC;--muted:#D9C9A8;--line:#4A3E2C;--edge:#0B0816;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.45}
+.wrap{max-width:900px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2{font-family:var(--f-display);margin:0;line-height:1.1}
+h1{font-size:2rem} h2{font-size:1.3rem}
+button,input{font:inherit;color:inherit}
+.btn{border:2.5px solid var(--edge);border-radius:14px;background:var(--paper);box-shadow:0 3px 0 var(--edge);padding:8px 14px;font-family:var(--f-display);font-weight:700;cursor:pointer}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
+.btn.go{background:var(--sun);color:#1E1838}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.stop{background:var(--stop);color:#fff}
+.btn:disabled{opacity:.5}
+:focus-visible{outline:3px solid #7A5CFF;outline-offset:2px}
+.card{background:var(--paper);border:2.5px solid var(--edge);border-radius:18px;padding:14px 16px;box-shadow:0 3px 0 var(--edge)}
+.head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.form{display:flex;flex-direction:column;gap:12px;max-width:420px;margin-top:18px}
+.form label{display:flex;flex-direction:column;gap:4px;font-weight:700}
+.form input{border:2.5px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--bg)}
+.msg{font-weight:700;color:var(--stop);margin:0}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 12px}
+.tabs button{border:2.5px solid var(--edge);border-radius:999px;background:var(--paper);padding:6px 14px;font-weight:700;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--sun);color:#1E1838}
+.tabs .n{display:inline-block;min-width:1.6em;margin-left:6px;border-radius:999px;background:var(--ink);color:var(--bg);font-size:.85em;padding:0 6px;text-align:center}
+.list{display:flex;flex-direction:column;gap:12px}
+.u-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.u-name{font-family:var(--f-display);font-size:1.3rem;font-weight:800}
+.chip{display:inline-block;border-radius:999px;padding:1px 10px;font-weight:700;font-size:.9rem;color:#fff}
+.st-in_attesa{background:var(--wait);color:#1E1838} .st-attivo{background:var(--ok)} .st-bloccato{background:var(--stop)}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:4px 16px;margin:8px 0;color:var(--muted);font-size:.95rem}
+.meta b{color:var(--ink)}
+.kids{margin:6px 0 0;padding-left:20px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pw{margin-top:8px;font-weight:700}
+.pw code{font-size:1.2rem;background:var(--bg);padding:2px 8px;border-radius:8px;user-select:all}
+.empty{color:var(--muted)}
+.alert{margin-top:16px;background:#FF9A2E;color:#1E1838;font-weight:700;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;min-width:520px}
+th,td{text-align:left;padding:7px 8px;border-bottom:2px solid var(--line);font-size:.95rem;vertical-align:top}
+th{font-family:var(--f-display);color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>Leggo e Conto · Backoffice</h1>
+    <div id="hBtns" hidden><button class="btn" id="reload">Aggiorna</button> <button class="btn" id="out">Esci</button></div>
+  </div>
+
+  <form class="card form" id="login" novalidate>
+    <p style="margin:0">Entra con l'email e la password dell'<b>amministratore del Diario Salute</b>.</p>
+    <label for="em">Email<input id="em" type="text" inputmode="email" autocomplete="username"></label>
+    <label for="pw">Password<input id="pw" type="password" autocomplete="current-password"></label>
+    <p class="msg" id="lmsg" hidden></p>
+    <button class="btn go" type="submit">Entra</button>
+  </form>
+
+  <div id="panel" hidden>
+    <div class="card alert" id="alert" hidden></div>
+    <p class="empty" id="mailInfo" style="margin:12px 0 0"></p>
+    <div class="tabs" id="tabs">
+      <button data-t="in_attesa" aria-pressed="true">Da approvare<span class="n" id="n-in_attesa">0</span></button>
+      <button data-t="attivo" aria-pressed="false">Attivi<span class="n" id="n-attivo">0</span></button>
+      <button data-t="bloccato" aria-pressed="false">Bloccati<span class="n" id="n-bloccato">0</span></button>
+      <button data-t="accessi" aria-pressed="false">Ultimi accessi</button>
+    </div>
+    <div class="list" id="list"></div>
+    <div class="card tablewrap" id="acc" hidden></div>
+  </div>
+</div>
+<script>
+'use strict';
+var API = 'https://diario-salute-api.onrender.com';
+var $ = function (s) { return document.querySelector(s); };
+var tok = null; try { tok = sessionStorage.getItem('lc-admin'); } catch (e) {}
+var utenti = [], tab = 'in_attesa', pwArm = {}, delArm = {};
+function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function when(t) { if (!t) return '–'; var d = new Date(t); return d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); }
+function api(path, opts) {
+  opts = opts || {};
+  opts.headers = { 'Content-Type': 'application/json' };
+  if (tok) opts.headers.Authorization = 'Bearer ' + tok;
+  return fetch(API + path, opts).then(function (r) {
+    if (r.status === 204) return null;
+    return r.json().catch(function () { return null; }).then(function (j) {
+      if (!r.ok) { var e = new Error((j && j.detail) || ('Errore ' + r.status)); e.status = r.status; throw e; }
+      return j;
+    });
+  });
+}
+function msg(t) { $('#lmsg').textContent = t; $('#lmsg').hidden = !t; }
+$('#login').addEventListener('submit', function (e) {
+  e.preventDefault(); msg('Controllo... (la prima volta della giornata può volerci un minuto)');
+  api('/auth/login', { method: 'POST', body: JSON.stringify({ email: $('#em').value.trim(), password: $('#pw').value }) })
+    .then(function (r) { tok = r.access_token; try { sessionStorage.setItem('lc-admin', tok); } catch (x) {} $('#pw').value = ''; msg(''); load(); })
+    .catch(function (x) { msg(x.status ? x.message : 'Non riesco a collegarmi al server'); });
+});
+$('#out').onclick = function () { tok = null; try { sessionStorage.removeItem('lc-admin'); } catch (e) {} $('#panel').hidden = true; $('#hBtns').hidden = true; $('#login').hidden = false; };
+$('#reload').onclick = function () { load(); };
+$('#tabs').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-t]'); if (!b) return; tab = b.dataset.t;
+  document.querySelectorAll('#tabs [data-t]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+  render();
+});
+function load() {
+  return api('/giochi/admin/utenti').then(function (j) {
+    utenti = j.utenti; $('#login').hidden = true; $('#panel').hidden = false; $('#hBtns').hidden = false;
+    var n = utenti.filter(function (u) { return u.stato === 'in_attesa'; }).length;
+    document.title = (n ? '(' + n + ') ' : '') + 'Leggo e Conto · Backoffice';
+    $('#alert').hidden = !n;
+    $('#alert').innerHTML = n ? '<span>' + (n === 1 ? 'C\u2019è 1 richiesta d\u2019accesso da approvare' : 'Ci sono ' + n + ' richieste d\u2019accesso da approvare') + '</span><button class="btn" id="goWait">Vedi</button>' : '';
+    if (n) $('#goWait').onclick = function () { document.querySelector('#tabs [data-t="in_attesa"]').click(); };
+    render();
+  }).catch(function (x) {
+    if (x.status === 401 || x.status === 403) { $('#out').onclick(); msg(x.status === 403 ? 'Questo account non è l’amministratore' : 'Rientra con la password'); }
+    else msg('Non riesco a collegarmi al server');
+  });
+}
+function card(u) {
+  var kids = u.bambini.length ? '<ul class="kids">' + u.bambini.map(function (k) { return '<li>' + esc(k.nome) + (k.classe ? ', ' + esc(k.classe) : '') + (k.eta ? ', ' + esc(k.eta) + ' anni' : '') + ' · ' + k.partite + ' partite · ' + k.stelline + ' stelline</li>'; }).join('') + '</ul>' : '<p class="empty" style="margin:6px 0 0">Nessun bambino ancora</p>';
+  var a = [];
+  if (u.stato !== 'attivo') a.push('<button class="btn ok" data-a="approva" data-id="' + u.id + '">' + (u.stato === 'bloccato' ? 'Riattiva' : 'Approva') + '</button>');
+  if (u.stato !== 'bloccato') a.push('<button class="btn stop" data-a="blocca" data-id="' + u.id + '">' + (u.stato === 'in_attesa' ? 'Rifiuta' : 'Blocca') + '</button>');
+  a.push('<button class="btn" data-a="pw" data-id="' + u.id + '">' + (pwArm[u.id] === 1 ? 'Tocca ancora: la password vecchia non vale più' : 'Password provvisoria') + '</button>');
+  a.push('<button class="btn" data-a="del" data-id="' + u.id + '">' + (delArm[u.id] ? 'Tocca ancora: si cancellano anche i bambini' : 'Elimina') + '</button>');
+  return '<div class="card"><div class="u-top"><span class="u-name">' + esc(u.nome || u.email) + '</span><span class="chip st-' + u.stato + '">' + { in_attesa: 'da approvare', attivo: 'attivo', bloccato: 'bloccato' }[u.stato] + '</span></div>'
+    + (u.messaggio ? '<p style="margin:6px 0 0">«' + esc(u.messaggio) + '»</p>' : '')
+    + '<div class="meta"><span>Email: <b>' + esc(u.email) + '</b></span><span>Telefono: <b>' + esc(u.telefono || '–') + '</b></span><span>Richiesta: <b>' + when(u.iscritto) + '</b></span><span>Approvato: <b>' + when(u.approvato) + '</b></span><span>Ultimo accesso: <b>' + when(u.ultimo_accesso) + '</b></span><span>Accessi: <b>' + u.accessi + '</b></span></div>'
+    + kids + '<div class="acts">' + a.join('') + '</div>'
+    + (typeof pwArm[u.id] === 'string' ? '<p class="pw">Password provvisoria da comunicare: <code>' + esc(pwArm[u.id]) + '</code></p>' : '') + '</div>';
+}
+function render() {
+  ['in_attesa', 'attivo', 'bloccato'].forEach(function (s) { $('#n-' + s).textContent = utenti.filter(function (u) { return u.stato === s; }).length; });
+  $('#acc').hidden = tab !== 'accessi'; $('#list').hidden = tab === 'accessi';
+  if (tab === 'accessi') {
+    $('#acc').innerHTML = '<p class="empty">Carico...</p>';
+    api('/giochi/admin/accessi?limite=300').then(function (j) {
+      $('#acc').innerHTML = j.accessi.length ? '<table><thead><tr><th>Quando</th><th>Chi</th><th>Dispositivo</th></tr></thead><tbody>' + j.accessi.map(function (a) { return '<tr><td>' + when(a.quando) + '</td><td>' + esc(a.nome || '') + '<br><span class="empty">' + esc(a.email) + '</span></td><td class="empty">' + esc((a.dispositivo || '–').slice(0, 90)) + '</td></tr>'; }).join('') + '</tbody></table>' : '<p class="empty">Nessun accesso ancora.</p>';
+    }).catch(function (x) { $('#acc').innerHTML = '<p class="msg">' + esc(x.message) + '</p>'; });
+    return;
+  }
+  var l = utenti.filter(function (u) { return u.stato === tab; });
+  $('#list').innerHTML = l.length ? l.map(card).join('') : '<p class="empty">' + { in_attesa: 'Nessuna richiesta da approvare.', attivo: 'Nessun accesso attivo.', bloccato: 'Nessun accesso bloccato.' }[tab] + '</p>';
+}
+$('#list').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-a]'); if (!b) return;
+  var id = b.dataset.id, a = b.dataset.a;
+  if (a === 'pw' && pwArm[id] !== 1) { pwArm[id] = 1; return render(); }
+  if (a === 'del' && !delArm[id]) { delArm[id] = 1; return render(); }
+  b.disabled = true;
+  var call = a === 'del' ? api('/giochi/admin/utenti/' + id, { method: 'DELETE' })
+    : a === 'pw' ? api('/giochi/admin/utenti/' + id + '/password-provvisoria', { method: 'POST' }).then(function (j) { pwArm[id] = j.password; })
+    : api('/giochi/admin/utenti/' + id + '/' + a, { method: 'POST' });
+  call.then(function () { delete delArm[id]; if (a !== 'pw') delete pwArm[id]; return load(); })
+    .catch(function (x) { b.disabled = false; alert('Non riuscito: ' + x.message); });
+});
+function mailInfo() {
+  api('/giochi/admin/posta').then(function (j) {
+    $('#mailInfo').textContent = j.configurata ? 'Gli avvisi via email sono attivi: le richieste nuove arrivano a ' + j.destinatario + '.' : 'Gli avvisi via email non sono ancora attivi (manca la casella di posta su Render). Le richieste nuove si vedono qui, e la pagina si aggiorna da sola ogni minuto.';
+  }).catch(function () {});
+}
+// la pagina aperta controlla da sola ogni minuto se sono arrivate richieste
+setInterval(function () { if (tok && !document.hidden) load(); }, 60000);
+var _load = load; load = function () { var r = _load(); mailInfo(); return r; };
+if (tok) load();
+</script>
+</body>
+</html>

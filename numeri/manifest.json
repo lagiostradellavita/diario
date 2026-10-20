@@ -1,0 +1,17 @@
+{
+  "name": "Leggo e Conto",
+  "short_name": "Leggo e Conto",
+  "description": "Giochi per imparare a leggere e a contare",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFEFC2",
+  "theme_color": "#FFC400",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
