@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 244; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 246; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1940,7 +1940,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v244 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v246 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -5498,6 +5498,7 @@
   var API_BASE = "https://diario-salute-api.onrender.com";
   var cloudToken=null, cloudEmail=null, cloudStato=null;
   try{ cloudToken=localStorage.getItem("diario-cloud-token")||null; cloudEmail=localStorage.getItem("diario-cloud-email")||null; cloudStato=localStorage.getItem("diario-cloud-stato")||null; }catch(e){}
+  var recuperoCode=""; try{ var _rm=location.search.match(/[?&]recupero=([^&#]+)/); if(_rm) recuperoCode=decodeURIComponent(_rm[1]); }catch(e){}
   var inviteCode=""; try{ var _im=location.search.match(/[?&]invito=([^&#]+)/); if(_im) inviteCode=decodeURIComponent(_im[1]); }catch(e){}
   var SYNC_KEYS=/^(salute-|diario-fumo:)/;
   var _cloudReady=false, _pushTimers={};
@@ -5663,6 +5664,7 @@
         +'<input id="cloudPassIn" type="password" autocomplete="current-password" placeholder="Password (almeno 8 caratteri)" style="display:block;box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:4px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
         +'<p id="cloudPrivacy" class="fineprint" style="margin:9px 0 0;display:none;line-height:1.5">🔒 <b>I tuoi dati di salute sono privati.</b> Li vedi solo tu, dai tuoi dispositivi: nessun altro utente può leggerli. L\'amministratore vede soltanto che ti sei registrato e quali funzioni usi — <b>mai</b> i contenuti.</p>'
         +'<div class="panel-actions" style="margin-top:12px"><button class="primary" id="cloudAuthBtn" style="box-sizing:border-box;width:100%;padding:14px;font-size:16px;border-radius:12px">Accedi</button></div>'
+        +'<p id="cloudLostWrap" style="text-align:center;margin:8px 0 0"><button type="button" class="link-btn" id="cloudLostLink" style="width:auto;padding:6px">Password dimenticata?</button></p>'
         +'<p id="cloudAskWrap" style="text-align:center;margin:8px 0 0;display:none"><button type="button" class="link-btn" id="cloudAskLink" style="width:auto;padding:6px">Non hai un invito? Chiedi l\'accesso</button></p>'
         +'<div id="cloudAskForm" style="display:none;margin-top:8px;border-top:1px solid var(--line);padding-top:10px">'
           +'<p class="fineprint" style="margin:0 0 8px;line-height:1.5">Lascia il tuo nome: l\'amministratore riceverà la richiesta e, se vuole, ti manderà un invito.</p>'
@@ -5675,7 +5677,33 @@
       var isReg=false;
       var seg=document.getElementById("cloudMode"), nomeI=document.getElementById("cloudNomeIn"), priv=document.getElementById("cloudPrivacy"), btn=document.getElementById("cloudAuthBtn");
       var invWrap=document.getElementById("cloudInviteWrap"), codeI=document.getElementById("cloudCodeIn"), askWrap=document.getElementById("cloudAskWrap"), askForm=document.getElementById("cloudAskForm");
-      function setMode(m){ isReg=(m==="reg"); Array.prototype.forEach.call(seg.children,function(c){ c.className=(c.dataset.m===m)?"on":""; }); nomeI.style.display=isReg?"":"none"; priv.style.display=isReg?"":"none"; invWrap.style.display=isReg?"":"none"; askWrap.style.display=isReg?"":"none"; if(!isReg){ askForm.style.display="none"; } btn.textContent=isReg?"Crea account":"Accedi"; }
+      document.getElementById("cloudLostLink").onclick=function(){
+        var em=(document.getElementById("cloudEmailIn").value||"").trim();
+        if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ cloudMark("Scrivi prima la tua email qui sopra, poi tocca di nuovo «Password dimenticata?»"); return; }
+        cloudMark("Invio…");
+        apiFetch("/auth/recupero",{method:"POST", body:{email:em, dove:"diario"}}).then(function(j){
+          cloudMark(j&&j.posta ? "Se l'email è registrata, ti è arrivato un link per scegliere una password nuova: aprilo entro un'ora." : "L'invio delle email non è ancora attivo: chiedi all'amministratore.");
+        }).catch(function(e){ cloudMark("Non riuscito: "+(e&&e.message||"")); });
+      };
+      if(recuperoCode){
+        host.innerHTML='<h2 style="margin:4px 0 8px;font-size:20px">Scegli la password nuova</h2>'
+          +'<input id="recPw1" type="password" autocomplete="new-password" placeholder="Password nuova (almeno 8 caratteri)" style="box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:9px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
+          +'<input id="recPw2" type="password" autocomplete="new-password" placeholder="Riscrivila" style="box-sizing:border-box;width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line,#d7dde5);border-radius:11px;margin-bottom:9px;background:var(--surface,#fff);color:var(--ink,#1a2230)">'
+          +'<div class="panel-actions"><button class="primary" id="recSave" style="box-sizing:border-box;width:100%;padding:14px;font-size:16px;border-radius:12px">Salva la password</button></div>'
+          +'<p id="cloudStatus" class="fineprint" style="margin-top:6px"></p>';
+        document.getElementById("recSave").onclick=function(){
+          var a=document.getElementById("recPw1").value||"", b=document.getElementById("recPw2").value||"";
+          if(a.length<8){ cloudMark("La password deve avere almeno 8 caratteri"); return; }
+          if(a!==b){ cloudMark("Le due password non sono uguali"); return; }
+          cloudMark("Salvo…");
+          apiFetch("/auth/recupero/conferma",{method:"POST", body:{codice:recuperoCode, nuova:a}}).then(function(){
+            recuperoCode=""; try{ history.replaceState(null,"",location.pathname); }catch(e){}
+            renderCloudCard(); cloudMark("Password cambiata: accedi con quella nuova.");
+          }).catch(function(e){ cloudMark("Non riuscito: "+(e&&e.message||"")); });
+        };
+        return;
+      }
+      function setMode(m){ isReg=(m==="reg"); Array.prototype.forEach.call(seg.children,function(c){ c.className=(c.dataset.m===m)?"on":""; }); nomeI.style.display=isReg?"":"none"; priv.style.display=isReg?"":"none"; invWrap.style.display=isReg?"":"none"; askWrap.style.display=isReg?"":"none"; if(!isReg){ askForm.style.display="none"; } document.getElementById("cloudLostWrap").style.display=isReg?"none":""; btn.textContent=isReg?"Crea account":"Accedi"; }
       Array.prototype.forEach.call(seg.children,function(c){ c.onclick=function(){ setMode(c.dataset.m); }; });
       if(inviteCode){ codeI.value=inviteCode; setMode("reg"); } else { setMode("login"); }
       document.getElementById("cloudAskLink").onclick=function(){ askForm.style.display=(askForm.style.display==="none")?"":"none"; if(askForm.style.display!=="none"){ try{ document.getElementById("cloudAskNome").focus(); }catch(e){} } };
@@ -6416,5 +6444,34 @@
   if(getActive()){ apply(); }
   else if(hasData()){ setActive(ALL); apply(); }
   else { apply(); }
+})();
+</script>
+<script>
+/* occhio sulle password e email sempre minuscole, su ogni campo della pagina */
+(function () {
+  var APERTO = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var CHIUSO = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>';
+  function occhio(inp) {
+    if (inp.dataset.occhio) return; inp.dataset.occhio = '1';
+    var w = document.createElement('span'); w.style.cssText = 'position:relative;display:block;width:100%';
+    inp.parentNode.insertBefore(w, inp); w.appendChild(inp); inp.style.paddingRight = '52px';
+    var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Mostra la password');
+    b.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;padding:8px;cursor:pointer;color:inherit;line-height:0;box-shadow:none;min-width:0';
+    b.innerHTML = APERTO;
+    b.onclick = function () { var vedi = inp.type === 'password'; inp.type = vedi ? 'text' : 'password'; b.innerHTML = vedi ? CHIUSO : APERTO; b.setAttribute('aria-label', vedi ? 'Nascondi la password' : 'Mostra la password'); inp.focus(); };
+    w.appendChild(b);
+  }
+  function minuscola(inp) {
+    if (inp.dataset.minuscola) return; inp.dataset.minuscola = '1';
+    inp.setAttribute('autocapitalize', 'none'); inp.setAttribute('autocorrect', 'off'); inp.setAttribute('spellcheck', 'false');
+    inp.addEventListener('input', function () {
+      var v = inp.value.toLowerCase().replace(/\s+/g, '');
+      if (v !== inp.value) { var p = null; try { p = inp.selectionStart; } catch (e) {} inp.value = v; try { if (p != null) inp.setSelectionRange(p, p); } catch (e) {} }
+    });
+  }
+  var attesa = false;
+  function cerca() { attesa = false; document.querySelectorAll('input[type=password]').forEach(occhio); document.querySelectorAll('input[type=email],input[inputmode=email]').forEach(minuscola); }
+  cerca();
+  new MutationObserver(function () { if (!attesa) { attesa = true; requestAnimationFrame(cerca); } }).observe(document.body, { childList: true, subtree: true });
 })();
 </script>

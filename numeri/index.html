@@ -475,6 +475,8 @@ h2{font-size:1.6rem}
 .tabs .chip{background:var(--paper);border:2.5px solid var(--outline)}
 .tabs .chip[aria-pressed="true"]{background:var(--sun);border-color:var(--outline);color:#1E1838}
 .msg{margin:0;font-weight:700;color:var(--sun-deep)}
+.lost{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0}
+.linkbtn{background:none;border:0;padding:4px 0;font-weight:700;text-decoration:underline;color:var(--ink);cursor:pointer;font-size:1.05rem}
 .exbtn{margin-top:14px;width:100%;font-size:1.15rem}
 .dom{font-family:var(--f-display);font-weight:700;font-size:1.7rem;text-align:center;margin:0}
 .pic-opt{font-size:3.4rem;min-width:110px;padding:8px 14px}
@@ -623,6 +625,7 @@ th,td{font-size:1.1rem}
         <label for="inPw">Password<input type="password" id="inPw" autocomplete="current-password"></label>
         <p class="msg" id="inMsg" hidden></p>
         <button class="btn go" type="submit" style="font-size:1.5rem">Entra</button>
+        <p class="lost"><button class="linkbtn" type="button" id="lostPw">Password dimenticata?</button><button class="linkbtn" type="button" id="lostEm">Email dimenticata?</button></p>
       </form>
       <form class="form" data-panel="reg" id="fReg" hidden novalidate>
         <p class="note" style="margin:0">Compila la richiesta: l'amministratore la controlla e ti abilita. Poi entri con email e password.</p>
@@ -636,6 +639,29 @@ th,td{font-size:1.1rem}
         <button class="btn go" type="submit" style="font-size:1.4rem">Invia la richiesta</button>
       </form>
     </div>
+  </section>
+
+  <section id="recupero" hidden>
+    <div class="top"><button class="btn icon" id="recBack" aria-label="Torna all'accesso"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button><h1 id="recTitle"></h1></div>
+    <form class="form" id="fLost" novalidate style="margin-top:14px">
+      <p class="note" style="margin:0">Scrivi l'email con cui ti sei registrato: ti mandiamo un link per scegliere una password nuova.</p>
+      <label for="lostEmail">Email<input type="text" id="lostEmail" inputmode="email" autocomplete="email"></label>
+      <p class="msg" id="lostMsg" hidden></p>
+      <button class="btn go" type="submit">Mandami il link</button>
+    </form>
+    <form class="form" id="fRem" novalidate hidden style="margin-top:14px">
+      <p class="note" style="margin:0">Scrivi il nome e il telefono che hai messo nella richiesta d'accesso: ti mostriamo l'email, in parte nascosta.</p>
+      <label for="remNome">Nome e cognome<input type="text" id="remNome" autocomplete="name"></label>
+      <label for="remTel">Telefono<input type="text" id="remTel" inputmode="tel" autocomplete="tel"></label>
+      <p class="msg" id="remMsg" hidden></p>
+      <button class="btn go" type="submit">Cerca la mia email</button>
+    </form>
+    <form class="form" id="fNew" novalidate hidden style="margin-top:14px">
+      <label for="newPw">Password nuova (almeno 8 caratteri)<input type="password" id="newPw" autocomplete="new-password"></label>
+      <label for="newPw2">Riscrivila<input type="password" id="newPw2" autocomplete="new-password"></label>
+      <p class="msg" id="newMsg" hidden></p>
+      <button class="btn go" type="submit">Salva la password</button>
+    </form>
   </section>
 
   <section id="attesa" hidden>
@@ -930,8 +956,9 @@ function logout() {
   setToken(null);
   // sul tablet non restano i bambini della famiglia che esce
   try { localStorage.removeItem(STORE_KEY); localStorage.removeItem(KEY); } catch (e) {}
-  setStore(loadStore()); show('accesso');
+  setStore(loadStore()); toLogin();
 }
+function toLogin() { show('accesso'); const t = $('#accesso [data-tab="in"]'); if (t) t.click(); }
 function attesa(kind, extra) {
   $('#atHero').innerHTML = heroSvg(kind === 'rete' ? 'l100' : 'sillabe');
   const T = {
@@ -951,6 +978,7 @@ function gateFrom(e) {
 function startApp() { renderHome(); if (store.profiles.length > 1) { renderWho(); show('who'); } else show('home'); }
 async function boot() {
   if (!API_BASE) return startApp();
+  if (recCode) return openRec('nuova');
   if (!token) return show('accesso');
   attesa('collego');
   try {
@@ -1070,11 +1098,18 @@ function say(t) {
   try { speechSynthesis.cancel(); speechSynthesis.speak(utter(t)); } catch (e) {}
 }
 // le lodi si dicono con enfasi: un po' piu' acute e veloci
-function sayEmph(t) {
+function sayEmph(t, dopo) {
   karaokeTok++;
-  if (!('speechSynthesis' in window)) return;
-  try { speechSynthesis.cancel(); const u = utter(t); u.pitch = Math.min(2, u.pitch * 1.2 + .1); u.rate = Math.min(1.35, u.rate * 1.08); speechSynthesis.speak(u); } catch (e) {}
+  let fatto = false; const poi = () => { if (!fatto) { fatto = true; if (dopo) dopo(); } };
+  if (!('speechSynthesis' in window)) return poi();
+  try {
+    speechSynthesis.cancel(); const u = utter(t); u.pitch = Math.min(2, u.pitch * 1.2 + .1); u.rate = Math.min(1.35, u.rate * 1.08);
+    u.onend = poi; u.onerror = poi; speechSynthesis.speak(u);
+    setTimeout(poi, 900 + t.length * 75);   // se il dispositivo non avvisa la fine della frase
+  } catch (e) { poi(); }
 }
+// prima il complimento, poi gli applausi: piu' forti e lunghi per stelline, comete e soli
+function festa(m, forte) { const clap = () => applausi(forte); if (save.settings.voice) sayEmph(m, clap); else clap(); }
 function speakWait(t) {
   return new Promise(res => {
     let done = false; const fin = () => { if (!done) { done = true; res(); } };
@@ -1083,7 +1118,32 @@ function speakWait(t) {
     try { const u = utter(t); u.onend = fin; u.onerror = fin; speechSynthesis.speak(u); } catch (e) { fin(); }
   });
 }
-let actx = null;
+let actx = null, clapBuf = null;
+// applausi sintetizzati: tanti colpi brevi di rumore filtrato, a caso nel tempo
+function applausi(forte) {
+  if (!save.settings.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    if (!clapBuf) {
+      const n = Math.round(actx.sampleRate * .07); clapBuf = actx.createBuffer(1, n, actx.sampleRate);
+      const d = clapBuf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 4);
+    }
+    const dur = forte ? 3.2 : 1.4, rate = forte ? 60 : 26, vol = forte ? .9 : .45;
+    const out = actx.createGain(), t0 = actx.currentTime + .02;
+    out.gain.setValueAtTime(.0001, t0); out.gain.exponentialRampToValueAtTime(vol, t0 + .2);
+    out.gain.setValueAtTime(vol, t0 + dur - .7); out.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    out.connect(actx.destination);
+    for (let i = 0, n = Math.round(dur * rate); i < n; i++) {
+      const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+      src.buffer = clapBuf; src.playbackRate.value = .75 + Math.random() * .7;
+      f.type = 'bandpass'; f.frequency.value = 800 + Math.random() * 2000; f.Q.value = .7 + Math.random();
+      g.gain.value = .35 + Math.random() * .65;
+      src.connect(f).connect(g).connect(out); src.start(t0 + Math.random() * (dur - .1));
+    }
+    if (forte) tone([784, 988, 1175, 1568], .13, 'triangle', .12);   // una fanfara breve sopra gli applausi
+  } catch (e) {}
+}
 function tone(freqs, dur = .12, type = 'triangle', vol = .16) {
   if (!save.settings.sound) return;
   try {
@@ -1227,30 +1287,30 @@ function judge(ok) {
     if (cometa) run.comete++;
     persist();
     const nm = prof.info.nome ? ' ' + prof.info.nome : '', bravo = gx('Bravo', 'Brava');
-    let wait = RM ? 1000 : 1700;
+    let wait = RM ? 1200 : 3000;
     if (sole) {
       SND.win(); setTimeout(() => SND.win(), 600);
       const m = `Incredibile${nm}! Hai vinto un sole! Sei ${gx('un fenomeno', 'una fenomena')}!`;
       toast(`${SUN_BIG}${m}`, `10 stelle comete: ${save.stelline / 200}º sole`, 'sun', 3600);
-      if (save.settings.voice) sayEmph(m);
-      confetti(); setTimeout(confetti, 900); wait = RM ? 2000 : 3800;
+      festa(m, true);
+      confetti(); setTimeout(confetti, 900); wait = RM ? 3000 : 6000;
     } else if (cometa) {
       SND.win();
       const m = `${gx('Bravissimo', 'Bravissima')}${nm}, sei Suuuuper!`;
       toast(`${COMET_BIG}${m}`, `Stella cometa! ${save.stelline / 20}ª cometa`, 'comet', 3000);
-      if (save.settings.voice) sayEmph(m);
-      confetti(); wait = RM ? 1800 : 3200;
+      festa(m, true);
+      confetti(); wait = RM ? 3000 : 5600;
     } else if (stellina) {
       SND.win();
       const m = `${bravo}${nm}, sei ${gx('un campione', 'una campionessa')}!`;
       toast(`${STAR_BIG}${m}`, `+1 stellina · +${gain} punti`, 'star', 2200);
-      if (save.settings.voice) sayEmph(m);
-      wait = RM ? 1300 : 2400;
+      festa(m, true);
+      wait = RM ? 2800 : 5000;
     } else {
       SND.ok();
       const m = `${bravo}${nm}, continua così!`;
       toast(m, `+${gain} punti${run.streak >= 3 && run.attempts === 0 ? ' · ' + run.streak + ' di fila!' : ''}`, 'good', 1600);
-      if (save.settings.voice) sayEmph(m);
+      festa(m, false);
     }
     const sp = $('#stelPill'); sp.classList.remove('bump'); void sp.offsetWidth; sp.classList.add('bump');
     renderDots(); hud();
@@ -2494,6 +2554,49 @@ function confetti() {
 }
 
 $('#atRetry').onclick = () => boot();
+// password ed email dimenticate
+let recCode = null;
+try { const m = location.search.match(/[?&]recupero=([^&#]+)/); if (m) recCode = decodeURIComponent(m[1]); } catch (e) {}
+function openRec(kind) {
+  $('#recTitle').textContent = { pw: 'Password dimenticata', em: 'Email dimenticata', nuova: 'Scegli la password nuova' }[kind];
+  $('#fLost').hidden = kind !== 'pw'; $('#fRem').hidden = kind !== 'em'; $('#fNew').hidden = kind !== 'nuova';
+  ['#lostMsg', '#remMsg', '#newMsg'].forEach(id => msgOn(id, ''));
+  $('#recBack').hidden = kind === 'nuova';
+  show('recupero');
+}
+$('#lostPw').onclick = () => { $('#lostEmail').value = $('#inEmail').value; openRec('pw'); };
+$('#lostEm').onclick = () => openRec('em');
+$('#recBack').onclick = () => toLogin();
+$('#fLost').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('#lostEmail').value.trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return msgOn('#lostMsg', "Controlla l'indirizzo email");
+  msgOn('#lostMsg', 'Invio...');
+  try {
+    const r = await api('/giochi/recupero', { method: 'POST', body: JSON.stringify({ email }) });
+    msgOn('#lostMsg', r.posta ? "Se l'email è registrata, ti è arrivato un link: aprilo entro un'ora. Guarda anche nella posta indesiderata." : "L'invio delle email non è ancora attivo: chiedi all'amministratore una password provvisoria.");
+  } catch (x) { msgOn('#lostMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+});
+$('#fRem').addEventListener('submit', async e => {
+  e.preventDefault();
+  msgOn('#remMsg', 'Cerco...');
+  try {
+    const r = await api('/giochi/ricorda-email', { method: 'POST', body: JSON.stringify({ nome: $('#remNome').value, telefono: $('#remTel').value }) });
+    msgOn('#remMsg', r.email ? `La tua email è ${r.email}` : "Non la trovo con questi dati: chiedi all'amministratore.");
+  } catch (x) { msgOn('#remMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+});
+$('#fNew').addEventListener('submit', async e => {
+  e.preventDefault();
+  const nuova = $('#newPw').value;
+  if (nuova.length < 8) return msgOn('#newMsg', 'La password deve avere almeno 8 caratteri');
+  if (nuova !== $('#newPw2').value) return msgOn('#newMsg', 'Le due password non sono uguali');
+  msgOn('#newMsg', 'Salvo...');
+  try {
+    const r = await api('/giochi/recupero/conferma', { method: 'POST', body: JSON.stringify({ codice: recCode, nuova }) });
+    recCode = null; try { history.replaceState(null, '', location.pathname); } catch (x) {}
+    $('#inEmail').value = r.email || ''; toLogin(); msgOn('#inMsg', 'Password cambiata: entra con quella nuova.');
+  } catch (x) { msgOn('#newMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+});
 $('#atOut').onclick = () => logout();
 const msgOn = (id, t) => { const m = $(id); m.textContent = t; m.hidden = !t; };
 $('#fIn').addEventListener('submit', async e => {
@@ -2518,6 +2621,36 @@ $('#fReg').addEventListener('submit', async e => {
   catch (x) { msgOn('#rgMsgErr', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
 });
 boot();
+</script>
+
+<script>
+/* occhio sulle password e email sempre minuscole, su ogni campo della pagina */
+(function () {
+  var APERTO = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var CHIUSO = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>';
+  function occhio(inp) {
+    if (inp.dataset.occhio) return; inp.dataset.occhio = '1';
+    var w = document.createElement('span'); w.style.cssText = 'position:relative;display:block;width:100%';
+    inp.parentNode.insertBefore(w, inp); w.appendChild(inp); inp.style.paddingRight = '52px';
+    var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Mostra la password');
+    b.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;padding:8px;cursor:pointer;color:inherit;line-height:0;box-shadow:none;min-width:0';
+    b.innerHTML = APERTO;
+    b.onclick = function () { var vedi = inp.type === 'password'; inp.type = vedi ? 'text' : 'password'; b.innerHTML = vedi ? CHIUSO : APERTO; b.setAttribute('aria-label', vedi ? 'Nascondi la password' : 'Mostra la password'); inp.focus(); };
+    w.appendChild(b);
+  }
+  function minuscola(inp) {
+    if (inp.dataset.minuscola) return; inp.dataset.minuscola = '1';
+    inp.setAttribute('autocapitalize', 'none'); inp.setAttribute('autocorrect', 'off'); inp.setAttribute('spellcheck', 'false');
+    inp.addEventListener('input', function () {
+      var v = inp.value.toLowerCase().replace(/\s+/g, '');
+      if (v !== inp.value) { var p = null; try { p = inp.selectionStart; } catch (e) {} inp.value = v; try { if (p != null) inp.setSelectionRange(p, p); } catch (e) {} }
+    });
+  }
+  var attesa = false;
+  function cerca() { attesa = false; document.querySelectorAll('input[type=password]').forEach(occhio); document.querySelectorAll('input[type=email],input[inputmode=email]').forEach(minuscola); }
+  cerca();
+  new MutationObserver(function () { if (!attesa) { attesa = true; requestAnimationFrame(cerca); } }).observe(document.body, { childList: true, subtree: true });
+})();
 </script>
 
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function(){});</script>
