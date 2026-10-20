@@ -213,5 +213,34 @@ $('#nuova').addEventListener('submit', function (e) {
 if (recCode) { $('#login').hidden = true; $('#nuova').hidden = false; }
 else if (tok) load();
 </script>
+<script>
+/* occhio sulle password e email sempre minuscole, su ogni campo della pagina */
+(function () {
+  var APERTO = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var CHIUSO = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>';
+  function occhio(inp) {
+    if (inp.dataset.occhio) return; inp.dataset.occhio = '1';
+    var w = document.createElement('span'); w.style.cssText = 'position:relative;display:block;width:100%';
+    inp.parentNode.insertBefore(w, inp); w.appendChild(inp); inp.style.paddingRight = '52px';
+    var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Mostra la password');
+    b.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;padding:8px;cursor:pointer;color:inherit;line-height:0;box-shadow:none;min-width:0';
+    b.innerHTML = APERTO;
+    b.onclick = function () { var vedi = inp.type === 'password'; inp.type = vedi ? 'text' : 'password'; b.innerHTML = vedi ? CHIUSO : APERTO; b.setAttribute('aria-label', vedi ? 'Nascondi la password' : 'Mostra la password'); inp.focus(); };
+    w.appendChild(b);
+  }
+  function minuscola(inp) {
+    if (inp.dataset.minuscola) return; inp.dataset.minuscola = '1';
+    inp.setAttribute('autocapitalize', 'none'); inp.setAttribute('autocorrect', 'off'); inp.setAttribute('spellcheck', 'false');
+    inp.addEventListener('input', function () {
+      var v = inp.value.toLowerCase().replace(/\s+/g, '');
+      if (v !== inp.value) { var p = null; try { p = inp.selectionStart; } catch (e) {} inp.value = v; try { if (p != null) inp.setSelectionRange(p, p); } catch (e) {} }
+    });
+  }
+  var attesa = false;
+  function cerca() { attesa = false; document.querySelectorAll('input[type=password]').forEach(occhio); document.querySelectorAll('input[type=email],input[inputmode=email]').forEach(minuscola); }
+  cerca();
+  new MutationObserver(function () { if (!attesa) { attesa = true; requestAnimationFrame(cerca); } }).observe(document.body, { childList: true, subtree: true });
+})();
+</script>
 </body>
 </html>
