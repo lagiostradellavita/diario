@@ -14,7 +14,10 @@
 /* Layout: una colonna centrata da tablet; schermate a turno (menu, gioco, risultato, album, grandi).
    Blu, rosso e verde sono riservati a unità, decine e centinaia: l'interfaccia usa il giallo di Saltino. */
 :root{
-  --bg:#ECEAF8; --paper:#FFFFFF; --ink:#2A2346; --muted:#6E6890; --line:#D9D4EE; --edge:#CBC3E8;
+  --bg:#F3EEFF; --paper:#FFFFFF; --ink:#1E1838; --muted:#554D74; --line:#D9D2F0; --edge:#1E1838;
+  --outline:#1E1838; --dot:#E2D7FF; --band1:#FFD54A; --band2:#FF9BC2;
+  --fur:#D08A45; --fur-dark:#8C5426; --fur-light:#F8DFC0; --nose:#2A1E14; --tongue:#FF7F9E; --collar:#7A5CFF;
+  --hh:#8D6BE8; --hh-dark:#5634B0; --hh-face:#FFE0C2;
   --sun:#FFC83D; --sun-deep:#E88A0C; --sun-soft:#FFF0C4; --on-sun:#3A2600; --focus:#7A5CFF;
   --u:#1C6BE0; --da:#DA2B2A; --h:#178F48;
   --u-soft:#DDE8FC; --da-soft:#FBE0DF; --h-soft:#DAF1E2;
@@ -23,20 +26,22 @@
   --f-body:"Andika","Trebuchet MS",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#17132A; --paper:#241E3E; --ink:#F2EEFF; --muted:#A79FC8; --line:#3A3262; --edge:#0E0B1C;
+  --bg:#17132A; --paper:#241E3E; --ink:#F7F4FF; --muted:#C2BBE0; --line:#3A3262; --edge:#0B0816;
+  --outline:#0B0816; --dot:#221C3C; --band1:#4A3A8C; --band2:#6E2D5C;
   --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:#4A3A16; --on-sun:#3A2600; --focus:#A28CFF;
   --u:#5B9BFF; --da:#FF6663; --h:#3FCB78;
   --u-soft:#1D2D52; --da-soft:#4A1F27; --h-soft:#173D29; color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#17132A; --paper:#241E3E; --ink:#F2EEFF; --muted:#A79FC8; --line:#3A3262; --edge:#0E0B1C;
+  --bg:#17132A; --paper:#241E3E; --ink:#F7F4FF; --muted:#C2BBE0; --line:#3A3262; --edge:#0B0816;
+  --outline:#0B0816; --dot:#221C3C; --band1:#4A3A8C; --band2:#6E2D5C;
   --sun:#FFC83D; --sun-deep:#F29A24; --sun-soft:#4A3A16; --on-sun:#3A2600; --focus:#A28CFF;
   --u:#5B9BFF; --da:#FF6663; --h:#3FCB78;
   --u-soft:#1D2D52; --da-soft:#4A1F27; --h-soft:#173D29; color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.45}
+body{background-color:var(--bg);background-image:radial-gradient(var(--dot) 3.5px,transparent 4.5px);background-size:30px 30px;color:var(--ink);font-family:var(--f-body);font-size:20px;line-height:1.45}
 #app{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 48px}
 h1,h2{font-family:var(--f-display);text-wrap:balance;margin:0}
 h2{font-size:1.3rem;font-weight:700;margin:26px 0 10px}
@@ -243,13 +248,43 @@ tr:last-child td{border-bottom:0}
 .prose p{margin:0 0 10px}
 .danger{margin-top:20px;font-size:1rem}
 #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+/* contorno a fumetto e testi grandi */
+.btn,.pill,.goal,.gcard,.dbtn,.prompt,.stage,.news,.bdg,.form,.tablewrap,.stk-t.on{border:3px solid var(--outline)}
+.gcard.sel,.dbtn.sel{border-color:var(--outline);box-shadow:0 0 0 5px var(--sun),0 5px 0 var(--edge)}
+.hero{background:linear-gradient(120deg,var(--band1),var(--band2));border:3px solid var(--outline);border-radius:28px;padding:14px 16px;box-shadow:0 5px 0 var(--edge)}
+.team{display:flex;align-items:flex-end;flex:none}
+.team svg{width:72px;height:auto}
+.team svg+svg{margin-left:-8px}
+.frogbox svg{width:100%;height:auto;display:block}
+.gname{display:flex;align-items:center;gap:10px;font-size:1.6rem}
+.ghero{width:58px;flex:none}
+.ghero svg{width:100%;height:auto;display:block}
+h2{font-size:1.6rem}
+.hello{font-size:2.4rem}
+.xptxt{color:var(--ink);font-size:1rem;font-weight:700}
+.gdesc{font-size:1.05rem;color:var(--ink)}
+.chip{font-size:1.1rem}
+.dbtn{font-size:1.4rem}
+.dbtn small{font-size:.95rem;color:var(--ink)}
+.foot .btn{font-size:1.2rem}
+#qText{font-size:clamp(1.6rem,6vw,2.2rem);font-weight:800}
+#qSub{font-size:1.35rem;color:var(--ink);font-weight:700}
+.hint{font-size:1.1rem;color:var(--ink);font-weight:700}
+.lab{font-size:34px} .m100 .lab{font-size:30px}
+.bub-t{font-size:34px}
+.lg{font-size:1.05rem;font-weight:700}
+.note,.bdg small{color:var(--ink)}
+.pp-fur{fill:var(--fur)} .pp-dark{fill:var(--fur-dark)} .pp-light{fill:var(--fur-light)} .pp-nose{fill:var(--nose)}
+.pp-tongue{fill:var(--tongue)} .pp-collar{fill:var(--collar)} .pp-badge{fill:var(--sun);stroke:var(--sun-deep);stroke-width:1.2}
+.hh-dark{fill:var(--hh-dark)} .hh-body{fill:var(--hh)} .hh-face{fill:var(--hh-face)} .hh-band{fill:var(--sun-deep)}
+.hh-shoe{fill:var(--sun);stroke:var(--sun-deep);stroke-width:1.5}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
 <div id="app">
   <section id="home">
     <header class="hero">
-      <div class="frogbox" data-frog></div>
+      <div class="team" id="team"></div>
       <div class="who">
         <p class="hello">Ciao <span id="hiName">campione</span>!</p>
         <div class="lvl"><span class="badge-l">Livello <span id="lvlN">1</span></span><div class="xpbar"><i id="xpFill"></i></div></div>
@@ -283,7 +318,7 @@ tr:last-child td{border-bottom:0}
       <span class="pill" title="Punti"><b id="ptsN">0</b> punti</span>
     </div>
     <div class="prompt">
-      <div class="frogbox" data-frog></div>
+      <div class="frogbox" id="pHero"></div>
       <div class="ptxt"><p id="qText"></p><p id="qSub" hidden></p></div>
       <button class="btn icon" id="say" aria-label="Ascolta la domanda"><svg class="ic" viewBox="0 0 24 24"><use href="#i-spk"/></svg></button>
     </div>
@@ -294,7 +329,7 @@ tr:last-child td{border-bottom:0}
 
   <section id="result" hidden>
     <div class="res">
-      <div class="frogbox" data-frog></div>
+      <div class="frogbox" id="rHero"></div>
       <h1 id="resTitle"></h1>
       <div class="bigstars" id="resStars"></div>
       <p id="resLine"></p>
@@ -329,7 +364,7 @@ tr:last-child td{border-bottom:0}
     <h2>Come funziona</h2>
     <div class="prose">
       <p><b>I colori sono sempre gli stessi</b>: unità in blu, decine in rosso, centinaia in verde, sui numeri della linea, nelle domande, nei blocchi e nelle caselle. Il resto dell'app usa il giallo, così i tre colori restano legati solo al valore posizionale.</p>
-      <p><b>Le regole del gioco.</b> Ogni risposta giusta dà punti (di più in Medio e Difficile), tre giuste di fila accendono la fiamma e danno un bonus. Se sbaglia può riprovare una volta; poi Saltino mostra la soluzione. I punti non si perdono mai. A fine partita arrivano da 1 a 3 stelle, i punti fanno salire di livello e ogni livello sblocca un adesivo. I traguardi premiano costanza e coraggio, e c'è un obiettivo di 3 partite al giorno.</p>
+      <p><b>Le regole del gioco.</b> Ogni risposta giusta dà punti (di più in Medio e Difficile), tre giuste di fila accendono la fiamma e danno un bonus. Se sbaglia può riprovare una volta; poi l'app mostra la soluzione. I punti non si perdono mai. A fine partita arrivano da 1 a 3 stelle, i punti fanno salire di livello e ogni livello sblocca un adesivo. I traguardi premiano costanza e coraggio, e c'è un obiettivo di 3 partite al giorno.</p>
       <p>I progressi restano salvati su questo dispositivo, in questo browser.</p>
     </div>
     <button class="btn danger" id="resetBtn">Azzera i progressi</button>
@@ -366,7 +401,26 @@ const FROG = `<g>
   <circle class="fr-pupil" cx="-10.5" cy="-13" r="3.2"/><circle class="fr-pupil" cx="13.5" cy="-13" r="3.2"/>
   <path class="fr-mouth" d="M-10 1 Q0 9 10 1"/>
   <circle class="fr-cheek" cx="-18" cy="3" r="3"/><circle class="fr-cheek" cx="18" cy="3" r="3"/></g>`;
-$$('[data-frog]').forEach(el => el.innerHTML = `<svg viewBox="-32 -26 64 52" aria-hidden="true">${FROG}</svg>`);
+const PUP = `<g>
+  <ellipse class="pp-dark" cx="-9" cy="22" rx="7" ry="4"/><ellipse class="pp-dark" cx="9" cy="22" rx="7" ry="4"/>
+  <ellipse class="pp-fur" cx="0" cy="14" rx="15" ry="10"/>
+  <ellipse class="pp-dark" cx="-19" cy="-12" rx="7" ry="13" transform="rotate(25 -19 -12)"/><ellipse class="pp-dark" cx="19" cy="-12" rx="7" ry="13" transform="rotate(-25 19 -12)"/>
+  <circle class="pp-fur" cx="0" cy="-6" r="18"/><ellipse class="pp-light" cx="0" cy="1" rx="11" ry="8.5"/>
+  <circle class="fr-eye" cx="-7" cy="-10" r="4.6"/><circle class="fr-eye" cx="7" cy="-10" r="4.6"/>
+  <circle class="fr-pupil" cx="-6.2" cy="-9.6" r="2.8"/><circle class="fr-pupil" cx="7.8" cy="-9.6" r="2.8"/>
+  <ellipse class="pp-nose" cx="0" cy="-2.5" rx="4" ry="3"/><path class="fr-mouth" d="M-5 3 Q-2.5 6 0 3 Q2.5 6 5 3"/>
+  <path class="pp-tongue" d="M-2.2 4.8 h4.4 v2.6 a2.2 2.2 0 0 1 -4.4 0z"/>
+  <rect class="pp-collar" x="-12" y="8.5" width="24" height="5" rx="2.5"/><circle class="pp-badge" cx="0" cy="13.5" r="4"/></g>`;
+const HEDGE = `<g>
+  <path class="hh-dark" d="M-22 10 L-31 4 L-24 -3 L-32 -11 L-22 -14 L-25 -24 L-14 -22 L-11 -31 L-3 -24 L4 -31 L8 -21 L16 -22 L12 -10 Z"/>
+  <ellipse class="hh-body" cx="-2" cy="0" rx="19" ry="17"/><ellipse class="hh-face" cx="9" cy="3" rx="12" ry="10.5"/>
+  <rect class="hh-band" x="-6" y="-14" width="25" height="5" rx="2.5"/>
+  <ellipse class="fr-eye" cx="8" cy="-2" rx="4.5" ry="5.5"/><circle class="fr-pupil" cx="9.6" cy="-1.6" r="2.6"/>
+  <circle class="pp-nose" cx="21" cy="3" r="3.5"/><path class="fr-mouth" d="M11 9 Q15 12 19 8"/><circle class="fr-cheek" cx="4" cy="7" r="2.5"/>
+  <path class="hh-shoe" d="M-16 15 h11 a4.5 4.5 0 0 1 0 9 h-11 z"/><path class="hh-shoe" d="M1 15 h11 a4.5 4.5 0 0 1 0 9 h-11 z"/></g>`;
+const HEROES = { l20: { name: 'Bobo', art: PUP }, l100: { name: 'Zip', art: HEDGE }, cifre: { name: 'Saltino', art: FROG } };
+const heroSvg = k => `<svg viewBox="-34 -33 68 60" aria-hidden="true">${HEROES[k].art}</svg>`;
+$('#team').innerHTML = ['l20', 'cifre', 'l100'].map(heroSvg).join('');
 
 /* ---------- numeri in parole e in colore ---------- */
 const UN = ['zero','uno','due','tre','quattro','cinque','sei','sette','otto','nove','dieci','undici','dodici','tredici','quattordici','quindici','sedici','diciassette','diciotto','diciannove'];
@@ -452,13 +506,13 @@ const SND = { ok: () => tone([660, 880, 1175], .1), soft: () => tone([330, 262],
 
 /* ---------- giochi ---------- */
 const GAMES = {
-  l20: { name: 'Linea del 20', desc: 'Trova i numeri e salta con Saltino da 0 a 20',
+  l20: { name: 'Linea del 20', desc: 'Salta con il cucciolo Bobo da 0 a 20',
     types: [['trova', 'Trova il numero'], ['quale', 'Che numero è?'], ['salti', 'Salti'], ['vicini', 'Prima e dopo']],
     diffs: ['Fino a 10', 'Fino a 20', 'Oltre il 10'] },
-  l100: { name: 'Linea del 100', desc: 'Le decine, i salti da 10 e tutti i numeri fino a 100',
+  l100: { name: 'Linea del 100', desc: 'Corri con Zip il riccio: salti da 10 fino a 100',
     types: [['trova', 'Trova il numero'], ['quale', 'Che numero è?'], ['salti', 'Salti'], ['vicini', 'Prima e dopo']],
     diffs: ['Le decine', 'Tutti i numeri', 'Senza aiuti'] },
-  cifre: { name: 'Scrivi i numeri', desc: 'Unità blu, decine rosse, centinaia verdi',
+  cifre: { name: 'Scrivi i numeri', desc: 'Con Saltino: unità blu, decine rosse, centinaia verdi',
     types: [['costruisci', 'Conta i blocchi'], ['dettato', 'Dettato'], ['ricalca', 'Ricalca'], ['posto', 'h da u']],
     diffs: ['Fino a 20', 'Fino a 99', 'Fino a 999'] },
 };
@@ -476,6 +530,7 @@ function startRound() {
   const all = GAMES[g].types.map(t => t[0]);
   const types = (save.last.types[g] || all).filter(t => all.includes(t));
   run = { game: g, diff: d, types: types.length ? types : all, len: +save.settings.len || 10, i: 0, res: [], pts: 0, streak: 0, recent: [], bag: [], q: null, attempts: 0, locked: false, keys: null };
+  $('#pHero').innerHTML = heroSvg(g);
   show('game'); nextQ();
 }
 function pickType() { if (!run.bag.length) run.bag = shuffle(run.types.concat(run.types)); return run.bag.pop(); }
@@ -525,7 +580,7 @@ function judge(ok) {
     if (run.attempts >= 2 || q.oneShot) {
       run.locked = true; run.res.push('help'); run.i++;
       if (q.reveal) q.reveal();
-      const m = q.oneShot ? 'Guarda dove arriva Saltino' : 'Ecco la risposta giusta';
+      const m = q.oneShot ? `Guarda dove arriva ${HEROES[run.game].name}` : 'Ecco la risposta giusta';
       toast(m, '', 'help'); if (save.settings.voice) say(m);
       renderDots();
       $('#nextRow').hidden = false;
@@ -560,6 +615,7 @@ function finish() {
   fresh.forEach(b => save.badges[b.id] = dk);
   persist();
   const li = lvlInfo(save.xp);
+  $('#rHero').innerHTML = heroSvg(run.game);
   show('result');
   const title = st === 3 ? 'Fantastico!' : st === 2 ? 'Bravissimo!' : 'Bel lavoro!';
   $('#resTitle').textContent = title;
@@ -585,8 +641,8 @@ function finish() {
 /* ---------- linea dei numeri ---------- */
 const LINE = { W: 1000, P: 44, Y: 135, H: 215 };
 function lcfg(g, d) {
-  if (g === 'l20') return { max: 20, lab: [5, 5, 10][d], hi: [10, 20, 20][d], step: 1, minw: 520 };
-  return { max: 100, lab: [50, 10, 50][d], hi: 100, step: d === 0 ? 10 : 1, minw: 700 };
+  if (g === 'l20') return { max: 20, lab: [5, 5, 10][d], hi: [10, 20, 20][d], step: 1, minw: 520, hero: HEROES.l20 };
+  return { max: 100, lab: [50, 10, 50][d], hi: 100, step: d === 0 ? 10 : 1, minw: 700, hero: HEROES.l100 };
 }
 const isLab = (cfg, v) => v === 0 || v === cfg.max || v % cfg.lab === 0;
 function targetFor(cfg) {
@@ -649,7 +705,7 @@ function lineView(st, cfg) {
     unarrow() { if (named.arrow) { named.arrow.remove(); delete named.arrow; } },
     flag(v) { put('flag', `<g transform="translate(${X(v)} ${Y})"><line class="flag-pole" y1="0" y2="-64"/><path class="flag-cloth" d="M0 -64 L32 -54 L0 -44Z"/></g>`); },
     frog(v) {
-      if (!frogEl) frogEl = add(gF, `<g class="frogpos"><g transform="scale(.95)">${FROG}</g></g>`);
+      if (!frogEl) frogEl = add(gF, `<g class="frogpos"><g transform="scale(.95)">${cfg.hero.art}</g></g>`);
       frogEl.style.transition = 'none'; setT(frogEl, X(v), Y - 26); void frogEl.getBoundingClientRect(); frogEl.style.transition = '';
     },
     clearHops() { gH.innerHTML = ''; },
@@ -754,10 +810,10 @@ function qSalti(cfg, g, d) {
   }
   const ans = a + b, k = Math.abs(b), fw = b > 0;
   remember(ans);
-  let text;
-  if (g === 'l100' && k % 10 === 0) text = `Saltino è ${sul(a)}. Fa ${k / 10} salt${k === 10 ? 'o' : 'i'} da 10 ${fw ? 'in avanti' : 'indietro'}. Dove arriva?`;
-  else if (g === 'l100' && k >= 10) text = `Saltino è ${sul(a)}. Va ${fw ? 'avanti' : 'indietro'} di ${k}. Dove arriva?`;
-  else text = `Saltino è ${sul(a)}. Fa ${k} salt${k === 1 ? 'o' : 'i'} ${fw ? 'in avanti' : 'indietro'}. Dove arriva?`;
+  let text; const nm = cfg.hero.name;
+  if (g === 'l100' && k % 10 === 0) text = `${nm} è ${sul(a)}. Fa ${k / 10} salt${k === 10 ? 'o' : 'i'} da 10 ${fw ? 'in avanti' : 'indietro'}. Dove arriva?`;
+  else if (g === 'l100' && k >= 10) text = `${nm} è ${sul(a)}. Va ${fw ? 'avanti' : 'indietro'} di ${k}. Dove arriva?`;
+  else text = `${nm} è ${sul(a)}. Fa ${k} salt${k === 1 ? 'o' : 'i'} ${fw ? 'in avanti' : 'indietro'}. Dove arriva?`;
   let L, ui;
   return Q({ text, sub: `${a} ${fw ? '+' : '−'} ${k} = ?`, oneShot: true,
     mount(st, ct) {
@@ -772,7 +828,8 @@ function qQuanti(cfg, g) {
   else { st = 10; a = 10 * rnd(0, 6); c = a + 10 * rnd(2, 4); }
   if (Math.random() < .4) [a, c] = [c, a];
   const ans = Math.abs(c - a) / st, sg = Math.sign(c - a);
-  const text = st === 10 ? `Saltino è ${sul(a)} e vuole arrivare ${al(c)} con salti da 10. Quanti salti fa?` : `Saltino è ${sul(a)} e vuole arrivare ${al(c)}. Quanti salti fa?`;
+  const nm = cfg.hero.name;
+  const text = st === 10 ? `${nm} è ${sul(a)} e vuole arrivare ${al(c)} con salti da 10. Quanti salti fa?` : `${nm} è ${sul(a)} e vuole arrivare ${al(c)}. Quanti salti fa?`;
   let L, op;
   const play = () => L.hops(a, Array(ans).fill(sg * st), true);
   return Q({ text,
@@ -936,7 +993,7 @@ function renderHome() {
   const today = save.days[dayKey()] || 0;
   $('#goalDots').innerHTML = [0, 1, 2].map(i => `<i class="gdot ${i < today ? 'on' : ''}">${i < today ? STAR : ''}</i>`).join('');
   $('#goalTxt').textContent = today >= 3 ? 'Obiettivo di oggi raggiunto!' : `Obiettivo di oggi: 3 partite (${today} su 3)`;
-  $('#gameCards').innerHTML = Object.entries(GAMES).map(([k, G]) => `<button class="gcard ${k === g ? 'sel' : ''}" data-g="${k}" aria-pressed="${k === g}"><span class="gart">${ART[k]}</span><span class="gname">${G.name}</span><span class="gdesc">${G.desc}</span><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></button>`).join('');
+  $('#gameCards').innerHTML = Object.entries(GAMES).map(([k, G]) => `<button class="gcard ${k === g ? 'sel' : ''}" data-g="${k}" aria-pressed="${k === g}"><span class="gart">${ART[k]}</span><span class="gname"><span class="ghero">${heroSvg(k)}</span>${G.name}</span><span class="gdesc">${G.desc}</span><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></button>`).join('');
   const on = save.last.types[g] || GAMES[g].types.map(t => t[0]);
   $('#typeChips').innerHTML = GAMES[g].types.map(([k, n]) => `<button class="chip" data-t="${k}" aria-pressed="${on.includes(k)}">${n}</button>`).join('');
   $('#diffBtns').innerHTML = DIFF.map((n, d) => `<button class="dbtn ${d === save.last.diff ? 'sel' : ''}" data-d="${d}" aria-pressed="${d === save.last.diff}"><span class="pips">${[0, 1, 2].map(i => `<i class="${i <= d ? 'on' : ''}"></i>`).join('')}</span>${n}<small>${GAMES[g].diffs[d]}</small></button>`).join('');
