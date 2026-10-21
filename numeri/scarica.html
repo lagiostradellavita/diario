@@ -6,12 +6,12 @@
 <title>Scarica Leggo e Conto</title>
 <meta name="description" content="Leggo e Conto: i giochi per imparare a leggere e a contare. Prova gratis per 30 giorni e installa l'app su telefono, tablet e computer.">
 <link rel="manifest" href="manifest.json">
+<meta name="author" content="La Giostra della Vita società cooperativa sociale">
+<meta name="copyright" content="© 2026 La Giostra della Vita - tutti i diritti riservati">
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="theme-color" content="#FFC400">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 /* Pagina pubblica da collegare dal sito: cos'e' l'app, prova gratis, come si installa, dove si compra.
    Stessi colori dell'app; i pulsanti verso il negozio compaiono solo se il server ne conosce l'indirizzo. */
@@ -44,6 +44,7 @@ ol{margin:0;padding-left:1.4em} ol li{margin:8px 0}
 .note{color:var(--muted);font-size:1.05rem}
 .price{font-size:1.1rem}
 footer{margin-top:32px;font-size:.95rem;color:var(--muted)}
+.foot{display:flex;gap:12px;align-items:flex-start}.foot img{flex:none;width:3.6rem;height:auto}
 [hidden]{display:none!important}
 @media (max-width:480px){h1{font-size:2.1rem}.hero img{width:4.2rem;height:4.2rem}.btn{width:100%}}
 .card h3{font-family:"Baloo 2",sans-serif;font-size:1.3rem;margin:4px 0 4px}
@@ -130,7 +131,8 @@ footer{margin-top:32px;font-size:.95rem;color:var(--muted)}
   <p class="note">Le famiglie seguite dai servizi della cooperativa La Giostra della Vita usano l’app gratuitamente: chiedete all’educatore.</p>
   <div class="btns"><a class="btn shop" id="shop2" hidden target="_blank" rel="noopener">Vedi gli abbonamenti</a></div>
 
-  <footer>Leggo e Conto è un progetto della cooperativa sociale La Giostra della Vita, Bagheria.</footer>
+  <footer class="foot"><img src="logo-giostra.png" alt="La Giostra della Vita" width="64">
+    <span>Leggo e Conto è stata ideata e sviluppata da <b>La Giostra della Vita</b>, società cooperativa sociale di Bagheria, che ne è l’unica proprietaria. © 2026 – tutti i diritti riservati. L’accesso è personale: non è consentito copiare, distribuire o cedere l’app ad altri senza autorizzazione scritta della cooperativa.<br>I dati delle famiglie e dei bambini servono solo a far funzionare i giochi e non vengono dati a nessuno: <a href="privacy.html">informativa sulla privacy</a>.</span></footer>
 </main>
 <script>
 'use strict';

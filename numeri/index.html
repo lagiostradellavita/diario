@@ -1,7 +1,10 @@
 <!doctype html>
+<!-- Leggo e Conto - (c) 2026 La Giostra della Vita societa cooperativa sociale, Bagheria. Tutti i diritti riservati. Vietata la copia e la distribuzione senza autorizzazione scritta. -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
+<meta name="author" content="La Giostra della Vita societa cooperativa sociale">
+<meta name="copyright" content="(c) 2026 La Giostra della Vita - tutti i diritti riservati">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -15,11 +18,38 @@
 <title>Leggo e Conto</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#FFC400">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playwrite+IT+Moderna&display=swap">
 <style>
+/* i caratteri stanno sul nostro sito: scaricarli da Google gli darebbe l'indirizzo di chi gioca */
+@font-face {
+  font-family: 'Andika';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/Andika-400.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Andika';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/Andika-700.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-weight: 600 800;
+  font-display: swap;
+  src: url(fonts/Baloo2.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Playwrite IT Moderna';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/PlaywriteITModerna.woff2) format('woff2');
+}
 /* Layout: una colonna centrata da tablet; schermate a turno (menu, gioco, risultato, album, grandi).
    Blu, rosso e verde sono riservati a unità, decine e centinaia: l'interfaccia usa arancio, fucsia, giallo e viola su fondo bianco. */
 :root{
@@ -694,6 +724,15 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
 :root[data-cat] #scena{opacity:.6!important}
 :root[data-cat] #scena svg{opacity:.35}
 .accpiano{font-weight:700;font-size:1.15rem}
+.privbox{max-width:44rem;margin:12px auto}
+.privbox h1{margin:0;font-size:1.8rem}
+.privpunti{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:8px}
+.privtxt{font-size:1.05rem}
+.privbtn{flex-wrap:wrap;justify-content:flex-start}
+#privBox p{margin:4px 0}
+label.sw a{color:inherit;font-weight:700}
+.privbox a.btn,#privBox a.btn{display:inline-flex;align-items:center;color:var(--ink);text-decoration:none}
+.form label.sw input{flex:none}
 #atShop{text-decoration:none;display:inline-flex;align-items:center}
 .troppi{display:flex;flex-direction:column;gap:8px}
 .disp{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px solid var(--outline);border-radius:14px;padding:8px 10px;background:#fff}
@@ -737,7 +776,16 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
 .menu{grid-template-columns:repeat(2,minmax(0,1fr))}
 .mtile{min-width:0}
 .mtile b{font-size:min(2.1rem,8.6vw)}
-.mtile small{overflow-wrap:anywhere}
+.mtile small{font-size:min(1.1rem,4.3vw);overflow-wrap:normal}
+/* il marchio della cooperativa, proprietaria dell'app */
+.proprieta{display:flex;align-items:center;justify-content:center;gap:10px;margin:22px auto 8px;font-size:.95rem;font-weight:700;color:var(--ink);opacity:.9}
+.proprieta img{width:2.6rem;height:auto;background:#fff;border-radius:8px;padding:3px}
+.proprieta small{font-weight:400;font-size:.85rem}
+.diritti{display:flex;gap:14px;align-items:flex-start;margin-top:18px;background:#fff;border:2.5px solid var(--outline);border-radius:20px;padding:14px 16px;box-shadow:0 4px 0 var(--edge)}
+.diritti img{width:4.5rem;height:auto;flex:none}
+.diritti b{font-family:var(--f-display);font-size:1.25rem}
+.diritti p{margin:6px 0 0;font-size:1.05rem}
+@media (max-width:560px){.diritti{flex-direction:column;align-items:center;text-align:center}}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -759,6 +807,7 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
       <button class="mtile mt-prizes" id="mPrizes"><span class="bic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span><b>I miei premi</b><small id="mPrizeTxt"></small></button>
       <button class="mtile mt-grandi" id="toGrandi"><span class="bic"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6c.7.2 1.3.5 1.9.9l2.3-1.4 2.4 2.4-1.4 2.3c.4.6.7 1.2.9 1.9l2.6.5v3.4l-2.6.5c-.2.7-.5 1.3-.9 1.9l1.4 2.3-2.4 2.4-2.3-1.4c-.6.4-1.2.7-1.9.9l-.5 2.6h-3.4l-.5-2.6c-.7-.2-1.3-.5-1.9-.9l-2.3 1.4-2.4-2.4 1.4-2.3c-.4-.6-.7-1.2-.9-1.9L2 13.7v-3.4l2.6-.5c.2-.7.5-1.3.9-1.9L4.1 5.6l2.4-2.4 2.3 1.4c.6-.4 1.2-.7 1.9-.9zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg></span><b>Per i grandi</b><small>Impostazioni e risultati</small></button>
     </div>
+      <div class="proprieta"><img data-logo alt="La Giostra della Vita"><span>© La Giostra della Vita<br><small>Tutti i diritti riservati</small></span></div>
   </section>
 
   <section id="scelta" hidden>
@@ -776,9 +825,10 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
     <h2>La voce del telefono</h2>
     <p class="note" style="margin:0 0 10px">Tocca una voce per sentirla. Le voci «Migliorata», «Premium» o «Natural» sono le più naturali e allegre.</p>
     <div class="voci-tel" id="vociTel"></div>
+    <p class="note" id="senzaUomo" hidden style="margin:10px 0 0"><b>Su questo dispositivo non c’è una voce italiana da uomo</b>: Nonno Pino, Robottino e Super Leo parlano con una voce da donna più grave. Per una voce da uomo, sull’iPhone scarica <b>Luca</b> come spiegato qui sotto.</p>
     <details class="consiglio"><summary>Come avere una voce più bella sull’iPhone</summary>
       <ol><li>Apri <b>Impostazioni</b> → <b>Accessibilità</b> → <b>Contenuto letto ad alta voce</b> → <b>Voci</b> → <b>Italiano</b>.</li>
-      <li>Scarica <b>Alice (Migliorata)</b> o <b>Federica (Premium)</b>: tocca la nuvola con la freccia.</li>
+      <li>Scarica <b>Alice (Migliorata)</b> o <b>Federica (Premium)</b>, e <b>Luca (Migliorata)</b> per Nonno Pino, Robottino e Super Leo: tocca la nuvola con la freccia.</li>
       <li>Chiudi e riapri Leggo e Conto, poi scegli qui la voce nuova.</li></ol></details>
     <h2>Quanto veloce?</h2>
     <div class="velrow" id="velBtns"><button class="btn" data-vel="lenta"><span aria-hidden="true">🐢</span>Piano</button><button class="btn" data-vel="normale"><span aria-hidden="true">🚶</span>Normale</button><button class="btn" data-vel="veloce"><span aria-hidden="true">🐇</span>Veloce</button></div>
@@ -850,11 +900,12 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
         <label for="rgTel">Telefono (facoltativo)<input type="text" id="rgTel" inputmode="tel" autocomplete="tel" maxlength="40"></label>
         <label for="rgMsg">Per chi è? (facoltativo)<input type="text" id="rgMsg" maxlength="300" placeholder="Per esempio: mamma di Giulia, classe 1ª A"></label>
         <label for="rgPw">Scegli una password (almeno 8 caratteri)<input type="password" id="rgPw" autocomplete="new-password"></label>
-        <label class="sw"><input type="checkbox" id="rgOk"> Accetto che nomi, foto e risultati dei bambini siano salvati nell'archivio della cooperativa, solo per far funzionare i giochi.</label>
+        <label class="sw"><input type="checkbox" id="rgOk"> <span>Ho letto l'<a href="privacy.html" target="_blank" rel="noopener">informativa sulla privacy</a> e, come genitore o chi ne fa le veci, acconsento che nomi, foto e risultati dei bambini siano salvati nell'archivio della cooperativa, solo per far funzionare i giochi. I dati non vengono dati a nessuno.</span></label>
         <p class="msg" id="rgMsgErr" hidden></p>
         <button class="btn go" type="submit" style="font-size:1.4rem">Comincia la prova gratis</button>
       </form>
     </div>
+    <div class="proprieta"><img data-logo alt="La Giostra della Vita"><span>© La Giostra della Vita<br><small>Tutti i diritti riservati</small></span></div>
   </section>
 
   <section id="recupero" hidden>
@@ -880,6 +931,24 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
     </form>
   </section>
 
+  <section id="privacy" hidden>
+    <div class="form privbox">
+      <h1>I vostri dati e la privacy</h1>
+      <p>Prima di continuare, vi chiediamo di leggere come trattiamo i dati vostri e dei bambini.</p>
+      <ul class="privpunti">
+        <li><b>Cosa salviamo.</b> Nome ed email dell'adulto; per ogni bambino il nome, la foto se la mettete, età, classe e i risultati dei giochi.</li>
+        <li><b>A cosa serve.</b> Solo a far funzionare i giochi e a ritrovare i progressi su un altro telefono, tablet o computer.</li>
+        <li><b>Non li diamo a nessuno.</b> Niente vendita, niente pubblicità, niente profilazione. Li vede solo la cooperativa; i fornitori tecnici che custodiscono l'archivio non possono usarli per sé.</li>
+        <li><b>La voce non vi ascolta.</b> L'app non usa il microfono e non registra niente.</li>
+        <li><b>Decidete voi.</b> Da «Per i grandi» potete scaricare tutti i vostri dati o cancellare l'account quando volete.</li>
+      </ul>
+      <div class="row privbtn"><a class="btn" href="privacy.html" target="_blank" rel="noopener">Leggi l'informativa completa</a></div>
+      <label class="sw"><input type="checkbox" id="pvOk"> <span>Ho letto l'informativa e, come genitore o chi ne fa le veci, acconsento al trattamento dei dati dei bambini per far funzionare i giochi.</span></label>
+      <p class="msg" id="pvMsg" hidden></p>
+      <div class="row"><button class="btn go" type="button" id="pvSi">Accetto e continuo</button><button class="btn" type="button" id="pvOut">Esci</button></div>
+    </div>
+  </section>
+
   <section id="attesa" hidden>
     <div class="res">
       <div class="frogbox" id="atHero"></div>
@@ -902,6 +971,7 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
     <p class="note">Tocca la tua foto. Ogni bambino ha i suoi premi e i suoi risultati.</p>
     <button class="btn guida" type="button" data-guida="who"><svg class="ic" viewBox="0 0 24 24"><use href="#i-spk"/></svg>Ascolta</button>
     <div class="players" id="playerGrid" style="margin-top:14px"></div>
+    <div class="proprieta"><img data-logo alt="La Giostra della Vita"><span>© La Giostra della Vita<br><small>Tutti i diritti riservati</small></span></div>
   </section>
 
   <section id="profilo" hidden>
@@ -961,6 +1031,13 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
     <h2>La voce</h2>
     <button class="btn vocebtn" type="button" id="grVoce"></button>
     <div class="form" id="accountBox" hidden style="margin-bottom:14px"></div>
+    <div class="form" id="privBox" style="margin-bottom:14px">
+      <b>I vostri dati e la privacy</b>
+      <p class="privtxt">I dati della famiglia e dei bambini servono solo a far funzionare i giochi. La cooperativa <b>non li vende, non li cede e non li mostra a nessuno</b>: niente pubblicità, niente profilazione, nessun microfono. Restano vostri, e come l'app anche i dati non si possono passare ad altri.</p>
+      <span id="pvQuando" class="privtxt"></span>
+      <div class="row privbtn"><a class="btn" href="privacy.html" target="_blank" rel="noopener">Leggi l'informativa</a><button class="btn" type="button" id="pvScarica" hidden>Scarica i miei dati</button><button class="btn danger" type="button" id="pvCancella" hidden>Cancella l'account</button></div>
+      <p class="msg" id="pvEsito" hidden></p>
+    </div>
     <div class="form">
       <label class="sw"><input type="checkbox" id="optVoice"> Leggi le domande ad alta voce</label>
       <label class="sw"><input type="checkbox" id="optSound"> Suoni</label>
@@ -987,9 +1064,14 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
       <p><b>Lettura.</b> Le parole si leggono in STAMPATELLO MAIUSCOLO, in minuscolo o in corsivo, con le sillabe colorate a coppie (arancio e viola) e spazi più larghi a richiesta: i pulsanti stanno sopra ogni esercizio. Toccando una sillaba la voce la legge. In «Leggo da solo» il pulsante «Leggi con me» legge la frase una parola per volta, accendendola.</p>
       <p><b>Più bambini.</b> Ognuno ha il suo profilo, con foto, nome, cognome, età e classe, e i suoi premi e risultati. Si cambia con «Cambia giocatore» in alto nella prima pagina; la foto in alto apre il profilo. Bambino o bambina serve per dire «bravo» o «brava».</p>
       <p><b>I dati.</b> Profili, foto e risultati si salvano nell'archivio della cooperativa e si ritrovano entrando con la stessa email da qualsiasi tablet. Se manca internet si gioca lo stesso e i risultati partono appena torna la rete. «Esci da questo account» toglie dal tablet i bambini di questa famiglia.</p>
+      <p><b>La privacy.</b> I dati servono solo ai giochi e non vengono dati a nessuno. L'informativa completa, lo scarico dei propri dati e la cancellazione dell'account stanno nel riquadro «I vostri dati e la privacy», qui sopra.</p>
     </div>
     </div>
     </div>
+    <div class="diritti"><img data-logo alt="La Giostra della Vita">
+      <div><b>Proprietà e diritti</b>
+      <p>Leggo e Conto è stata ideata e sviluppata da <b>La Giostra della Vita</b>, società cooperativa sociale di Bagheria, che ne è l’unica proprietaria. © 2026 – tutti i diritti riservati.</p>
+      <p>L’accesso è personale e vale solo per la famiglia o il servizio che lo ha ricevuto. Non è consentito copiare, distribuire, cedere o mettere l’app a disposizione di altri senza l’autorizzazione scritta della cooperativa.</p></div></div>
   </section>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -1939,6 +2021,21 @@ const NOMI_PIANO = { sociale: 'Giostra Sociale (gratuito)', prova: 'Prova gratui
 const giorniMancanti = d => d ? Math.ceil((new Date(d) - Date.now()) / 864e5) : null;
 const dataIt = d => new Date(d).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 function startApp() { renderHome(); if (store.profiles.length > 1) { renderWho(); show('who'); } else if (!save.settings.mondo) apriMondo(); else show('home'); }
+// l'informativa: chi si iscrive la accetta nel modulo, chi era gia' iscritto
+// (o ha l'account da un acquisto) la accetta qui, una volta per versione
+const PRIVACY_V = '2026-10';
+function chiediPrivacy(v) {
+  $('#pvOk').checked = false; $('#pvMsg').hidden = true; show('privacy');
+  return new Promise(ok => {
+    $('#pvSi').onclick = async () => {
+      if (!$('#pvOk').checked) return msgOn('#pvMsg', 'Per continuare serve la spunta qui sopra');
+      msgOn('#pvMsg', 'Invio...');
+      try { await api('/giochi/privacy', { method: 'POST', body: JSON.stringify({ versione: v }) }); if (ME) ME.privacy = v; ok(); }
+      catch (x) { msgOn('#pvMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+    };
+    $('#pvOut').onclick = () => logout();
+  });
+}
 async function boot() {
   if (!API_BASE) return startApp();
   if (recCode) return openRec('nuova');
@@ -1952,6 +2049,7 @@ async function boot() {
     try { localStorage.setItem('leggoconto-stato', me.stato); } catch (e) {}
     if (me.stato === 'scaduto') return attesa('scaduto', me);
     if (me.stato !== 'attivo') return attesa(me.stato === 'bloccato' ? 'bloccato' : 'in_attesa');
+    if (me.privacy_corrente && me.privacy !== me.privacy_corrente) await chiediPrivacy(me.privacy_corrente);
     const gg = giorniMancanti(me.scadenza);
     if (gg !== null && gg <= 5) setTimeout(() => toast(me.piano === 'prova' ? `La prova gratuita finisce tra ${gg} ${gg === 1 ? 'giorno' : 'giorni'}` : `L'abbonamento scade tra ${gg} ${gg === 1 ? 'giorno' : 'giorni'}`, 'Per continuare: Per i grandi → Abbonamento', 'help', 3200), 1500);
     const d = await api('/giochi/dati');
@@ -2053,13 +2151,19 @@ const PERSONAS = {
   fata: { name: 'Fata Lilla', tag: 'voce da fatina', pitch: 1.5, rate: .9, pref: 'f', praise: ['Che magia!', 'Scintille di bravura!', 'Incantevole!'], retry: ['Un po\' di polvere magica e riprova.', 'Quasi! Riprova, piccol{o} mag{o}.'], hello: () => `Ciao${prof.info.nome ? ' ' + prof.info.nome : ''}! Sono la fatina dei giochi.` },
 };
 const persona = () => PERSONAS[save.settings.persona] || PERSONAS.cartoon;
-const FEM = /alice|federica|elsa|isabella|paola|emma|bianca|carla|silvia|giulia|chiara|elena|female/i, MAS = /luca|diego|cosimo|giorgio|benigno|lorenzo|marco|pietro|giuseppe|\bmale/i;
+// maschile o femminile dal nome: iPhone e Mac (Luca, Alice), Windows (Cosimo, Elsa, Diego Natural),
+// Android (it-it-x-itc e itd sono uomini, ita e itb donne; «Google italiano» e' una donna)
+const FEM = /alice|federica|elsa|isabella|paola|emma|bianca|carla|silvia|giulia|chiara|elena|female|-ita-|-itb-|google italiano/i, MAS = /luca|diego|cosimo|giorgio|benigno|lorenzo|marco|pietro|giuseppe|\bmale|-itc-|-itd-/i;
+const sesso = v => !v ? '' : MAS.test(v.name) ? 'm' : FEM.test(v.name) ? 'f' : '';
+const QUAL = v => (/natural|neural|enhanced|avanzat|migliorat|premium|online/i.test(v.name) ? 10 : 0) + (/google/i.test(v.name) ? 6 : 0);
 function voiceFor(P) {
   const vs = itVoices(); if (!vs.length) return null;
-  // la voce del telefono scelta dai grandi vale per tutti i personaggi; il personaggio cambia tono e velocita'
-  const scelta = save.settings.voiceName && vs.find(v => v.name === save.settings.voiceName); if (scelta) return scelta;
-  const score = v => (/natural|neural|enhanced|avanzat|premium|online/i.test(v.name) ? 10 : 0) + (/google/i.test(v.name) ? 6 : 0) + ((P.pref === 'm' ? MAS : FEM).test(v.name) ? 8 : 0);
-  return vs.slice().sort((a, b) => score(b) - score(a))[0];
+  // la voce del telefono scelta dai grandi vale per i personaggi del suo sesso; Nonno Pino
+  // non parla con la voce di Alice se sul telefono c'e' una voce da uomo
+  const scelta = save.settings.voiceName && vs.find(v => v.name === save.settings.voiceName);
+  if (scelta && (!sesso(scelta) || sesso(scelta) === P.pref)) return scelta;
+  const giusta = vs.filter(v => sesso(v) === P.pref).sort((a, b) => QUAL(b) - QUAL(a))[0];
+  return giusta || scelta || vs.slice().sort((a, b) => QUAL(b) - QUAL(a))[0];
 }
 // la velocita' la scelgono i grandi; di base lenta, per chi sta imparando a leggere
 const VEL = { lenta: .82, normale: .98, veloce: 1.1 };
@@ -2067,7 +2171,9 @@ const VEL = { lenta: .82, normale: .98, veloce: 1.1 };
 const TESTO = { base: 1, piu: 1.12, max: 1.25 };
 function utter(t, piano) {
   const P = persona(), u = new SpeechSynthesisUtterance(t); u.lang = 'it-IT'; const v = voiceFor(P); if (v) u.voice = v;
-  u.pitch = Math.min(2, P.pitch * 1.18 + .12); u.rate = Math.max(.45, P.rate * (VEL[save.settings.vel] || VEL.normale) * (piano ? .74 : 1)); return u;
+  // le voci da donna si alzano un po', per essere allegre; quelle da uomo restano gravi, e se il
+  // telefono ha solo voci da donna il personaggio maschile la abbassa ancora
+  u.pitch = Math.min(2, P.pref === 'm' ? P.pitch * (sesso(v) === 'm' ? 1.05 : .8) : P.pitch * 1.18 + .12); u.rate = Math.max(.45, P.rate * (VEL[save.settings.vel] || VEL.normale) * (piano ? .74 : 1)); return u;
 }
 // una sillaba o una parola da sola si dice piano; nelle frasi la parte fra «» si stacca e si dice piano.
 // Il punto in fondo evita che il telefono tagli l'ultima sillaba.
@@ -3578,6 +3684,9 @@ function adatta() {
 }
 new MutationObserver(() => requestAnimationFrame(adatta)).observe(document.getElementById('game'), { childList: true, subtree: true });
 addEventListener('resize', () => requestAnimationFrame(adatta));
+// il marchio della cooperativa, dentro la pagina: si vede anche senza rete
+const LOGO_GDV = 'data:image/png;base64,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';
+$$('img[data-logo]').forEach(i => { i.src = LOGO_GDV; });
 function applicaTesto() { document.documentElement.style.setProperty('--testo', String(TESTO[save.settings.testo] || TESTO.piu)); }
 function renderHome() {
   applicaMondo(); applicaTesto();
@@ -3655,7 +3764,8 @@ const persGrid = pc => Object.entries(PERSONAS).map(([k, P]) => `<button class="
 function renderVociTel() {
   const vs = itVoices().slice().sort((a, b) => (/natural|neural|enhanced|migliorat|premium/i.test(b.name) ? 1 : 0) - (/natural|neural|enhanced|migliorat|premium/i.test(a.name) ? 1 : 0));
   const cur = save.settings.voiceName || '';
-  $('#vociTel').innerHTML = vs.length ? [`<button class="btn vtel" data-vt="" aria-pressed="${!cur}">Automatica<small>la migliore del telefono</small></button>`].concat(vs.slice(0, 10).map(v => `<button class="btn vtel" data-vt="${v.name.replace(/"/g, '')}" aria-pressed="${v.name === cur}">${v.name.replace(/\s*\(.*?\)\s*/g, ' ').trim()}<small>${/natural|neural|enhanced|migliorat|premium/i.test(v.name) ? 'voce di qualità' : 'voce semplice'}</small></button>`)).join('') : '<p class="note">Il telefono non ha ancora caricato le voci: riapri questa pagina tra un momento.</p>';
+  $('#vociTel').innerHTML = vs.length ? [`<button class="btn vtel" data-vt="" aria-pressed="${!cur}">Automatica<small>la migliore del telefono</small></button>`].concat(vs.slice(0, 10).map(v => `<button class="btn vtel" data-vt="${v.name.replace(/"/g, '')}" aria-pressed="${v.name === cur}">${v.name.replace(/\s*\(.*?\)\s*/g, ' ').trim()}<small>${/natural|neural|enhanced|migliorat|premium/i.test(v.name) ? 'voce di qualità' : 'voce semplice'}${sesso(v) ? (sesso(v) === 'm' ? ' · da uomo' : ' · da donna') : ''}</small></button>`)).join('') : '<p class="note">Il telefono non ha ancora caricato le voci: riapri questa pagina tra un momento.</p>';
+  $('#senzaUomo').hidden = !vs.length || vs.some(v => sesso(v) === 'm');
 }
 $('#vociTel').addEventListener('click', e => { const b = e.target.closest('[data-vt]'); if (!b) return; save.settings.voiceName = b.dataset.vt; persist(); renderVociTel(); say('Ciao! Sono questa voce. Giochiamo insieme?'); });
 try { speechSynthesis.addEventListener('voiceschanged', () => { if (!$('#voce').hidden) renderVociTel(); }); } catch (e) {}
@@ -3806,9 +3916,12 @@ function renderGrandi() {
       $('#accPiano').textContent = `Piano: ${NOMI_PIANO[m.piano] || m.piano}` + (m.scadenza ? ` · fino al ${dataIt(m.scadenza)}${gg > 0 ? ` (mancano ${gg} giorni)` : ''}` : ' · senza scadenza');
       const sh = $('#accShop'); sh.hidden = !NEGOZIO || m.piano === 'sociale'; sh.href = NEGOZIO; sh.textContent = m.piano === 'prova' ? 'Abbonati sul sito' : 'Rinnova o cambia piano';
       dispositivi();
+      $('#pvQuando').textContent = m.privacy_il ? `Informativa accettata il ${dataIt(m.privacy_il)}.` : '';
     }).catch(() => {});
     $('#accOut').onclick = () => { syncNow(); logout(); };
   }
+  $('#pvScarica').hidden = $('#pvCancella').hidden = !(API_BASE && token);
+  $('#pvEsito').hidden = true; cancArm = false; $('#pvCancella').textContent = "Cancella l'account";
   $('#optVoice').checked = save.settings.voice; $('#optSound').checked = save.settings.sound; $('#optLen').value = String(save.settings.len);
   const rows = [];
   for (const g of Object.keys(GAMES)) for (const d of [0, 1, 2]) {
@@ -3832,7 +3945,25 @@ function renderGrandi() {
 $('#optVoice').addEventListener('change', e => { save.settings.voice = e.target.checked; persist(); });
 $('#optSound').addEventListener('change', e => { save.settings.sound = e.target.checked; persist(); });
 $('#optLen').addEventListener('change', e => { save.settings.len = +e.target.value; persist(); });
-let resetArm = false;
+let resetArm = false, cancArm = false;
+$('#pvScarica').addEventListener('click', async () => {
+  try {
+    const d = await api('/giochi/miei-dati');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }));
+    a.download = 'leggo-e-conto-i-miei-dati.json'; document.body.appendChild(a); a.click(); a.remove();
+    msgOn('#pvEsito', 'Fatto: il file con tutti i vostri dati è nei download.');
+  } catch (x) { msgOn('#pvEsito', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+});
+// la cancellazione chiede due tocchi e la password: non si torna indietro
+$('#pvCancella').addEventListener('click', async () => {
+  if (!cancArm) { cancArm = true; $('#pvCancella').textContent = 'Tocca ancora per cancellare tutto'; return msgOn('#pvEsito', "Si cancellano l'account, tutti i bambini, le foto e i risultati, su tutti i dispositivi. Non si può annullare."); }
+  const pw = prompt("Per cancellare l'account scrivi la tua password");
+  if (!pw) { cancArm = false; $('#pvCancella').textContent = "Cancella l'account"; return msgOn('#pvEsito', 'Cancellazione annullata.'); }
+  try {
+    await api('/giochi/cancella-account', { method: 'POST', body: JSON.stringify({ email: (ME && ME.email) || '', password: pw }) });
+    logout(); toast("Account cancellato", 'I dati della famiglia non ci sono più', 'help', 3600);
+  } catch (x) { cancArm = false; $('#pvCancella').textContent = "Cancella l'account"; msgOn('#pvEsito', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+});
 $('#testoBtns').addEventListener('click', e => { const b = e.target.closest('[data-testo]'); if (!b) return; SND.tick(); save.settings.testo = b.dataset.testo; persist(); applicaTesto(); renderGrandi(); });
 function scegliMondo(k) { save.settings.mondo = k; persist(); applicaMondo(); }
 $('#mondiGrandi').addEventListener('click', e => { const b = e.target.closest('[data-mondo]'); if (!b) return; SND.tick(); scegliMondo(b.dataset.mondo); renderGrandi(); say(`Ecco: si gioca ${MONDI[b.dataset.mondo].voce}!`); });
@@ -3924,11 +4055,11 @@ $('#fIn').addEventListener('submit', e => { e.preventDefault(); entra(); });
 $('#troppi').addEventListener('click', e => { const b = e.target.closest('[data-scollega]'); if (b) entra(b.dataset.scollega); });
 $('#fReg').addEventListener('submit', async e => {
   e.preventDefault();
-  const b = { nome: $('#rgNome').value.trim(), email: $('#rgEmail').value.trim(), telefono: $('#rgTel').value.trim(), messaggio: $('#rgMsg').value.trim(), password: $('#rgPw').value, codice: DISP, nome_dispositivo: NOME_DISP };
+  const b = { nome: $('#rgNome').value.trim(), email: $('#rgEmail').value.trim(), telefono: $('#rgTel').value.trim(), messaggio: $('#rgMsg').value.trim(), password: $('#rgPw').value, codice: DISP, nome_dispositivo: NOME_DISP, privacy: PRIVACY_V };
   if (b.nome.length < 2) return msgOn('#rgMsgErr', 'Scrivi nome e cognome');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(b.email)) return msgOn('#rgMsgErr', "Controlla l'indirizzo email");
   if (b.password.length < 8) return msgOn('#rgMsgErr', 'La password deve avere almeno 8 caratteri');
-  if (!$('#rgOk').checked) return msgOn('#rgMsgErr', 'Per continuare serve il consenso qui sopra');
+  if (!$('#rgOk').checked) return msgOn('#rgMsgErr', "Per continuare bisogna leggere l'informativa e mettere la spunta qui sopra");
   msgOn('#rgMsgErr', 'Invio...');
   try {
     const r = await api('/giochi/registrati', { method: 'POST', body: JSON.stringify(b) }); setToken(r.access_token); msgOn('#rgMsgErr', '');
