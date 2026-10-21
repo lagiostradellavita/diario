@@ -35,6 +35,9 @@ PIANI = ("sociale", "prova", "base", "premium")
 DISPOSITIVI = {"sociale": 5, "prova": 3, "base": 3, "premium": 3}
 BAMBINI = {"sociale": None, "prova": 2, "base": 2, "premium": 4}
 SOSPETTO = 3   # da quanti tentativi oltre il limite il backoffice segnala l'account
+# la versione dell'informativa sulla privacy (numeri/privacy.html): se cambia,
+# l'app la ripropone a tutti al prossimo ingresso
+PRIVACY_VERSIONE = "2026-10"
 
 
 def _ora():
@@ -118,6 +121,7 @@ class RegistratiIn(BaseModel):
     messaggio: Optional[str] = None
     codice: Optional[str] = None
     nome_dispositivo: Optional[str] = None
+    privacy: Optional[str] = None          # la versione dell'informativa letta e accettata
 
 
 class EntraIn(BaseModel):
@@ -177,13 +181,16 @@ def registrati(body: RegistratiIn, avvisi: BackgroundTasks, db: Session = Depend
     email = (body.email or "").strip().lower()
     if "@" not in email or "." not in email.split("@")[-1]:
         raise HTTPException(400, "Serve un indirizzo email valido")
+    if body.privacy != PRIVACY_VERSIONE:
+        raise HTTPException(400, "Per iscriversi bisogna leggere e accettare l'informativa sulla privacy")
     if db.execute(text("select 1 from giochi_utenti where email = :e"), {"e": email}).first():
         raise HTTPException(409, "Questa email e' gia' registrata: entra con la tua password")
     fine_prova = _ora() + timedelta(days=PROVA_GIORNI)
     uid = db.execute(text(
-        "insert into giochi_utenti (email, nome, telefono, messaggio, password_hash, stato, piano, scadenza, approvato_il)"
-        " values (:e, :n, :t, :m, :h, 'attivo', 'prova', :s, now()) returning id"
-    ), {"e": email, "n": body.nome.strip()[:100], "t": (body.telefono or "").strip()[:40] or None,
+        "insert into giochi_utenti (email, nome, telefono, messaggio, password_hash, stato, piano, scadenza, approvato_il,"
+        " privacy_versione, privacy_il)"
+        " values (:e, :n, :t, :m, :h, 'attivo', 'prova', :s, now(), :pv, now()) returning id"
+    ), {"pv": PRIVACY_VERSIONE, "e": email, "n": body.nome.strip()[:100], "t": (body.telefono or "").strip()[:40] or None,
         "m": (body.messaggio or "").strip()[:1000] or None, "h": hash_password(body.password), "s": fine_prova}).scalar()
     db.commit()   # confermo prima di rispondere: la schermata rilegge subito lo stato
     _da_odoo(db, uid, email)
@@ -285,7 +292,7 @@ def ricorda_email(body: RicordaIn, db: Session = Depends(get_session)):
 
 @router.get("/io")
 def io(uid: str = Depends(get_giochi_uid), db: Session = Depends(get_session)):
-    sel = "select email, nome, stato, piano, scadenza from giochi_utenti where id = :i"
+    sel = "select email, nome, stato, piano, scadenza, privacy_versione, privacy_il from giochi_utenti where id = :i"
     row = db.execute(text(sel), {"i": uid}).mappings().first()
     if not row:
         raise HTTPException(401, "Utente non trovato")
@@ -293,7 +300,63 @@ def io(uid: str = Depends(get_giochi_uid), db: Session = Depends(get_session)):
         row = db.execute(text(sel), {"i": uid}).mappings().first()
     return {"email": row["email"], "nome": row["nome"], "stato": _stato_vero(row["stato"], row["scadenza"]),
             "piano": row["piano"], "scadenza": row["scadenza"].isoformat() if row["scadenza"] else None,
-            "negozio": NEGOZIO_URL, "max_bambini": BAMBINI.get(row["piano"]), "max_dispositivi": _limite_disp(row["piano"])}
+            "negozio": NEGOZIO_URL, "max_bambini": BAMBINI.get(row["piano"]), "max_dispositivi": _limite_disp(row["piano"]),
+            "privacy": row["privacy_versione"], "privacy_il": row["privacy_il"].isoformat() if row["privacy_il"] else None,
+            "privacy_corrente": PRIVACY_VERSIONE}
+
+
+class PrivacyIn(BaseModel):
+    versione: str
+
+
+@router.post("/privacy")
+def accetta_privacy(body: PrivacyIn, uid: str = Depends(get_giochi_uid), db: Session = Depends(get_session)):
+    """Chi era iscritto prima dell'informativa, o ha l'account da un acquisto,
+    la accetta al primo ingresso. Si tiene la versione e il momento."""
+    if body.versione != PRIVACY_VERSIONE:
+        raise HTTPException(400, "L'informativa e' cambiata: ricarica la pagina e rileggila")
+    db.execute(text("update giochi_utenti set privacy_versione = :v, privacy_il = now() where id = :i"),
+               {"v": PRIVACY_VERSIONE, "i": uid})
+    db.commit()
+    return {"ok": True, "privacy": PRIVACY_VERSIONE}
+
+
+@router.get("/miei-dati")
+def miei_dati(uid: str = Depends(get_giochi_uid), db: Session = Depends(get_session)):
+    """Tutto quello che l'archivio tiene di questo account, in un file solo:
+    il diritto di accesso e di portabilita' dell'informativa."""
+    u = db.execute(text(
+        "select email, nome, telefono, messaggio, stato, piano, scadenza, creato_il, ultimo_accesso, accessi,"
+        " privacy_versione, privacy_il from giochi_utenti where id = :i"), {"i": uid}).mappings().first()
+    if not u:
+        raise HTTPException(401, "Utente non trovato")
+    dati = db.execute(text("select valore from giochi_dati where utente_id = :i"), {"i": uid}).scalar()
+    iso = lambda t: t.isoformat() if t else None
+    return {"account": {k: (iso(v) if hasattr(v, "isoformat") else v) for k, v in u.items()},
+            "dispositivi": _elenco_disp(db, uid), "bambini_e_risultati": dati}
+
+
+class CancellaIn(BaseModel):
+    email: str
+    password: str
+
+
+@router.post("/cancella-account")
+def cancella_account(body: CancellaIn, avvisi: BackgroundTasks, db: Session = Depends(get_session)):
+    """Il diritto alla cancellazione: account, bambini, risultati, dispositivi.
+    Chiede email e password invece del token, cosi' funziona anche ad
+    abbonamento scaduto. Gli acquisti restano su Odoo per gli obblighi fiscali."""
+    email = (body.email or "").strip().lower()
+    row = db.execute(text("select id, nome, password_hash from giochi_utenti where email = :e"), {"e": email}).mappings().first()
+    if not row or not verify_password(body.password, row["password_hash"]):
+        raise HTTPException(400, "Email o password non corrette")
+    db.execute(text("delete from recuperi_password where ambito = 'giochi' and utente_id = :i"), {"i": row["id"]})
+    db.execute(text("delete from giochi_utenti where id = :i"), {"i": row["id"]})
+    db.commit()
+    avvisi.add_task(posta.manda, settings.admin_email, "Leggo e Conto: account cancellato",
+                    f"{row['nome']} ({email}) ha cancellato il proprio account dall'app, con i profili dei bambini"
+                    " e i loro risultati.\nSe ha un abbonamento attivo su Odoo, va disdetto da li'.\n")
+    return {"ok": True}
 
 
 @router.get("/dispositivi")
@@ -480,11 +543,27 @@ def stato_posta(_admin: str = Depends(get_admin)):
     return {"configurata": posta.configurata(), "destinatario": settings.admin_email}
 
 
+def _pulizia(db):
+    """I tempi di conservazione promessi dall'informativa (numeri/privacy.html):
+    registro degli accessi 12 mesi; account fermi da 24 mesi, con l'abbonamento
+    finito da altrettanto, cancellati con bambini e risultati; i messaggi di
+    Odoo 24 mesi. Gira ogni volta che si apre il backoffice."""
+    db.execute(text("delete from giochi_accessi where quando < now() - interval '12 months'"))
+    db.execute(text("delete from giochi_odoo_eventi where ricevuto_il < now() - interval '24 months'"))
+    db.execute(text("delete from recuperi_password where ambito = 'giochi' and scade_il < now() - interval '30 days'"))
+    db.execute(text(
+        "delete from giochi_utenti where coalesce(piano, '') <> 'sociale'"
+        " and scadenza is not null and scadenza < now() - interval '24 months'"
+        " and coalesce(ultimo_accesso, creato_il) < now() - interval '24 months'"))
+    db.commit()
+
+
 @router.get("/admin/utenti")
 def admin_utenti(db: Session = Depends(get_session), _admin: str = Depends(get_admin)):
+    _pulizia(db)
     righe = db.execute(text(
         "select u.id, u.email, u.nome, u.telefono, u.messaggio, u.stato, u.creato_il, u.approvato_il,"
-        " u.ultimo_accesso, u.accessi, u.piano, u.scadenza, u.odoo_rif, u.tentativi_oltre, d.valore,"
+        " u.ultimo_accesso, u.accessi, u.piano, u.scadenza, u.odoo_rif, u.tentativi_oltre, u.privacy_il, d.valore,"
         " (select count(*) from giochi_dispositivi x where x.utente_id = u.id) as n_disp"
         " from giochi_utenti u left join giochi_dati d on d.utente_id = u.id"
         " order by (u.stato = 'in_attesa') desc, u.creato_il desc"
@@ -498,7 +577,7 @@ def admin_utenti(db: Session = Depends(get_session), _admin: str = Depends(get_a
         "piano": r["piano"], "scadenza": iso(r["scadenza"]), "odoo": r["odoo_rif"],
         "scaduto": _stato_vero(r["stato"], r["scadenza"]) == "scaduto",
         "dispositivi": r["n_disp"], "max_dispositivi": _limite_disp(r["piano"]), "tentativi_oltre": r["tentativi_oltre"],
-        "sospetto": r["tentativi_oltre"] >= SOSPETTO,
+        "sospetto": r["tentativi_oltre"] >= SOSPETTO, "privacy_il": iso(r["privacy_il"]),
     } for r in righe]}
 
 

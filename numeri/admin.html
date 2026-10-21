@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Leggo e Conto · Backoffice</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Andika:wght@400;700&display=swap">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 /* Backoffice di Leggo e Conto: una colonna, schede per stato, una scheda per famiglia. */
 :root{
@@ -169,6 +169,7 @@ function card(u) {
   return '<div class="card"><div class="u-top"><span class="u-name">' + esc(u.nome || u.email) + '</span><span class="chip st-' + u.stato + '">' + { in_attesa: 'da approvare', attivo: 'attivo', bloccato: 'bloccato' }[u.stato] + '</span><span class="chip pl-' + (u.scaduto ? 'scaduto' : u.piano) + '">' + (PIANO[u.piano] || u.piano) + (u.scaduto ? ' · scaduto' : '') + '</span>' + (u.sospetto ? '<span class="chip sosp">⚠ possibile condivisione</span>' : '') + '</div>'
     + '<p class="piano">Piano <b>' + esc(PIANO[u.piano] || u.piano) + '</b> · ' + (u.scadenza ? (u.scaduto ? 'scaduto il ' : 'fino al ') + giorno(u.scadenza) : 'senza scadenza') + (u.odoo ? ' · abbonamento Odoo ' + esc(u.odoo) : '') + '</p>'
     + '<p class="piano">Dispositivi collegati <b>' + u.dispositivi + ' di ' + u.max_dispositivi + '</b>' + (u.tentativi_oltre ? ' · tentativi da un dispositivo in più: <b>' + u.tentativi_oltre + '</b>' : '') + '</p>'
+    + '<p class="piano">Informativa privacy: ' + (u.privacy_il ? 'accettata il <b>' + new Date(u.privacy_il).toLocaleDateString('it-IT') + '</b>' : '<b>non ancora accettata</b> (gli verrà chiesta al prossimo ingresso)') + '</p>'
     + (u.messaggio ? '<p style="margin:6px 0 0">«' + esc(u.messaggio) + '»</p>' : '')
     + '<div class="meta"><span>Email: <b>' + esc(u.email) + '</b></span><span>Telefono: <b>' + esc(u.telefono || '–') + '</b></span><span>Richiesta: <b>' + when(u.iscritto) + '</b></span><span>Approvato: <b>' + when(u.approvato) + '</b></span><span>Ultimo accesso: <b>' + when(u.ultimo_accesso) + '</b></span><span>Accessi: <b>' + u.accessi + '</b></span></div>'
     + kids + '<div class="acts">' + a.join('') + '</div>'

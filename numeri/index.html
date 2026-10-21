@@ -18,11 +18,38 @@
 <title>Leggo e Conto</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#FFC400">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playwrite+IT+Moderna&display=swap">
 <style>
+/* i caratteri stanno sul nostro sito: scaricarli da Google gli darebbe l'indirizzo di chi gioca */
+@font-face {
+  font-family: 'Andika';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/Andika-400.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Andika';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/Andika-700.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-weight: 600 800;
+  font-display: swap;
+  src: url(fonts/Baloo2.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Playwrite IT Moderna';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/PlaywriteITModerna.woff2) format('woff2');
+}
 /* Layout: una colonna centrata da tablet; schermate a turno (menu, gioco, risultato, album, grandi).
    Blu, rosso e verde sono riservati a unità, decine e centinaia: l'interfaccia usa arancio, fucsia, giallo e viola su fondo bianco. */
 :root{
@@ -697,6 +724,15 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
 :root[data-cat] #scena{opacity:.6!important}
 :root[data-cat] #scena svg{opacity:.35}
 .accpiano{font-weight:700;font-size:1.15rem}
+.privbox{max-width:44rem;margin:12px auto}
+.privbox h1{margin:0;font-size:1.8rem}
+.privpunti{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:8px}
+.privtxt{font-size:1.05rem}
+.privbtn{flex-wrap:wrap;justify-content:flex-start}
+#privBox p{margin:4px 0}
+label.sw a{color:inherit;font-weight:700}
+.privbox a.btn,#privBox a.btn{display:inline-flex;align-items:center;color:var(--ink);text-decoration:none}
+.form label.sw input{flex:none}
 #atShop{text-decoration:none;display:inline-flex;align-items:center}
 .troppi{display:flex;flex-direction:column;gap:8px}
 .disp{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px solid var(--outline);border-radius:14px;padding:8px 10px;background:#fff}
@@ -863,7 +899,7 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
         <label for="rgTel">Telefono (facoltativo)<input type="text" id="rgTel" inputmode="tel" autocomplete="tel" maxlength="40"></label>
         <label for="rgMsg">Per chi è? (facoltativo)<input type="text" id="rgMsg" maxlength="300" placeholder="Per esempio: mamma di Giulia, classe 1ª A"></label>
         <label for="rgPw">Scegli una password (almeno 8 caratteri)<input type="password" id="rgPw" autocomplete="new-password"></label>
-        <label class="sw"><input type="checkbox" id="rgOk"> Accetto che nomi, foto e risultati dei bambini siano salvati nell'archivio della cooperativa, solo per far funzionare i giochi.</label>
+        <label class="sw"><input type="checkbox" id="rgOk"> <span>Ho letto l'<a href="privacy.html" target="_blank" rel="noopener">informativa sulla privacy</a> e, come genitore o chi ne fa le veci, acconsento che nomi, foto e risultati dei bambini siano salvati nell'archivio della cooperativa, solo per far funzionare i giochi. I dati non vengono dati a nessuno.</span></label>
         <p class="msg" id="rgMsgErr" hidden></p>
         <button class="btn go" type="submit" style="font-size:1.4rem">Comincia la prova gratis</button>
       </form>
@@ -892,6 +928,24 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
       <p class="msg" id="newMsg" hidden></p>
       <button class="btn go" type="submit">Salva la password</button>
     </form>
+  </section>
+
+  <section id="privacy" hidden>
+    <div class="form privbox">
+      <h1>I vostri dati e la privacy</h1>
+      <p>Prima di continuare, vi chiediamo di leggere come trattiamo i dati vostri e dei bambini.</p>
+      <ul class="privpunti">
+        <li><b>Cosa salviamo.</b> Nome ed email dell'adulto; per ogni bambino il nome, la foto se la mettete, età, classe e i risultati dei giochi.</li>
+        <li><b>A cosa serve.</b> Solo a far funzionare i giochi e a ritrovare i progressi su un altro telefono, tablet o computer.</li>
+        <li><b>Non li diamo a nessuno.</b> Niente vendita, niente pubblicità, niente profilazione. Li vede solo la cooperativa; i fornitori tecnici che custodiscono l'archivio non possono usarli per sé.</li>
+        <li><b>La voce non vi ascolta.</b> L'app non usa il microfono e non registra niente.</li>
+        <li><b>Decidete voi.</b> Da «Per i grandi» potete scaricare tutti i vostri dati o cancellare l'account quando volete.</li>
+      </ul>
+      <div class="row privbtn"><a class="btn" href="privacy.html" target="_blank" rel="noopener">Leggi l'informativa completa</a></div>
+      <label class="sw"><input type="checkbox" id="pvOk"> <span>Ho letto l'informativa e, come genitore o chi ne fa le veci, acconsento al trattamento dei dati dei bambini per far funzionare i giochi.</span></label>
+      <p class="msg" id="pvMsg" hidden></p>
+      <div class="row"><button class="btn go" type="button" id="pvSi">Accetto e continuo</button><button class="btn" type="button" id="pvOut">Esci</button></div>
+    </div>
   </section>
 
   <section id="attesa" hidden>
@@ -976,6 +1030,13 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
     <h2>La voce</h2>
     <button class="btn vocebtn" type="button" id="grVoce"></button>
     <div class="form" id="accountBox" hidden style="margin-bottom:14px"></div>
+    <div class="form" id="privBox" style="margin-bottom:14px">
+      <b>I vostri dati e la privacy</b>
+      <p class="privtxt">I dati della famiglia e dei bambini servono solo a far funzionare i giochi. La cooperativa <b>non li vende, non li cede e non li mostra a nessuno</b>: niente pubblicità, niente profilazione, nessun microfono. Restano vostri, e come l'app anche i dati non si possono passare ad altri.</p>
+      <span id="pvQuando" class="privtxt"></span>
+      <div class="row privbtn"><a class="btn" href="privacy.html" target="_blank" rel="noopener">Leggi l'informativa</a><button class="btn" type="button" id="pvScarica" hidden>Scarica i miei dati</button><button class="btn danger" type="button" id="pvCancella" hidden>Cancella l'account</button></div>
+      <p class="msg" id="pvEsito" hidden></p>
+    </div>
     <div class="form">
       <label class="sw"><input type="checkbox" id="optVoice"> Leggi le domande ad alta voce</label>
       <label class="sw"><input type="checkbox" id="optSound"> Suoni</label>
@@ -1002,6 +1063,7 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
       <p><b>Lettura.</b> Le parole si leggono in STAMPATELLO MAIUSCOLO, in minuscolo o in corsivo, con le sillabe colorate a coppie (arancio e viola) e spazi più larghi a richiesta: i pulsanti stanno sopra ogni esercizio. Toccando una sillaba la voce la legge. In «Leggo da solo» il pulsante «Leggi con me» legge la frase una parola per volta, accendendola.</p>
       <p><b>Più bambini.</b> Ognuno ha il suo profilo, con foto, nome, cognome, età e classe, e i suoi premi e risultati. Si cambia con «Cambia giocatore» in alto nella prima pagina; la foto in alto apre il profilo. Bambino o bambina serve per dire «bravo» o «brava».</p>
       <p><b>I dati.</b> Profili, foto e risultati si salvano nell'archivio della cooperativa e si ritrovano entrando con la stessa email da qualsiasi tablet. Se manca internet si gioca lo stesso e i risultati partono appena torna la rete. «Esci da questo account» toglie dal tablet i bambini di questa famiglia.</p>
+      <p><b>La privacy.</b> I dati servono solo ai giochi e non vengono dati a nessuno. L'informativa completa, lo scarico dei propri dati e la cancellazione dell'account stanno nel riquadro «I vostri dati e la privacy», qui sopra.</p>
     </div>
     </div>
     </div>
@@ -1958,6 +2020,21 @@ const NOMI_PIANO = { sociale: 'Giostra Sociale (gratuito)', prova: 'Prova gratui
 const giorniMancanti = d => d ? Math.ceil((new Date(d) - Date.now()) / 864e5) : null;
 const dataIt = d => new Date(d).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 function startApp() { renderHome(); if (store.profiles.length > 1) { renderWho(); show('who'); } else if (!save.settings.mondo) apriMondo(); else show('home'); }
+// l'informativa: chi si iscrive la accetta nel modulo, chi era gia' iscritto
+// (o ha l'account da un acquisto) la accetta qui, una volta per versione
+const PRIVACY_V = '2026-10';
+function chiediPrivacy(v) {
+  $('#pvOk').checked = false; $('#pvMsg').hidden = true; show('privacy');
+  return new Promise(ok => {
+    $('#pvSi').onclick = async () => {
+      if (!$('#pvOk').checked) return msgOn('#pvMsg', 'Per continuare serve la spunta qui sopra');
+      msgOn('#pvMsg', 'Invio...');
+      try { await api('/giochi/privacy', { method: 'POST', body: JSON.stringify({ versione: v }) }); if (ME) ME.privacy = v; ok(); }
+      catch (x) { msgOn('#pvMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+    };
+    $('#pvOut').onclick = () => logout();
+  });
+}
 async function boot() {
   if (!API_BASE) return startApp();
   if (recCode) return openRec('nuova');
@@ -1971,6 +2048,7 @@ async function boot() {
     try { localStorage.setItem('leggoconto-stato', me.stato); } catch (e) {}
     if (me.stato === 'scaduto') return attesa('scaduto', me);
     if (me.stato !== 'attivo') return attesa(me.stato === 'bloccato' ? 'bloccato' : 'in_attesa');
+    if (me.privacy_corrente && me.privacy !== me.privacy_corrente) await chiediPrivacy(me.privacy_corrente);
     const gg = giorniMancanti(me.scadenza);
     if (gg !== null && gg <= 5) setTimeout(() => toast(me.piano === 'prova' ? `La prova gratuita finisce tra ${gg} ${gg === 1 ? 'giorno' : 'giorni'}` : `L'abbonamento scade tra ${gg} ${gg === 1 ? 'giorno' : 'giorni'}`, 'Per continuare: Per i grandi → Abbonamento', 'help', 3200), 1500);
     const d = await api('/giochi/dati');
@@ -3828,9 +3906,12 @@ function renderGrandi() {
       $('#accPiano').textContent = `Piano: ${NOMI_PIANO[m.piano] || m.piano}` + (m.scadenza ? ` · fino al ${dataIt(m.scadenza)}${gg > 0 ? ` (mancano ${gg} giorni)` : ''}` : ' · senza scadenza');
       const sh = $('#accShop'); sh.hidden = !NEGOZIO || m.piano === 'sociale'; sh.href = NEGOZIO; sh.textContent = m.piano === 'prova' ? 'Abbonati sul sito' : 'Rinnova o cambia piano';
       dispositivi();
+      $('#pvQuando').textContent = m.privacy_il ? `Informativa accettata il ${dataIt(m.privacy_il)}.` : '';
     }).catch(() => {});
     $('#accOut').onclick = () => { syncNow(); logout(); };
   }
+  $('#pvScarica').hidden = $('#pvCancella').hidden = !(API_BASE && token);
+  $('#pvEsito').hidden = true; cancArm = false; $('#pvCancella').textContent = "Cancella l'account";
   $('#optVoice').checked = save.settings.voice; $('#optSound').checked = save.settings.sound; $('#optLen').value = String(save.settings.len);
   const rows = [];
   for (const g of Object.keys(GAMES)) for (const d of [0, 1, 2]) {
@@ -3854,7 +3935,25 @@ function renderGrandi() {
 $('#optVoice').addEventListener('change', e => { save.settings.voice = e.target.checked; persist(); });
 $('#optSound').addEventListener('change', e => { save.settings.sound = e.target.checked; persist(); });
 $('#optLen').addEventListener('change', e => { save.settings.len = +e.target.value; persist(); });
-let resetArm = false;
+let resetArm = false, cancArm = false;
+$('#pvScarica').addEventListener('click', async () => {
+  try {
+    const d = await api('/giochi/miei-dati');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }));
+    a.download = 'leggo-e-conto-i-miei-dati.json'; document.body.appendChild(a); a.click(); a.remove();
+    msgOn('#pvEsito', 'Fatto: il file con tutti i vostri dati è nei download.');
+  } catch (x) { msgOn('#pvEsito', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+});
+// la cancellazione chiede due tocchi e la password: non si torna indietro
+$('#pvCancella').addEventListener('click', async () => {
+  if (!cancArm) { cancArm = true; $('#pvCancella').textContent = 'Tocca ancora per cancellare tutto'; return msgOn('#pvEsito', "Si cancellano l'account, tutti i bambini, le foto e i risultati, su tutti i dispositivi. Non si può annullare."); }
+  const pw = prompt("Per cancellare l'account scrivi la tua password");
+  if (!pw) { cancArm = false; $('#pvCancella').textContent = "Cancella l'account"; return msgOn('#pvEsito', 'Cancellazione annullata.'); }
+  try {
+    await api('/giochi/cancella-account', { method: 'POST', body: JSON.stringify({ email: (ME && ME.email) || '', password: pw }) });
+    logout(); toast("Account cancellato", 'I dati della famiglia non ci sono più', 'help', 3600);
+  } catch (x) { cancArm = false; $('#pvCancella').textContent = "Cancella l'account"; msgOn('#pvEsito', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
+});
 $('#testoBtns').addEventListener('click', e => { const b = e.target.closest('[data-testo]'); if (!b) return; SND.tick(); save.settings.testo = b.dataset.testo; persist(); applicaTesto(); renderGrandi(); });
 function scegliMondo(k) { save.settings.mondo = k; persist(); applicaMondo(); }
 $('#mondiGrandi').addEventListener('click', e => { const b = e.target.closest('[data-mondo]'); if (!b) return; SND.tick(); scegliMondo(b.dataset.mondo); renderGrandi(); say(`Ecco: si gioca ${MONDI[b.dataset.mondo].voce}!`); });
@@ -3946,11 +4045,11 @@ $('#fIn').addEventListener('submit', e => { e.preventDefault(); entra(); });
 $('#troppi').addEventListener('click', e => { const b = e.target.closest('[data-scollega]'); if (b) entra(b.dataset.scollega); });
 $('#fReg').addEventListener('submit', async e => {
   e.preventDefault();
-  const b = { nome: $('#rgNome').value.trim(), email: $('#rgEmail').value.trim(), telefono: $('#rgTel').value.trim(), messaggio: $('#rgMsg').value.trim(), password: $('#rgPw').value, codice: DISP, nome_dispositivo: NOME_DISP };
+  const b = { nome: $('#rgNome').value.trim(), email: $('#rgEmail').value.trim(), telefono: $('#rgTel').value.trim(), messaggio: $('#rgMsg').value.trim(), password: $('#rgPw').value, codice: DISP, nome_dispositivo: NOME_DISP, privacy: PRIVACY_V };
   if (b.nome.length < 2) return msgOn('#rgMsgErr', 'Scrivi nome e cognome');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(b.email)) return msgOn('#rgMsgErr', "Controlla l'indirizzo email");
   if (b.password.length < 8) return msgOn('#rgMsgErr', 'La password deve avere almeno 8 caratteri');
-  if (!$('#rgOk').checked) return msgOn('#rgMsgErr', 'Per continuare serve il consenso qui sopra');
+  if (!$('#rgOk').checked) return msgOn('#rgMsgErr', "Per continuare bisogna leggere l'informativa e mettere la spunta qui sopra");
   msgOn('#rgMsgErr', 'Invio...');
   try {
     const r = await api('/giochi/registrati', { method: 'POST', body: JSON.stringify(b) }); setToken(r.access_token); msgOn('#rgMsgErr', '');
