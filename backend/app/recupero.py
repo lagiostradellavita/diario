@@ -17,7 +17,7 @@ def _impronta(codice: str) -> str:
     return hashlib.sha256(codice.encode()).hexdigest()
 
 
-def crea(db, ambito: str, utente_id) -> str:
+def crea(db, ambito: str, utente_id, minuti: int = DURATA_MINUTI) -> str:
     db.execute(text(
         "update recuperi_password set usato_il = now()"
         " where ambito = :a and utente_id = :u and usato_il is null"
@@ -26,7 +26,7 @@ def crea(db, ambito: str, utente_id) -> str:
     db.execute(text(
         "insert into recuperi_password (ambito, utente_id, token_hash, scade_il)"
         " values (:a, :u, :h, now() + make_interval(mins => :m))"
-    ), {"a": ambito, "u": utente_id, "h": _impronta(codice), "m": DURATA_MINUTI})
+    ), {"a": ambito, "u": utente_id, "h": _impronta(codice), "m": minuti})
     return codice
 
 

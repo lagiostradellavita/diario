@@ -693,6 +693,13 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
 #scena svg{height:150px!important;opacity:.8}
 :root[data-cat] #scena{opacity:.6!important}
 :root[data-cat] #scena svg{opacity:.35}
+.accpiano{font-weight:700;font-size:1.15rem}
+#atShop{text-decoration:none;display:inline-flex;align-items:center}
+.troppi{display:flex;flex-direction:column;gap:8px}
+.disp{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px solid var(--outline);border-radius:14px;padding:8px 10px;background:#fff}
+.disp small{display:block;font-weight:400;font-size:1rem;color:var(--muted)}
+.disp .btn{font-size:1.05rem;padding:8px 12px;flex:none}
+.accdisp{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -779,27 +786,28 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
 
   <section id="accesso" hidden>
     <p class="logo" style="margin-top:10px"><span class="l1">Leggo</span> e <span class="l2">Conto</span></p>
-    <p class="note">I giochi per imparare a leggere e a contare. Per entrare serve un accesso approvato.</p>
+    <p class="note">I giochi per imparare a leggere e a contare. Entra con il tuo account, oppure prova gratis per 30 giorni.</p>
     <button class="btn guida" type="button" data-guida="accesso"><svg class="ic" viewBox="0 0 24 24"><use href="#i-spk"/></svg>Ascolta cosa fare</button>
     <div class="tabbed">
-      <div class="tabs"><button class="chip" data-tab="in" aria-pressed="true">Entra</button><button class="chip" data-tab="reg" aria-pressed="false">Chiedi l'accesso</button></div>
+      <div class="tabs"><button class="chip" data-tab="in" aria-pressed="true">Entra</button><button class="chip" data-tab="reg" aria-pressed="false">Prova gratis 30 giorni</button></div>
       <form class="form" data-panel="in" id="fIn" novalidate>
         <label for="inEmail">Email<input type="text" id="inEmail" inputmode="email" autocomplete="username"></label>
         <label for="inPw">Password<input type="password" id="inPw" autocomplete="current-password"></label>
         <p class="msg" id="inMsg" hidden></p>
+        <div class="troppi" id="troppi" hidden></div>
         <button class="btn go" type="submit" style="font-size:1.5rem">Entra</button>
         <p class="lost"><button class="linkbtn" type="button" id="lostPw">Password dimenticata?</button><button class="linkbtn" type="button" id="lostEm">Email dimenticata?</button></p>
       </form>
       <form class="form" data-panel="reg" id="fReg" hidden novalidate>
-        <p class="note" style="margin:0">Compila la richiesta: l'amministratore la controlla e ti abilita. Poi entri con email e password.</p>
+        <p class="note" style="margin:0">Registrati e giochi subito: 30 giorni gratis, senza carta. Poi, per continuare, scegli un abbonamento sul sito.</p>
         <label for="rgNome">Nome e cognome dell'adulto<input type="text" id="rgNome" autocomplete="name" maxlength="100"></label>
         <label for="rgEmail">Email<input type="text" id="rgEmail" inputmode="email" autocomplete="email"></label>
         <label for="rgTel">Telefono (facoltativo)<input type="text" id="rgTel" inputmode="tel" autocomplete="tel" maxlength="40"></label>
-        <label for="rgMsg">Per chi chiedi l'accesso?<input type="text" id="rgMsg" maxlength="300" placeholder="Per esempio: mamma di Giulia, classe 1ª A"></label>
+        <label for="rgMsg">Per chi è? (facoltativo)<input type="text" id="rgMsg" maxlength="300" placeholder="Per esempio: mamma di Giulia, classe 1ª A"></label>
         <label for="rgPw">Scegli una password (almeno 8 caratteri)<input type="password" id="rgPw" autocomplete="new-password"></label>
         <label class="sw"><input type="checkbox" id="rgOk"> Accetto che nomi, foto e risultati dei bambini siano salvati nell'archivio della cooperativa, solo per far funzionare i giochi.</label>
         <p class="msg" id="rgMsgErr" hidden></p>
-        <button class="btn go" type="submit" style="font-size:1.4rem">Invia la richiesta</button>
+        <button class="btn go" type="submit" style="font-size:1.4rem">Comincia la prova gratis</button>
       </form>
     </div>
   </section>
@@ -832,7 +840,7 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
       <div class="frogbox" id="atHero"></div>
       <h1 id="atTitle"></h1>
       <p id="atText" class="prose" style="font-size:1.3rem"></p>
-      <div class="row" id="atBtns"><button class="btn go" id="atRetry">Controlla di nuovo</button><button class="btn" id="atOut">Esci</button></div>
+      <div class="row" id="atBtns"><a class="btn go" id="atShop" hidden target="_blank" rel="noopener">Abbonati sul sito</a><button class="btn go" id="atRetry">Controlla di nuovo</button><button class="btn" id="atOut">Esci</button></div>
     </div>
   </section>
 
@@ -1810,10 +1818,23 @@ function setStore(s) { store = s; prof = store.profiles.find(p => p.id === store
 /* ---------- accesso e salvataggio sul server ---------- */
 const TOK_KEY = 'leggoconto-token';
 let token = null; try { token = localStorage.getItem(TOK_KEY); } catch (e) {}
+// ogni dispositivo ha un suo codice, creato la prima volta e tenuto qui: l'account ne accetta un numero limitato
+const DISP_KEY = 'leggoconto-dispositivo';
+let DISP = null; try { DISP = localStorage.getItem(DISP_KEY); } catch (e) {}
+if (!DISP) { DISP = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)); try { localStorage.setItem(DISP_KEY, DISP); } catch (e) {} }
+const NOME_DISP = (() => {
+  const u = navigator.userAgent, ipad = /iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1);
+  const cosa = ipad ? 'iPad' : /iPhone/.test(u) ? 'iPhone' : /Android/.test(u) ? (/Mobile/.test(u) ? 'Telefono Android' : 'Tablet Android') : /Windows/.test(u) ? 'Computer Windows' : /Mac/.test(u) ? 'Mac' : 'Computer';
+  const br = /Edg\//.test(u) ? 'Edge' : /CriOS|Chrome/.test(u) ? 'Chrome' : /FxiOS|Firefox/.test(u) ? 'Firefox' : /Safari/.test(u) ? 'Safari' : '';
+  return br ? `${cosa} · ${br}` : cosa;
+})();
 async function api(path, opts = {}) {
-  const r = await fetch(API_BASE + path, { ...opts, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) } });
+  const r = await fetch(API_BASE + path, { ...opts, headers: { 'Content-Type': 'application/json', 'X-Dispositivo': DISP, ...(token ? { Authorization: 'Bearer ' + token } : {}) } });
   let j = null; try { j = await r.json(); } catch (e) {}
-  if (!r.ok) { const err = new Error((j && j.detail) || 'Errore ' + r.status); err.status = r.status; throw err; }
+  if (!r.ok) {
+    const d = j && j.detail, err = new Error((d && typeof d === 'object' ? d.messaggio : d) || 'Errore ' + r.status);
+    err.status = r.status; if (d && typeof d === 'object') err.dati = d; throw err;
+  }
   return j;
 }
 let syncT = null, syncing = false, syncAgain = false;
@@ -1847,25 +1868,41 @@ function attesa(kind, extra) {
     in_attesa: ['Richiesta inviata!', "L'amministratore deve ancora approvare il tuo accesso. Quando lo avrà fatto, torna qui e tocca «Controlla di nuovo»."],
     bloccato: ['Accesso sospeso', "Il tuo accesso è stato sospeso dall'amministratore. Per informazioni rivolgiti a lui."],
     rete: ['Non riesco a collegarmi', 'Controlla che il tablet sia collegato a internet, poi riprova.'],
+    scaduto: [extra && extra.piano === 'prova' ? 'La prova gratuita è finita' : "L'abbonamento è scaduto", 'Per continuare a giocare scegli un abbonamento sul sito. I profili e i premi dei bambini restano salvati. Dopo il pagamento tocca «Controlla di nuovo».'],
   }[kind];
+  const shop = $('#atShop'), url = (extra && extra.negozio) || NEGOZIO;
+  shop.hidden = kind !== 'scaduto' || !url; if (url) shop.href = url;
+  if (extra && typeof extra === 'object') extra = null;
   $('#atTitle').textContent = T[0]; $('#atText').textContent = extra || T[1];
   $('#atBtns').hidden = kind === 'collego';
   show('attesa');
 }
 function gateFrom(e) {
   if (e.status === 401) { logout(); toast('Rientra con la tua password', '', 'help'); return; }
+  if (/scadut/i.test(e.message)) return attesa('scaduto', ME);
   attesa(/sospes/i.test(e.message) ? 'bloccato' : 'in_attesa');
 }
+// il piano dell'account: sociale, prova, base, premium, e fino a quando
+let ME = null, NEGOZIO = '';
+const NOMI_PIANO = { sociale: 'Giostra Sociale (gratuito)', prova: 'Prova gratuita', base: 'Base', premium: 'Premium' };
+const giorniMancanti = d => d ? Math.ceil((new Date(d) - Date.now()) / 864e5) : null;
+const dataIt = d => new Date(d).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 function startApp() { renderHome(); if (store.profiles.length > 1) { renderWho(); show('who'); } else if (!save.settings.mondo) apriMondo(); else show('home'); }
 async function boot() {
   if (!API_BASE) return startApp();
   if (recCode) return openRec('nuova');
-  if (!token) return show('accesso');
+  if (!token) {   // dalla pagina di download, «Prova gratis» apre direttamente la registrazione
+    show('accesso'); if (/[?&]prova=1/.test(location.search)) { const t = $('#accesso [data-tab="reg"]'); if (t) t.click(); }
+    return;
+  }
   attesa('collego');
   try {
-    const me = await api('/giochi/io');
+    const me = ME = await api('/giochi/io'); NEGOZIO = me.negozio || '';
     try { localStorage.setItem('leggoconto-stato', me.stato); } catch (e) {}
+    if (me.stato === 'scaduto') return attesa('scaduto', me);
     if (me.stato !== 'attivo') return attesa(me.stato === 'bloccato' ? 'bloccato' : 'in_attesa');
+    const gg = giorniMancanti(me.scadenza);
+    if (gg !== null && gg <= 5) setTimeout(() => toast(me.piano === 'prova' ? `La prova gratuita finisce tra ${gg} ${gg === 1 ? 'giorno' : 'giorni'}` : `L'abbonamento scade tra ${gg} ${gg === 1 ? 'giorno' : 'giorni'}`, 'Per continuare: Per i grandi → Abbonamento', 'help', 3200), 1500);
     const d = await api('/giochi/dati');
     if (d.valore && d.valore.profiles && d.valore.profiles.length) setStore(d.valore);
     else syncNow();   // prima volta: porto sul server quello che c'e' gia' sul tablet
@@ -3543,7 +3580,11 @@ function renderWho() {
 }
 $('#playerGrid').addEventListener('click', e => {
   const b = e.target.closest('[data-pid]'); if (!b) return; SND.tick();
-  if (b.dataset.pid === 'new') return openProfile(null);
+  if (b.dataset.pid === 'new') {
+    const max = ME && ME.max_bambini;
+    if (max && store.profiles.length >= max) return toast(`Il piano ${NOMI_PIANO[ME.piano] || ''} permette fino a ${max} bambini`, ME.piano === 'premium' ? '' : 'Con Premium fino a 4: Per i grandi → Abbonamento', 'help', 3600);
+    return openProfile(null);
+  }
   switchTo(b.dataset.pid); renderHome();
   if (!save.settings.mondo) { apriMondo(); if (save.settings.voice) { guidaDetta.mondo = true; say(guidaTesto('mondo')); } return; }
   guidaDetta.home = true; show('home'); if (save.settings.voice) say(guidaTesto('home'));
@@ -3652,13 +3693,31 @@ function renderAlbum() {
   const n = Math.min(STK.length, lvlInfo(save.xp).lvl - 1);
   $('#stickerGrid').innerHTML = STK.map((s, i) => `<div class="stk-t ${i < n ? 'on' : ''}">${i < n ? s : i + 2}</div>`).join('');
 }
+// i dispositivi collegati all'account: si vede quali sono e si puo' scollegare quelli che non si usano
+function dispositivi() {
+  api('/giochi/dispositivi').then(j => {
+    const max = ME && ME.max_dispositivi, l = j.dispositivi;
+    $('#accDisp').innerHTML = `<b>Dispositivi collegati: ${l.length}${max ? ' di ' + max : ''}</b>` + l.map(d => `<div class="disp"><span><b>${d.nome}</b><small>${d.questo ? 'questo dispositivo' : 'usato il ' + new Date(d.ultimo_uso).toLocaleDateString('it-IT')}</small></span>${d.questo ? '' : `<button class="btn" type="button" data-via="${d.id}">Scollega</button>`}</div>`).join('');
+  }).catch(() => {});
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-via]'); if (!b) return;
+  b.disabled = true; api('/giochi/dispositivi/' + b.dataset.via, { method: 'DELETE' }).then(dispositivi).catch(() => { b.disabled = false; });
+});
 function renderGrandi() {
   $('#mondiGrandi').innerHTML = mondiHTML();
   $('#grVoce').innerHTML = `<span class="vb-ic">${persSvg(save.settings.persona in PERSONAS ? save.settings.persona : 'cartoon')}</span><span><b>${persona().name}</b><small>Tocca per cambiare voce e velocità</small></span>`; $('#mondoTit').textContent = `Ambientazione di ${prof.info.nome || 'questo giocatore'}`;
   if (API_BASE && token) {
     $('#accountBox').hidden = false;
-    $('#accountBox').innerHTML = '<b>Account</b><span id="accWho">Collegato</span><button class="btn" type="button" id="accOut">Esci da questo account</button>';
-    api('/giochi/io').then(m => { $('#accWho').textContent = `${m.nome || ''} · ${m.email}`; }).catch(() => {});
+    $('#accountBox').innerHTML = '<b>Account e abbonamento</b><span id="accWho">Collegato</span><span id="accPiano" class="accpiano"></span><div id="accDisp" class="accdisp"></div><a class="btn go" id="accShop" hidden target="_blank" rel="noopener">Abbonati sul sito</a><button class="btn" type="button" id="accOut">Esci da questo account</button>';
+    api('/giochi/io').then(m => {
+      ME = m; NEGOZIO = m.negozio || NEGOZIO;
+      $('#accWho').textContent = `${m.nome || ''} · ${m.email}`;
+      const gg = giorniMancanti(m.scadenza);
+      $('#accPiano').textContent = `Piano: ${NOMI_PIANO[m.piano] || m.piano}` + (m.scadenza ? ` · fino al ${dataIt(m.scadenza)}${gg > 0 ? ` (mancano ${gg} giorni)` : ''}` : ' · senza scadenza');
+      const sh = $('#accShop'); sh.hidden = !NEGOZIO || m.piano === 'sociale'; sh.href = NEGOZIO; sh.textContent = m.piano === 'prova' ? 'Abbonati sul sito' : 'Rinnova o cambia piano';
+      dispositivi();
+    }).catch(() => {});
     $('#accOut').onclick = () => { syncNow(); logout(); };
   }
   $('#optVoice').checked = save.settings.voice; $('#optSound').checked = save.settings.sound; $('#optLen').value = String(save.settings.len);
@@ -3754,25 +3813,38 @@ $('#fNew').addEventListener('submit', async e => {
 });
 $('#atOut').onclick = () => logout();
 const msgOn = (id, t) => { const m = $(id); m.textContent = t; m.hidden = !t; };
-$('#fIn').addEventListener('submit', async e => {
-  e.preventDefault();
+async function entra(scollega) {
   const email = $('#inEmail').value.trim(), password = $('#inPw').value;
   if (!email || !password) return msgOn('#inMsg', 'Scrivi email e password');
-  msgOn('#inMsg', 'Controllo...');
+  msgOn('#inMsg', 'Controllo...'); $('#troppi').hidden = true;
   try {
-    const r = await api('/giochi/entra', { method: 'POST', body: JSON.stringify({ email, password, dispositivo: navigator.userAgent.slice(0, 180) }) });
+    const r = await api('/giochi/entra', { method: 'POST', body: JSON.stringify({ email, password, dispositivo: navigator.userAgent.slice(0, 180), codice: DISP, nome_dispositivo: NOME_DISP, scollega: scollega || null }) });
     setToken(r.access_token); msgOn('#inMsg', ''); $('#inPw').value = ''; boot();
-  } catch (x) { msgOn('#inMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
-});
+  } catch (x) {
+    if (x.dati && x.dati.codice === 'troppi_dispositivi') {
+      // troppi dispositivi: si sceglie quale scollegare, poi si entra da qui
+      msgOn('#inMsg', x.message);
+      $('#troppi').innerHTML = x.dati.dispositivi.map(d => `<div class="disp"><span><b>${d.nome}</b><small>usato il ${new Date(d.ultimo_uso).toLocaleDateString('it-IT')}</small></span><button class="btn" type="button" data-scollega="${d.id}">Scollega ed entra</button></div>`).join('');
+      $('#troppi').hidden = false; return;
+    }
+    msgOn('#inMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova');
+  }
+}
+$('#fIn').addEventListener('submit', e => { e.preventDefault(); entra(); });
+$('#troppi').addEventListener('click', e => { const b = e.target.closest('[data-scollega]'); if (b) entra(b.dataset.scollega); });
 $('#fReg').addEventListener('submit', async e => {
   e.preventDefault();
-  const b = { nome: $('#rgNome').value.trim(), email: $('#rgEmail').value.trim(), telefono: $('#rgTel').value.trim(), messaggio: $('#rgMsg').value.trim(), password: $('#rgPw').value };
+  const b = { nome: $('#rgNome').value.trim(), email: $('#rgEmail').value.trim(), telefono: $('#rgTel').value.trim(), messaggio: $('#rgMsg').value.trim(), password: $('#rgPw').value, codice: DISP, nome_dispositivo: NOME_DISP };
   if (b.nome.length < 2) return msgOn('#rgMsgErr', 'Scrivi nome e cognome');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(b.email)) return msgOn('#rgMsgErr', "Controlla l'indirizzo email");
   if (b.password.length < 8) return msgOn('#rgMsgErr', 'La password deve avere almeno 8 caratteri');
   if (!$('#rgOk').checked) return msgOn('#rgMsgErr', 'Per continuare serve il consenso qui sopra');
   msgOn('#rgMsgErr', 'Invio...');
-  try { const r = await api('/giochi/registrati', { method: 'POST', body: JSON.stringify(b) }); setToken(r.access_token); msgOn('#rgMsgErr', ''); attesa('in_attesa'); }
+  try {
+    const r = await api('/giochi/registrati', { method: 'POST', body: JSON.stringify(b) }); setToken(r.access_token); msgOn('#rgMsgErr', '');
+    await boot();
+    if (r.piano === 'prova' && r.scadenza) toast('Benvenuti! La prova gratuita è attiva', `fino al ${dataIt(r.scadenza)}`, 'help', 3600);
+  }
   catch (x) { msgOn('#rgMsgErr', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
 });
 boot();
