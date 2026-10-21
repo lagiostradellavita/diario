@@ -37,6 +37,8 @@ h1{font-size:2.6rem;font-weight:800} h2{font-size:1.7rem;font-weight:800;margin:
 .dev{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .dev button{border:2.5px solid var(--line);background:var(--card);border-radius:999px;padding:8px 16px;font:700 1.15rem Andika,sans-serif;color:var(--ink);cursor:pointer}
 .dev button[aria-pressed="true"]{background:var(--y)}
+.dev.sys{margin-top:-2px;padding-left:12px;border-left:4px solid var(--y)}
+.dev.sys button{font-size:1.05rem;padding:6px 14px}
 ol{margin:0;padding-left:1.4em} ol li{margin:8px 0}
 .ic{display:inline-block;vertical-align:-4px;width:24px;height:24px}
 .note{color:var(--muted);font-size:1.05rem}
@@ -74,9 +76,10 @@ footer{margin-top:32px;font-size:.95rem;color:var(--muted)}
   </div>
 
   <h2>Installa l’app</h2>
-  <p style="margin:0 0 10px">Si installa dal browser, senza store, su smartphone, tablet e computer: compare l’icona come le altre app, e funziona anche senza internet. Scegli il tuo dispositivo:</p>
+  <p style="margin:0 0 10px">Si installa dal browser, senza store, su smartphone, tablet e computer: compare l’icona come le altre app, e funziona anche senza internet. Scegli il tuo dispositivo e il sistema:</p>
   <div class="dev" id="dev"><button data-d="tel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg>Smartphone</button><button data-d="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg>Tablet</button><button data-d="pc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.6"/><path d="M8 20h8M12 16v4"/></svg>Computer</button></div>
-  <div class="card" data-p="tel">
+  <div class="dev sys" id="sys"><button data-s="ios"><span id="sysIos">iPhone · iOS</span></button><button data-s="and">Android</button></div>
+  <div class="card" data-p="tel-ios" hidden>
     <h3>iPhone</h3>
     <ol>
       <li>Apri questa pagina con <b style="display:inline;font-size:inherit">Safari</b>.</li>
@@ -84,6 +87,8 @@ footer{margin-top:32px;font-size:.95rem;color:var(--muted)}
       <li>Scorri e tocca <b style="display:inline;font-size:inherit">Aggiungi alla schermata Home</b>, poi <b style="display:inline;font-size:inherit">Aggiungi</b>.</li>
       <li>Apri <b style="display:inline;font-size:inherit">Leggo e Conto</b> dalla schermata Home.</li>
     </ol>
+  </div>
+  <div class="card" data-p="tel-and" hidden>
     <h3>Telefono Android</h3>
     <ol>
       <li>Apri questa pagina con <b style="display:inline;font-size:inherit">Chrome</b>.</li>
@@ -92,7 +97,7 @@ footer{margin-top:32px;font-size:.95rem;color:var(--muted)}
       <li>Apri <b style="display:inline;font-size:inherit">Leggo e Conto</b> tra le app.</li>
     </ol>
   </div>
-  <div class="card" data-p="tab" hidden>
+  <div class="card" data-p="tab-ios" hidden>
     <h3>iPad</h3>
     <ol>
       <li>Apri questa pagina con <b style="display:inline;font-size:inherit">Safari</b>.</li>
@@ -100,6 +105,8 @@ footer{margin-top:32px;font-size:.95rem;color:var(--muted)}
       <li>Scorri e tocca <b style="display:inline;font-size:inherit">Aggiungi alla schermata Home</b>, poi <b style="display:inline;font-size:inherit">Aggiungi</b>.</li>
       <li>Apri <b style="display:inline;font-size:inherit">Leggo e Conto</b> dalla schermata Home.</li>
     </ol>
+  </div>
+  <div class="card" data-p="tab-and" hidden>
     <h3>Tablet Android</h3>
     <ol>
       <li>Apri questa pagina con <b style="display:inline;font-size:inherit">Chrome</b>.</li>
@@ -109,6 +116,7 @@ footer{margin-top:32px;font-size:.95rem;color:var(--muted)}
     </ol>
   </div>
   <div class="card" data-p="pc" hidden>
+    <h3>Computer (Windows o Mac)</h3>
     <ol>
       <li>Apri questa pagina con <b style="display:inline;font-size:inherit">Chrome</b> o <b style="display:inline;font-size:inherit">Edge</b>.</li>
       <li>Nella barra dell’indirizzo clicca l’icona <b style="display:inline;font-size:inherit">Installa</b> (un piccolo schermo con la freccia).</li>
@@ -130,12 +138,19 @@ var API = 'https://diario-salute-api.onrender.com';
 // mostra per primo il dispositivo che si sta usando
 var ua = navigator.userAgent, ipad = /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
 var d0 = ipad || (/Android/.test(ua) && !/Mobile/.test(ua)) ? 'tab' : /iPhone|iPod|Android/.test(ua) ? 'tel' : 'pc';
-function mostra(d) {
-  document.querySelectorAll('#dev [data-d]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.d === d)); });
-  document.querySelectorAll('[data-p]').forEach(function (c) { c.hidden = c.dataset.p !== d; });
+// prima il dispositivo (smartphone, tablet, computer), poi per i primi due il sistema (iOS o Android)
+var s0 = /Android/.test(ua) ? 'and' : 'ios', dev = d0, sys = s0;
+function mostra() {
+  document.querySelectorAll('#dev [data-d]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.d === dev)); });
+  document.querySelectorAll('#sys [data-s]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.s === sys)); });
+  document.getElementById('sys').hidden = dev === 'pc';
+  document.getElementById('sysIos').textContent = dev === 'tab' ? 'iPad · iOS' : 'iPhone · iOS';
+  var chi = dev === 'pc' ? 'pc' : dev + '-' + sys;
+  document.querySelectorAll('[data-p]').forEach(function (c) { c.hidden = c.dataset.p !== chi; });
 }
-document.getElementById('dev').addEventListener('click', function (e) { var b = e.target.closest('[data-d]'); if (b) mostra(b.dataset.d); });
-mostra(d0);
+document.getElementById('dev').addEventListener('click', function (e) { var b = e.target.closest('[data-d]'); if (b) { dev = b.dataset.d; mostra(); } });
+document.getElementById('sys').addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (b) { sys = b.dataset.s; mostra(); } });
+mostra();
 // Android e computer: il pulsante «Installa» vero, quando il browser lo concede
 var invito = null;
 addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); invito = e; document.querySelectorAll('.andBtnLi').forEach(function (li) { li.hidden = false; }); });
