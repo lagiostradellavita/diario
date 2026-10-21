@@ -1,6 +1,9 @@
+import hmac
 import json
+import logging
 import os
 import secrets
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -10,7 +13,9 @@ from ..deps import get_session
 from ..security import hash_password, verify_password, create_access_token, decode_token
 from .auth import get_admin
 from ..config import settings
-from .. import posta, recupero
+from .. import odoo, posta, recupero
+
+log = logging.getLogger(__name__)
 
 # «Leggo e Conto», i giochi per bambini. Stesso servizio del Diario, ma utenti
 # e dati separati: un token dei giochi porta scope 'giochi' e non apre il
@@ -22,6 +27,41 @@ SCOPE = "giochi"
 MAX_DATI = 4_000_000   # i profili con le foto rimpicciolite stanno ben sotto
 BACKOFFICE = os.getenv("GIOCHI_BACKOFFICE_URL") or "https://lagiostradellavita.github.io/diario/numeri/admin.html"
 APP_URL = os.getenv("GIOCHI_APP_URL") or "https://lagiostradellavita.github.io/diario/numeri/"
+# dove si compra l'abbonamento: la pagina del negozio su Odoo. Vuota, l'app non mostra il pulsante
+NEGOZIO_URL = os.getenv("GIOCHI_NEGOZIO_URL") or ""
+PROVA_GIORNI = 30
+PIANI = ("sociale", "prova", "base", "premium")
+
+
+def _ora():
+    return datetime.now(timezone.utc)
+
+
+def _stato_vero(stato, scadenza) -> str:
+    """Lo stato che conta: un accesso attivo ma oltre la scadenza e' 'scaduto'."""
+    if stato == "attivo" and scadenza is not None and scadenza < _ora():
+        return "scaduto"
+    return stato
+
+
+def _da_odoo(db, uid, email) -> bool:
+    """Chiede a Odoo se quest'email ha un abbonamento in corso e, se si', lo applica.
+    Copre gli avvisi persi: il server gratuito di Render dorme e Odoo non riprova."""
+    if not odoo.configurato():
+        return False
+    try:
+        a = odoo.per_email(email)
+    except Exception as e:   # Odoo irraggiungibile: si resta come si era, non si blocca nessuno
+        log.warning("Odoo non risponde per %s: %s", email, e)
+        return False
+    if not a:
+        return False
+    db.execute(text(
+        "update giochi_utenti set stato = 'attivo', piano = :p, scadenza = :s, odoo_rif = :r,"
+        " approvato_il = coalesce(approvato_il, now()) where id = :i and stato <> 'bloccato'"
+    ), {"p": a["piano"], "s": a["scadenza"], "r": a["rif"], "i": uid})
+    db.commit()
+    return True
 
 
 def get_giochi_uid(authorization: Optional[str] = Header(None)) -> str:
@@ -37,11 +77,14 @@ def get_giochi_uid(authorization: Optional[str] = Header(None)) -> str:
 
 
 def get_giochi_attivo(uid: str = Depends(get_giochi_uid), db: Session = Depends(get_session)) -> str:
-    """Lascia passare solo chi l'amministratore ha approvato. Bloccare
+    """Lascia passare solo chi ha un accesso attivo e non scaduto. Bloccare
     qualcuno gli chiude davvero l'archivio, non solo la schermata."""
-    stato = db.execute(text("select stato from giochi_utenti where id = :i"), {"i": uid}).scalar()
-    if stato is None:
+    row = db.execute(text("select stato, scadenza from giochi_utenti where id = :i"), {"i": uid}).first()
+    if row is None:
         raise HTTPException(401, "Utente non trovato")
+    stato = _stato_vero(*row)
+    if stato == "scaduto":
+        raise HTTPException(403, "Abbonamento scaduto: rinnova sul sito per continuare")
     if stato == "in_attesa":
         raise HTTPException(403, "Il tuo accesso e' in attesa dell'approvazione")
     if stato != "attivo":
@@ -63,52 +106,58 @@ class EntraIn(BaseModel):
     dispositivo: Optional[str] = None
 
 
-def _risposta(uid, email, nome, stato):
-    return {"access_token": create_access_token(uid, scope=SCOPE), "email": email,
-            "nome": nome, "stato": stato}
+def _risposta(uid, email, nome, stato, piano=None, scadenza=None):
+    return {"access_token": create_access_token(uid, scope=SCOPE), "email": email, "nome": nome,
+            "stato": stato, "piano": piano, "scadenza": scadenza.isoformat() if scadenza else None}
 
 
 @router.post("/registrati", status_code=201)
 def registrati(body: RegistratiIn, avvisi: BackgroundTasks, db: Session = Depends(get_session)):
-    """Chiunque puo' chiedere l'accesso, ma nasce «in_attesa»: gioca solo
-    dopo che l'amministratore lo approva dal backoffice."""
+    """Chiunque si registra gioca subito: 30 giorni di prova, senza carta e
+    senza approvazione. Se l'email ha gia' un abbonamento su Odoo vale quello."""
     email = (body.email or "").strip().lower()
     if "@" not in email or "." not in email.split("@")[-1]:
         raise HTTPException(400, "Serve un indirizzo email valido")
     if db.execute(text("select 1 from giochi_utenti where email = :e"), {"e": email}).first():
         raise HTTPException(409, "Questa email e' gia' registrata: entra con la tua password")
+    fine_prova = _ora() + timedelta(days=PROVA_GIORNI)
     uid = db.execute(text(
-        "insert into giochi_utenti (email, nome, telefono, messaggio, password_hash)"
-        " values (:e, :n, :t, :m, :h) returning id"
+        "insert into giochi_utenti (email, nome, telefono, messaggio, password_hash, stato, piano, scadenza, approvato_il)"
+        " values (:e, :n, :t, :m, :h, 'attivo', 'prova', :s, now()) returning id"
     ), {"e": email, "n": body.nome.strip()[:100], "t": (body.telefono or "").strip()[:40] or None,
-        "m": (body.messaggio or "").strip()[:1000] or None, "h": hash_password(body.password)}).scalar()
+        "m": (body.messaggio or "").strip()[:1000] or None, "h": hash_password(body.password), "s": fine_prova}).scalar()
     db.commit()   # confermo prima di rispondere: la schermata rilegge subito lo stato
+    _da_odoo(db, uid, email)
+    row = db.execute(text("select piano, scadenza from giochi_utenti where id = :i"), {"i": uid}).mappings().first()
     # avviso all'amministratore, dopo la risposta: la famiglia non aspetta la posta
-    avvisi.add_task(posta.manda, settings.admin_email, "Leggo e Conto: nuova richiesta d'accesso da " + body.nome.strip(),
-                    "E' arrivata una nuova richiesta d'accesso a Leggo e Conto.\n\n"
+    avvisi.add_task(posta.manda, settings.admin_email, "Leggo e Conto: nuova iscrizione di " + body.nome.strip(),
+                    f"Una nuova famiglia si e' iscritta a Leggo e Conto (piano: {row['piano']}).\n\n"
                     f"Nome: {body.nome.strip()}\nEmail: {email}\nTelefono: {body.telefono or '-'}\n"
-                    f"Per chi: {body.messaggio or '-'}\n\nPer approvarla o rifiutarla apri il backoffice:\n{BACKOFFICE}\n")
-    return _risposta(uid, email, body.nome.strip(), "in_attesa")
+                    f"Per chi: {body.messaggio or '-'}\n\nSe e' una famiglia seguita dalla cooperativa, rendila «sociale»"
+                    f" dal backoffice: gioca gratis senza scadenza.\n{BACKOFFICE}\n")
+    return _risposta(uid, email, body.nome.strip(), "attivo", row["piano"], row["scadenza"])
 
 
 @router.post("/entra")
 def entra(body: EntraIn, db: Session = Depends(get_session)):
     email = (body.email or "").strip().lower()
-    row = db.execute(text(
-        "select id, email, nome, password_hash, stato from giochi_utenti where email = :e"
-    ), {"e": email}).mappings().first()
+    sel = "select id, email, nome, password_hash, stato, piano, scadenza from giochi_utenti where email = :e"
+    row = db.execute(text(sel), {"e": email}).mappings().first()
     if not row or not verify_password(body.password, row["password_hash"]):
         raise HTTPException(401, "Email o password non corretti")
     if row["stato"] == "bloccato":
         raise HTTPException(403, "Accesso sospeso: chiedi all'amministratore")
-    if row["stato"] == "attivo":
+    if _stato_vero(row["stato"], row["scadenza"]) != "attivo" and _da_odoo(db, row["id"], email):
+        row = db.execute(text(sel), {"e": email}).mappings().first()   # ha rinnovato: l'avviso di Odoo era andato perso
+    stato = _stato_vero(row["stato"], row["scadenza"])
+    if stato == "attivo":
         # si contano solo gli ingressi veri, non i tentativi di chi aspetta
         db.execute(text("insert into giochi_accessi (utente_id, dispositivo) values (:u, :d)"),
                    {"u": row["id"], "d": (body.dispositivo or "")[:200] or None})
         db.execute(text("update giochi_utenti set ultimo_accesso = now(), accessi = accessi + 1 where id = :u"),
                    {"u": row["id"]})
         db.commit()
-    return _risposta(row["id"], row["email"], row["nome"], row["stato"])
+    return _risposta(row["id"], row["email"], row["nome"], stato, row["piano"], row["scadenza"])
 
 
 class RecuperoIn(BaseModel):
@@ -175,11 +224,118 @@ def ricorda_email(body: RicordaIn, db: Session = Depends(get_session)):
 
 @router.get("/io")
 def io(uid: str = Depends(get_giochi_uid), db: Session = Depends(get_session)):
-    row = db.execute(text("select email, nome, stato from giochi_utenti where id = :i"),
-                     {"i": uid}).mappings().first()
+    sel = "select email, nome, stato, piano, scadenza from giochi_utenti where id = :i"
+    row = db.execute(text(sel), {"i": uid}).mappings().first()
     if not row:
         raise HTTPException(401, "Utente non trovato")
-    return dict(row)
+    if _stato_vero(row["stato"], row["scadenza"]) == "scaduto" and _da_odoo(db, uid, row["email"]):
+        row = db.execute(text(sel), {"i": uid}).mappings().first()
+    return {"email": row["email"], "nome": row["nome"], "stato": _stato_vero(row["stato"], row["scadenza"]),
+            "piano": row["piano"], "scadenza": row["scadenza"].isoformat() if row["scadenza"] else None,
+            "negozio": NEGOZIO_URL}
+
+
+@router.get("/info")
+def info():
+    """Quello che serve alla pagina di download, senza accesso."""
+    return {"negozio": NEGOZIO_URL, "prova_giorni": PROVA_GIORNI, "app": APP_URL}
+
+
+# --- Odoo: gli abbonamenti pagati aprono l'accesso ---------------------------
+
+def _evento(db, email, rif, esito, corpo):
+    db.execute(text("insert into giochi_odoo_eventi (email, rif, esito, corpo) values (:e, :r, :x, cast(:c as jsonb))"),
+               {"e": email, "r": rif, "x": esito, "c": json.dumps(corpo, default=str)[:20000]})
+    db.commit()
+
+
+def _applica(db, a, avvisi) -> str:
+    """Apre, rinnova o chiude l'accesso di un'email secondo il suo abbonamento.
+    Chi non c'e' ancora viene creato e riceve un link per scegliere la password."""
+    email = (a.get("email") or "").strip().lower()
+    if "@" not in email:
+        return "senza email: niente da fare"
+    row = db.execute(text("select id, nome, stato, piano from giochi_utenti where email = :e"), {"e": email}).mappings().first()
+    if not a["attivo"]:
+        if not row or row["piano"] == "sociale":
+            return "abbonamento non in corso: nessun accesso da chiudere"
+        if row["piano"] in ("base", "premium"):
+            db.execute(text("update giochi_utenti set scadenza = least(coalesce(scadenza, now()), now()) where id = :i"), {"i": row["id"]})
+            db.commit()
+            return "abbonamento chiuso: accesso fermato"
+        return "abbonamento non in corso"
+    if row:
+        if row["stato"] == "bloccato":
+            return "abbonamento in corso ma accesso bloccato dal backoffice: non riaperto"
+        db.execute(text(
+            "update giochi_utenti set stato = 'attivo', piano = :p, scadenza = :s, odoo_rif = :r,"
+            " approvato_il = coalesce(approvato_il, now()) where id = :i"
+        ), {"p": a["piano"], "s": a["scadenza"], "r": a["rif"], "i": row["id"]})
+        db.commit()
+        return f"rinnovato: {a['piano']} fino al {a['scadenza'].date() if a['scadenza'] else 'senza scadenza'}"
+    nome = (a.get("nome") or "").strip()[:100] or None
+    uid = db.execute(text(
+        "insert into giochi_utenti (email, nome, password_hash, stato, piano, scadenza, odoo_rif, approvato_il, messaggio)"
+        " values (:e, :n, :h, 'attivo', :p, :s, :r, now(), 'acquisto dal sito') returning id"
+    ), {"e": email, "n": nome, "h": hash_password(secrets.token_urlsafe(24)), "p": a["piano"], "s": a["scadenza"], "r": a["rif"]}).scalar()
+    codice = recupero.crea(db, "giochi", uid, minuti=7 * 24 * 60)
+    db.commit()
+    link = f"{APP_URL}?recupero={codice}"
+    if not posta.configurata():
+        return "nuovo accesso creato, ma la posta non e' configurata: dai tu la password dal backoffice"
+    avvisi.add_task(posta.manda, email, "Leggo e Conto: il tuo accesso e' pronto",
+                    f"Ciao {nome or ''},\n\ngrazie per aver scelto Leggo e Conto! Il tuo abbonamento e' attivo.\n\n"
+                    f"Per cominciare scegli la tua password da questo link (vale 7 giorni):\n{link}\n\n"
+                    "Poi entra con questa email e la password che hai scelto. Sul telefono o sul tablet puoi"
+                    " aggiungere l'app alla schermata Home: la trovi pronta come le altre app.\n\nBuon divertimento!\n")
+    return "nuovo accesso creato, email con il link mandata"
+
+
+def _dal_corpo(corpo: dict):
+    """Un avviso scritto a mano (o da un'azione automatica di Odoo) nella forma semplice:
+    {"email", "nome", "piano", "scadenza": "AAAA-MM-GG", "attivo": true|false, "rif"}."""
+    scad = corpo.get("scadenza")
+    try:
+        scad = datetime.strptime(str(scad)[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc) + timedelta(days=1) if scad else None
+    except ValueError:
+        scad = None
+    piano = str(corpo.get("piano") or "")
+    piano = piano if piano in ("base", "premium") else odoo.piano_da_nomi([piano])
+    return {"email": corpo.get("email"), "nome": corpo.get("nome"), "piano": piano, "scadenza": scad,
+            "attivo": corpo.get("attivo", True) not in (False, "false", 0, "0"), "rif": str(corpo.get("rif") or "")[:60] or None}
+
+
+@router.post("/odoo/abbonamento")
+def avviso_odoo(avvisi: BackgroundTasks, chiave: str = "", corpo: Any = Body(None), db: Session = Depends(get_session)):
+    """Odoo avvisa che un abbonamento e' cambiato (pagato, rinnovato, chiuso).
+
+    L'indirizzo da incollare in Odoo porta la chiave segreta GIOCHI_ODOO_CHIAVE:
+    .../giochi/odoo/abbonamento?chiave=... Se Odoo e' configurato (odoo.py),
+    dall'avviso si prende solo il numero dell'ordine e il resto si rilegge da
+    Odoo: anche chi conoscesse la chiave non potrebbe regalarsi un abbonamento."""
+    giusta = os.getenv("GIOCHI_ODOO_CHIAVE") or ""
+    if not giusta or not hmac.compare_digest(chiave.encode(), giusta.encode()):
+        raise HTTPException(403, "Chiave non valida")
+    corpo = corpo if isinstance(corpo, dict) else {}
+    try:
+        if odoo.configurato() and corpo.get("_id"):
+            a = odoo.per_ordine(corpo["_id"])
+            if not a:
+                _evento(db, None, str(corpo.get("_id")), "non e' un abbonamento: ignorato", corpo)
+                return {"ok": True, "esito": "ignorato"}
+        elif corpo.get("email"):
+            a = _dal_corpo(corpo)
+        else:
+            _evento(db, None, str(corpo.get("_id") or ""), "manca l'email e Odoo non e' configurato per rileggere l'ordine", corpo)
+            return {"ok": False, "esito": "manca l'email"}
+        esito = _applica(db, a, avvisi)
+    except Exception as e:
+        db.rollback()
+        log.exception("avviso Odoo non applicato")
+        _evento(db, None, str(corpo.get("_id") or ""), f"errore: {e}"[:300], corpo)
+        raise HTTPException(500, "Avviso non applicato: riprova")
+    _evento(db, a.get("email"), a.get("rif"), esito, corpo)
+    return {"ok": True, "esito": esito}
 
 
 class PasswordIn(BaseModel):
@@ -244,7 +400,7 @@ def stato_posta(_admin: str = Depends(get_admin)):
 def admin_utenti(db: Session = Depends(get_session), _admin: str = Depends(get_admin)):
     righe = db.execute(text(
         "select u.id, u.email, u.nome, u.telefono, u.messaggio, u.stato, u.creato_il, u.approvato_il,"
-        " u.ultimo_accesso, u.accessi, d.valore"
+        " u.ultimo_accesso, u.accessi, u.piano, u.scadenza, u.odoo_rif, d.valore"
         " from giochi_utenti u left join giochi_dati d on d.utente_id = u.id"
         " order by (u.stato = 'in_attesa') desc, u.creato_il desc"
     )).mappings().all()
@@ -254,6 +410,8 @@ def admin_utenti(db: Session = Depends(get_session), _admin: str = Depends(get_a
         "messaggio": r["messaggio"], "stato": r["stato"], "iscritto": iso(r["creato_il"]),
         "approvato": iso(r["approvato_il"]), "ultimo_accesso": iso(r["ultimo_accesso"]),
         "accessi": r["accessi"], "bambini": _riassunto_bambini(r["valore"]),
+        "piano": r["piano"], "scadenza": iso(r["scadenza"]), "odoo": r["odoo_rif"],
+        "scaduto": _stato_vero(r["stato"], r["scadenza"]) == "scaduto",
     } for r in righe]}
 
 
@@ -280,6 +438,39 @@ def approva(uid: str, avvisi: BackgroundTasks, db: Session = Depends(get_session
                         f"Ciao {row['nome'] or ''},\n\nil tuo accesso a Leggo e Conto e' stato approvato. "
                         f"Entra con la tua email e la tua password da qui:\n{APP_URL}\n\nBuon divertimento!\n")
     return out
+
+
+class PianoIn(BaseModel):
+    piano: str
+    giorni: Optional[int] = None   # per prova, base e premium: da oggi; vuoto = senza scadenza
+
+
+@router.post("/admin/utenti/{uid}/piano")
+def cambia_piano(uid: str, body: PianoIn, db: Session = Depends(get_session), _admin: str = Depends(get_admin)):
+    """Sociale: gratis e senza scadenza (famiglie seguite dalla cooperativa).
+    Gli altri piani si danno a mano per un certo numero di giorni."""
+    if body.piano not in PIANI:
+        raise HTTPException(400, "Piano sconosciuto")
+    scad = None if body.piano == "sociale" or not body.giorni else _ora() + timedelta(days=max(1, min(body.giorni, 3660)))
+    n = db.execute(text(
+        "update giochi_utenti set piano = :p, scadenza = :s, stato = case when stato = 'in_attesa' then 'attivo' else stato end,"
+        " approvato_il = coalesce(approvato_il, now()) where id = :i"
+    ), {"p": body.piano, "s": scad, "i": uid}).rowcount
+    if not n:
+        raise HTTPException(404, "Utente non trovato")
+    db.commit()
+    return {"ok": True, "scadenza": scad.isoformat() if scad else None}
+
+
+@router.get("/admin/odoo")
+def admin_odoo(db: Session = Depends(get_session), _admin: str = Depends(get_admin)):
+    """Com'e' messo il collegamento con Odoo e gli ultimi avvisi arrivati."""
+    righe = db.execute(text(
+        "select ricevuto_il, email, rif, esito from giochi_odoo_eventi order by ricevuto_il desc limit 100"
+    )).mappings().all()
+    return {"lettura": odoo.configurato(), "chiave": bool(os.getenv("GIOCHI_ODOO_CHIAVE")),
+            "negozio": NEGOZIO_URL, "posta": posta.configurata(),
+            "eventi": [{"quando": r["ricevuto_il"].isoformat(), "email": r["email"], "rif": r["rif"], "esito": r["esito"]} for r in righe]}
 
 
 @router.post("/admin/utenti/{uid}/blocca")

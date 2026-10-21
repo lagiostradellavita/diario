@@ -693,6 +693,8 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
 #scena svg{height:150px!important;opacity:.8}
 :root[data-cat] #scena{opacity:.6!important}
 :root[data-cat] #scena svg{opacity:.35}
+.accpiano{font-weight:700;font-size:1.15rem}
+#atShop{text-decoration:none;display:inline-flex;align-items:center}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -779,10 +781,10 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
 
   <section id="accesso" hidden>
     <p class="logo" style="margin-top:10px"><span class="l1">Leggo</span> e <span class="l2">Conto</span></p>
-    <p class="note">I giochi per imparare a leggere e a contare. Per entrare serve un accesso approvato.</p>
+    <p class="note">I giochi per imparare a leggere e a contare. Entra con il tuo account, oppure prova gratis per 30 giorni.</p>
     <button class="btn guida" type="button" data-guida="accesso"><svg class="ic" viewBox="0 0 24 24"><use href="#i-spk"/></svg>Ascolta cosa fare</button>
     <div class="tabbed">
-      <div class="tabs"><button class="chip" data-tab="in" aria-pressed="true">Entra</button><button class="chip" data-tab="reg" aria-pressed="false">Chiedi l'accesso</button></div>
+      <div class="tabs"><button class="chip" data-tab="in" aria-pressed="true">Entra</button><button class="chip" data-tab="reg" aria-pressed="false">Prova gratis 30 giorni</button></div>
       <form class="form" data-panel="in" id="fIn" novalidate>
         <label for="inEmail">Email<input type="text" id="inEmail" inputmode="email" autocomplete="username"></label>
         <label for="inPw">Password<input type="password" id="inPw" autocomplete="current-password"></label>
@@ -791,15 +793,15 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
         <p class="lost"><button class="linkbtn" type="button" id="lostPw">Password dimenticata?</button><button class="linkbtn" type="button" id="lostEm">Email dimenticata?</button></p>
       </form>
       <form class="form" data-panel="reg" id="fReg" hidden novalidate>
-        <p class="note" style="margin:0">Compila la richiesta: l'amministratore la controlla e ti abilita. Poi entri con email e password.</p>
+        <p class="note" style="margin:0">Registrati e giochi subito: 30 giorni gratis, senza carta. Poi, per continuare, scegli un abbonamento sul sito.</p>
         <label for="rgNome">Nome e cognome dell'adulto<input type="text" id="rgNome" autocomplete="name" maxlength="100"></label>
         <label for="rgEmail">Email<input type="text" id="rgEmail" inputmode="email" autocomplete="email"></label>
         <label for="rgTel">Telefono (facoltativo)<input type="text" id="rgTel" inputmode="tel" autocomplete="tel" maxlength="40"></label>
-        <label for="rgMsg">Per chi chiedi l'accesso?<input type="text" id="rgMsg" maxlength="300" placeholder="Per esempio: mamma di Giulia, classe 1ª A"></label>
+        <label for="rgMsg">Per chi è? (facoltativo)<input type="text" id="rgMsg" maxlength="300" placeholder="Per esempio: mamma di Giulia, classe 1ª A"></label>
         <label for="rgPw">Scegli una password (almeno 8 caratteri)<input type="password" id="rgPw" autocomplete="new-password"></label>
         <label class="sw"><input type="checkbox" id="rgOk"> Accetto che nomi, foto e risultati dei bambini siano salvati nell'archivio della cooperativa, solo per far funzionare i giochi.</label>
         <p class="msg" id="rgMsgErr" hidden></p>
-        <button class="btn go" type="submit" style="font-size:1.4rem">Invia la richiesta</button>
+        <button class="btn go" type="submit" style="font-size:1.4rem">Comincia la prova gratis</button>
       </form>
     </div>
   </section>
@@ -832,7 +834,7 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
       <div class="frogbox" id="atHero"></div>
       <h1 id="atTitle"></h1>
       <p id="atText" class="prose" style="font-size:1.3rem"></p>
-      <div class="row" id="atBtns"><button class="btn go" id="atRetry">Controlla di nuovo</button><button class="btn" id="atOut">Esci</button></div>
+      <div class="row" id="atBtns"><a class="btn go" id="atShop" hidden target="_blank" rel="noopener">Abbonati sul sito</a><button class="btn go" id="atRetry">Controlla di nuovo</button><button class="btn" id="atOut">Esci</button></div>
     </div>
   </section>
 
@@ -1847,25 +1849,41 @@ function attesa(kind, extra) {
     in_attesa: ['Richiesta inviata!', "L'amministratore deve ancora approvare il tuo accesso. Quando lo avrà fatto, torna qui e tocca «Controlla di nuovo»."],
     bloccato: ['Accesso sospeso', "Il tuo accesso è stato sospeso dall'amministratore. Per informazioni rivolgiti a lui."],
     rete: ['Non riesco a collegarmi', 'Controlla che il tablet sia collegato a internet, poi riprova.'],
+    scaduto: [extra && extra.piano === 'prova' ? 'La prova gratuita è finita' : "L'abbonamento è scaduto", 'Per continuare a giocare scegli un abbonamento sul sito. I profili e i premi dei bambini restano salvati. Dopo il pagamento tocca «Controlla di nuovo».'],
   }[kind];
+  const shop = $('#atShop'), url = (extra && extra.negozio) || NEGOZIO;
+  shop.hidden = kind !== 'scaduto' || !url; if (url) shop.href = url;
+  if (extra && typeof extra === 'object') extra = null;
   $('#atTitle').textContent = T[0]; $('#atText').textContent = extra || T[1];
   $('#atBtns').hidden = kind === 'collego';
   show('attesa');
 }
 function gateFrom(e) {
   if (e.status === 401) { logout(); toast('Rientra con la tua password', '', 'help'); return; }
+  if (/scadut/i.test(e.message)) return attesa('scaduto', ME);
   attesa(/sospes/i.test(e.message) ? 'bloccato' : 'in_attesa');
 }
+// il piano dell'account: sociale, prova, base, premium, e fino a quando
+let ME = null, NEGOZIO = '';
+const NOMI_PIANO = { sociale: 'Giostra Sociale (gratuito)', prova: 'Prova gratuita', base: 'Base', premium: 'Premium' };
+const giorniMancanti = d => d ? Math.ceil((new Date(d) - Date.now()) / 864e5) : null;
+const dataIt = d => new Date(d).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 function startApp() { renderHome(); if (store.profiles.length > 1) { renderWho(); show('who'); } else if (!save.settings.mondo) apriMondo(); else show('home'); }
 async function boot() {
   if (!API_BASE) return startApp();
   if (recCode) return openRec('nuova');
-  if (!token) return show('accesso');
+  if (!token) {   // dalla pagina di download, «Prova gratis» apre direttamente la registrazione
+    show('accesso'); if (/[?&]prova=1/.test(location.search)) { const t = $('#accesso [data-tab="reg"]'); if (t) t.click(); }
+    return;
+  }
   attesa('collego');
   try {
-    const me = await api('/giochi/io');
+    const me = ME = await api('/giochi/io'); NEGOZIO = me.negozio || '';
     try { localStorage.setItem('leggoconto-stato', me.stato); } catch (e) {}
+    if (me.stato === 'scaduto') return attesa('scaduto', me);
     if (me.stato !== 'attivo') return attesa(me.stato === 'bloccato' ? 'bloccato' : 'in_attesa');
+    const gg = giorniMancanti(me.scadenza);
+    if (gg !== null && gg <= 5) setTimeout(() => toast(me.piano === 'prova' ? `La prova gratuita finisce tra ${gg} ${gg === 1 ? 'giorno' : 'giorni'}` : `L'abbonamento scade tra ${gg} ${gg === 1 ? 'giorno' : 'giorni'}`, 'Per continuare: Per i grandi → Abbonamento', 'help', 3200), 1500);
     const d = await api('/giochi/dati');
     if (d.valore && d.valore.profiles && d.valore.profiles.length) setStore(d.valore);
     else syncNow();   // prima volta: porto sul server quello che c'e' gia' sul tablet
@@ -3657,8 +3675,14 @@ function renderGrandi() {
   $('#grVoce').innerHTML = `<span class="vb-ic">${persSvg(save.settings.persona in PERSONAS ? save.settings.persona : 'cartoon')}</span><span><b>${persona().name}</b><small>Tocca per cambiare voce e velocità</small></span>`; $('#mondoTit').textContent = `Ambientazione di ${prof.info.nome || 'questo giocatore'}`;
   if (API_BASE && token) {
     $('#accountBox').hidden = false;
-    $('#accountBox').innerHTML = '<b>Account</b><span id="accWho">Collegato</span><button class="btn" type="button" id="accOut">Esci da questo account</button>';
-    api('/giochi/io').then(m => { $('#accWho').textContent = `${m.nome || ''} · ${m.email}`; }).catch(() => {});
+    $('#accountBox').innerHTML = '<b>Account e abbonamento</b><span id="accWho">Collegato</span><span id="accPiano" class="accpiano"></span><a class="btn go" id="accShop" hidden target="_blank" rel="noopener">Abbonati sul sito</a><button class="btn" type="button" id="accOut">Esci da questo account</button>';
+    api('/giochi/io').then(m => {
+      ME = m; NEGOZIO = m.negozio || NEGOZIO;
+      $('#accWho').textContent = `${m.nome || ''} · ${m.email}`;
+      const gg = giorniMancanti(m.scadenza);
+      $('#accPiano').textContent = `Piano: ${NOMI_PIANO[m.piano] || m.piano}` + (m.scadenza ? ` · fino al ${dataIt(m.scadenza)}${gg > 0 ? ` (mancano ${gg} giorni)` : ''}` : ' · senza scadenza');
+      const sh = $('#accShop'); sh.hidden = !NEGOZIO || m.piano === 'sociale'; sh.href = NEGOZIO; sh.textContent = m.piano === 'prova' ? 'Abbonati sul sito' : 'Rinnova o cambia piano';
+    }).catch(() => {});
     $('#accOut').onclick = () => { syncNow(); logout(); };
   }
   $('#optVoice').checked = save.settings.voice; $('#optSound').checked = save.settings.sound; $('#optLen').value = String(save.settings.len);
@@ -3772,7 +3796,11 @@ $('#fReg').addEventListener('submit', async e => {
   if (b.password.length < 8) return msgOn('#rgMsgErr', 'La password deve avere almeno 8 caratteri');
   if (!$('#rgOk').checked) return msgOn('#rgMsgErr', 'Per continuare serve il consenso qui sopra');
   msgOn('#rgMsgErr', 'Invio...');
-  try { const r = await api('/giochi/registrati', { method: 'POST', body: JSON.stringify(b) }); setToken(r.access_token); msgOn('#rgMsgErr', ''); attesa('in_attesa'); }
+  try {
+    const r = await api('/giochi/registrati', { method: 'POST', body: JSON.stringify(b) }); setToken(r.access_token); msgOn('#rgMsgErr', '');
+    await boot();
+    if (r.piano === 'prova' && r.scadenza) toast('Benvenuti! La prova gratuita è attiva', `fino al ${dataIt(r.scadenza)}`, 'help', 3600);
+  }
   catch (x) { msgOn('#rgMsgErr', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
 });
 boot();

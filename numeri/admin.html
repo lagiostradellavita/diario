@@ -42,6 +42,8 @@ button,input{font:inherit;color:inherit}
 .u-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
 .u-name{font-family:var(--f-display);font-size:1.3rem;font-weight:800}
 .chip{display:inline-block;border-radius:999px;padding:1px 10px;font-weight:700;font-size:.9rem;color:#fff}
+.pl-sociale{background:#CDEBD3;color:#1E1838} .pl-prova{background:#FFE7A8;color:#1E1838} .pl-base{background:#CFE3FF;color:#1E1838} .pl-premium{background:#E7D6FF;color:#1E1838} .pl-scaduto{background:#FFD0D0;color:#1E1838}
+.chip + .chip{margin-left:6px} .piano{margin:6px 0 0} .check{margin:0;padding-left:4px;list-style:none} .check li{margin:6px 0} code.url{word-break:break-all;background:#F3F1EA;padding:2px 6px;border-radius:6px}
 .st-in_attesa{background:var(--wait);color:#1E1838} .st-attivo{background:var(--ok)} .st-bloccato{background:var(--stop)}
 .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:4px 16px;margin:8px 0;color:var(--muted);font-size:.95rem}
 .meta b{color:var(--ink)}
@@ -88,11 +90,14 @@ th{font-family:var(--f-display);color:var(--muted)}
     <div class="tabs" id="tabs">
       <button data-t="in_attesa" aria-pressed="true">Da approvare<span class="n" id="n-in_attesa">0</span></button>
       <button data-t="attivo" aria-pressed="false">Attivi<span class="n" id="n-attivo">0</span></button>
+      <button data-t="scaduto" aria-pressed="false">Scaduti<span class="n" id="n-scaduto">0</span></button>
       <button data-t="bloccato" aria-pressed="false">Bloccati<span class="n" id="n-bloccato">0</span></button>
       <button data-t="accessi" aria-pressed="false">Ultimi accessi</button>
+      <button data-t="odoo" aria-pressed="false">Odoo</button>
     </div>
     <div class="list" id="list"></div>
     <div class="card tablewrap" id="acc" hidden></div>
+    <div class="card" id="odoo" hidden></div>
   </div>
 </div>
 <script>
@@ -143,22 +148,30 @@ function load() {
     else msg('Non riesco a collegarmi al server');
   });
 }
+// il piano: sociale (gratis, senza scadenza), prova, base, premium; scaduto si conta a parte
+var PIANO = { sociale: 'Sociale', prova: 'Prova', base: 'Base', premium: 'Premium' };
+function giorno(t) { return t ? new Date(t).toLocaleDateString('it-IT') : 'senza scadenza'; }
+function gruppo(u) { return u.stato === 'attivo' && u.scaduto ? 'scaduto' : u.stato; }
 function card(u) {
   var kids = u.bambini.length ? '<ul class="kids">' + u.bambini.map(function (k) { return '<li>' + esc(k.nome) + (k.classe ? ', ' + esc(k.classe) : '') + (k.eta ? ', ' + esc(k.eta) + ' anni' : '') + ' · ' + k.partite + ' partite · ' + k.stelline + ' stelline</li>'; }).join('') + '</ul>' : '<p class="empty" style="margin:6px 0 0">Nessun bambino ancora</p>';
   var a = [];
   if (u.stato !== 'attivo') a.push('<button class="btn ok" data-a="approva" data-id="' + u.id + '">' + (u.stato === 'bloccato' ? 'Riattiva' : 'Approva') + '</button>');
   if (u.stato !== 'bloccato') a.push('<button class="btn stop" data-a="blocca" data-id="' + u.id + '">' + (u.stato === 'in_attesa' ? 'Rifiuta' : 'Blocca') + '</button>');
+  if (u.piano !== 'sociale') a.push('<button class="btn ok" data-a="sociale" data-id="' + u.id + '">Rendi sociale (gratis)</button>');
+  if (u.piano === 'prova' || u.scaduto) a.push('<button class="btn" data-a="prova30" data-id="' + u.id + '">Prova +30 giorni</button>');
   a.push('<button class="btn" data-a="pw" data-id="' + u.id + '">' + (pwArm[u.id] === 1 ? 'Tocca ancora: la password vecchia non vale più' : 'Password provvisoria') + '</button>');
   a.push('<button class="btn" data-a="del" data-id="' + u.id + '">' + (delArm[u.id] ? 'Tocca ancora: si cancellano anche i bambini' : 'Elimina') + '</button>');
-  return '<div class="card"><div class="u-top"><span class="u-name">' + esc(u.nome || u.email) + '</span><span class="chip st-' + u.stato + '">' + { in_attesa: 'da approvare', attivo: 'attivo', bloccato: 'bloccato' }[u.stato] + '</span></div>'
+  return '<div class="card"><div class="u-top"><span class="u-name">' + esc(u.nome || u.email) + '</span><span class="chip st-' + u.stato + '">' + { in_attesa: 'da approvare', attivo: 'attivo', bloccato: 'bloccato' }[u.stato] + '</span><span class="chip pl-' + (u.scaduto ? 'scaduto' : u.piano) + '">' + (PIANO[u.piano] || u.piano) + (u.scaduto ? ' · scaduto' : '') + '</span></div>'
+    + '<p class="piano">Piano <b>' + esc(PIANO[u.piano] || u.piano) + '</b> · ' + (u.scadenza ? (u.scaduto ? 'scaduto il ' : 'fino al ') + giorno(u.scadenza) : 'senza scadenza') + (u.odoo ? ' · abbonamento Odoo ' + esc(u.odoo) : '') + '</p>'
     + (u.messaggio ? '<p style="margin:6px 0 0">«' + esc(u.messaggio) + '»</p>' : '')
     + '<div class="meta"><span>Email: <b>' + esc(u.email) + '</b></span><span>Telefono: <b>' + esc(u.telefono || '–') + '</b></span><span>Richiesta: <b>' + when(u.iscritto) + '</b></span><span>Approvato: <b>' + when(u.approvato) + '</b></span><span>Ultimo accesso: <b>' + when(u.ultimo_accesso) + '</b></span><span>Accessi: <b>' + u.accessi + '</b></span></div>'
     + kids + '<div class="acts">' + a.join('') + '</div>'
     + (typeof pwArm[u.id] === 'string' ? '<p class="pw">Password provvisoria da comunicare: <code>' + esc(pwArm[u.id]) + '</code></p>' : '') + '</div>';
 }
 function render() {
-  ['in_attesa', 'attivo', 'bloccato'].forEach(function (s) { $('#n-' + s).textContent = utenti.filter(function (u) { return u.stato === s; }).length; });
-  $('#acc').hidden = tab !== 'accessi'; $('#list').hidden = tab === 'accessi';
+  ['in_attesa', 'attivo', 'scaduto', 'bloccato'].forEach(function (s) { $('#n-' + s).textContent = utenti.filter(function (u) { return gruppo(u) === s; }).length; });
+  $('#acc').hidden = tab !== 'accessi'; $('#odoo').hidden = tab !== 'odoo'; $('#list').hidden = tab === 'accessi' || tab === 'odoo';
+  if (tab === 'odoo') return renderOdoo();
   if (tab === 'accessi') {
     $('#acc').innerHTML = '<p class="empty">Carico...</p>';
     api('/giochi/admin/accessi?limite=300').then(function (j) {
@@ -166,8 +179,23 @@ function render() {
     }).catch(function (x) { $('#acc').innerHTML = '<p class="msg">' + esc(x.message) + '</p>'; });
     return;
   }
-  var l = utenti.filter(function (u) { return u.stato === tab; });
-  $('#list').innerHTML = l.length ? l.map(card).join('') : '<p class="empty">' + { in_attesa: 'Nessuna richiesta da approvare.', attivo: 'Nessun accesso attivo.', bloccato: 'Nessun accesso bloccato.' }[tab] + '</p>';
+  var l = utenti.filter(function (u) { return gruppo(u) === tab; });
+  $('#list').innerHTML = l.length ? l.map(card).join('') : '<p class="empty">' + { in_attesa: 'Nessuna richiesta da approvare.', attivo: 'Nessun accesso attivo.', scaduto: 'Nessun abbonamento scaduto.', bloccato: 'Nessun accesso bloccato.' }[tab] + '</p>';
+}
+// il collegamento con Odoo: cosa e' configurato su Render e gli avvisi arrivati
+function renderOdoo() {
+  $('#odoo').innerHTML = '<p class="empty">Carico...</p>';
+  api('/giochi/admin/odoo').then(function (j) {
+    var si = function (v, t) { return '<li>' + (v ? '✅ ' : '⚠️ ') + t + '</li>'; };
+    $('#odoo').innerHTML = '<h2 style="margin:0 0 8px">Collegamento con Odoo</h2><ul class="check">'
+      + si(j.chiave, j.chiave ? 'Chiave degli avvisi impostata (GIOCHI_ODOO_CHIAVE).' : 'Manca GIOCHI_ODOO_CHIAVE su Render: senza, gli avvisi di Odoo vengono rifiutati.')
+      + si(j.lettura, j.lettura ? 'Il server legge gli abbonamenti da Odoo (ODOO_URL, ODOO_DB, ODOO_UTENTE, ODOO_CHIAVE).' : 'Il server non legge ancora gli abbonamenti da Odoo: mancano ODOO_URL, ODOO_DB, ODOO_UTENTE, ODOO_CHIAVE su Render.')
+      + si(j.negozio, j.negozio ? 'Pagina del negozio: ' + esc(j.negozio) : 'Manca GIOCHI_NEGOZIO_URL: l’app non mostra il pulsante «Abbonati sul sito».')
+      + si(j.posta, j.posta ? 'La posta parte: chi compra riceve il link per la password.' : 'La posta non è configurata: chi compra NON riceve il link. Dagli tu una password provvisoria.')
+      + '</ul><p>Indirizzo da incollare in Odoo (azione «Invia notifica webhook»):<br><code class="url">' + esc(API) + '/giochi/odoo/abbonamento?chiave=LA-TUA-CHIAVE</code></p>'
+      + '<h2 style="margin:16px 0 8px">Ultimi avvisi da Odoo</h2>'
+      + (j.eventi.length ? '<div class="tablewrap"><table><thead><tr><th>Quando</th><th>Email</th><th>Abbonamento</th><th>Esito</th></tr></thead><tbody>' + j.eventi.map(function (e) { return '<tr><td>' + when(e.quando) + '</td><td>' + esc(e.email || '–') + '</td><td>' + esc(e.rif || '–') + '</td><td>' + esc(e.esito) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="empty">Nessun avviso arrivato finora.</p>');
+  }).catch(function (x) { $('#odoo').innerHTML = '<p class="msg">' + esc(x.message) + '</p>'; });
 }
 $('#list').addEventListener('click', function (e) {
   var b = e.target.closest('[data-a]'); if (!b) return;
@@ -177,6 +205,8 @@ $('#list').addEventListener('click', function (e) {
   b.disabled = true;
   var call = a === 'del' ? api('/giochi/admin/utenti/' + id, { method: 'DELETE' })
     : a === 'pw' ? api('/giochi/admin/utenti/' + id + '/password-provvisoria', { method: 'POST' }).then(function (j) { pwArm[id] = j.password; })
+    : a === 'sociale' ? api('/giochi/admin/utenti/' + id + '/piano', { method: 'POST', body: JSON.stringify({ piano: 'sociale' }) })
+    : a === 'prova30' ? api('/giochi/admin/utenti/' + id + '/piano', { method: 'POST', body: JSON.stringify({ piano: 'prova', giorni: 30 }) })
     : api('/giochi/admin/utenti/' + id + '/' + a, { method: 'POST' });
   call.then(function () { delete delArm[id]; if (a !== 'pw') delete pwArm[id]; return load(); })
     .catch(function (x) { b.disabled = false; alert('Non riuscito: ' + x.message); });
