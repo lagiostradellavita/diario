@@ -825,9 +825,10 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
     <h2>La voce del telefono</h2>
     <p class="note" style="margin:0 0 10px">Tocca una voce per sentirla. Le voci «Migliorata», «Premium» o «Natural» sono le più naturali e allegre.</p>
     <div class="voci-tel" id="vociTel"></div>
+    <p class="note" id="senzaUomo" hidden style="margin:10px 0 0"><b>Su questo dispositivo non c’è una voce italiana da uomo</b>: Nonno Pino, Robottino e Super Leo parlano con una voce da donna più grave. Per una voce da uomo, sull’iPhone scarica <b>Luca</b> come spiegato qui sotto.</p>
     <details class="consiglio"><summary>Come avere una voce più bella sull’iPhone</summary>
       <ol><li>Apri <b>Impostazioni</b> → <b>Accessibilità</b> → <b>Contenuto letto ad alta voce</b> → <b>Voci</b> → <b>Italiano</b>.</li>
-      <li>Scarica <b>Alice (Migliorata)</b> o <b>Federica (Premium)</b>: tocca la nuvola con la freccia.</li>
+      <li>Scarica <b>Alice (Migliorata)</b> o <b>Federica (Premium)</b>, e <b>Luca (Migliorata)</b> per Nonno Pino, Robottino e Super Leo: tocca la nuvola con la freccia.</li>
       <li>Chiudi e riapri Leggo e Conto, poi scegli qui la voce nuova.</li></ol></details>
     <h2>Quanto veloce?</h2>
     <div class="velrow" id="velBtns"><button class="btn" data-vel="lenta"><span aria-hidden="true">🐢</span>Piano</button><button class="btn" data-vel="normale"><span aria-hidden="true">🚶</span>Normale</button><button class="btn" data-vel="veloce"><span aria-hidden="true">🐇</span>Veloce</button></div>
@@ -2150,13 +2151,19 @@ const PERSONAS = {
   fata: { name: 'Fata Lilla', tag: 'voce da fatina', pitch: 1.5, rate: .9, pref: 'f', praise: ['Che magia!', 'Scintille di bravura!', 'Incantevole!'], retry: ['Un po\' di polvere magica e riprova.', 'Quasi! Riprova, piccol{o} mag{o}.'], hello: () => `Ciao${prof.info.nome ? ' ' + prof.info.nome : ''}! Sono la fatina dei giochi.` },
 };
 const persona = () => PERSONAS[save.settings.persona] || PERSONAS.cartoon;
-const FEM = /alice|federica|elsa|isabella|paola|emma|bianca|carla|silvia|giulia|chiara|elena|female/i, MAS = /luca|diego|cosimo|giorgio|benigno|lorenzo|marco|pietro|giuseppe|\bmale/i;
+// maschile o femminile dal nome: iPhone e Mac (Luca, Alice), Windows (Cosimo, Elsa, Diego Natural),
+// Android (it-it-x-itc e itd sono uomini, ita e itb donne; «Google italiano» e' una donna)
+const FEM = /alice|federica|elsa|isabella|paola|emma|bianca|carla|silvia|giulia|chiara|elena|female|-ita-|-itb-|google italiano/i, MAS = /luca|diego|cosimo|giorgio|benigno|lorenzo|marco|pietro|giuseppe|\bmale|-itc-|-itd-/i;
+const sesso = v => !v ? '' : MAS.test(v.name) ? 'm' : FEM.test(v.name) ? 'f' : '';
+const QUAL = v => (/natural|neural|enhanced|avanzat|migliorat|premium|online/i.test(v.name) ? 10 : 0) + (/google/i.test(v.name) ? 6 : 0);
 function voiceFor(P) {
   const vs = itVoices(); if (!vs.length) return null;
-  // la voce del telefono scelta dai grandi vale per tutti i personaggi; il personaggio cambia tono e velocita'
-  const scelta = save.settings.voiceName && vs.find(v => v.name === save.settings.voiceName); if (scelta) return scelta;
-  const score = v => (/natural|neural|enhanced|avanzat|premium|online/i.test(v.name) ? 10 : 0) + (/google/i.test(v.name) ? 6 : 0) + ((P.pref === 'm' ? MAS : FEM).test(v.name) ? 8 : 0);
-  return vs.slice().sort((a, b) => score(b) - score(a))[0];
+  // la voce del telefono scelta dai grandi vale per i personaggi del suo sesso; Nonno Pino
+  // non parla con la voce di Alice se sul telefono c'e' una voce da uomo
+  const scelta = save.settings.voiceName && vs.find(v => v.name === save.settings.voiceName);
+  if (scelta && (!sesso(scelta) || sesso(scelta) === P.pref)) return scelta;
+  const giusta = vs.filter(v => sesso(v) === P.pref).sort((a, b) => QUAL(b) - QUAL(a))[0];
+  return giusta || scelta || vs.slice().sort((a, b) => QUAL(b) - QUAL(a))[0];
 }
 // la velocita' la scelgono i grandi; di base lenta, per chi sta imparando a leggere
 const VEL = { lenta: .82, normale: .98, veloce: 1.1 };
@@ -2164,7 +2171,9 @@ const VEL = { lenta: .82, normale: .98, veloce: 1.1 };
 const TESTO = { base: 1, piu: 1.12, max: 1.25 };
 function utter(t, piano) {
   const P = persona(), u = new SpeechSynthesisUtterance(t); u.lang = 'it-IT'; const v = voiceFor(P); if (v) u.voice = v;
-  u.pitch = Math.min(2, P.pitch * 1.18 + .12); u.rate = Math.max(.45, P.rate * (VEL[save.settings.vel] || VEL.normale) * (piano ? .74 : 1)); return u;
+  // le voci da donna si alzano un po', per essere allegre; quelle da uomo restano gravi, e se il
+  // telefono ha solo voci da donna il personaggio maschile la abbassa ancora
+  u.pitch = Math.min(2, P.pref === 'm' ? P.pitch * (sesso(v) === 'm' ? 1.05 : .8) : P.pitch * 1.18 + .12); u.rate = Math.max(.45, P.rate * (VEL[save.settings.vel] || VEL.normale) * (piano ? .74 : 1)); return u;
 }
 // una sillaba o una parola da sola si dice piano; nelle frasi la parte fra «» si stacca e si dice piano.
 // Il punto in fondo evita che il telefono tagli l'ultima sillaba.
@@ -3755,7 +3764,8 @@ const persGrid = pc => Object.entries(PERSONAS).map(([k, P]) => `<button class="
 function renderVociTel() {
   const vs = itVoices().slice().sort((a, b) => (/natural|neural|enhanced|migliorat|premium/i.test(b.name) ? 1 : 0) - (/natural|neural|enhanced|migliorat|premium/i.test(a.name) ? 1 : 0));
   const cur = save.settings.voiceName || '';
-  $('#vociTel').innerHTML = vs.length ? [`<button class="btn vtel" data-vt="" aria-pressed="${!cur}">Automatica<small>la migliore del telefono</small></button>`].concat(vs.slice(0, 10).map(v => `<button class="btn vtel" data-vt="${v.name.replace(/"/g, '')}" aria-pressed="${v.name === cur}">${v.name.replace(/\s*\(.*?\)\s*/g, ' ').trim()}<small>${/natural|neural|enhanced|migliorat|premium/i.test(v.name) ? 'voce di qualità' : 'voce semplice'}</small></button>`)).join('') : '<p class="note">Il telefono non ha ancora caricato le voci: riapri questa pagina tra un momento.</p>';
+  $('#vociTel').innerHTML = vs.length ? [`<button class="btn vtel" data-vt="" aria-pressed="${!cur}">Automatica<small>la migliore del telefono</small></button>`].concat(vs.slice(0, 10).map(v => `<button class="btn vtel" data-vt="${v.name.replace(/"/g, '')}" aria-pressed="${v.name === cur}">${v.name.replace(/\s*\(.*?\)\s*/g, ' ').trim()}<small>${/natural|neural|enhanced|migliorat|premium/i.test(v.name) ? 'voce di qualità' : 'voce semplice'}${sesso(v) ? (sesso(v) === 'm' ? ' · da uomo' : ' · da donna') : ''}</small></button>`)).join('') : '<p class="note">Il telefono non ha ancora caricato le voci: riapri questa pagina tra un momento.</p>';
+  $('#senzaUomo').hidden = !vs.length || vs.some(v => sesso(v) === 'm');
 }
 $('#vociTel').addEventListener('click', e => { const b = e.target.closest('[data-vt]'); if (!b) return; save.settings.voiceName = b.dataset.vt; persist(); renderVociTel(); say('Ciao! Sono questa voce. Giochiamo insieme?'); });
 try { speechSynthesis.addEventListener('voiceschanged', () => { if (!$('#voce').hidden) renderVociTel(); }); } catch (e) {}
