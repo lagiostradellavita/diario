@@ -695,6 +695,11 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
 :root[data-cat] #scena svg{opacity:.35}
 .accpiano{font-weight:700;font-size:1.15rem}
 #atShop{text-decoration:none;display:inline-flex;align-items:center}
+.troppi{display:flex;flex-direction:column;gap:8px}
+.disp{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px solid var(--outline);border-radius:14px;padding:8px 10px;background:#fff}
+.disp small{display:block;font-weight:400;font-size:1rem;color:var(--muted)}
+.disp .btn{font-size:1.05rem;padding:8px 12px;flex:none}
+.accdisp{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -789,6 +794,7 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
         <label for="inEmail">Email<input type="text" id="inEmail" inputmode="email" autocomplete="username"></label>
         <label for="inPw">Password<input type="password" id="inPw" autocomplete="current-password"></label>
         <p class="msg" id="inMsg" hidden></p>
+        <div class="troppi" id="troppi" hidden></div>
         <button class="btn go" type="submit" style="font-size:1.5rem">Entra</button>
         <p class="lost"><button class="linkbtn" type="button" id="lostPw">Password dimenticata?</button><button class="linkbtn" type="button" id="lostEm">Email dimenticata?</button></p>
       </form>
@@ -1812,10 +1818,23 @@ function setStore(s) { store = s; prof = store.profiles.find(p => p.id === store
 /* ---------- accesso e salvataggio sul server ---------- */
 const TOK_KEY = 'leggoconto-token';
 let token = null; try { token = localStorage.getItem(TOK_KEY); } catch (e) {}
+// ogni dispositivo ha un suo codice, creato la prima volta e tenuto qui: l'account ne accetta un numero limitato
+const DISP_KEY = 'leggoconto-dispositivo';
+let DISP = null; try { DISP = localStorage.getItem(DISP_KEY); } catch (e) {}
+if (!DISP) { DISP = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)); try { localStorage.setItem(DISP_KEY, DISP); } catch (e) {} }
+const NOME_DISP = (() => {
+  const u = navigator.userAgent, ipad = /iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1);
+  const cosa = ipad ? 'iPad' : /iPhone/.test(u) ? 'iPhone' : /Android/.test(u) ? (/Mobile/.test(u) ? 'Telefono Android' : 'Tablet Android') : /Windows/.test(u) ? 'Computer Windows' : /Mac/.test(u) ? 'Mac' : 'Computer';
+  const br = /Edg\//.test(u) ? 'Edge' : /CriOS|Chrome/.test(u) ? 'Chrome' : /FxiOS|Firefox/.test(u) ? 'Firefox' : /Safari/.test(u) ? 'Safari' : '';
+  return br ? `${cosa} · ${br}` : cosa;
+})();
 async function api(path, opts = {}) {
-  const r = await fetch(API_BASE + path, { ...opts, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) } });
+  const r = await fetch(API_BASE + path, { ...opts, headers: { 'Content-Type': 'application/json', 'X-Dispositivo': DISP, ...(token ? { Authorization: 'Bearer ' + token } : {}) } });
   let j = null; try { j = await r.json(); } catch (e) {}
-  if (!r.ok) { const err = new Error((j && j.detail) || 'Errore ' + r.status); err.status = r.status; throw err; }
+  if (!r.ok) {
+    const d = j && j.detail, err = new Error((d && typeof d === 'object' ? d.messaggio : d) || 'Errore ' + r.status);
+    err.status = r.status; if (d && typeof d === 'object') err.dati = d; throw err;
+  }
   return j;
 }
 let syncT = null, syncing = false, syncAgain = false;
@@ -3561,7 +3580,11 @@ function renderWho() {
 }
 $('#playerGrid').addEventListener('click', e => {
   const b = e.target.closest('[data-pid]'); if (!b) return; SND.tick();
-  if (b.dataset.pid === 'new') return openProfile(null);
+  if (b.dataset.pid === 'new') {
+    const max = ME && ME.max_bambini;
+    if (max && store.profiles.length >= max) return toast(`Il piano ${NOMI_PIANO[ME.piano] || ''} permette fino a ${max} bambini`, ME.piano === 'premium' ? '' : 'Con Premium fino a 4: Per i grandi → Abbonamento', 'help', 3600);
+    return openProfile(null);
+  }
   switchTo(b.dataset.pid); renderHome();
   if (!save.settings.mondo) { apriMondo(); if (save.settings.voice) { guidaDetta.mondo = true; say(guidaTesto('mondo')); } return; }
   guidaDetta.home = true; show('home'); if (save.settings.voice) say(guidaTesto('home'));
@@ -3670,18 +3693,30 @@ function renderAlbum() {
   const n = Math.min(STK.length, lvlInfo(save.xp).lvl - 1);
   $('#stickerGrid').innerHTML = STK.map((s, i) => `<div class="stk-t ${i < n ? 'on' : ''}">${i < n ? s : i + 2}</div>`).join('');
 }
+// i dispositivi collegati all'account: si vede quali sono e si puo' scollegare quelli che non si usano
+function dispositivi() {
+  api('/giochi/dispositivi').then(j => {
+    const max = ME && ME.max_dispositivi, l = j.dispositivi;
+    $('#accDisp').innerHTML = `<b>Dispositivi collegati: ${l.length}${max ? ' di ' + max : ''}</b>` + l.map(d => `<div class="disp"><span><b>${d.nome}</b><small>${d.questo ? 'questo dispositivo' : 'usato il ' + new Date(d.ultimo_uso).toLocaleDateString('it-IT')}</small></span>${d.questo ? '' : `<button class="btn" type="button" data-via="${d.id}">Scollega</button>`}</div>`).join('');
+  }).catch(() => {});
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-via]'); if (!b) return;
+  b.disabled = true; api('/giochi/dispositivi/' + b.dataset.via, { method: 'DELETE' }).then(dispositivi).catch(() => { b.disabled = false; });
+});
 function renderGrandi() {
   $('#mondiGrandi').innerHTML = mondiHTML();
   $('#grVoce').innerHTML = `<span class="vb-ic">${persSvg(save.settings.persona in PERSONAS ? save.settings.persona : 'cartoon')}</span><span><b>${persona().name}</b><small>Tocca per cambiare voce e velocità</small></span>`; $('#mondoTit').textContent = `Ambientazione di ${prof.info.nome || 'questo giocatore'}`;
   if (API_BASE && token) {
     $('#accountBox').hidden = false;
-    $('#accountBox').innerHTML = '<b>Account e abbonamento</b><span id="accWho">Collegato</span><span id="accPiano" class="accpiano"></span><a class="btn go" id="accShop" hidden target="_blank" rel="noopener">Abbonati sul sito</a><button class="btn" type="button" id="accOut">Esci da questo account</button>';
+    $('#accountBox').innerHTML = '<b>Account e abbonamento</b><span id="accWho">Collegato</span><span id="accPiano" class="accpiano"></span><div id="accDisp" class="accdisp"></div><a class="btn go" id="accShop" hidden target="_blank" rel="noopener">Abbonati sul sito</a><button class="btn" type="button" id="accOut">Esci da questo account</button>';
     api('/giochi/io').then(m => {
       ME = m; NEGOZIO = m.negozio || NEGOZIO;
       $('#accWho').textContent = `${m.nome || ''} · ${m.email}`;
       const gg = giorniMancanti(m.scadenza);
       $('#accPiano').textContent = `Piano: ${NOMI_PIANO[m.piano] || m.piano}` + (m.scadenza ? ` · fino al ${dataIt(m.scadenza)}${gg > 0 ? ` (mancano ${gg} giorni)` : ''}` : ' · senza scadenza');
       const sh = $('#accShop'); sh.hidden = !NEGOZIO || m.piano === 'sociale'; sh.href = NEGOZIO; sh.textContent = m.piano === 'prova' ? 'Abbonati sul sito' : 'Rinnova o cambia piano';
+      dispositivi();
     }).catch(() => {});
     $('#accOut').onclick = () => { syncNow(); logout(); };
   }
@@ -3778,19 +3813,28 @@ $('#fNew').addEventListener('submit', async e => {
 });
 $('#atOut').onclick = () => logout();
 const msgOn = (id, t) => { const m = $(id); m.textContent = t; m.hidden = !t; };
-$('#fIn').addEventListener('submit', async e => {
-  e.preventDefault();
+async function entra(scollega) {
   const email = $('#inEmail').value.trim(), password = $('#inPw').value;
   if (!email || !password) return msgOn('#inMsg', 'Scrivi email e password');
-  msgOn('#inMsg', 'Controllo...');
+  msgOn('#inMsg', 'Controllo...'); $('#troppi').hidden = true;
   try {
-    const r = await api('/giochi/entra', { method: 'POST', body: JSON.stringify({ email, password, dispositivo: navigator.userAgent.slice(0, 180) }) });
+    const r = await api('/giochi/entra', { method: 'POST', body: JSON.stringify({ email, password, dispositivo: navigator.userAgent.slice(0, 180), codice: DISP, nome_dispositivo: NOME_DISP, scollega: scollega || null }) });
     setToken(r.access_token); msgOn('#inMsg', ''); $('#inPw').value = ''; boot();
-  } catch (x) { msgOn('#inMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
-});
+  } catch (x) {
+    if (x.dati && x.dati.codice === 'troppi_dispositivi') {
+      // troppi dispositivi: si sceglie quale scollegare, poi si entra da qui
+      msgOn('#inMsg', x.message);
+      $('#troppi').innerHTML = x.dati.dispositivi.map(d => `<div class="disp"><span><b>${d.nome}</b><small>usato il ${new Date(d.ultimo_uso).toLocaleDateString('it-IT')}</small></span><button class="btn" type="button" data-scollega="${d.id}">Scollega ed entra</button></div>`).join('');
+      $('#troppi').hidden = false; return;
+    }
+    msgOn('#inMsg', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova');
+  }
+}
+$('#fIn').addEventListener('submit', e => { e.preventDefault(); entra(); });
+$('#troppi').addEventListener('click', e => { const b = e.target.closest('[data-scollega]'); if (b) entra(b.dataset.scollega); });
 $('#fReg').addEventListener('submit', async e => {
   e.preventDefault();
-  const b = { nome: $('#rgNome').value.trim(), email: $('#rgEmail').value.trim(), telefono: $('#rgTel').value.trim(), messaggio: $('#rgMsg').value.trim(), password: $('#rgPw').value };
+  const b = { nome: $('#rgNome').value.trim(), email: $('#rgEmail').value.trim(), telefono: $('#rgTel').value.trim(), messaggio: $('#rgMsg').value.trim(), password: $('#rgPw').value, codice: DISP, nome_dispositivo: NOME_DISP };
   if (b.nome.length < 2) return msgOn('#rgMsgErr', 'Scrivi nome e cognome');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(b.email)) return msgOn('#rgMsgErr', "Controlla l'indirizzo email");
   if (b.password.length < 8) return msgOn('#rgMsgErr', 'La password deve avere almeno 8 caratteri');

@@ -31,6 +31,10 @@ APP_URL = os.getenv("GIOCHI_APP_URL") or "https://lagiostradellavita.github.io/d
 NEGOZIO_URL = os.getenv("GIOCHI_NEGOZIO_URL") or ""
 PROVA_GIORNI = 30
 PIANI = ("sociale", "prova", "base", "premium")
+# contro la condivisione: quanti dispositivi e quanti bambini per account, secondo il piano
+DISPOSITIVI = {"sociale": 5, "prova": 3, "base": 3, "premium": 3}
+BAMBINI = {"sociale": None, "prova": 2, "base": 2, "premium": 4}
+SOSPETTO = 3   # da quanti tentativi oltre il limite il backoffice segnala l'account
 
 
 def _ora():
@@ -76,7 +80,20 @@ def get_giochi_uid(authorization: Optional[str] = Header(None)) -> str:
     return payload["sub"]
 
 
-def get_giochi_attivo(uid: str = Depends(get_giochi_uid), db: Session = Depends(get_session)) -> str:
+def _dispositivo_ok(db, uid, codice):
+    """Il dispositivo e' ancora collegato a quest'account? Se e' stato scollegato
+    deve rientrare (e ricadere nel limite). Le app vecchie, senza codice, passano."""
+    if not codice:
+        return
+    n = db.execute(text("update giochi_dispositivi set ultimo_uso = now() where utente_id = :u and codice = :c"),
+                   {"u": uid, "c": codice[:80]}).rowcount
+    db.commit()
+    if not n:
+        raise HTTPException(401, "Questo dispositivo è stato scollegato: rientra con la password")
+
+
+def get_giochi_attivo(uid: str = Depends(get_giochi_uid), db: Session = Depends(get_session),
+                      x_dispositivo: Optional[str] = Header(None)) -> str:
     """Lascia passare solo chi ha un accesso attivo e non scaduto. Bloccare
     qualcuno gli chiude davvero l'archivio, non solo la schermata."""
     row = db.execute(text("select stato, scadenza from giochi_utenti where id = :i"), {"i": uid}).first()
@@ -89,6 +106,7 @@ def get_giochi_attivo(uid: str = Depends(get_giochi_uid), db: Session = Depends(
         raise HTTPException(403, "Il tuo accesso e' in attesa dell'approvazione")
     if stato != "attivo":
         raise HTTPException(403, "Accesso sospeso")
+    _dispositivo_ok(db, uid, x_dispositivo)
     return uid
 
 
@@ -98,12 +116,53 @@ class RegistratiIn(BaseModel):
     nome: str = Field(min_length=2)
     telefono: Optional[str] = None
     messaggio: Optional[str] = None
+    codice: Optional[str] = None
+    nome_dispositivo: Optional[str] = None
 
 
 class EntraIn(BaseModel):
     email: str
     password: str
-    dispositivo: Optional[str] = None
+    dispositivo: Optional[str] = None      # descrizione del browser, per il registro degli accessi
+    codice: Optional[str] = None           # il codice del dispositivo, creato dall'app
+    nome_dispositivo: Optional[str] = None # «iPhone · Safari»
+    scollega: Optional[str] = None         # per entrare da qui, scollega questo dispositivo
+
+
+def _limite_disp(piano):
+    return DISPOSITIVI.get(piano or "", 3)
+
+
+def _elenco_disp(db, uid):
+    righe = db.execute(text(
+        "select id, nome, ultimo_uso from giochi_dispositivi where utente_id = :u order by ultimo_uso desc"
+    ), {"u": uid}).mappings().all()
+    return [{"id": str(r["id"]), "nome": r["nome"] or "Dispositivo", "ultimo_uso": r["ultimo_uso"].isoformat()} for r in righe]
+
+
+def _registra_disp(db, uid, piano, codice, nome, scollega=None):
+    """Collega il dispositivo all'account; oltre il limite risponde 409 con l'elenco,
+    cosi' l'app puo' chiedere quale scollegare."""
+    if not codice:
+        return
+    codice, nome = codice[:80], (nome or "Dispositivo")[:80]
+    if scollega:
+        db.execute(text("delete from giochi_dispositivi where utente_id = :u and id::text = :i"), {"u": uid, "i": scollega})
+    gia = db.execute(text("select 1 from giochi_dispositivi where utente_id = :u and codice = :c"), {"u": uid, "c": codice}).first()
+    if not gia:
+        n = db.execute(text("select count(*) from giochi_dispositivi where utente_id = :u"), {"u": uid}).scalar()
+        if n >= _limite_disp(piano):
+            db.execute(text("update giochi_utenti set tentativi_oltre = tentativi_oltre + 1 where id = :u"), {"u": uid})
+            db.commit()
+            raise HTTPException(409, {"codice": "troppi_dispositivi", "limite": _limite_disp(piano),
+                                      "messaggio": f"Questo account è già collegato a {n} dispositivi, il massimo del piano. "
+                                                   "Per entrare da qui scollegane uno.",
+                                      "dispositivi": _elenco_disp(db, uid)})
+    db.execute(text(
+        "insert into giochi_dispositivi (utente_id, codice, nome) values (:u, :c, :n)"
+        " on conflict (utente_id, codice) do update set nome = excluded.nome, ultimo_uso = now()"
+    ), {"u": uid, "c": codice, "n": nome})
+    db.commit()
 
 
 def _risposta(uid, email, nome, stato, piano=None, scadenza=None):
@@ -129,6 +188,7 @@ def registrati(body: RegistratiIn, avvisi: BackgroundTasks, db: Session = Depend
     db.commit()   # confermo prima di rispondere: la schermata rilegge subito lo stato
     _da_odoo(db, uid, email)
     row = db.execute(text("select piano, scadenza from giochi_utenti where id = :i"), {"i": uid}).mappings().first()
+    _registra_disp(db, uid, row["piano"], body.codice, body.nome_dispositivo)
     # avviso all'amministratore, dopo la risposta: la famiglia non aspetta la posta
     avvisi.add_task(posta.manda, settings.admin_email, "Leggo e Conto: nuova iscrizione di " + body.nome.strip(),
                     f"Una nuova famiglia si e' iscritta a Leggo e Conto (piano: {row['piano']}).\n\n"
@@ -151,6 +211,7 @@ def entra(body: EntraIn, db: Session = Depends(get_session)):
         row = db.execute(text(sel), {"e": email}).mappings().first()   # ha rinnovato: l'avviso di Odoo era andato perso
     stato = _stato_vero(row["stato"], row["scadenza"])
     if stato == "attivo":
+        _registra_disp(db, row["id"], row["piano"], body.codice, body.nome_dispositivo, body.scollega)
         # si contano solo gli ingressi veri, non i tentativi di chi aspetta
         db.execute(text("insert into giochi_accessi (utente_id, dispositivo) values (:u, :d)"),
                    {"u": row["id"], "d": (body.dispositivo or "")[:200] or None})
@@ -232,7 +293,23 @@ def io(uid: str = Depends(get_giochi_uid), db: Session = Depends(get_session)):
         row = db.execute(text(sel), {"i": uid}).mappings().first()
     return {"email": row["email"], "nome": row["nome"], "stato": _stato_vero(row["stato"], row["scadenza"]),
             "piano": row["piano"], "scadenza": row["scadenza"].isoformat() if row["scadenza"] else None,
-            "negozio": NEGOZIO_URL}
+            "negozio": NEGOZIO_URL, "max_bambini": BAMBINI.get(row["piano"]), "max_dispositivi": _limite_disp(row["piano"])}
+
+
+@router.get("/dispositivi")
+def miei_dispositivi(uid: str = Depends(get_giochi_uid), db: Session = Depends(get_session),
+                     x_dispositivo: Optional[str] = Header(None)):
+    questo = db.execute(text("select id::text from giochi_dispositivi where utente_id = :u and codice = :c"),
+                        {"u": uid, "c": (x_dispositivo or "")[:80]}).scalar()
+    return {"dispositivi": [dict(d, questo=d["id"] == questo) for d in _elenco_disp(db, uid)]}
+
+
+@router.delete("/dispositivi/{did}", status_code=204)
+def scollega(did: str, uid: str = Depends(get_giochi_uid), db: Session = Depends(get_session)):
+    """Toglie un dispositivo dall'account: alla prossima richiesta dovra' rientrare."""
+    db.execute(text("delete from giochi_dispositivi where utente_id = :u and id::text = :i"), {"u": uid, "i": did})
+    db.commit()
+    return None
 
 
 @router.get("/info")
@@ -365,6 +442,13 @@ def salva_dati(valore: Any = Body(...), uid: str = Depends(get_giochi_attivo), d
     raw = json.dumps(valore)
     if len(raw) > MAX_DATI:
         raise HTTPException(413, "Troppi dati: usa foto piu' piccole")
+    piano = db.execute(text("select piano from giochi_utenti where id = :i"), {"i": uid}).scalar()
+    massimo = BAMBINI.get(piano)
+    if massimo is not None:
+        quanti = lambda v: len((v or {}).get("profiles") or []) if isinstance(v, dict) else 0
+        prima = quanti(db.execute(text("select valore from giochi_dati where utente_id = :u"), {"u": uid}).scalar())
+        if quanti(valore) > massimo and quanti(valore) > prima:
+            raise HTTPException(403, f"Il piano permette fino a {massimo} bambini")
     db.execute(text(
         "insert into giochi_dati (utente_id, valore, aggiornato_il) values (:u, cast(:v as jsonb), now())"
         " on conflict (utente_id) do update set valore = excluded.valore, aggiornato_il = now()"
@@ -400,7 +484,8 @@ def stato_posta(_admin: str = Depends(get_admin)):
 def admin_utenti(db: Session = Depends(get_session), _admin: str = Depends(get_admin)):
     righe = db.execute(text(
         "select u.id, u.email, u.nome, u.telefono, u.messaggio, u.stato, u.creato_il, u.approvato_il,"
-        " u.ultimo_accesso, u.accessi, u.piano, u.scadenza, u.odoo_rif, d.valore"
+        " u.ultimo_accesso, u.accessi, u.piano, u.scadenza, u.odoo_rif, u.tentativi_oltre, d.valore,"
+        " (select count(*) from giochi_dispositivi x where x.utente_id = u.id) as n_disp"
         " from giochi_utenti u left join giochi_dati d on d.utente_id = u.id"
         " order by (u.stato = 'in_attesa') desc, u.creato_il desc"
     )).mappings().all()
@@ -412,6 +497,8 @@ def admin_utenti(db: Session = Depends(get_session), _admin: str = Depends(get_a
         "accessi": r["accessi"], "bambini": _riassunto_bambini(r["valore"]),
         "piano": r["piano"], "scadenza": iso(r["scadenza"]), "odoo": r["odoo_rif"],
         "scaduto": _stato_vero(r["stato"], r["scadenza"]) == "scaduto",
+        "dispositivi": r["n_disp"], "max_dispositivi": _limite_disp(r["piano"]), "tentativi_oltre": r["tentativi_oltre"],
+        "sospetto": r["tentativi_oltre"] >= SOSPETTO,
     } for r in righe]}
 
 
@@ -460,6 +547,20 @@ def cambia_piano(uid: str, body: PianoIn, db: Session = Depends(get_session), _a
         raise HTTPException(404, "Utente non trovato")
     db.commit()
     return {"ok": True, "scadenza": scad.isoformat() if scad else None}
+
+
+@router.get("/admin/utenti/{uid}/dispositivi")
+def admin_dispositivi(uid: str, db: Session = Depends(get_session), _admin: str = Depends(get_admin)):
+    return {"dispositivi": _elenco_disp(db, uid)}
+
+
+@router.post("/admin/utenti/{uid}/scollega-tutti")
+def admin_scollega(uid: str, db: Session = Depends(get_session), _admin: str = Depends(get_admin)):
+    """Scollega tutti i dispositivi e azzera i tentativi: la famiglia rientra con la password."""
+    db.execute(text("delete from giochi_dispositivi where utente_id = :u"), {"u": uid})
+    db.execute(text("update giochi_utenti set tentativi_oltre = 0 where id = :u"), {"u": uid})
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("/admin/odoo")

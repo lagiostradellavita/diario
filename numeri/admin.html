@@ -42,6 +42,7 @@ button,input{font:inherit;color:inherit}
 .u-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
 .u-name{font-family:var(--f-display);font-size:1.3rem;font-weight:800}
 .chip{display:inline-block;border-radius:999px;padding:1px 10px;font-weight:700;font-size:.9rem;color:#fff}
+.chip.sosp{background:#FFB020;color:#1E1838}
 .pl-sociale{background:#CDEBD3;color:#1E1838} .pl-prova{background:#FFE7A8;color:#1E1838} .pl-base{background:#CFE3FF;color:#1E1838} .pl-premium{background:#E7D6FF;color:#1E1838} .pl-scaduto{background:#FFD0D0;color:#1E1838}
 .chip + .chip{margin-left:6px} .piano{margin:6px 0 0} .check{margin:0;padding-left:4px;list-style:none} .check li{margin:6px 0} code.url{word-break:break-all;background:#F3F1EA;padding:2px 6px;border-radius:6px}
 .st-in_attesa{background:var(--wait);color:#1E1838} .st-attivo{background:var(--ok)} .st-bloccato{background:var(--stop)}
@@ -86,6 +87,7 @@ th{font-family:var(--f-display);color:var(--muted)}
 
   <div id="panel" hidden>
     <div class="card alert" id="alert" hidden></div>
+    <div class="card alert" id="sosp" hidden></div>
     <p class="empty" id="mailInfo" style="margin:12px 0 0"></p>
     <div class="tabs" id="tabs">
       <button data-t="in_attesa" aria-pressed="true">Da approvare<span class="n" id="n-in_attesa">0</span></button>
@@ -138,6 +140,8 @@ function load() {
   return api('/giochi/admin/utenti').then(function (j) {
     utenti = j.utenti; $('#login').hidden = true; $('#panel').hidden = false; $('#hBtns').hidden = false;
     var n = utenti.filter(function (u) { return u.stato === 'in_attesa'; }).length;
+    var ns = utenti.filter(function (u) { return u.sospetto; }).length;
+    $('#sosp').hidden = !ns; $('#sosp').innerHTML = ns ? '<span>⚠ ' + (ns === 1 ? '1 account prova' : ns + ' account provano') + ' a entrare da più dispositivi del permesso: forse la password è stata data ad altri. Li trovi in cima alla lista, segnati.</span>' : '';
     document.title = (n ? '(' + n + ') ' : '') + 'Leggo e Conto · Backoffice';
     $('#alert').hidden = !n;
     $('#alert').innerHTML = n ? '<span>' + (n === 1 ? 'C\u2019è 1 richiesta d\u2019accesso da approvare' : 'Ci sono ' + n + ' richieste d\u2019accesso da approvare') + '</span><button class="btn" id="goWait">Vedi</button>' : '';
@@ -159,10 +163,12 @@ function card(u) {
   if (u.stato !== 'bloccato') a.push('<button class="btn stop" data-a="blocca" data-id="' + u.id + '">' + (u.stato === 'in_attesa' ? 'Rifiuta' : 'Blocca') + '</button>');
   if (u.piano !== 'sociale') a.push('<button class="btn ok" data-a="sociale" data-id="' + u.id + '">Rendi sociale (gratis)</button>');
   if (u.piano === 'prova' || u.scaduto) a.push('<button class="btn" data-a="prova30" data-id="' + u.id + '">Prova +30 giorni</button>');
+  if (u.dispositivi) a.push('<button class="btn" data-a="scollega-tutti" data-id="' + u.id + '">Scollega tutti i dispositivi</button>');
   a.push('<button class="btn" data-a="pw" data-id="' + u.id + '">' + (pwArm[u.id] === 1 ? 'Tocca ancora: la password vecchia non vale più' : 'Password provvisoria') + '</button>');
   a.push('<button class="btn" data-a="del" data-id="' + u.id + '">' + (delArm[u.id] ? 'Tocca ancora: si cancellano anche i bambini' : 'Elimina') + '</button>');
-  return '<div class="card"><div class="u-top"><span class="u-name">' + esc(u.nome || u.email) + '</span><span class="chip st-' + u.stato + '">' + { in_attesa: 'da approvare', attivo: 'attivo', bloccato: 'bloccato' }[u.stato] + '</span><span class="chip pl-' + (u.scaduto ? 'scaduto' : u.piano) + '">' + (PIANO[u.piano] || u.piano) + (u.scaduto ? ' · scaduto' : '') + '</span></div>'
+  return '<div class="card"><div class="u-top"><span class="u-name">' + esc(u.nome || u.email) + '</span><span class="chip st-' + u.stato + '">' + { in_attesa: 'da approvare', attivo: 'attivo', bloccato: 'bloccato' }[u.stato] + '</span><span class="chip pl-' + (u.scaduto ? 'scaduto' : u.piano) + '">' + (PIANO[u.piano] || u.piano) + (u.scaduto ? ' · scaduto' : '') + '</span>' + (u.sospetto ? '<span class="chip sosp">⚠ possibile condivisione</span>' : '') + '</div>'
     + '<p class="piano">Piano <b>' + esc(PIANO[u.piano] || u.piano) + '</b> · ' + (u.scadenza ? (u.scaduto ? 'scaduto il ' : 'fino al ') + giorno(u.scadenza) : 'senza scadenza') + (u.odoo ? ' · abbonamento Odoo ' + esc(u.odoo) : '') + '</p>'
+    + '<p class="piano">Dispositivi collegati <b>' + u.dispositivi + ' di ' + u.max_dispositivi + '</b>' + (u.tentativi_oltre ? ' · tentativi da un dispositivo in più: <b>' + u.tentativi_oltre + '</b>' : '') + '</p>'
     + (u.messaggio ? '<p style="margin:6px 0 0">«' + esc(u.messaggio) + '»</p>' : '')
     + '<div class="meta"><span>Email: <b>' + esc(u.email) + '</b></span><span>Telefono: <b>' + esc(u.telefono || '–') + '</b></span><span>Richiesta: <b>' + when(u.iscritto) + '</b></span><span>Approvato: <b>' + when(u.approvato) + '</b></span><span>Ultimo accesso: <b>' + when(u.ultimo_accesso) + '</b></span><span>Accessi: <b>' + u.accessi + '</b></span></div>'
     + kids + '<div class="acts">' + a.join('') + '</div>'
@@ -179,7 +185,7 @@ function render() {
     }).catch(function (x) { $('#acc').innerHTML = '<p class="msg">' + esc(x.message) + '</p>'; });
     return;
   }
-  var l = utenti.filter(function (u) { return gruppo(u) === tab; });
+  var l = utenti.filter(function (u) { return gruppo(u) === tab; }).sort(function (x, y) { return (y.sospetto ? 1 : 0) - (x.sospetto ? 1 : 0); });
   $('#list').innerHTML = l.length ? l.map(card).join('') : '<p class="empty">' + { in_attesa: 'Nessuna richiesta da approvare.', attivo: 'Nessun accesso attivo.', scaduto: 'Nessun abbonamento scaduto.', bloccato: 'Nessun accesso bloccato.' }[tab] + '</p>';
 }
 // il collegamento con Odoo: cosa e' configurato su Render e gli avvisi arrivati
@@ -207,7 +213,7 @@ $('#list').addEventListener('click', function (e) {
     : a === 'pw' ? api('/giochi/admin/utenti/' + id + '/password-provvisoria', { method: 'POST' }).then(function (j) { pwArm[id] = j.password; })
     : a === 'sociale' ? api('/giochi/admin/utenti/' + id + '/piano', { method: 'POST', body: JSON.stringify({ piano: 'sociale' }) })
     : a === 'prova30' ? api('/giochi/admin/utenti/' + id + '/piano', { method: 'POST', body: JSON.stringify({ piano: 'prova', giorni: 30 }) })
-    : api('/giochi/admin/utenti/' + id + '/' + a, { method: 'POST' });
+    : api('/giochi/admin/utenti/' + id + '/' + a, { method: 'POST' });   // approva, blocca, scollega-tutti
   call.then(function () { delete delArm[id]; if (a !== 'pw') delete pwArm[id]; return load(); })
     .catch(function (x) { b.disabled = false; alert('Non riuscito: ' + x.message); });
 });
