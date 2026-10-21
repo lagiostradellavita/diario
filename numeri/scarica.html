@@ -17,13 +17,14 @@
    Stessi colori dell'app; i pulsanti verso il negozio compaiono solo se il server ne conosce l'indirizzo. */
 :root{--bg:#F5FAFF;--ink:#1A1A2E;--muted:#3D3A55;--card:#FFFFFF;--line:#1A1A2E;--o:#FF8A00;--p:#E91E63;--y:#FFC400;--t:#00A3C4;color-scheme:light}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Andika,"Trebuchet MS",system-ui,sans-serif;font-size:20px;line-height:1.45}
-main{max-width:760px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left)) 48px}
+html{font-size:clamp(18px,calc(13px + 1.1vw),26px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Andika,"Trebuchet MS",system-ui,sans-serif;font-size:1.12rem;line-height:1.45}
+main{max-width:44rem;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left)) 48px}
 h1,h2{font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;line-height:1.1;margin:0}
 h1{font-size:2.6rem;font-weight:800} h2{font-size:1.7rem;font-weight:800;margin:28px 0 10px}
 .l1{color:#E65F00}.l2{color:#7B2FF7}
 .hero{display:flex;align-items:center;gap:16px;margin-top:6px}
-.hero img{width:96px;height:96px;border-radius:22px;border:2.5px solid var(--line);flex:none}
+.hero img{width:5.3rem;height:5.3rem;border-radius:22px;border:2.5px solid var(--line);flex:none}
 .lead{font-size:1.25rem;font-weight:700;margin:14px 0 0}
 .btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:2.5px solid var(--line);border-radius:18px;background:var(--card);box-shadow:0 4px 0 var(--line);padding:14px 22px;font-family:"Baloo 2",sans-serif;font-weight:800;font-size:1.35rem;color:var(--ink);text-decoration:none;cursor:pointer}
@@ -42,7 +43,11 @@ ol{margin:0;padding-left:1.4em} ol li{margin:8px 0}
 .price{font-size:1.1rem}
 footer{margin-top:32px;font-size:.95rem;color:var(--muted)}
 [hidden]{display:none!important}
-@media (max-width:480px){h1{font-size:2.1rem}.hero img{width:76px;height:76px}.btn{width:100%}}
+@media (max-width:480px){h1{font-size:2.1rem}.hero img{width:4.2rem;height:4.2rem}.btn{width:100%}}
+.card h3{font-family:"Baloo 2",sans-serif;font-size:1.3rem;margin:4px 0 4px}
+.card h3 + ol{margin-bottom:10px}
+.dev button{display:inline-flex;align-items:center;gap:8px}
+.dev svg{width:1.4rem;height:1.4rem}
 </style>
 </head>
 <body>
@@ -69,29 +74,46 @@ footer{margin-top:32px;font-size:.95rem;color:var(--muted)}
   </div>
 
   <h2>Installa l’app</h2>
-  <p style="margin:0 0 10px">Si installa dal browser, senza store: compare l’icona sulla schermata Home come le altre app, e funziona anche senza internet.</p>
-  <div class="dev" id="dev"><button data-d="ios">iPhone e iPad</button><button data-d="and">Android</button><button data-d="pc">Computer</button></div>
-  <div class="card" data-p="ios">
+  <p style="margin:0 0 10px">Si installa dal browser, senza store, su smartphone, tablet e computer: compare l’icona come le altre app, e funziona anche senza internet. Scegli il tuo dispositivo:</p>
+  <div class="dev" id="dev"><button data-d="tel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg>Smartphone</button><button data-d="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg>Tablet</button><button data-d="pc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.6"/><path d="M8 20h8M12 16v4"/></svg>Computer</button></div>
+  <div class="card" data-p="tel">
+    <h3>iPhone</h3>
     <ol>
       <li>Apri questa pagina con <b style="display:inline;font-size:inherit">Safari</b>.</li>
-      <li>Tocca <b style="display:inline;font-size:inherit">Condividi</b> <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg> in basso (su iPad in alto).</li>
+      <li>Tocca <b style="display:inline;font-size:inherit">Condividi</b> <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg> in basso.</li>
       <li>Scorri e tocca <b style="display:inline;font-size:inherit">Aggiungi alla schermata Home</b>, poi <b style="display:inline;font-size:inherit">Aggiungi</b>.</li>
       <li>Apri <b style="display:inline;font-size:inherit">Leggo e Conto</b> dalla schermata Home.</li>
     </ol>
-  </div>
-  <div class="card" data-p="and" hidden>
+    <h3>Telefono Android</h3>
     <ol>
       <li>Apri questa pagina con <b style="display:inline;font-size:inherit">Chrome</b>.</li>
-      <li id="andBtnLi" hidden>Tocca qui: <button class="btn go" id="installa" type="button" style="padding:8px 16px;font-size:1.15rem">Installa l’app</button></li>
-      <li>Oppure tocca i <b style="display:inline;font-size:inherit">tre puntini</b> in alto a destra, poi <b style="display:inline;font-size:inherit">Installa app</b> (o «Aggiungi a schermata Home»).</li>
-      <li>Apri <b style="display:inline;font-size:inherit">Leggo e Conto</b> dalle app del telefono.</li>
+      <li>Tocca i <b style="display:inline;font-size:inherit">tre puntini</b> in alto a destra, poi <b style="display:inline;font-size:inherit">Installa app</b> (o «Aggiungi a schermata Home»).</li>
+      <li class="andBtnLi" hidden>Oppure tocca qui: <button class="btn go installa" type="button" style="padding:8px 16px;font-size:1.15rem">Installa l’app</button></li>
+      <li>Apri <b style="display:inline;font-size:inherit">Leggo e Conto</b> tra le app.</li>
+    </ol>
+  </div>
+  <div class="card" data-p="tab" hidden>
+    <h3>iPad</h3>
+    <ol>
+      <li>Apri questa pagina con <b style="display:inline;font-size:inherit">Safari</b>.</li>
+      <li>Tocca <b style="display:inline;font-size:inherit">Condividi</b> <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg> in alto a destra, accanto all’indirizzo.</li>
+      <li>Scorri e tocca <b style="display:inline;font-size:inherit">Aggiungi alla schermata Home</b>, poi <b style="display:inline;font-size:inherit">Aggiungi</b>.</li>
+      <li>Apri <b style="display:inline;font-size:inherit">Leggo e Conto</b> dalla schermata Home.</li>
+    </ol>
+    <h3>Tablet Android</h3>
+    <ol>
+      <li>Apri questa pagina con <b style="display:inline;font-size:inherit">Chrome</b>.</li>
+      <li>Tocca i <b style="display:inline;font-size:inherit">tre puntini</b> in alto a destra, poi <b style="display:inline;font-size:inherit">Installa app</b> (o «Aggiungi a schermata Home»).</li>
+      <li class="andBtnLi" hidden>Oppure tocca qui: <button class="btn go installa" type="button" style="padding:8px 16px;font-size:1.15rem">Installa l’app</button></li>
+      <li>Apri <b style="display:inline;font-size:inherit">Leggo e Conto</b> tra le app.</li>
     </ol>
   </div>
   <div class="card" data-p="pc" hidden>
     <ol>
       <li>Apri questa pagina con <b style="display:inline;font-size:inherit">Chrome</b> o <b style="display:inline;font-size:inherit">Edge</b>.</li>
-      <li>Nella barra dell’indirizzo tocca l’icona <b style="display:inline;font-size:inherit">Installa</b> (un piccolo schermo con la freccia).</li>
-      <li>L’app si apre in una finestra sua e resta nel menu Start.</li>
+      <li>Nella barra dell’indirizzo clicca l’icona <b style="display:inline;font-size:inherit">Installa</b> (un piccolo schermo con la freccia).</li>
+      <li class="andBtnLi" hidden>Oppure clicca qui: <button class="btn go installa" type="button" style="padding:8px 16px;font-size:1.15rem">Installa l’app</button></li>
+      <li>L’app si apre in una finestra sua e resta nel menu Start o nel Dock.</li>
     </ol>
   </div>
 
@@ -106,7 +128,8 @@ footer{margin-top:32px;font-size:.95rem;color:var(--muted)}
 'use strict';
 var API = 'https://diario-salute-api.onrender.com';
 // mostra per primo il dispositivo che si sta usando
-var ua = navigator.userAgent, d0 = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? 'ios' : /Android/.test(ua) ? 'and' : 'pc';
+var ua = navigator.userAgent, ipad = /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+var d0 = ipad || (/Android/.test(ua) && !/Mobile/.test(ua)) ? 'tab' : /iPhone|iPod|Android/.test(ua) ? 'tel' : 'pc';
 function mostra(d) {
   document.querySelectorAll('#dev [data-d]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.d === d)); });
   document.querySelectorAll('[data-p]').forEach(function (c) { c.hidden = c.dataset.p !== d; });
@@ -115,8 +138,8 @@ document.getElementById('dev').addEventListener('click', function (e) { var b = 
 mostra(d0);
 // Android e computer: il pulsante «Installa» vero, quando il browser lo concede
 var invito = null;
-addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); invito = e; document.getElementById('andBtnLi').hidden = false; });
-document.getElementById('installa').onclick = function () { if (invito) { invito.prompt(); invito = null; } };
+addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); invito = e; document.querySelectorAll('.andBtnLi').forEach(function (li) { li.hidden = false; }); });
+document.addEventListener('click', function (e) { if (e.target.closest('.installa') && invito) { invito.prompt(); invito = null; } });
 // l'indirizzo del negozio lo sa il server (GIOCHI_NEGOZIO_URL su Render)
 fetch(API + '/giochi/info').then(function (r) { return r.json(); }).then(function (j) {
   if (!j.negozio) return;
