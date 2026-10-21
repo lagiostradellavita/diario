@@ -240,13 +240,13 @@ button{cursor:pointer}
 .dg.c-u{color:var(--u)} .dg.c-da{color:var(--da)} .dg.c-h{color:var(--h)}
 .dg.pick{border-style:solid;border-color:var(--sun-deep);background:var(--sun-soft)}
 .dg.nope{animation:shake .4s}
-.abaco{width:min(100%,330px);height:auto;display:block;margin:0 auto}
+.abaco{width:min(100%,22rem);height:auto;display:block;margin:0 auto}
 .rod{stroke:var(--ink);stroke-width:4} .abase{fill:var(--ink)}
 .bead{stroke:var(--outline);stroke-width:2} .bd-u{fill:var(--u)} .bd-da{fill:var(--da)} .bd-h{fill:var(--h)}
 .rodlab{font-family:var(--f-display);font-weight:800;font-size:24px}
-.abtn{display:grid;grid-template-columns:repeat(var(--n),1fr);width:min(100%,330px);margin:0 auto;padding:0 4%}
+.abtn{display:grid;grid-template-columns:repeat(var(--n),1fr);width:min(100%,22rem);margin:0 auto;padding:0 4%}
 .abcol{display:flex;justify-content:center;gap:6px}
-.abb{width:2.778rem;height:2.778rem;padding:0;border-radius:50%;font-size:1.8rem}
+.abb{width:min(2.778rem,11vw);height:min(2.778rem,11vw);padding:0;border-radius:50%;font-size:1.8rem}
 .cuberows{display:flex;flex-direction:column;align-items:center;gap:4px}
 .crow{display:flex;gap:3px;padding:3px;border:3px dashed transparent;border-radius:8px}
 .crow .blk-u{width:1.056rem;height:1.056rem}
@@ -701,7 +701,7 @@ body{background-image:none!important;background-color:var(--bg)!important;min-he
 .disp .btn{font-size:1.05rem;padding:8px 12px;flex:none}
 .accdisp{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 /* lettura grande: chi sta imparando a leggere ha bisogno di lettere grandi, dappertutto */
-html{font-size:clamp(18px,calc(13px + 1.1vw),26px)}
+html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
 #qText{font-size:clamp(2.1rem,8.4vw,2.9rem);line-height:1.15}
 #qSub{font-size:1.75rem}
 .frase{font-size:clamp(2.35rem,9.4vw,3.1rem);line-height:1.5}
@@ -724,6 +724,20 @@ html{font-size:clamp(18px,calc(13px + 1.1vw),26px)}
 .vtel[aria-pressed="true"]{background:var(--sun);box-shadow:0 0 0 4px var(--sun-deep),0 4px 0 var(--edge)}
 .consiglio{margin-top:12px;background:#fff;border:2.5px solid var(--outline);border-radius:16px;padding:10px 14px;font-size:1.1rem}
 .consiglio summary{font-weight:700;cursor:pointer}
+.testo-sc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.testo-sc .btn{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:1rem;padding:8px 4px}
+.testo-sc .btn span{font-family:var(--f-display);font-weight:800;line-height:1}
+.testo-sc .btn[aria-pressed="true"]{background:var(--sun);box-shadow:0 0 0 4px var(--sun-deep),0 4px 0 var(--edge)}
+/* testo piu' grande: le righe strette vanno a capo invece di uscire */
+.gc-txt .gbest{display:flex;flex-wrap:wrap;gap:2px 6px}
+.gc-txt .gbest .ic{width:1rem;height:1rem}
+#cat .diffs{grid-template-columns:repeat(3,minmax(0,1fr))}
+#cat .dbtn{min-width:0;font-size:min(1.7rem,6vw);padding:12px 4px}
+#cat .dbtn small{font-size:min(1.15rem,4.4vw);overflow-wrap:anywhere}
+.menu{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mtile{min-width:0}
+.mtile b{font-size:min(2.1rem,8.6vw)}
+.mtile small{overflow-wrap:anywhere}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -952,6 +966,9 @@ html{font-size:clamp(18px,calc(13px + 1.1vw),26px)}
       <label class="sw"><input type="checkbox" id="optSound"> Suoni</label>
       <label for="optLen">Domande per partita
         <select id="optLen"><option value="5">5</option><option value="8">8</option><option value="10">10</option></select>
+      </label>
+      <div><b>Grandezza del testo</b><div class="testo-sc" id="testoBtns"><button class="btn" type="button" data-testo="base"><span style="font-size:1.2rem">Aa</span>Grande</button><button class="btn" type="button" data-testo="piu"><span style="font-size:1.5rem">Aa</span>Più grande</button><button class="btn" type="button" data-testo="max"><span style="font-size:1.85rem">Aa</span>Grandissimo</button></div></div>
+      <label style="display:none">
       </label>
     </div>
     </div>
@@ -1822,7 +1839,7 @@ const colorNums = t => t.replace(/\d+/g, m => numHTML(+m));
 /* ---------- salvataggio ---------- */
 const KEY = 'saltino-numeri-v1';
 const DEF = { name: '', xp: 0, stars: 0, stelline: 0, rounds: 0, bestStreak: 0, perfect: 0, badges: {}, days: {}, stats: {},
-  settings: { voice: true, sound: true, len: 10, voiceName: '', persona: 'cartoon', vel: 'lenta', read: { font: 'maiu', colori: true, spazi: false } }, last: { game: 'l20', diff: 0, types: {}, cat: 'mat', gameBy: {} } };
+  settings: { voice: true, sound: true, len: 10, voiceName: '', persona: 'cartoon', vel: 'normale', testo: 'piu', read: { font: 'maiu', colori: true, spazi: false } }, last: { game: 'l20', diff: 0, types: {}, cat: 'mat', gameBy: {} } };
 const clone = o => JSON.parse(JSON.stringify(o));
 function load() {
   try {
@@ -1834,7 +1851,10 @@ function load() {
 // ogni bambino ha il suo profilo; i dati restano solo su questo dispositivo
 const STORE_KEY = 'saltino-giocatori-v1';
 const uid = () => Math.random().toString(36).slice(2, 10);
-const normalize = s => s ? { ...clone(DEF), ...s, settings: { ...DEF.settings, ...(s.settings || {}) }, last: { ...clone(DEF.last), ...(s.last || {}) } } : clone(DEF);
+const normalize = s => s ? nuoveImpostazioni( { ...clone(DEF), ...s, settings: { ...DEF.settings, ...(s.settings || {}) }, last: { ...clone(DEF.last), ...(s.last || {}) } }) : clone(DEF);
+// voce piu' svelta e testo piu' grande per chi non li ha mai scelti a mano
+function nuoveImpostazioni(d) { if (!d.settings.velScelta) d.settings.vel = 'normale'; if (!TESTO_KEYS.includes(d.settings.testo)) d.settings.testo = 'piu'; return d; }
+const TESTO_KEYS = ['base', 'piu', 'max'];
 const newInfo = () => ({ nome: '', cognome: '', eta: '', classe: '', genere: '', foto: '' });
 function loadStore() {
   try { const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s && s.profiles && s.profiles.length) return s; } catch (e) {}
@@ -2042,10 +2062,12 @@ function voiceFor(P) {
   return vs.slice().sort((a, b) => score(b) - score(a))[0];
 }
 // la velocita' la scelgono i grandi; di base lenta, per chi sta imparando a leggere
-const VEL = { lenta: .8, normale: .92, veloce: 1.04 };
+const VEL = { lenta: .82, normale: .98, veloce: 1.1 };
+// grandezza del testo scelta dai grandi: la base cresce con lo schermo, questo la moltiplica
+const TESTO = { base: 1, piu: 1.12, max: 1.25 };
 function utter(t, piano) {
   const P = persona(), u = new SpeechSynthesisUtterance(t); u.lang = 'it-IT'; const v = voiceFor(P); if (v) u.voice = v;
-  u.pitch = Math.min(2, P.pitch * 1.18 + .12); u.rate = Math.max(.45, P.rate * (VEL[save.settings.vel] || VEL.lenta) * (piano ? .74 : 1)); return u;
+  u.pitch = Math.min(2, P.pitch * 1.18 + .12); u.rate = Math.max(.45, P.rate * (VEL[save.settings.vel] || VEL.normale) * (piano ? .74 : 1)); return u;
 }
 // una sillaba o una parola da sola si dice piano; nelle frasi la parte fra «» si stacca e si dice piano.
 // Il punto in fondo evita che il telefono tagli l'ultima sillaba.
@@ -2082,7 +2104,7 @@ function parlaP(t, mod) {
   return new Promise(res => {
     if (!('speechSynthesis' in window)) return res();
     let fatto = false; const fine = () => { if (!fatto) { fatto = true; res(); } };
-    setTimeout(fine, 2500 + t.length * 150 / (VEL[save.settings.vel] || VEL.lenta));
+    setTimeout(fine, 2500 + t.length * 150 / (VEL[save.settings.vel] || VEL.normale));
     try {
       const ps = pezzi(t); if (!ps.length) return fine();
       ps.forEach((x, i) => { const u = utter(x.t, x.piano); if (mod) mod(u); if (i === ps.length - 1) { u.onend = () => voceFinita(4000).then(fine); u.onerror = fine; } speechSynthesis.speak(u); });
@@ -2338,7 +2360,7 @@ function nextQ() {
   $('#nextRow').hidden = true;
   const st = $('#stage'), ct = $('#controls');
   st.innerHTML = ''; ct.innerHTML = '';
-  q.mount(st, ct);
+  q.mount(st, ct); requestAnimationFrame(adatta);
   renderDots(); hud();
   if (save.settings.voice) say(run.i === 0 && !run.hello ? (run.hello = true, `${persona().hello(HEROES[run.game].name)} ${q.say}`) : q.say);
 }
@@ -3538,8 +3560,27 @@ const motivoURL = m => `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns
 const mondiHTML = () => Object.entries(MONDI).map(([k, M]) => `<button class="mondo-t" data-mondo="${k}" aria-pressed="${k === mondo()}" style="--mf:${M.fondo}">
   <span class="m-sc"><svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${SCENE[k]}</svg></span>
   <span class="m-ch">${['lettere', 'l20', 'sillabe'].map(g => heroIn(k, g)).join('')}</span><b>${M.nome}</b></button>`).join('');
+// con il testo grande una parola lunga (COCCODRILLO, L'ASTRONAUTA) puo' non entrare nello schermo:
+// si rimpicciolisce solo quella riga (o quella parola), quanto basta. Gira a ogni cambiamento della domanda.
+function adatta() {
+  const g = $('#game'); if (!g || g.hidden) return;
+  for (const box of [$('#stage'), $('#controls'), $('.prompt')]) {
+    if (!box) continue;
+    const lim = box.getBoundingClientRect();
+    for (let giri = 0; giri < 30; giri++) {
+      const fuori = [...box.querySelectorAll('*')].find(e => !e.closest('.linewrap,svg,canvas') && e.getClientRects().length && (e.getBoundingClientRect().right > lim.right + 1 || e.getBoundingClientRect().left < lim.left - 1));
+      if (!fuori) break;
+      const blocco = fuori.closest('.frase,.w,.cut,.slotsw,.opt,.tiles,.train,.eq,.sent,p,.dom') || fuori.parentElement;
+      if (!blocco || !box.contains(blocco)) break;
+      blocco.style.zoom = ((+blocco.style.zoom || 1) * .93).toFixed(3);   // zoom rimpicciolisce anche le sillabe colorate dentro
+    }
+  }
+}
+new MutationObserver(() => requestAnimationFrame(adatta)).observe(document.getElementById('game'), { childList: true, subtree: true });
+addEventListener('resize', () => requestAnimationFrame(adatta));
+function applicaTesto() { document.documentElement.style.setProperty('--testo', String(TESTO[save.settings.testo] || TESTO.piu)); }
 function renderHome() {
-  applicaMondo();
+  applicaMondo(); applicaTesto();
   if (prof.info.genere) document.documentElement.dataset.gen = prof.info.genere; else delete document.documentElement.dataset.gen;
   const li = lvlInfo(save.xp), g = save.last.game;
   $('#hiName').textContent = prof.info.nome || gx('campione', 'campionessa');
@@ -3555,7 +3596,7 @@ function renderHome() {
   $('#goalTxt').textContent = today >= 3 ? 'Obiettivo di oggi raggiunto!' : `Obiettivo di oggi: 3 partite (${today} su 3)`;
   const pc = save.settings.persona || 'cartoon';
   $('#voiceChips').innerHTML = persGrid(pc); renderVociTel();
-  $$('#velBtns [data-vel]').forEach(b => b.setAttribute('aria-pressed', String((save.settings.vel || 'lenta') === b.dataset.vel)));
+  $$('#velBtns [data-vel]').forEach(b => b.setAttribute('aria-pressed', String((save.settings.vel || 'normale') === b.dataset.vel)));
   $('#welcome').textContent = welcomeMsg();
   window.gameCard = ([k, G]) => `<button class="gcard gc-row hero-${k}" data-g="${k}"><span class="gc-ic">${heroSvg(k)}</span><span class="gc-txt"><b>${G.name}</b><small>${G.desc}</small><span class="gbest" aria-label="Stelle migliori per difficoltà">${[0, 1, 2].map(d => `<span title="${DIFF[d]}">${miniStars(statOf(k, d).best)}</span>`).join('')}</span></span><span class="gc-go" aria-hidden="true">›</span></button>`;
   const minis = c => `<span class="mini">${Object.keys(GAMES).filter(k => GAMES[k].cat === c).map(heroSvg).join('')}</span>`;
@@ -3618,7 +3659,7 @@ function renderVociTel() {
 }
 $('#vociTel').addEventListener('click', e => { const b = e.target.closest('[data-vt]'); if (!b) return; save.settings.voiceName = b.dataset.vt; persist(); renderVociTel(); say('Ciao! Sono questa voce. Giochiamo insieme?'); });
 try { speechSynthesis.addEventListener('voiceschanged', () => { if (!$('#voce').hidden) renderVociTel(); }); } catch (e) {}
-$('#velBtns').addEventListener('click', e => { const b = e.target.closest('[data-vel]'); if (!b) return; save.settings.vel = b.dataset.vel; persist(); $$('#velBtns [data-vel]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); say(`Ciao! Parlo così. La sillaba: «pu».`); });
+$('#velBtns').addEventListener('click', e => { const b = e.target.closest('[data-vel]'); if (!b) return; save.settings.vel = b.dataset.vel; save.settings.velScelta = true; persist(); $$('#velBtns [data-vel]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); say(`Ciao! Parlo così. La sillaba: «pu».`); });
 $('#voiceChips').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; save.settings.persona = b.dataset.p; persist(); renderHome(); say(persona().hello('Saltino')); });
 /* ---------- chi gioca e profilo ---------- */
 function renderWho() {
@@ -3752,6 +3793,7 @@ document.addEventListener('click', e => {
   b.disabled = true; api('/giochi/dispositivi/' + b.dataset.via, { method: 'DELETE' }).then(dispositivi).catch(() => { b.disabled = false; });
 });
 function renderGrandi() {
+  $$('#testoBtns [data-testo]').forEach(b => b.setAttribute('aria-pressed', String((save.settings.testo || 'piu') === b.dataset.testo)));
   $('#mondiGrandi').innerHTML = mondiHTML();
   $('#grVoce').innerHTML = `<span class="vb-ic">${persSvg(save.settings.persona in PERSONAS ? save.settings.persona : 'cartoon')}</span><span><b>${persona().name}</b><small>Tocca per cambiare voce e velocità</small></span>`; $('#mondoTit').textContent = `Ambientazione di ${prof.info.nome || 'questo giocatore'}`;
   if (API_BASE && token) {
@@ -3791,6 +3833,7 @@ $('#optVoice').addEventListener('change', e => { save.settings.voice = e.target.
 $('#optSound').addEventListener('change', e => { save.settings.sound = e.target.checked; persist(); });
 $('#optLen').addEventListener('change', e => { save.settings.len = +e.target.value; persist(); });
 let resetArm = false;
+$('#testoBtns').addEventListener('click', e => { const b = e.target.closest('[data-testo]'); if (!b) return; SND.tick(); save.settings.testo = b.dataset.testo; persist(); applicaTesto(); renderGrandi(); });
 function scegliMondo(k) { save.settings.mondo = k; persist(); applicaMondo(); }
 $('#mondiGrandi').addEventListener('click', e => { const b = e.target.closest('[data-mondo]'); if (!b) return; SND.tick(); scegliMondo(b.dataset.mondo); renderGrandi(); say(`Ecco: si gioca ${MONDI[b.dataset.mondo].voce}!`); });
 $('#mondiGrid').addEventListener('click', e => { const b = e.target.closest('[data-mondo]'); if (!b) return; SND.tick(); scegliMondo(b.dataset.mondo); renderHome(); guidaDetta.home = true; show('home'); if (save.settings.voice) say(`Evviva, si gioca ${MONDI[b.dataset.mondo].voce}! ${guidaTesto('home')}`); });
