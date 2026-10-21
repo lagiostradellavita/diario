@@ -1094,7 +1094,7 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
 const API_BASE = 'https://diario-salute-api.onrender.com';
 // la versione la scrive la pubblicazione (build_repo.sh) con data e ora; qui si confronta con
 // quella sul sito, cosi' la famiglia vede se ha l'ultima o se deve aggiornare
-const APP_VERSIONE = '2026-10-21 14:54';
+const APP_VERSIONE = '2026-10-21 14:58';
 /* ---------- utilità ---------- */
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sleep = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
@@ -3718,7 +3718,19 @@ async function controllaVersione() {
   } catch (e) {}
 }
 scriviVersione(); controllaVersione();
-document.addEventListener('visibilitychange', () => { if (!document.hidden) controllaVersione(); });
+// sull'iPhone l'app sulla schermata Home non si ricarica quando si riapre: l'informativa
+// si ricontrolla anche quando torna in primo piano, ma mai in mezzo a un gioco
+let privVista = Date.now();
+async function ricontrollaPrivacy() {
+  const qui = ($$('#app > section').find(x => !x.hidden) || {}).id;
+  if (!API_BASE || !token || Date.now() - privVista < 6e5 || ['privacy', 'game', 'result', 'accesso', 'attesa'].includes(qui)) return;
+  privVista = Date.now();
+  try {
+    const me = await api('/giochi/io'); ME = me;
+    if (me.stato === 'attivo' && me.privacy_corrente && me.privacy !== me.privacy_corrente) { await chiediPrivacy(me.privacy_corrente); show(qui); }
+  } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { controllaVersione(); ricontrollaPrivacy(); } });
 document.addEventListener('click', e => { if (e.target.closest('[data-aggiorna]')) { syncNow(); setTimeout(() => location.reload(), 400); } });
 function applicaTesto() { document.documentElement.style.setProperty('--testo', String(TESTO[save.settings.testo] || TESTO.piu)); }
 function renderHome() {
