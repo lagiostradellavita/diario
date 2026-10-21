@@ -1094,7 +1094,7 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
 const API_BASE = 'https://diario-salute-api.onrender.com';
 // la versione la scrive la pubblicazione (build_repo.sh) con data e ora; qui si confronta con
 // quella sul sito, cosi' la famiglia vede se ha l'ultima o se deve aggiornare
-const APP_VERSIONE = '2026-10-21 14:58';
+const APP_VERSIONE = '2026-10-21 15:04';
 /* ---------- utilità ---------- */
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sleep = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
@@ -2154,7 +2154,7 @@ const PERSONAS = {
   nonno: { name: 'Nonno Pino', tag: 'voce calma e gentile', pitch: .75, rate: .82, pref: 'm', praise: ['Brav{o}, tesoro!', 'Proprio così!', 'Che bello, hai indovinato!'], retry: ['Su, riprova piano piano.', 'Quasi, tesoro. Riprova.'], hello: () => `Ciao ${prof.info.nome || 'tesoro'}, giochiamo un po' insieme?` },
   robot: { name: 'Robottino', tag: 'voce da robot', artificiale: true, pitch: .3, rate: .9, pref: 'm', praise: ['Risposta esatta. Bip bip!', 'Calcolo perfetto!', 'Bravura al massimo!'], retry: ['Errore. Riprovare.', 'Bip. Nuovo tentativo richiesto.'], hello: () => 'Bip bop. Robot acceso. Iniziamo.' },
   eroe: { name: 'Super Leo', tag: 'voce da supereroe', pitch: 1.15, rate: 1.1, pref: 'm', praise: ['Missione compiuta!', 'Super potere!', 'Colpo da campione!'], retry: ['Un eroe non si arrende! Riprova!', 'Quasi! Ritenta, eroe!'], hello: () => 'Pronto per la missione? Si parte!' },
-  fata: { name: 'Fata Lilla', tag: 'voce da fatina', pitch: 1.5, rate: .9, pref: 'f', praise: ['Che magia!', 'Scintille di bravura!', 'Incantevole!'], retry: ['Un po\' di polvere magica e riprova.', 'Quasi! Riprova, piccol{o} mag{o}.'], hello: () => `Ciao${prof.info.nome ? ' ' + prof.info.nome : ''}! Sono la fatina dei giochi.` },
+  fata: { name: 'Fata Lilla', tag: 'voce da fatina', tono: 1.55, pitch: 1.5, rate: .9, pref: 'f', praise: ['Che magia!', 'Scintille di bravura!', 'Incantevole!'], retry: ['Un po\' di polvere magica e riprova.', 'Quasi! Riprova, piccol{o} mag{o}.'], hello: () => `Ciao${prof.info.nome ? ' ' + prof.info.nome : ''}! Sono la fatina dei giochi.` },
 };
 const persona = () => PERSONAS[save.settings.persona] || PERSONAS.cartoon;
 // maschile o femminile dal nome: iPhone e Mac (Luca, Alice), Windows (Cosimo, Elsa, Diego Natural),
@@ -2178,9 +2178,9 @@ const TESTO = { base: 1, piu: 1.12, max: 1.25 };
 function utter(t, piano) {
   const P = persona(), u = new SpeechSynthesisUtterance(t); u.lang = 'it-IT'; const v = voiceFor(P); if (v) u.voice = v;
   // una voce lontana dal suo tono naturale suona da macchina: i personaggi si spostano poco
-  // (Bolla 1,36, Maestra 1,06, Nonno Pino 0,90). Solo il robot resta artificiale apposta; se il
+  // (Bolla 1,36, Maestra 1,06, Nonno Pino 0,90); Fata Lilla ha il suo tono, acuto (1,55). Solo il robot resta artificiale apposta; se il
   // telefono ha solo voci da donna, il personaggio maschile la abbassa davvero
-  u.pitch = P.artificiale ? P.pitch : P.pref === 'm' && sesso(v) !== 'm' ? P.pitch * .67 : 1 + (P.pitch - 1) * .4 + (P.pref === 'm' ? 0 : .06); u.rate = Math.max(.45, P.rate * (VEL[save.settings.vel] || VEL.normale) * (piano ? .74 : 1)); return u;
+  u.pitch = P.tono ? P.tono : P.artificiale ? P.pitch : P.pref === 'm' && sesso(v) !== 'm' ? P.pitch * .67 : 1 + (P.pitch - 1) * .4 + (P.pref === 'm' ? 0 : .06); u.rate = Math.max(.45, P.rate * (VEL[save.settings.vel] || VEL.normale) * (piano ? .74 : 1)); return u;
 }
 // una sillaba o una parola da sola si dice piano; nelle frasi la parte fra «» si stacca e si dice piano.
 // Il punto in fondo evita che il telefono tagli l'ultima sillaba.
