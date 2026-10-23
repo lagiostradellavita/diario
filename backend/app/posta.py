@@ -5,13 +5,10 @@ l'utente configura con quattro variabili d'ambiente. Su Render si scrivono
 nella scheda Environment, e da qui non si vedono mai - il codice le legge, non
 le stampa e non le salva da nessuna parte.
 
-    SMTP_HOST       smtp.gmail.com
-    SMTP_PORT       587
-    SMTP_USER       asslagiostradellavita@gmail.com
-    SMTP_PASSWORD   la password per le app generata da Google, non quella
-                    dell'account: sedici lettere, si crea da
-                    myaccount.google.com/apppasswords e richiede la verifica
-                    in due passaggi attiva
+    SMTP_HOST       smtps.aruba.it
+    SMTP_PORT       465
+    SMTP_USER       noreply@lagiostradellavita.it
+    SMTP_PASSWORD   la password di quella casella
     SMTP_MITTENTE   facoltativo, il nome che compare come mittente
 
 ATTENZIONE: SUL PIANO GRATUITO DI RENDER L'SMTP NON PARTE. Da settembre 2025
@@ -22,7 +19,7 @@ timeout e nessuna email esce. Le strade sono due:
   e quindi passa anche dal piano gratuito:
     BREVO_API_KEY      la chiave API, da app.brevo.com -> SMTP e API -> Chiavi API
     POSTA_MITTENTE     l'indirizzo da cui partono, verificato su Brevo
-                       (per esempio privacy@lagiostradellavita.it)
+                       (noreply@lagiostradellavita.it)
     SMTP_MITTENTE      facoltativo, il nome che compare come mittente
 - un piano a pagamento di Render, e allora l'SMTP qui sotto funziona, anche
   quello di Aruba (smtps.aruba.it, porta 465, utente = l'indirizzo intero).
@@ -68,6 +65,10 @@ def _manda_brevo(destinatario: str, oggetto: str, testo: str) -> bool:
     return False
 
 
+# le email partono da noreply@: chi risponde non lo legge nessuno, e lo deve sapere
+PIEDE = "\n--\nQuesta e' un'email automatica: per favore non rispondere.\n"
+
+
 def manda(destinatario: str, oggetto: str, testo: str) -> bool:
     """Manda una email. Torna True se e' partita, False se non si poteva.
 
@@ -77,6 +78,7 @@ def manda(destinatario: str, oggetto: str, testo: str) -> bool:
     """
     if not configurata():
         return False
+    testo = testo.rstrip("\n") + "\n" + PIEDE
     if _brevo():
         return _manda_brevo(destinatario, oggetto, testo)
     host = os.getenv("SMTP_HOST")
