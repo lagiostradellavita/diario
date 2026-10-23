@@ -1094,7 +1094,7 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
 const API_BASE = 'https://diario-salute-api.onrender.com';
 // la versione la scrive la pubblicazione (build_repo.sh) con data e ora; qui si confronta con
 // quella sul sito, cosi' la famiglia vede se ha l'ultima o se deve aggiornare
-const APP_VERSIONE = '2026-10-23 08:54';
+const APP_VERSIONE = '2026-10-23 09:00';
 /* ---------- utilità ---------- */
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sleep = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
@@ -1996,7 +1996,7 @@ function setToken(t) { token = t; try { t ? localStorage.setItem(TOK_KEY, t) : l
 function logout() {
   setToken(null);
   // sul tablet non restano i bambini della famiglia che esce
-  try { localStorage.removeItem(STORE_KEY); localStorage.removeItem(KEY); } catch (e) {}
+  try { localStorage.removeItem(STORE_KEY); localStorage.removeItem(KEY); localStorage.removeItem(RECENTI_KEY); } catch (e) {} RECENTI = {};
   setStore(loadStore()); toLogin();
 }
 function toLogin() { show('accesso'); const t = $('#accesso [data-tab="in"]'); if (t) t.click(); }
@@ -2447,12 +2447,24 @@ function startRound() {
   const g = save.last.game, d = save.last.diff;
   const all = GAMES[g].types.map(t => t[0]);
   const types = (save.last.types[g] || all).filter(t => all.includes(t));
-  run = { stel: 0, comete: 0, game: g, diff: d, types: types.length ? types : all, len: +save.settings.len || 10, i: 0, res: [], pts: 0, streak: 0, recent: [], bag: [], q: null, attempts: 0, locked: false, keys: null };
+  run = { stel: 0, comete: 0, game: g, diff: d, types: types.length ? types : all, len: +save.settings.len || 10, i: 0, res: [], pts: 0, streak: 0, recent: recentiDi(g, d), bag: [], q: null, attempts: 0, locked: false, keys: null };
   $('#pHero').innerHTML = heroSvg(g); document.documentElement.dataset.hero = g; save.last.cat = GAMES[g].cat;
   show('game'); nextQ();
 }
 function pickType() { if (!run.bag.length) run.bag = shuffle(run.types.concat(run.types)); return run.bag.pop(); }
-function remember(v) { run.recent.push(v); if (run.recent.length > 5) run.recent.shift(); }
+// le domande gia' fatte: si ricordano le ultime 30 scelte (parole, numeri, forme, frasi) per
+// gioco, difficolta' e bambino, anche fra una partita e l'altra e dopo aver chiuso l'app. Con 5
+// e azzerate a ogni partita, una domanda su quattro tornava nella stessa partita da 10
+const RICORDO = 30, RECENTI_KEY = 'leggoconto-recenti';
+let RECENTI = {}; try { RECENTI = JSON.parse(localStorage.getItem(RECENTI_KEY) || '{}') || {}; } catch (e) {}
+function recentiDi(g, d) { const k = `${prof ? prof.id : ''}:${g}:${d}`; return (RECENTI[k] = Array.isArray(RECENTI[k]) ? RECENTI[k] : []); }
+// gia' uscita di recente? Ai primi tentativi conta tutto il ricordo, poi sempre meno: con poche
+// scelte (quattro forme) si finisce sulla meno recente invece che su una a caso
+function giaVisto(i, v) { const n = Math.max(1, Math.round(RICORDO * (1 - i / 20))); return run.recent.slice(-n).includes(v); }
+function remember(v) {
+  run.recent.push(v); while (run.recent.length > RICORDO) run.recent.shift();
+  try { localStorage.setItem(RECENTI_KEY, JSON.stringify(RECENTI)); } catch (e) {}
+}
 function Q(o) { o.say = o.say || o.text; o.html = o.html || colorNums(o.text); o.subHtml = o.sub ? colorNums(o.sub) : ''; return o; }
 function makeQ(g, d, type) {
   if (g === 'forme') return ({ ftrova: qFTrova, fnome: qFNome, flati: qFLati, fconta: qFConta, posizione: qPosizione })[type](d);
@@ -2610,7 +2622,7 @@ const isLab = (cfg, v) => v === 0 || v === cfg.max || v % cfg.lab === 0;
 function targetFor(cfg) {
   let v, i = 0;
   do { v = cfg.step === 10 ? 10 * rnd(1, 9) : rnd(1, cfg.hi === cfg.max ? cfg.max - 1 : cfg.hi); i++; }
-  while ((isLab(cfg, v) || run.recent.includes(v)) && i < 60);
+  while ((isLab(cfg, v) || giaVisto(i, v)) && i < 60);
   remember(v); return v;
 }
 function distract(v, max, n, pool) {
@@ -2805,7 +2817,7 @@ function qQuanti(cfg, g) {
 /* ---------- scrivi i numeri ---------- */
 function cifreN(d, two) {
   let n, i = 0;
-  do { n = d === 0 ? rnd(two ? 10 : 1, 20) : d === 1 ? rnd(11, 99) : rnd(101, 999); i++; } while (run.recent.includes(n) && i < 30);
+  do { n = d === 0 ? rnd(two ? 10 : 1, 20) : d === 1 ? rnd(11, 99) : rnd(101, 999); i++; } while (giaVisto(i, n) && i < 30);
   remember(n); return n;
 }
 const colsFor = d => d === 2 ? ['h', 'da', 'u'] : ['da', 'u'];
@@ -3021,7 +3033,7 @@ function calcPair(d, op) {
       else { a = rnd(20, 99); b = Math.random() < .5 ? rnd(2, 9) : rnd(11, a - 5); }
     }
     i++;
-  } while (run.recent.includes(a * 1000 + b * 10 + (op > 0 ? 1 : 0)) && i < 30);
+  } while (giaVisto(i, a * 1000 + b * 10 + (op > 0 ? 1 : 0)) && i < 30);
   remember(a * 1000 + b * 10 + (op > 0 ? 1 : 0));
   return { a, b, op, res: a + op * b, sg: op > 0 ? '+' : '−', word: op > 0 ? 'più' : 'meno' };
 }
@@ -3194,7 +3206,7 @@ segna(WORDS, 'bambole', /^(rosa|casa|corona|principessa|castello|fata|stella)$/,
 segna(WORDS, 'kpop', /^(stella|telefono|luna)$/, x => x.w);
 function pickWord(d, not) {
   const pool = WORDS.filter(x => x.l === d && x.w !== not); let w, i = 0;
-  do { w = dalMondo(pool, x => x.w); i++; } while (run.recent.includes(w.w) && i < 40);
+  do { w = dalMondo(pool, x => x.w); i++; } while (giaVisto(i, w.w) && i < 40);
   remember(w.w); return w;
 }
 const clap = w => say(w.s.join(', '));
@@ -3277,7 +3289,7 @@ function qAscolta(d) {
 }
 function qFrase(d) {
   const pool = FRASI.filter(f => f.l === d); let F, i = 0;
-  do { F = dalMondo(pool, x => x.t); i++; } while (run.recent.includes(F.t) && i < 30);
+  do { F = dalMondo(pool, x => x.t); i++; } while (giaVisto(i, F.t) && i < 30);
   remember(F.t);
   const words = F.t.split(' ');
   let op;
@@ -3335,7 +3347,7 @@ function qVocale(d) {
 }
 const SIMILI = { b: ['d', 'p', 'q'], d: ['b', 'p', 'q'], p: ['b', 'q', 'd'], q: ['p', 'b', 'd'], m: ['n', 'u', 'w'], n: ['m', 'u', 'h'], u: ['n', 'v', 'o'] };
 function qMaiusc(d) {
-  let L, i = 0; do { L = pick(d === 0 ? ['a', 'e', 'i', 'o', 'u', 'm', 'l', 's', 'p', 't'] : ALFA); i++; } while (run.recent.includes(L) && i < 20); remember(L);
+  let L, i = 0; do { L = pick(d === 0 ? ['a', 'e', 'i', 'o', 'u', 'm', 'l', 's', 'p', 't'] : ALFA); i++; } while (giaVisto(i, L) && i < 20); remember(L);
   const toLow = Math.random() < .6, near = (SIMILI[L] || []).concat(shuffle(ALFA.filter(c => c !== L)));
   const others = [...new Set(near)].filter(c => c !== L).slice(0, nOpt(d) - 1);
   const cls = d === 2 && toLow ? 'f-cors' : 'f-mini';
@@ -3452,7 +3464,7 @@ segna(FRASI, 'spazio', /lu-na|so-le/, x => x.t);
 const lineHTML = t => `<p class="frase rd ${aidCls()}">${wordsHTML(t)}</p>`;
 function qTreno(d, extra) {
   const pool = TRENO.filter(f => f.l === d); let F, i = 0;
-  do { F = dalMondo(pool, x => x.t); i++; } while (run.recent.includes(F.t) && i < 30); remember(F.t);
+  do { F = dalMondo(pool, x => x.t); i++; } while (giaVisto(i, F.t) && i < 30); remember(F.t);
   const words = F.t.split(' ');
   let tiles = words.map((w, k) => ({ w, k }));
   if (extra) { const o = pick(TRENO.filter(x => x.t !== F.t)).t.split(' ').filter(w => !words.includes(w) && !/[.]$/.test(w)); if (o.length) tiles.push({ w: pick(o), k: -1 }); }
@@ -3477,7 +3489,7 @@ function qTreno(d, extra) {
     reveal() { placed = words.map((w, k) => tiles.find(t => t.k === k)); paint(); say(F.t); } });
 }
 function qSenso(d) {
-  let S, i = 0; do { S = dalMondo(SENSO, x => x[0]); i++; } while (run.recent.includes(S[0]) && i < 20); remember(S[0]);
+  let S, i = 0; do { S = dalMondo(SENSO, x => x[0]); i++; } while (giaVisto(i, S[0]) && i < 20); remember(S[0]);
   const opts = [S[0], S[1]].concat(d > 0 ? [pick(SENSO.filter(x => x !== S))[1]] : []);
   let op;
   return Q({ text: 'Quale frase ha senso?', say: 'Leggi le frasi e tocca quella che ha senso.',
@@ -3485,7 +3497,7 @@ function qSenso(d) {
     reveal() { op.reveal(); say(S[0]); } });
 }
 function qPezzi(d) {
-  let P, i = 0; do { P = pick(PEZZI); i++; } while (run.recent.includes(P[0]) && i < 20); remember(P[0]);
+  let P, i = 0; do { P = pick(PEZZI); i++; } while (giaVisto(i, P[0]) && i < 20); remember(P[0]);
   const others = shuffle(PEZZI.filter(x => x[0] !== P[0])).slice(0, d === 0 ? 2 : 3).map(x => x[1]);
   let op, st0;
   return Q({ text: 'Come finisce la frase?', say: `Come finisce la frase? ${P[0]}...`,
@@ -3493,7 +3505,7 @@ function qPezzi(d) {
     reveal() { op.reveal(); $('[data-l]', st0).innerHTML = lineHTML(P[0] + ' ' + P[1]); say(P[0] + ' ' + P[1]); } });
 }
 function qCompleta(d) {
-  let C, i = 0; do { C = dalMondo(COMPLETA, x => x[0]); i++; } while (run.recent.includes(C[0]) && i < 20); remember(C[0]);
+  let C, i = 0; do { C = dalMondo(COMPLETA, x => x[0]); i++; } while (giaVisto(i, C[0]) && i < 20); remember(C[0]);
   const full = w => C[0].replace(/'___/, "'" + w).replace('___', w);
   let op, st0;
   return Q({ text: 'Completa la frase', say: 'Leggi la frase e scegli la parola che manca.',
@@ -3502,7 +3514,7 @@ function qCompleta(d) {
 }
 function qOrdina(d) {
   const pool = FRASI.filter(f => f.l === d); let F, i = 0;
-  do { F = dalMondo(pool, x => x.t); i++; } while (run.recent.includes(F.t) && i < 30); remember(F.t);
+  do { F = dalMondo(pool, x => x.t); i++; } while (giaVisto(i, F.t) && i < 30); remember(F.t);
   const words = F.t.replace(/-/g, '').split(' ');
   let tiles = words.map((w, k) => ({ w, k }));
   do { tiles = shuffle(tiles); } while (tiles.every((t, k) => t.k === k));
@@ -3536,7 +3548,7 @@ const NOMI = [
 ].map(([a, s, ap, p, e, g]) => ({ a, s, ap, p, e, g }));
 const withArt = (a, w) => a.endsWith("'") ? a + w : a + ' ' + w;
 const indet = N => N.g === 'm' ? (N.a === 'lo' ? 'uno' : 'un') : (N.a === "l'" ? "un'" : 'una');
-function pickNome(filter) { const pool = NOMI.filter(filter || (() => true)); let N, i = 0; do { N = pick(pool); i++; } while (run.recent.includes(N.s) && i < 30); remember(N.s); return N; }
+function pickNome(filter) { const pool = NOMI.filter(filter || (() => true)); let N, i = 0; do { N = pick(pool); i++; } while (giaVisto(i, N.s) && i < 30); remember(N.s); return N; }
 const wordsHTML = t => t.split(' ').map(w => `<span data-raw="${w}" data-sy="${plain(w)}">${caseT(w)}</span>`).join(' ');
 function qVero(d) {
   const N = pickNome(), ok = Math.random() < .5; let text, pics, ans;
@@ -3579,7 +3591,7 @@ const DOPPIE = [['gatto', '🐱'], ['palla', '⚽'], ['letto', '🛏️'], ['ste
   ['mucca', '🐄'], ['cappello', '🎩'], ['zucca', '🎃'], ['uccello', '🐦'], ['nonno', '👴'], ['occhiali', '👓'], ['ombrello', '☂️'], ['giraffa', '🦒'], ['carrello', '🛒'],
   ['cammello', '🐫'], ['gallo', '🐓'], ['pennello', '🖌️'], ['caramella', '🍬'], ['forchetta', '🍴'], ['bicicletta', '🚲'], ['coccodrillo', '🐊'], ['struzzo', STRUZZO]];
 function qDoppie(d) {
-  let D, i = 0; do { D = pick(d === 0 ? DOPPIE.slice(0, 12) : DOPPIE); i++; } while (run.recent.includes(D[0]) && i < 30); remember(D[0]);
+  let D, i = 0; do { D = pick(d === 0 ? DOPPIE.slice(0, 12) : DOPPIE); i++; } while (giaVisto(i, D[0]) && i < 30); remember(D[0]);
   const w = D[0], dbl = [...w].map((c, k) => c === w[k + 1] ? k : -1).filter(k => k >= 0);
   const single = (k => w.slice(0, k) + w.slice(k + 1))(pick(dbl));
   const singles = [...w].map((c, k) => k > 0 && !VOC.includes(c) && c !== w[k - 1] && c !== w[k + 1] ? k : -1).filter(k => k >= 0);
@@ -3606,7 +3618,7 @@ function posScene(k) {
 const POS_FRASE = { sopra: 'sopra il tavolo', sotto: 'sotto il tavolo', dentro: 'dentro la scatola', fuori: 'fuori dalla scatola', 'a destra': 'a destra della scatola', 'a sinistra': 'a sinistra della scatola', 'in mezzo': 'in mezzo alle scatole' };
 function qPosizione(d) {
   const pool = [['sopra', 'sotto', 'dentro', 'fuori'], ['sopra', 'sotto', 'dentro', 'a destra', 'a sinistra'], ['sopra', 'sotto', 'dentro', 'a destra', 'a sinistra', 'in mezzo']][d];
-  let k, i = 0; do { k = pick(pool); i++; } while (run.recent.includes(k) && i < 20); remember(k);
+  let k, i = 0; do { k = pick(pool); i++; } while (giaVisto(i, k) && i < 20); remember(k);
   const others = shuffle(pool.filter(x => x !== k && !(k === 'fuori' && x.startsWith('a ')))).slice(0, nOpt(d) - 1);
   let op;
   return Q({ text: "Dov'è la palla?", say: "Dov'è la palla?",
@@ -3615,7 +3627,7 @@ function qPosizione(d) {
 }
 
 /* ---------- forme: domande ---------- */
-function pickShape(d, pool) { let k, i = 0; pool = pool || FLIV[d]; do { k = pick(pool); i++; } while (run.recent.includes(k) && i < 20); remember(k); return k; }
+function pickShape(d, pool) { let k, i = 0; pool = pool || FLIV[d]; do { k = pick(pool); i++; } while (giaVisto(i, k) && i < 20); remember(k); return k; }
 function qFTrova(d) {
   const k = pickShape(d), others = shuffle(FLIV[d].filter(x => x !== k)).slice(0, nOpt(d) - 1); let op;
   return Q({ text: `Tocca ${FORME[k].art}`,
