@@ -220,7 +220,10 @@ $('#list').addEventListener('click', function (e) {
 });
 function mailInfo() {
   api('/giochi/admin/posta').then(function (j) {
-    $('#mailInfo').textContent = j.configurata ? 'Gli avvisi via email sono attivi: le richieste nuove arrivano a ' + j.destinatario + '.' : 'Gli avvisi via email non sono ancora attivi (manca la casella di posta su Render). Le richieste nuove si vedono qui, e la pagina si aggiorna da sola ogni minuto.';
+    $('#mailInfo').textContent = j.configurata ? 'Gli avvisi via email sono configurati (' + j.via + '): le richieste nuove arrivano a ' + j.destinatario + '. ' : 'La posta non è configurata su Render: non parte nessuna email, né alle famiglie né a te. Le richieste nuove si vedono qui, e la pagina si aggiorna da sola ogni minuto.';
+    if (j.configurata) { var b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = 'Manda un’email di prova'; b.style.marginTop = '8px';
+      b.onclick = function () { b.disabled = true; b.textContent = 'Invio…'; api('/giochi/admin/posta/prova', { method: 'POST' }).then(function (r) { b.disabled = false; b.textContent = 'Manda un’email di prova'; alert(r.messaggio); }).catch(function (x) { b.disabled = false; alert('Non riuscito: ' + x.message); }); };
+      $('#mailInfo').appendChild(document.createElement('br')); $('#mailInfo').appendChild(b); }
   }).catch(function () {});
 }
 // la pagina aperta controlla da sola ogni minuto se sono arrivate richieste
