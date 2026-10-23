@@ -202,6 +202,14 @@ def registrati(body: RegistratiIn, avvisi: BackgroundTasks, db: Session = Depend
                     f"Nome: {body.nome.strip()}\nEmail: {email}\nTelefono: {body.telefono or '-'}\n"
                     f"Per chi: {body.messaggio or '-'}\n\nSe e' una famiglia seguita dalla cooperativa, rendila «sociale»"
                     f" dal backoffice: gioca gratis senza scadenza.\n{BACKOFFICE}\n")
+    # e il benvenuto alla famiglia: e' la prova che l'iscrizione e' andata, e ricorda dove si entra
+    fino = f" fino al {row['scadenza'].strftime('%d/%m/%Y')}" if row["scadenza"] else ""
+    avvisi.add_task(posta.manda, email, "Benvenuti in Leggo e Conto",
+                    f"Ciao {body.nome.strip()},\n\nla tua iscrizione a Leggo e Conto e' fatta: puoi giocare subito"
+                    f"{fino}.\n\nPer entrare, da telefono, tablet o computer:\n{APP_URL}\n"
+                    f"con questa email ({email}) e la password che hai scelto.\n\n"
+                    "Se dimentichi la password, nella pagina d'accesso tocca «Password dimenticata?».\n\n"
+                    "Buon divertimento!\nLa Giostra della Vita\n")
     return _risposta(uid, email, body.nome.strip(), "attivo", row["piano"], row["scadenza"])
 
 
@@ -540,7 +548,23 @@ def _riassunto_bambini(valore) -> list:
 @router.get("/admin/posta")
 def stato_posta(_admin: str = Depends(get_admin)):
     """Dice al backoffice se gli avvisi via email possono partire."""
-    return {"configurata": posta.configurata(), "destinatario": settings.admin_email}
+    return {"configurata": posta.configurata(), "destinatario": settings.admin_email,
+            "via": "Brevo" if posta._brevo() else ("SMTP" if posta.configurata() else None)}
+
+
+@router.post("/admin/posta/prova")
+def prova_posta(_admin: str = Depends(get_admin)):
+    """Manda subito un'email di prova all'amministratore e dice se e' partita:
+    e' l'unico modo di sapere, da fuori, che la posta funziona davvero."""
+    if not posta.configurata():
+        return {"ok": False, "messaggio": "La posta non e' configurata su Render."}
+    ok = posta.manda(settings.admin_email, "Leggo e Conto: email di prova",
+                     "Se leggi questa email, la posta di Leggo e Conto funziona: le famiglie ricevono"
+                     " il benvenuto, il link per la password e quello dopo l'acquisto.\n")
+    return {"ok": ok, "destinatario": settings.admin_email,
+            "messaggio": "Partita: controlla la casella (anche nella posta indesiderata)." if ok else
+            "Non e' partita. Se usi l'SMTP sul piano gratuito di Render, e' bloccato: serve Brevo o un piano a pagamento. "
+            "Il motivo esatto e' nei Logs del servizio su Render."}
 
 
 def _pulizia(db):

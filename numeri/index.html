@@ -896,7 +896,7 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
         <p class="lost"><button class="linkbtn" type="button" id="lostPw">Password dimenticata?</button><button class="linkbtn" type="button" id="lostEm">Email dimenticata?</button></p>
       </form>
       <form class="form" data-panel="reg" id="fReg" hidden novalidate>
-        <p class="note" style="margin:0">Registrati e giochi subito: 30 giorni gratis, senza carta. Poi, per continuare, scegli un abbonamento sul sito.</p>
+        <p class="note" style="margin:0">Registrati e giochi subito: 30 giorni gratis, senza carta e senza aspettare email di conferma. Poi, per continuare, scegli un abbonamento sul sito.</p>
         <label for="rgNome">Nome e cognome dell'adulto<input type="text" id="rgNome" autocomplete="name" maxlength="100"></label>
         <label for="rgEmail">Email<input type="text" id="rgEmail" inputmode="email" autocomplete="email"></label>
         <label for="rgTel">Telefono (facoltativo)<input type="text" id="rgTel" inputmode="tel" autocomplete="tel" maxlength="40"></label>
@@ -1094,7 +1094,7 @@ html{font-size:calc(clamp(18px,calc(13px + 1.1vw),26px) * var(--testo,1.12))}
 const API_BASE = 'https://diario-salute-api.onrender.com';
 // la versione la scrive la pubblicazione (build_repo.sh) con data e ora; qui si confronta con
 // quella sul sito, cosi' la famiglia vede se ha l'ultima o se deve aggiornare
-const APP_VERSIONE = '2026-10-21 15:10';
+const APP_VERSIONE = '2026-10-23 08:54';
 /* ---------- utilità ---------- */
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sleep = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
@@ -4079,10 +4079,13 @@ $('#fNew').addEventListener('submit', async e => {
 });
 $('#atOut').onclick = () => logout();
 const msgOn = (id, t) => { const m = $(id); m.textContent = t; m.hidden = !t; };
+// il server gratuito si addormenta: la prima richiesta puo' metterci un minuto, e chi aspetta
+// pensa che non funzioni e riprova (alla seconda iscrizione: «email gia' registrata»)
+const pazienza = id => setTimeout(() => { if (!$(id).hidden && /^(Invio|Controllo)/.test($(id).textContent)) msgOn(id, 'Il server si sta svegliando: può volerci fino a un minuto. Non chiudere la pagina e non toccare di nuovo.'); }, 5000);
 async function entra(scollega) {
   const email = $('#inEmail').value.trim(), password = $('#inPw').value;
   if (!email || !password) return msgOn('#inMsg', 'Scrivi email e password');
-  msgOn('#inMsg', 'Controllo...'); $('#troppi').hidden = true;
+  msgOn('#inMsg', 'Controllo...'); pazienza('#inMsg'); $('#troppi').hidden = true;
   try {
     const r = await api('/giochi/entra', { method: 'POST', body: JSON.stringify({ email, password, dispositivo: navigator.userAgent.slice(0, 180), codice: DISP, nome_dispositivo: NOME_DISP, scollega: scollega || null }) });
     setToken(r.access_token); msgOn('#inMsg', ''); $('#inPw').value = ''; boot();
@@ -4105,11 +4108,12 @@ $('#fReg').addEventListener('submit', async e => {
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(b.email)) return msgOn('#rgMsgErr', "Controlla l'indirizzo email");
   if (b.password.length < 8) return msgOn('#rgMsgErr', 'La password deve avere almeno 8 caratteri');
   if (!$('#rgOk').checked) return msgOn('#rgMsgErr', "Per continuare bisogna leggere l'informativa e mettere la spunta qui sopra");
-  msgOn('#rgMsgErr', 'Invio...');
+  const invia = $('#fReg button[type=submit]'); if (invia.disabled) return;
+  msgOn('#rgMsgErr', 'Invio...'); pazienza('#rgMsgErr'); invia.disabled = true;
   try {
-    const r = await api('/giochi/registrati', { method: 'POST', body: JSON.stringify(b) }); setToken(r.access_token); msgOn('#rgMsgErr', '');
+    const r = await api('/giochi/registrati', { method: 'POST', body: JSON.stringify(b) }).finally(() => { invia.disabled = false; }); setToken(r.access_token); msgOn('#rgMsgErr', '');
     await boot();
-    if (r.piano === 'prova' && r.scadenza) toast('Benvenuti! La prova gratuita è attiva', `fino al ${dataIt(r.scadenza)}`, 'help', 3600);
+    if (r.piano === 'prova' && r.scadenza) toast('Benvenuti! La prova gratuita è attiva', `fino al ${dataIt(r.scadenza)}. Non serve aspettare nessuna email: si gioca subito`, 'help', 4200);
   }
   catch (x) { msgOn('#rgMsgErr', x.status ? x.message : 'Non riesco a collegarmi: controlla internet e riprova'); }
 });
