@@ -7,7 +7,7 @@ le stampa e non le salva da nessuna parte.
 
     SMTP_HOST       smtps.aruba.it
     SMTP_PORT       465
-    SMTP_USER       noreply@lagiostradellavita.it
+    SMTP_USER       info@lagiostradellavita.it
     SMTP_PASSWORD   la password di quella casella
     SMTP_MITTENTE   facoltativo, il nome che compare come mittente
 
@@ -19,7 +19,7 @@ timeout e nessuna email esce. Le strade sono due:
   e quindi passa anche dal piano gratuito:
     BREVO_API_KEY      la chiave API, da app.brevo.com -> SMTP e API -> Chiavi API
     POSTA_MITTENTE     l'indirizzo da cui partono, verificato su Brevo
-                       (noreply@lagiostradellavita.it)
+                       (info@lagiostradellavita.it)
     SMTP_MITTENTE      facoltativo, il nome che compare come mittente
 - un piano a pagamento di Render, e allora l'SMTP qui sotto funziona, anche
   quello di Aruba (smtps.aruba.it, porta 465, utente = l'indirizzo intero).
@@ -65,8 +65,8 @@ def _manda_brevo(destinatario: str, oggetto: str, testo: str) -> bool:
     return False
 
 
-# le email partono da noreply@: chi risponde non lo legge nessuno, e lo deve sapere
-PIEDE = "\n--\nQuesta e' un'email automatica: per favore non rispondere.\n"
+# le email partono da info@, che la cooperativa legge: chi ha un dubbio puo' rispondere
+PIEDE = "\n--\nLa Giostra della Vita - per qualsiasi domanda rispondi a questa email.\n"
 
 
 def manda(destinatario: str, oggetto: str, testo: str) -> bool:
