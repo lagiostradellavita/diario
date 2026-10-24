@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 248; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 249; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1943,7 +1943,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v248 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v249 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -3788,15 +3788,17 @@
   var evac=[]; try{ var _ev=JSON.parse(localStorage.getItem("salute-evac")); if(Array.isArray(_ev)) evac=_ev; }catch(e){}
   function saveEvac(){ try{ localStorage.setItem("salute-evac", JSON.stringify(evac)); }catch(e){} }
   // gruppi di scelta con aggiunta manuale che resta — colore/quantità/morbidezza a scelta singola, fastidi multipli
-  var uColore=makeChipGroup("urinaColore",["Normocromica (paglierino)","Ipocromica (chiara)","Ipercromica (scura/concentrata)","Ambrata","Colurica (marsala)","Ematuria (rossa/rosata)"],"salute-urina-colore",false);
-  var uQta=makeChipGroup("urinaQta",["Oliguria (scarsa)","Normale","Poliuria (abbondante)"],"salute-urina-qta",true);
-  var uFastidi=makeChipGroup("urinaFastidi",["Disuria (bruciore)","Stranguria (dolore a fine minzione)","Pollachiuria (minzione frequente)","Urgenza minzionale","Nicturia (minzione notturna)","Tenesmo vescicale","Ematuria (sangue)","Urine maleodoranti","Urine torbide","Urine schiumose","Incontinenza","Difficoltà/ritenzione"],"salute-urina-fastidi",false);
+  var uColore=makeChipGroup("urinaColore",["Giallo paglierino (normale)","Chiara (diluita)","Scura (concentrata)","Ambrata","Scura color tè (colurica)","Rossa / con sangue (ematuria)"],"salute-urina-colore",false);
+  var uQta=makeChipGroup("urinaQta",["Poca (oliguria)","Normale","Molta (poliuria)"],"salute-urina-qta",true);
+  var uFastidi=makeChipGroup("urinaFastidi",["Bruciore (disuria)","Dolore a urinare a gocce (stranguria)","Fare pipì spesso (pollachiuria)","Urgenza (scappa la pipì)","Pipì di notte (nicturia)","Stimolo continuo (tenesmo)","Sangue nelle urine (ematuria)","Cattivo odore","Torbide","Schiumose","Perdite (incontinenza)","Difficoltà a urinare"],"salute-urina-fastidi",false);
   wireAdd("urinaColoreInput","urinaColoreBtn",uColore); wireAdd("urinaQtaInput","urinaQtaBtn",uQta); wireAdd("urinaFastidiInput","urinaFastidiBtn",uFastidi);
-  var fColore=makeChipGroup("feciColore",["Brune (normali)","Ipocoliche (chiare)","Acoliche (biancastre)","Picee (nere)","Verdastre","Giallastre","Rossastre"],"salute-feci-colore",false);
-  var fQta=makeChipGroup("feciQta",["Scarsa","Normale","Abbondante"],"salute-feci-qta",true);
-  var fMorb=makeChipGroup("feciMorb",["Tipo 1 — caprine dure","Tipo 2 — a salsiccia grumosa","Tipo 3 — a salsiccia con crepe","Tipo 4 — liscia e morbida (normale)","Tipo 5 — pezzi morbidi netti","Tipo 6 — poltacea sfrangiata","Tipo 7 — liquida (diarrea)"],"salute-feci-morb",false);
-  var fSintomi=makeChipGroup("feciSintomi",["Muco","Sangue rosso vivo (ematochezia)","Sangue nero/digerito (melena)","Feci untuose/galleggianti (steatorrea)","Tenesmo","Urgenza","Dolore alla defecazione","Evacuazione incompleta","Sforzo (ponzamento)","Meteorismo"],"salute-feci-sintomi",false);
+  var fColore=makeChipGroup("feciColore",["Marrone (normale)","Chiare","Biancastre","Nere tipo catrame (picee)","Verdi","Gialle","Rosse / con sangue"],"salute-feci-colore",false);
+  var fQta=makeChipGroup("feciQta",["Poca","Normale","Molta"],"salute-feci-qta",true);
+  var fMorb=makeChipGroup("feciMorb",["Tipo 1 — a palline dure","Tipo 2 — a salsiccia grumosa","Tipo 3 — a salsiccia con crepe","Tipo 4 — morbida e liscia (normale)","Tipo 5 — pezzi morbidi","Tipo 6 — poltiglia molle","Tipo 7 — liquida (diarrea)"],"salute-feci-morb",false);
+  var fSintomi=makeChipGroup("feciSintomi",["Muco","Sangue rosso vivo (ematochezia)","Sangue nero/digerito (melena)","Unte / galleggiano (steatorrea)","Stimolo continuo dopo (tenesmo)","Urgenza","Dolore quando vai di corpo","Senso di non esserti svuotato","Sforzo per evacuare","Gonfiore / aria (meteorismo)"],"salute-feci-sintomi",false);
   wireAdd("feciColoreInput","feciColoreBtn",fColore); wireAdd("feciQtaInput","feciQtaBtn",fQta); wireAdd("feciMorbInput","feciMorbBtn",fMorb); wireAdd("feciSintomiInput","feciSintomiBtn",fSintomi);
+  // pulizia una tantum: toglie vecchie voci personalizzate obsolete della consistenza (sostituite dalla scala di Bristol)
+  try{ if(localStorage.getItem("salute-feci-morb-pulito")!=="1"){ ["Caprine","Dura a pezzi","Dure","Normale a pezzi","Stronzo","Dure a palline","Dure e grumose","Screpolate","Morbide e lisce","Morbide a pezzi","Poltacee","Liquide"].forEach(function(_t){ try{ fMorb.removeCustom(_t); }catch(e){} }); localStorage.setItem("salute-feci-morb-pulito","1"); } }catch(e){}
   function evacLabel(x){
     var p=[], col=evacArr(x.colore); if(col.length)p.push(col.join(", ")); if(x.quantita)p.push(x.quantita);
     if(x.tipo==="feci"){ var m=evacArr(x.morbidezza); if(m.length)p.push(m.join(", ")); var fs=evacArr(x.sintomi); if(fs.length)p.push(fs.join(", ")); }
