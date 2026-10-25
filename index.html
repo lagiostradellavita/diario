@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 252; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 253; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1943,7 +1943,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v252 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v253 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -3404,10 +3404,10 @@
   renderSonno(); renderNoteG();
 
   // ---- Salute: fastidi fisici + stato psicologico ----
-  var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Emicrania","Vertigini","Nausea","Vomito","Stanchezza","Debolezza","Malessere","Fiato corto","Tosse","Mal di gola","Difficoltà a deglutire","Naso chiuso","Bruciore di stomaco","Reflusso","Dolori addominali","Gonfiore addominale","Stitichezza","Diarrea","Dolori muscolari","Crampi","Spasmi muscolari","Mal di schiena","Mal di schiena in basso (lombalgia)","Sciatica (dolore lungo la gamba)","Dolori articolari","Tensione al collo","Torcicollo","Dolore al collo (cervicale)","Dolore al petto","Guizzi muscolari (fascicolazioni)","Formicolii","Intorpidimento (addormentamento)","Acufene","Ronzio auricolare","Vista offuscata","Occhi stanchi","Nebbia mentale","Palpitazioni","Tachicardia","Battito che salta (extrasistoli)","Caviglie gonfie","Sudorazione","Sudorazione notturna","Prurito","Insonnia","Poca fame (inappetenza)","Fastidio vescica"];
-  var PSICO=["Ansia","Stress","Attacco di panico","Tristezza","Umore basso","Depressione","Agitazione","Pensieri ossessivi","Irritabilità"];
+  var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Emicrania","Vertigini","Nausea","Vomito","Stanchezza","Debolezza","Malessere","Fiato corto","Tosse","Mal di gola","Difficoltà a deglutire","Naso chiuso","Bruciore di stomaco","Reflusso","Dolori addominali","Gonfiore addominale","Stitichezza","Diarrea","Dolori muscolari","Crampi","Spasmi muscolari","Mal di schiena","Mal di schiena in basso (lombalgia)","Sciatica (dolore lungo la gamba)","Dolori articolari","Tensione al collo","Torcicollo","Dolore al collo (cervicale)","Dolore al petto","Guizzi muscolari (fascicolazioni)","Formicolii","Intorpidimento (addormentamento)","Acufene","Ronzio auricolare","Vista offuscata","Occhi stanchi","Nebbia mentale","Palpitazioni","Tachicardia","Battito che salta (extrasistoli)","Caviglie gonfie","Sudorazione","Sudorazione notturna","Prurito","Insonnia","Poca fame (inappetenza)","Fastidio vescica","Spasmi al collo","Petto chiuso","Tensione alle tempie","Gambe pesanti","Tremori","Dolore alle mani","Abbassamento della vista"];
+  var PSICO=["Ansia","Stress","Attacco di panico","Tristezza","Umore basso","Depressione","Agitazione","Pensieri ossessivi","Irritabilità","Inquietudine"];
   // pulizia una tantum: toglie dai fastidi personalizzati i refusi e i doppioni di voci gia' di base (lascia intatte le altre voci create dall'utente)
-  try{ if(localStorage.getItem("salute-fastidi-opts-pulito")!=="2"){ var _fxRm=["Dispea","Canninata a scatti","Tachicardia","Dispnea","Affanno","Colon"]; var _fxc=JSON.parse(localStorage.getItem("salute-fastidi-opts")||"[]"); if(Array.isArray(_fxc)){ localStorage.setItem("salute-fastidi-opts", JSON.stringify(_fxc.filter(function(x){ return _fxRm.indexOf(x)<0; }))); } localStorage.setItem("salute-fastidi-opts-pulito","2"); } }catch(e){}
+  try{ if(localStorage.getItem("salute-fastidi-opts-pulito")!=="3"){ var _fxRm=["Dispea","Canninata a scatti","Tachicardia","Dispnea","Affanno","Colon","Fascicokazioni","Fastidio Colon"]; var _fxc=JSON.parse(localStorage.getItem("salute-fastidi-opts")||"[]"); if(Array.isArray(_fxc)){ localStorage.setItem("salute-fastidi-opts", JSON.stringify(_fxc.filter(function(x){ return _fxRm.indexOf(x)<0; }))); } localStorage.setItem("salute-fastidi-opts-pulito","3"); } }catch(e){}
   // «Amara» -> «Bocca amara» nelle voci personalizzate, e assicura che «Acufene» non resti nascosto
   try{ if(localStorage.getItem("salute-fastidi-fix2")!=="1"){ var _o2=JSON.parse(localStorage.getItem("salute-fastidi-opts")||"[]"); if(Array.isArray(_o2)){ var _ia=_o2.indexOf("Amara"); if(_ia>=0){ if(_o2.indexOf("Bocca amara")<0){ _o2[_ia]="Bocca amara"; } else { _o2.splice(_ia,1); } localStorage.setItem("salute-fastidi-opts", JSON.stringify(_o2)); } } var _h2=JSON.parse(localStorage.getItem("salute-fastidi-opts-hidden")||"[]"); if(Array.isArray(_h2) && _h2.indexOf("Acufene")>=0){ localStorage.setItem("salute-fastidi-opts-hidden", JSON.stringify(_h2.filter(function(x){ return x!=="Acufene"; }))); } localStorage.setItem("salute-fastidi-fix2","1"); } }catch(e){}
   var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts", false, {sortAlpha:true, onChange:onFastidiChange, manageId:"fastidiManage", addSelects:true});
@@ -6350,6 +6350,30 @@
     renderEsameValori();
   })();
 
+  // Primo accesso a «Salute»: una volta sola, e solo per chi non ha ancora usato la sezione.
+  function saluteOnboard(){
+    try{ if(localStorage.getItem("salute-onb")==="1") return; }catch(e){}
+    // chi ha gia' dei dati non e' un nuovo utente: niente benvenuto
+    try{ var _gia=(typeof saluteLog!=="undefined" && saluteLog && saluteLog.length) || (JSON.parse(localStorage.getItem("salute-fastidi-opts")||"[]").length>0); if(_gia){ localStorage.setItem("salute-onb","1"); return; } }catch(e){}
+    if(document.getElementById("saluteOnb")) return;
+    var ov=document.createElement("div"); ov.id="saluteOnb";
+    ov.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center";
+    var card=document.createElement("div");
+    card.style.cssText="background:var(--card,#fff);color:var(--ink,#111);width:100%;max-width:560px;max-height:88vh;overflow:auto;border-radius:16px 16px 0 0;padding:18px 16px 22px;box-shadow:0 -6px 30px rgba(0,0,0,.25)";
+    card.innerHTML='<h2 style="margin:0 0 6px;font-size:20px;color:var(--accent,#E11D48)">👋 Benvenuto in «Salute»</h2>'
+      +'<p style="margin:0 0 10px;font-size:15px;line-height:1.5">Qui segni <b>come ti senti</b>. Ci sono gi&agrave; tante voci pronte: <b>tienile tutte</b>, oppure togli con <b>&times;</b> quelle che non ti servono, e <b>aggiungi le tue</b>.</p>'
+      +'<div class="chip-add" style="margin:8px 0"><input type="text" id="onbAdd" placeholder="Aggiungi un fastidio (anche una frase)…" autocomplete="off"><button type="button" id="onbAddBtn">＋</button></div>'
+      +'<p style="margin:2px 0 10px;font-size:12.5px;color:var(--muted,#888)">Scrivi la voce e tocca <b>＋</b>. Potrai sempre cambiarle in seguito da <b>«⚙️ Gestisci le voci»</b>.</p>'
+      +'<p style="margin:10px 0 4px;font-size:13.5px;font-weight:700">Le voci gi&agrave; pronte (tocca <b>&times;</b> per togliere):</p>'
+      +'<div id="onbChips" class="chips"></div>'
+      +'<button type="button" id="onbDone" class="primary" style="margin-top:16px;width:100%">Fatto</button>';
+    ov.appendChild(card); document.body.appendChild(ov);
+    function renderChips(){ var box=document.getElementById("onbChips"); if(!box) return; box.innerHTML=""; fastidiG.opts().forEach(function(lbl){ var b=document.createElement("button"); b.type="button"; b.className="chip-sel on"; b.innerHTML=esc(lbl)+' <span style="font-weight:800;opacity:.55">&times;</span>'; b.title="Togli «"+lbl+"»"; b.onclick=function(){ fastidiG.removeCustom(lbl); renderChips(); }; box.appendChild(b); }); }
+    renderChips();
+    document.getElementById("onbAddBtn").onclick=function(){ var i=document.getElementById("onbAdd"); var v=(i.value||"").trim(); if(!v) return; fastidiG.add(v); i.value=""; renderChips(); };
+    document.getElementById("onbAdd").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("onbAddBtn").click(); } });
+    document.getElementById("onbDone").onclick=function(){ try{ localStorage.setItem("salute-onb","1"); }catch(e){} var o=document.getElementById("saluteOnb"); if(o&&o.parentNode) o.parentNode.removeChild(o); try{ renderSalute(); }catch(e){} };
+  }
   function showMod(m){
     currentMod=m; lastDay=dayKey(new Date());
     if(attivInterval){ clearInterval(attivInterval); attivInterval=null; }
@@ -6360,7 +6384,7 @@
     else if(m==="pillole") Pillole.render();
     else if(m==="esercizio") renderAttiv();
     else if(m==="alimentazione") renderAlim();
-    else if(m==="salute"){ renderSalute(); try{ syncMaggiori(); }catch(e){} }
+    else if(m==="salute"){ renderSalute(); try{ syncMaggiori(); }catch(e){} try{ saluteOnboard(); }catch(e){} }
     else if(m==="evac") renderEvac();
     else if(m==="fumo") render();
     else if(m==="sesso") renderSesso();
