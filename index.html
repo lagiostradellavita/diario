@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 261; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 262; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1943,7 +1943,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v261 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v262 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -2463,12 +2463,13 @@
   }
   document.getElementById("btnBackup").onclick=async function(){
     var all=collectAppData();
-    if(!Object.keys(all).length){ toast("Non c'è ancora niente da salvare"); return; }
+    var files=[]; try{ files=await collectFiles(); }catch(e){}
+    if(!Object.keys(all).length && !files.length){ toast("Non c'è ancora niente da salvare"); return; }
     var now=new Date();
     var p=function(n){ return ("0"+n).slice(-2); };
     // Nome «AAAA MM GG ore HH.MM - Backup diario salute» (un solo trattino)
     var stamp=now.getFullYear()+" "+p(now.getMonth()+1)+" "+p(now.getDate())+" ore "+p(now.getHours())+"."+p(now.getMinutes());
-    var data=JSON.stringify({app:"diario-salute", v:3, savedAt:now.toISOString(), all:all}, null, 2);
+    var data=JSON.stringify({app:"diario-salute", v:4, savedAt:now.toISOString(), all:all, files:files}, null, 2);
     var res=await saveFile(stamp+" - Backup diario salute.json", data, null);
     try{ if(res.ok){ localStorage.setItem("salute-ultimo-backup", String(now.getTime())); var bh=document.getElementById("backupHint"); if(bh) bh.hidden=true; } }catch(e){}
     if(res.ok) toast("Backup salvato ✓ "+res.name);
@@ -2527,12 +2528,14 @@
         // Conteggio registrazioni e data, per la conferma
         var recs=0; kk.forEach(function(k){ try{ var v=JSON.parse(obj.all[k]); if(Array.isArray(v)) recs+=v.length; }catch(e){} });
         var quando=""; if(obj.savedAt){ try{ var d=new Date(obj.savedAt); if(!isNaN(d)) quando=" salvato il "+("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear()+" alle "+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2); }catch(e){} }
-        var msg="Backup"+quando+":\n"+kk.length+" tipi di dati, "+recs+" registrazioni in tutto.\n\nSostituisco i dati attuali dell'app con questo backup?";
+        var nf=(obj.files && obj.files.length)||0;
+        var msg="Backup"+quando+":\n"+kk.length+" tipi di dati, "+recs+" registrazioni"+(nf?(", "+nf+" foto/file"):"")+" in tutto.\n\nSostituisco i dati attuali dell'app con questo backup?";
         var ok=true; try{ ok=window.confirm(msg); }catch(e){ ok=true; }
         if(!ok){ toast("Ripristino annullato — niente è stato toccato"); return false; }
         kk.forEach(function(k){ try{ localStorage.setItem(k, obj.all[k]); }catch(e){} });
+        var _files=(obj.files && Array.isArray(obj.files))?obj.files:[];
         toast("Ripristinato ✓ Ricarico l'app…");
-        setTimeout(function(){ try{ location.reload(); }catch(e){} }, 800);
+        restoreFiles(_files).then(function(){ setTimeout(function(){ try{ location.reload(); }catch(e){} }, 400); });
         return true;
       }
       var list = Array.isArray(obj)? obj : (obj && obj.entries);
@@ -4630,6 +4633,13 @@
   function docPut(rec){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("files","readwrite"); tx.objectStore("files").put(rec); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
   function docDelete(id){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("files","readwrite"); tx.objectStore("files").delete(id); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
   function docGet(id){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var rq=db.transaction("files","readonly").objectStore("files").get(id); rq.onsuccess=function(){res(rq.result);}; rq.onerror=function(){rej(rq.error);}; }); }); }
+  // ---- Allegati (foto/PDF): conversione per backup e ripristino ----
+  // Gli allegati stanno in IndexedDB (binari), non in localStorage: per metterli
+  // nel backup .json li converto in testo base64, e li riconverto al ripristino.
+  function abToB64(buf){ try{ var b=new Uint8Array(buf), n=b.length, s="", CH=0x8000; for(var i=0;i<n;i+=CH){ s+=String.fromCharCode.apply(null, b.subarray(i, i+CH)); } return btoa(s); }catch(e){ return ""; } }
+  function b64ToAb(b64){ try{ var bin=atob(b64), n=bin.length, b=new Uint8Array(n); for(var i=0;i<n;i++){ b[i]=bin.charCodeAt(i); } return b.buffer; }catch(e){ return null; } }
+  function collectFiles(){ return docAll().then(function(list){ return (list||[]).map(function(f){ var o={id:f.id, cat:f.cat, modulo:f.modulo, nome:f.nome, tipo:f.tipo, size:f.size, ts:f.ts}; try{ o.b64 = f.buf ? abToB64(f.buf) : ""; }catch(e){ o.b64=""; } return o; }); }).catch(function(){ return []; }); }
+  function restoreFiles(files){ if(!Array.isArray(files) || !files.length) return Promise.resolve(0); return docAll().then(function(list){ var have={}; (list||[]).forEach(function(f){ if(f&&f.id!=null) have[f.id]=1; }); var todo=files.filter(function(f){ return f && f.id!=null && f.b64 && !have[f.id]; }); return todo.reduce(function(p,f){ return p.then(function(c){ var buf=b64ToAb(f.b64); if(!buf) return c; return docPut({id:f.id, cat:f.cat, modulo:f.modulo, nome:f.nome, tipo:f.tipo, size:f.size, ts:f.ts, buf:buf}).then(function(){ return c+1; }).catch(function(){ return c; }); }); }, Promise.resolve(0)); }).catch(function(){ return 0; }); }
   function fmtSize(n){ if(n>=1048576) return String(Math.round(n/1048576*10)/10).replace(".",",")+" MB"; return Math.max(1,Math.round(n/1024))+" KB"; }
   function docRowEl(f, refreshFn){
     var d=new Date(f.ts), ic=(f.tipo&&f.tipo.indexOf("pdf")>=0)?"📄":"🖼️";
