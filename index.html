@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 262; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 263; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1943,7 +1943,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v262 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v263 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -4630,8 +4630,12 @@
     r.onupgradeneeded=function(e){ var db=e.target.result; if(!db.objectStoreNames.contains("files")) db.createObjectStore("files",{keyPath:"id"}); };
     r.onsuccess=function(e){ docDB=e.target.result; res(docDB); }; r.onerror=function(){ rej(r.error); }; }catch(e){ rej(e); } }); }
   function docAll(){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var rq=db.transaction("files","readonly").objectStore("files").getAll(); rq.onsuccess=function(){ res(rq.result||[]); }; rq.onerror=function(){ rej(rq.error); }; }); }); }
-  function docPut(rec){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("files","readwrite"); tx.objectStore("files").put(rec); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
-  function docDelete(id){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("files","readwrite"); tx.objectStore("files").delete(id); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
+  function docPutRaw(rec){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("files","readwrite"); tx.objectStore("files").put(rec); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
+  function docDeleteRaw(id){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("files","readwrite"); tx.objectStore("files").delete(id); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
+  // Versioni usate in tutta l'app: oltre a scrivere/cancellare l'allegato sul
+  // dispositivo, tengono allineato il cloud (lo caricano o lo cancellano).
+  function docPut(rec){ return docPutRaw(rec).then(function(r){ try{ if(cloudToken) cloudPushFile(rec); }catch(e){} return r; }); }
+  function docDelete(id){ return docDeleteRaw(id).then(function(r){ try{ allegatoTombstoneAdd(id); if(cloudToken) cloudDeleteFile(id); }catch(e){} return r; }); }
   function docGet(id){ return docOpen().then(function(db){ return new Promise(function(res,rej){ var rq=db.transaction("files","readonly").objectStore("files").get(id); rq.onsuccess=function(){res(rq.result);}; rq.onerror=function(){rej(rq.error);}; }); }); }
   // ---- Allegati (foto/PDF): conversione per backup e ripristino ----
   // Gli allegati stanno in IndexedDB (binari), non in localStorage: per metterli
@@ -4639,7 +4643,7 @@
   function abToB64(buf){ try{ var b=new Uint8Array(buf), n=b.length, s="", CH=0x8000; for(var i=0;i<n;i+=CH){ s+=String.fromCharCode.apply(null, b.subarray(i, i+CH)); } return btoa(s); }catch(e){ return ""; } }
   function b64ToAb(b64){ try{ var bin=atob(b64), n=bin.length, b=new Uint8Array(n); for(var i=0;i<n;i++){ b[i]=bin.charCodeAt(i); } return b.buffer; }catch(e){ return null; } }
   function collectFiles(){ return docAll().then(function(list){ return (list||[]).map(function(f){ var o={id:f.id, cat:f.cat, modulo:f.modulo, nome:f.nome, tipo:f.tipo, size:f.size, ts:f.ts}; try{ o.b64 = f.buf ? abToB64(f.buf) : ""; }catch(e){ o.b64=""; } return o; }); }).catch(function(){ return []; }); }
-  function restoreFiles(files){ if(!Array.isArray(files) || !files.length) return Promise.resolve(0); return docAll().then(function(list){ var have={}; (list||[]).forEach(function(f){ if(f&&f.id!=null) have[f.id]=1; }); var todo=files.filter(function(f){ return f && f.id!=null && f.b64 && !have[f.id]; }); return todo.reduce(function(p,f){ return p.then(function(c){ var buf=b64ToAb(f.b64); if(!buf) return c; return docPut({id:f.id, cat:f.cat, modulo:f.modulo, nome:f.nome, tipo:f.tipo, size:f.size, ts:f.ts, buf:buf}).then(function(){ return c+1; }).catch(function(){ return c; }); }); }, Promise.resolve(0)); }).catch(function(){ return 0; }); }
+  function restoreFiles(files){ if(!Array.isArray(files) || !files.length) return Promise.resolve(0); return docAll().then(function(list){ var have={}; (list||[]).forEach(function(f){ if(f&&f.id!=null) have[f.id]=1; }); var todo=files.filter(function(f){ return f && f.id!=null && f.b64 && !have[f.id]; }); return todo.reduce(function(p,f){ return p.then(function(c){ var buf=b64ToAb(f.b64); if(!buf) return c; return docPutRaw({id:f.id, cat:f.cat, modulo:f.modulo, nome:f.nome, tipo:f.tipo, size:f.size, ts:f.ts, buf:buf}).then(function(){ return c+1; }).catch(function(){ return c; }); }); }, Promise.resolve(0)); }).catch(function(){ return 0; }); }
   function fmtSize(n){ if(n>=1048576) return String(Math.round(n/1048576*10)/10).replace(".",",")+" MB"; return Math.max(1,Math.round(n/1024))+" KB"; }
   function docRowEl(f, refreshFn){
     var d=new Date(f.ts), ic=(f.tipo&&f.tipo.indexOf("pdf")>=0)?"📄":"🖼️";
@@ -5630,7 +5634,7 @@
     return apiFetch("/dati", {method:"GET"}).then(function(data){
       data=data||{};
       var keys=Object.keys(data);
-      if(!keys.length){ return cloudPushAllLocal().then(function(){ _cloudReady=true; }); }
+      if(!keys.length){ return cloudPushAllLocal().then(function(){ _cloudReady=true; try{ cloudSyncFiles(); }catch(e){} }); }
       var changed=0;
       keys.forEach(function(k){ try{
         var local=null, hasLocal=false; try{ var lr=localStorage.getItem(k); if(lr!=null){ local=JSON.parse(lr); hasLocal=true; } }catch(e){}
@@ -5652,8 +5656,36 @@
         try{ sessionStorage.setItem("_diarioJustPulled","1"); }catch(e){}
         cloudMark("Aggiorno dal cloud… ricarico");
         setTimeout(function(){ try{ location.reload(); }catch(e){} }, 500);
-      } else { _cloudReady=true; cloudMark(changed?("Dati aggiornati dal cloud ✓"):("Tutto già aggiornato ✓")); }
+      } else { _cloudReady=true; cloudMark(changed?("Dati aggiornati dal cloud ✓"):("Tutto già aggiornato ✓")); try{ cloudSyncFiles(); }catch(e){} }
     }).catch(function(e){ _cloudReady=true; cloudMark("Cloud non raggiungibile: "+(e&&e.message||"")+" — i dati restano sul dispositivo"); });
+  }
+  // ===== Allegati sul cloud (foto/PDF): sincronizzati a parte dai dati testo =====
+  // "Tombstone" = gli id degli allegati cancellati. Vivono in una chiave che si
+  // sincronizza come gli altri dati, cosi' una cancellazione fatta su un
+  // dispositivo arriva anche all'altro e il file non "resuscita".
+  function allegatoTombstones(){ try{ var a=JSON.parse(localStorage.getItem("salute-allegati-cancellati")); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+  function allegatoTombstoneAdd(id){ if(id==null) return; var a=allegatoTombstones(); if(a.indexOf(id)<0){ a.push(id); try{ localStorage.setItem("salute-allegati-cancellati", JSON.stringify(a)); }catch(e){} } }
+  function cloudPushFile(rec){ if(!cloudToken || !rec || rec.id==null) return Promise.resolve(); var b64=""; try{ b64=rec.buf?abToB64(rec.buf):""; }catch(e){ b64=""; } if(!b64) return Promise.resolve(); return apiFetch("/allegati/"+encodeURIComponent(rec.id), {method:"PUT", body:{nome:rec.nome, tipo:rec.tipo, cat:rec.cat, modulo:rec.modulo, size:rec.size, ts:rec.ts, b64:b64}}).catch(function(){}); }
+  function cloudDeleteFile(id){ if(!cloudToken || id==null) return Promise.resolve(); return apiFetch("/allegati/"+encodeURIComponent(id), {method:"DELETE"}).catch(function(){}); }
+  var _filesSyncing=false;
+  function cloudSyncFiles(){
+    if(!cloudToken || _filesSyncing) return Promise.resolve();
+    _filesSyncing=true;
+    var tomb=allegatoTombstones(), tombSet={}; tomb.forEach(function(x){ tombSet[x]=1; });
+    return Promise.all([ apiFetch("/allegati",{method:"GET"}).catch(function(){ return null; }), docAll().catch(function(){ return []; }) ]).then(function(res){
+      var remote=res[0], local=res[1]||[];
+      if(!remote || !Array.isArray(remote)) return;
+      var rById={}; remote.forEach(function(m){ if(m&&m.id!=null) rById[m.id]=m; });
+      var lById={}; local.forEach(function(f){ if(f&&f.id!=null) lById[f.id]=f; });
+      var chain=Promise.resolve();
+      // scarica i remoti mancanti in locale (saltando quelli cancellati)
+      remote.forEach(function(m){ if(m&&m.id!=null && !tombSet[m.id] && !lById[m.id]){ chain=chain.then(function(){ return apiFetch("/allegati/"+encodeURIComponent(m.id),{method:"GET"}).then(function(full){ if(full&&full.b64){ var buf=b64ToAb(full.b64); if(buf) return docPutRaw({id:m.id, cat:full.cat, modulo:full.modulo, nome:full.nome, tipo:full.tipo, size:full.size, ts:full.ts, buf:buf}); } }).catch(function(){}); }); } });
+      // carica i locali mancanti sul cloud (saltando quelli cancellati)
+      local.forEach(function(f){ if(f&&f.id!=null && !tombSet[f.id] && !rById[f.id]){ chain=chain.then(function(){ return cloudPushFile(f); }); } });
+      // propaga le cancellazioni: togli dal cloud e dal dispositivo cio' che e' nella lista
+      tomb.forEach(function(id){ if(rById[id]){ chain=chain.then(function(){ return cloudDeleteFile(id); }); } if(lById[id]){ chain=chain.then(function(){ return docDeleteRaw(id).catch(function(){}); }); } });
+      return chain;
+    }).then(function(){ _filesSyncing=false; }).catch(function(){ _filesSyncing=false; });
   }
   function cloudLogout(silent){ cloudToken=null; cloudEmail=null; cloudStato=null; _cloudReady=false; try{ localStorage.removeItem("diario-cloud-token"); localStorage.removeItem("diario-cloud-email"); localStorage.removeItem("diario-cloud-stato"); }catch(e){} try{ renderCloudCard(); }catch(e){} }
   function renderCloudCard(){
