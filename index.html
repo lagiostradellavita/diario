@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 257; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 258; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1943,7 +1943,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v257 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v258 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -3433,7 +3433,7 @@
     function reEsc(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
     function fragInfo(){ var pos=(typeof nt.selectionStart==="number")?nt.selectionStart:nt.value.length; var before=nt.value.slice(0,pos); var mm=before.match(/[^\s,.;:!?]*$/); return { frag:(mm?mm[0]:""), pos:pos, before:before }; }
     function hideSug(){ if(box){ box.hidden=true; box.innerHTML=""; } }
-    function pick(term, group){ var fi=fragInfo(); var after=nt.value.slice(fi.pos); var head=fi.before.slice(0, fi.before.length-fi.frag.length)+term; nt.value=head+" "+after; try{ nt.setSelectionRange(head.length+1, head.length+1); }catch(e){} try{ group.selectOne(term); }catch(e){} hideSug(); try{ nt.focus(); }catch(e){} }
+    function pick(term, group){ var head=nt.value.replace(/[^\s,.;:!?\n]*$/, ""); nt.value=head+term+"\n"; try{ group.selectOne(term); }catch(e){} hideSug(); try{ nt.focus(); var _L=nt.value.length; nt.setSelectionRange(_L,_L); }catch(e){} }
     function addChip(label, term, group){ var b=document.createElement("button"); b.type="button"; b.className="chip-sel nota-sug-chip"; b.textContent=label; (function(t,grp){ var done=false; function go(e){ if(done) return; done=true; if(e&&e.preventDefault) e.preventDefault(); pick(t,grp); } b.addEventListener("pointerdown", go); b.addEventListener("click", go); })(term,group); box.appendChild(b); }
     function updateSug(){
       if(!box) return; var frag=fragInfo().frag, fl=frag.toLowerCase(); box.innerHTML="";
@@ -3444,8 +3444,10 @@
       box.hidden=(n===0);
     }
     function autoSelectFromNote(){ var txt=(nt.value||"").toLowerCase(); if(txt.length<3) return; [fastidiG, psicoG].forEach(function(group){ group.opts().forEach(function(term){ var tl=String(term).toLowerCase().trim(); if(tl.length<3) return; if(group.selected().indexOf(term)>=0) return; try{ var re=new RegExp("(^|[^0-9a-zàèéìòùáéíóúüç])"+reEsc(tl)+"([^0-9a-zàèéìòùáéíóúüç]|$)","i"); if(re.test(txt)) group.selectOne(term); }catch(e){} }); }); }
-    // «Scrivo e basta»: la Nota e' testo libero. Niente aggiunte automatiche o suggerimenti che scrivono nel campo, cosi' il cursore resta sempre dove stai scrivendo. I sintomi si scelgono dai pulsanti/elenco qui sotto.
-    try{ hideSug(); }catch(e){}
+    nt.addEventListener("input", function(){ autoSelectFromNote(); updateSug(); });
+    nt.addEventListener("keyup", updateSug);
+    nt.addEventListener("click", updateSug);
+    nt.addEventListener("blur", function(){ setTimeout(hideSug, 350); });
   })();
   wireAdd("doveAddInput","doveAddBtn", doveG);
   // Fastidi fisici: ricerca con suggerimenti + elenco a scomparsa alfabetico + pillole dei selezionati
