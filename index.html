@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 263; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 264; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1943,7 +1943,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v263 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v264 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -6042,7 +6042,8 @@
     +'<li>❤️ <b>Parametri</b> · ⚖️ <b>Peso</b> · 🌸 <b>Ciclo</b> · 😴 <b>Sonno</b> · 🛏️ <b>Sesso</b>.</li>'
     +'<li>🗂️ <b>Storia clinica</b> — diagnosi, terapie, esami; riepilogo per il medico.</li></ul>'
     +'<p><b>Referti:</b> non si caricano file, si incolla il <b>link</b> (Dropbox, Google Drive o cartella del PC).</p>'
-    +'<p><b>Backup:</b> ogni tanto salva un backup (in fondo alla schermata iniziale).</p>'
+    +'<p><b>Foto e file allegati:</b> le foto e i PDF che alleghi nelle funzioni si salvano con i tuoi dati: rientrano nel backup e si sincronizzano fra telefono e PC.</p>'
+    +'<p><b>Backup:</b> ogni tanto salva un backup (in fondo alla schermata iniziale); contiene anche le foto e i file allegati, quindi può pesare di più.</p>'
     +'<p><b>Aggiornamenti:</b> l\'app si aggiorna da sola. Quando c\'è una versione nuova, appena riapri l\'app compare in alto una barra <b>«È disponibile una nuova versione — tocca per aggiornare»</b>: toccala e per un momento vedrai <b>«✓ App aggiornata»</b>. Non devi reinstallare né vedere numeri. Se la barra non compare, tocca il pulsante <b>⟳</b> in alto a destra per ricaricare.</p>'
     +'<p><b>Suggerimenti e problemi:</b> con <b>«💡 Suggerimenti e problemi»</b> nella schermata iniziale puoi chiedere una funzione nuova o segnalare un errore.</p>'
     +'<p>🔒 <b>Privacy:</b> i tuoi dati li vedi solo tu.</p>';
