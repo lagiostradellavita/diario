@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 256; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 257; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1943,7 +1943,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v256 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v257 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -3444,10 +3444,8 @@
       box.hidden=(n===0);
     }
     function autoSelectFromNote(){ var txt=(nt.value||"").toLowerCase(); if(txt.length<3) return; [fastidiG, psicoG].forEach(function(group){ group.opts().forEach(function(term){ var tl=String(term).toLowerCase().trim(); if(tl.length<3) return; if(group.selected().indexOf(term)>=0) return; try{ var re=new RegExp("(^|[^0-9a-zàèéìòùáéíóúüç])"+reEsc(tl)+"([^0-9a-zàèéìòùáéíóúüç]|$)","i"); if(re.test(txt)) group.selectOne(term); }catch(e){} }); }); }
-    nt.addEventListener("input", function(){ autoSelectFromNote(); updateSug(); });
-    nt.addEventListener("keyup", updateSug);
-    nt.addEventListener("click", updateSug);
-    nt.addEventListener("blur", function(){ setTimeout(hideSug, 350); });
+    // «Scrivo e basta»: la Nota e' testo libero. Niente aggiunte automatiche o suggerimenti che scrivono nel campo, cosi' il cursore resta sempre dove stai scrivendo. I sintomi si scelgono dai pulsanti/elenco qui sotto.
+    try{ hideSug(); }catch(e){}
   })();
   wireAdd("doveAddInput","doveAddBtn", doveG);
   // Fastidi fisici: ricerca con suggerimenti + elenco a scomparsa alfabetico + pillole dei selezionati
