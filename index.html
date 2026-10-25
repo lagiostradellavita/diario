@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 258; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 259; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1943,7 +1943,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v258 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v259 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -3433,7 +3433,7 @@
     function reEsc(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
     function fragInfo(){ var pos=(typeof nt.selectionStart==="number")?nt.selectionStart:nt.value.length; var before=nt.value.slice(0,pos); var mm=before.match(/[^\s,.;:!?]*$/); return { frag:(mm?mm[0]:""), pos:pos, before:before }; }
     function hideSug(){ if(box){ box.hidden=true; box.innerHTML=""; } }
-    function pick(term, group){ var head=nt.value.replace(/[^\s,.;:!?\n]*$/, ""); nt.value=head+term+"\n"; try{ group.selectOne(term); }catch(e){} hideSug(); try{ nt.focus(); var _L=nt.value.length; nt.setSelectionRange(_L,_L); }catch(e){} }
+    function pick(term, group){ var val=nt.value, pos=(typeof nt.selectionStart==="number")?nt.selectionStart:val.length; if(pos<=0 && val.length>0) pos=val.length; if(pos>val.length) pos=val.length; var left=val.slice(0,pos); var frag=(left.match(/[^\s,.;:!?\n]*$/)||[""])[0]; var start=pos-frag.length; var ins=term+"\n"; var caret=start+ins.length; try{ nt.focus(); }catch(e){} var ok=false; try{ if(typeof nt.setRangeText==="function"){ nt.setRangeText(ins, start, pos, "end"); ok=true; } }catch(e){} if(!ok){ nt.value=val.slice(0,start)+ins+val.slice(pos); } try{ group.selectOne(term); }catch(e){} hideSug(); try{ nt.focus(); nt.setSelectionRange(caret,caret); }catch(e){} }
     function addChip(label, term, group){ var b=document.createElement("button"); b.type="button"; b.className="chip-sel nota-sug-chip"; b.textContent=label; (function(t,grp){ var done=false; function go(e){ if(done) return; done=true; if(e&&e.preventDefault) e.preventDefault(); pick(t,grp); } b.addEventListener("pointerdown", go); b.addEventListener("click", go); })(term,group); box.appendChild(b); }
     function updateSug(){
       if(!box) return; var frag=fragInfo().frag, fl=frag.toLowerCase(); box.innerHTML="";
