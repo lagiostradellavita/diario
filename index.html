@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 251; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 252; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1943,7 +1943,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v251 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v252 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -3407,7 +3407,7 @@
   var FASTIDI=["Febbre","Brividi","Capogiri","Mal di testa","Emicrania","Vertigini","Nausea","Vomito","Stanchezza","Debolezza","Malessere","Fiato corto","Tosse","Mal di gola","Difficoltà a deglutire","Naso chiuso","Bruciore di stomaco","Reflusso","Dolori addominali","Gonfiore addominale","Stitichezza","Diarrea","Dolori muscolari","Crampi","Spasmi muscolari","Mal di schiena","Mal di schiena in basso (lombalgia)","Sciatica (dolore lungo la gamba)","Dolori articolari","Tensione al collo","Torcicollo","Dolore al collo (cervicale)","Dolore al petto","Guizzi muscolari (fascicolazioni)","Formicolii","Intorpidimento (addormentamento)","Acufene","Ronzio auricolare","Vista offuscata","Occhi stanchi","Nebbia mentale","Palpitazioni","Tachicardia","Battito che salta (extrasistoli)","Caviglie gonfie","Sudorazione","Sudorazione notturna","Prurito","Insonnia","Poca fame (inappetenza)","Fastidio vescica"];
   var PSICO=["Ansia","Stress","Attacco di panico","Tristezza","Umore basso","Depressione","Agitazione","Pensieri ossessivi","Irritabilità"];
   // pulizia una tantum: toglie dai fastidi personalizzati i refusi e i doppioni di voci gia' di base (lascia intatte le altre voci create dall'utente)
-  try{ if(localStorage.getItem("salute-fastidi-opts-pulito")!=="1"){ var _fxRm=["Dispea","Canninata a scatti","Tachicardia","Dispnea","Affanno"]; var _fxc=JSON.parse(localStorage.getItem("salute-fastidi-opts")||"[]"); if(Array.isArray(_fxc)){ localStorage.setItem("salute-fastidi-opts", JSON.stringify(_fxc.filter(function(x){ return _fxRm.indexOf(x)<0; }))); } localStorage.setItem("salute-fastidi-opts-pulito","1"); } }catch(e){}
+  try{ if(localStorage.getItem("salute-fastidi-opts-pulito")!=="2"){ var _fxRm=["Dispea","Canninata a scatti","Tachicardia","Dispnea","Affanno","Colon"]; var _fxc=JSON.parse(localStorage.getItem("salute-fastidi-opts")||"[]"); if(Array.isArray(_fxc)){ localStorage.setItem("salute-fastidi-opts", JSON.stringify(_fxc.filter(function(x){ return _fxRm.indexOf(x)<0; }))); } localStorage.setItem("salute-fastidi-opts-pulito","2"); } }catch(e){}
   // «Amara» -> «Bocca amara» nelle voci personalizzate, e assicura che «Acufene» non resti nascosto
   try{ if(localStorage.getItem("salute-fastidi-fix2")!=="1"){ var _o2=JSON.parse(localStorage.getItem("salute-fastidi-opts")||"[]"); if(Array.isArray(_o2)){ var _ia=_o2.indexOf("Amara"); if(_ia>=0){ if(_o2.indexOf("Bocca amara")<0){ _o2[_ia]="Bocca amara"; } else { _o2.splice(_ia,1); } localStorage.setItem("salute-fastidi-opts", JSON.stringify(_o2)); } } var _h2=JSON.parse(localStorage.getItem("salute-fastidi-opts-hidden")||"[]"); if(Array.isArray(_h2) && _h2.indexOf("Acufene")>=0){ localStorage.setItem("salute-fastidi-opts-hidden", JSON.stringify(_h2.filter(function(x){ return x!=="Acufene"; }))); } localStorage.setItem("salute-fastidi-fix2","1"); } }catch(e){}
   var fastidiG=makeChipGroup("fastidiChips", FASTIDI, "salute-fastidi-opts", false, {sortAlpha:true, onChange:onFastidiChange, manageId:"fastidiManage", addSelects:true});
