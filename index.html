@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 264; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 265; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1694,56 +1694,68 @@
     </header>
     <section class="card">
       <div class="row-between"><h2 class="section-title" style="margin:0">Oggi</h2><span id="evacSummary" class="stat-summary"></span></div>
-      <p class="fineprint" style="margin:2px 0 10px">Le schede <b>Urina</b> e <b>Feci</b> sono qui sotto, sempre aperte: compila e tocca <b>Registra</b>. I due pulsanti ti portano direttamente alla scheda giusta.</p>
+      <p class="fineprint" style="margin:2px 0 10px">Le schede <b>Feci</b> e <b>Urina</b> sono qui sotto, chiuse: toccale per aprirle, compila e tocca <b>Registra</b>. I due pulsanti aprono direttamente quella giusta.</p>
       <div class="quick quick-2">
-        <button class="qbtn" type="button" id="qUrina" style="--c:#0EA5E9"><span style="font-size:28px;line-height:1">💧</span><span class="qlab">Urina</span><span class="qadd">vai alla scheda</span></button>
-        <button class="qbtn" type="button" id="qFeci" style="--c:#A16207"><span style="font-size:28px;line-height:1">💩</span><span class="qlab">Feci</span><span class="qadd">vai alla scheda</span></button>
+        <button class="qbtn" type="button" id="qFeci" style="--c:#A16207"><span style="font-size:28px;line-height:1">💩</span><span class="qlab">Feci</span><span class="qadd">apri la scheda</span></button>
+        <button class="qbtn" type="button" id="qUrina" style="--c:#0EA5E9"><span style="font-size:28px;line-height:1">💧</span><span class="qlab">Urina</span><span class="qadd">apri la scheda</span></button>
+      </div>
+    </section>
+    <section class="card" id="feciCard">
+      <div class="food-cat" id="collapFeci">
+        <button type="button" class="fc-head" id="headFeci"><span>💩 Feci</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyFeci" hidden>
+          <p class="group-lbl">Colore (anche più di uno)</p>
+          <div id="feciColore" class="chips"></div>
+          <div class="chip-add"><input type="text" id="feciColoreInput" placeholder="Altro colore…"><button type="button" id="feciColoreBtn">＋</button></div>
+          <p class="group-lbl">Quantità</p>
+          <div id="feciQta" class="chips"></div>
+          <div class="chip-add"><input type="text" id="feciQtaInput" placeholder="Altra quantità…"><button type="button" id="feciQtaBtn">＋</button></div>
+          <p class="group-lbl">Consistenza (scala di Bristol — anche più di una)</p>
+          <div id="feciMorb" class="chips"></div>
+          <div class="chip-add"><input type="text" id="feciMorbInput" placeholder="Altro…"><button type="button" id="feciMorbBtn">＋</button></div>
+          <p class="group-lbl">Sintomi (anche più di uno)</p>
+          <div id="feciSintomi" class="chips"></div>
+          <div class="chip-add"><input type="text" id="feciSintomiInput" placeholder="Aggiungi un sintomo…"><button type="button" id="feciSintomiBtn">＋</button></div>
+          <div class="field" style="margin-top:12px"><label for="feciNota">Nota (facoltativa)</label><input type="text" id="feciNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
+          <button class="link-btn" id="feciWhenToggle" style="margin-top:8px">＋ cambia data e ora</button>
+          <div class="grid2" id="feciWhen" hidden>
+            <div class="field"><label for="feciData">Data</label><input type="date" id="feciData"></div>
+            <div class="field"><label for="feciOra">Ora</label><input type="time" id="feciOra"></div>
+          </div>
+          <div class="panel-actions" style="margin-top:14px"><button class="primary" id="feciSave">Registra</button><button class="link-btn" id="feciCancel">Annulla</button></div>
+        </div>
       </div>
     </section>
     <section class="card" id="urinaCard">
-      <h2 class="section-title">💧 Urina</h2>
-      <p class="group-lbl">Colore (anche più di uno)</p>
-      <div id="urinaColore" class="chips"></div>
-      <div class="chip-add"><input type="text" id="urinaColoreInput" placeholder="Altro colore…"><button type="button" id="urinaColoreBtn">＋</button></div>
-      <p class="group-lbl">Quantità</p>
-      <div id="urinaQta" class="chips"></div>
-      <div class="chip-add"><input type="text" id="urinaQtaInput" placeholder="Altra quantità…"><button type="button" id="urinaQtaBtn">＋</button></div>
-      <p class="group-lbl">Sintomi (anche più di uno)</p>
-      <div id="urinaFastidi" class="chips"></div>
-      <div class="chip-add"><input type="text" id="urinaFastidiInput" placeholder="Aggiungi un fastidio…"><button type="button" id="urinaFastidiBtn">＋</button></div>
-      <div class="field" style="margin-top:12px"><label for="urinaNota">Nota (facoltativa)</label><input type="text" id="urinaNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
-      <button class="link-btn" id="urinaWhenToggle" style="margin-top:8px">＋ cambia data e ora</button>
-      <div class="grid2" id="urinaWhen" hidden>
-        <div class="field"><label for="urinaData">Data</label><input type="date" id="urinaData"></div>
-        <div class="field"><label for="urinaOra">Ora</label><input type="time" id="urinaOra"></div>
+      <div class="food-cat" id="collapUrina">
+        <button type="button" class="fc-head" id="headUrina"><span>💧 Urina</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyUrina" hidden>
+          <p class="group-lbl">Colore (anche più di uno)</p>
+          <div id="urinaColore" class="chips"></div>
+          <div class="chip-add"><input type="text" id="urinaColoreInput" placeholder="Altro colore…"><button type="button" id="urinaColoreBtn">＋</button></div>
+          <p class="group-lbl">Quantità</p>
+          <div id="urinaQta" class="chips"></div>
+          <div class="chip-add"><input type="text" id="urinaQtaInput" placeholder="Altra quantità…"><button type="button" id="urinaQtaBtn">＋</button></div>
+          <p class="group-lbl">Sintomi (anche più di uno)</p>
+          <div id="urinaFastidi" class="chips"></div>
+          <div class="chip-add"><input type="text" id="urinaFastidiInput" placeholder="Aggiungi un fastidio…"><button type="button" id="urinaFastidiBtn">＋</button></div>
+          <div class="field" style="margin-top:12px"><label for="urinaNota">Nota (facoltativa)</label><input type="text" id="urinaNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
+          <button class="link-btn" id="urinaWhenToggle" style="margin-top:8px">＋ cambia data e ora</button>
+          <div class="grid2" id="urinaWhen" hidden>
+            <div class="field"><label for="urinaData">Data</label><input type="date" id="urinaData"></div>
+            <div class="field"><label for="urinaOra">Ora</label><input type="time" id="urinaOra"></div>
+          </div>
+          <div class="panel-actions" style="margin-top:14px"><button class="primary" id="urinaSave">Registra</button><button class="link-btn" id="urinaCancel">Annulla</button></div>
+        </div>
       </div>
-      <div class="panel-actions" style="margin-top:14px"><button class="primary" id="urinaSave">Registra</button><button class="link-btn" id="urinaCancel">Annulla</button></div>
-    </section>
-    <section class="card" id="feciCard">
-      <h2 class="section-title">💩 Feci</h2>
-      <p class="group-lbl">Colore (anche più di uno)</p>
-      <div id="feciColore" class="chips"></div>
-      <div class="chip-add"><input type="text" id="feciColoreInput" placeholder="Altro colore…"><button type="button" id="feciColoreBtn">＋</button></div>
-      <p class="group-lbl">Quantità</p>
-      <div id="feciQta" class="chips"></div>
-      <div class="chip-add"><input type="text" id="feciQtaInput" placeholder="Altra quantità…"><button type="button" id="feciQtaBtn">＋</button></div>
-      <p class="group-lbl">Consistenza (scala di Bristol — anche più di una)</p>
-      <div id="feciMorb" class="chips"></div>
-      <div class="chip-add"><input type="text" id="feciMorbInput" placeholder="Altro…"><button type="button" id="feciMorbBtn">＋</button></div>
-      <p class="group-lbl">Sintomi (anche più di uno)</p>
-      <div id="feciSintomi" class="chips"></div>
-      <div class="chip-add"><input type="text" id="feciSintomiInput" placeholder="Aggiungi un sintomo…"><button type="button" id="feciSintomiBtn">＋</button></div>
-      <div class="field" style="margin-top:12px"><label for="feciNota">Nota (facoltativa)</label><input type="text" id="feciNota" placeholder="Scrivi una nota…" autocomplete="off"></div>
-      <button class="link-btn" id="feciWhenToggle" style="margin-top:8px">＋ cambia data e ora</button>
-      <div class="grid2" id="feciWhen" hidden>
-        <div class="field"><label for="feciData">Data</label><input type="date" id="feciData"></div>
-        <div class="field"><label for="feciOra">Ora</label><input type="time" id="feciOra"></div>
-      </div>
-      <div class="panel-actions" style="margin-top:14px"><button class="primary" id="feciSave">Registra</button><button class="link-btn" id="feciCancel">Annulla</button></div>
     </section>
     <section class="card">
-      <h2 class="section-title">Storico</h2>
-      <div id="evacList"></div>
+      <div class="food-cat" id="collapEvacStor">
+        <button type="button" class="fc-head" id="headEvacStor"><span>Storico</span><span class="fc-arrow">›</span></button>
+        <div class="fc-body" id="bodyEvacStor" hidden>
+          <div id="evacList"></div>
+        </div>
+      </div>
     </section>
   </section>
 
@@ -1943,7 +1955,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v264 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v265 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -3918,7 +3930,21 @@
   }
   function evacPush(rec){ evac.push(rec); saveEvac(); renderEvac(); toast(EVAC_LBL[rec.tipo]+" registrata ✓"); }
   // le due schede restano sempre aperte: i pulsanti portano alla scheda giusta
-  function evacScrollTo(id){ var c=document.getElementById(id); if(!c) return; c.hidden=false; try{ c.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} }
+  function evacApri(quale){
+    var corpo=document.getElementById("body"+quale), cat=document.getElementById("collap"+quale);
+    if(corpo && corpo.hidden){ corpo.hidden=false; if(cat) cat.classList.add("open"); }
+  }
+  /* Aprire, non solo scorrere: con la scheda chiusa lo scorrimento
+     portava su un titolo e sembrava che il pulsante non facesse nulla. */
+  function evacScrollTo(id){
+    var c=document.getElementById(id); if(!c) return;
+    c.hidden=false;
+    evacApri(id==="feciCard" ? "Feci" : "Urina");
+    try{ c.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){}
+  }
+  saluteCollapWire("headFeci","bodyFeci","collapFeci");
+  saluteCollapWire("headUrina","bodyUrina","collapUrina");
+  saluteCollapWire("headEvacStor","bodyEvacStor","collapEvacStor");
   document.getElementById("qUrina").onclick=function(){ evacScrollTo("urinaCard"); };
   document.getElementById("qFeci").onclick=function(){ evacScrollTo("feciCard"); };
   function evacResetUrina(){ uColore.clear(); uQta.clear(); uFastidi.clear(); document.getElementById("urinaNota").value=""; document.getElementById("urinaWhen").hidden=true; }
