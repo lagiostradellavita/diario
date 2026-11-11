@@ -1,0 +1,607 @@
+<title>Zona Barbecue Pergolato</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+  :root{
+    --paper:#E7ECEF;
+    --sheet:#FBFCFD;
+    --sheet-2:#F0F4F6;
+    --ink:#132029;
+    --ink-2:#485A66;
+    --ink-3:#7A8B96;
+    --line:#C6D0D6;
+    --line-strong:#9DACB5;
+    --blue:#15588F;
+    --blue-soft:#DBE8F2;
+    --ember:#AF4519;
+    --ember-soft:#F7E4DA;
+    --green:#4B7845;
+    --wood:#8A5A34;
+    --glass:#3E96BD;
+    --floor-in:#F5F2EC;
+    --floor-out:#EDE7DD;
+    --shadow:0 1px 2px rgba(19,32,41,.05), 0 8px 24px -14px rgba(19,32,41,.30);
+    --radius:4px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0C1317;
+      --sheet:#141D23;
+      --sheet-2:#1A242B;
+      --ink:#DCE6EB;
+      --ink-2:#9EB1BC;
+      --ink-3:#71858F;
+      --line:#2B3A43;
+      --line-strong:#44585F;
+      --blue:#79B7E9;
+      --blue-soft:#15303F;
+      --ember:#E98B58;
+      --ember-soft:#33211A;
+      --green:#82B27A;
+      --wood:#B98554;
+      --glass:#5FB6DC;
+      --floor-in:#1B252B;
+      --floor-out:#182126;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -14px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0C1317;
+    --sheet:#141D23;
+    --sheet-2:#1A242B;
+    --ink:#DCE6EB;
+    --ink-2:#9EB1BC;
+    --ink-3:#71858F;
+    --line:#2B3A43;
+    --line-strong:#44585F;
+    --blue:#79B7E9;
+    --blue-soft:#15303F;
+    --ember:#E98B58;
+    --ember-soft:#33211A;
+    --green:#82B27A;
+    --wood:#B98554;
+    --glass:#5FB6DC;
+    --floor-in:#1B252B;
+    --floor-out:#182126;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -14px rgba(0,0,0,.7);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 72px;display:flex;flex-direction:column;gap:26px}
+
+  h1,h2,h3{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",Arial,sans-serif;font-weight:700;text-wrap:balance;margin:0}
+  h1{font-size:clamp(1.9rem,4.2vw,2.9rem);line-height:1.05;letter-spacing:-.01em}
+  h2{font-size:1.35rem;letter-spacing:.01em}
+  h3{font-size:1.02rem;letter-spacing:.02em}
+  p{margin:0}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;font-weight:600;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--blue);
+  }
+  .lead{color:var(--ink-2);max-width:62ch}
+
+  /* ---------- title block ---------- */
+  .titleblock{
+    background:var(--sheet);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;
+  }
+  .titleblock .top{padding:26px 26px 22px;display:flex;flex-direction:column;gap:12px}
+  .meta{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    border-top:1px solid var(--line);background:var(--sheet-2);
+  }
+  .meta div{padding:12px 18px;border-right:1px solid var(--line)}
+  .meta div:last-child{border-right:0}
+  .meta dt{font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 2px}
+  .meta dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:.92rem;font-weight:600;color:var(--ink)}
+
+  /* ---------- panels ---------- */
+  .panel{
+    background:var(--sheet);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);
+  }
+  .panel-head{
+    display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    padding:14px 20px;border-bottom:1px solid var(--line);background:var(--sheet-2);
+  }
+  .panel-head .num{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;font-weight:600;color:var(--ink-3);
+    letter-spacing:.12em;
+  }
+  .panel-body{padding:20px}
+
+  .drawing{overflow-x:auto;padding:14px 10px 6px}
+  svg{display:block;width:100%;height:auto;min-width:640px}
+
+  /* ---------- svg drawing styles ---------- */
+  .floor-in{fill:var(--floor-in)}
+  .floor-out{fill:var(--floor-out)}
+  .floor-bbq{fill:var(--ember-soft)}
+  .wall{fill:var(--ink);stroke:none}
+  .glassline{stroke:var(--glass);stroke-width:9;stroke-linecap:butt;fill:none}
+  .furn{fill:var(--sheet-2);stroke:var(--line-strong);stroke-width:2.5}
+  .furn-soft{fill:none;stroke:var(--line-strong);stroke-width:2.5}
+  .wooditem{fill:none;stroke:var(--wood);stroke-width:3}
+  .beam{stroke:var(--wood);stroke-width:3;opacity:.55}
+  .plant{fill:var(--green);opacity:.75}
+  .hatchline{stroke:var(--ember);stroke-width:2.5;opacity:.55}
+  .block{fill:url(#hatch);stroke:var(--ember);stroke-width:3.5}
+  .bbqzone{fill:none;stroke:var(--ember);stroke-width:4;stroke-dasharray:16 9}
+  .cover{fill:none;stroke:var(--ember);stroke-width:2;stroke-dasharray:5 7;opacity:.75}
+  .opt{fill:none;stroke:var(--ink-3);stroke-width:2.5;stroke-dasharray:9 7}
+  .dim{stroke:var(--blue);stroke-width:2;fill:none}
+  .dim-e{stroke:var(--ember);stroke-width:2;fill:none}
+  .ext{stroke:var(--blue);stroke-width:1.2;stroke-dasharray:6 6;opacity:.6}
+  .ext-e{stroke:var(--ember);stroke-width:1.2;stroke-dasharray:6 6;opacity:.6}
+  .arrow{stroke:var(--ink-2);stroke-width:2.5;fill:none}
+  .smoke{stroke:var(--ember);stroke-width:2.5;fill:none;stroke-dasharray:10 8}
+  text{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",Arial,sans-serif}
+  .t-dim{font-family:"IBM Plex Mono",monospace;font-size:25px;font-weight:600;fill:var(--blue)}
+  .t-dim-e{font-family:"IBM Plex Mono",monospace;font-size:25px;font-weight:600;fill:var(--ember)}
+  .t-room{font-size:27px;font-weight:700;letter-spacing:.08em;fill:var(--ink-2)}
+  .t-room-e{font-size:27px;font-weight:700;letter-spacing:.08em;fill:var(--ember)}
+  .t-lab{font-size:19px;font-weight:600;letter-spacing:.05em;fill:var(--ink-3)}
+  .t-lab-e{font-size:19px;font-weight:600;letter-spacing:.05em;fill:var(--ember)}
+  .t-note{font-family:"IBM Plex Mono",monospace;font-size:17px;fill:var(--ink-2)}
+
+  /* ---------- legend ---------- */
+  .legend{display:flex;flex-wrap:wrap;gap:8px 22px;padding:14px 20px;border-top:1px solid var(--line);background:var(--sheet-2)}
+  .legend span{display:inline-flex;align-items:center;gap:9px;font-size:.83rem;color:var(--ink-2)}
+  .sw{width:26px;height:10px;border-radius:1px;flex:none}
+  .sw-wall{background:var(--ink)}
+  .sw-glass{background:var(--glass)}
+  .sw-wood{background:var(--wood);opacity:.6}
+  .sw-bbq{background:transparent;border:2px dashed var(--ember);height:12px}
+  .sw-block{background:var(--ember-soft);border:1.5px solid var(--ember);height:12px}
+
+  /* ---------- option cards ---------- */
+  .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+  .opt-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--sheet-2);padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+  .opt-card.reco{border-color:var(--ember);background:var(--ember-soft)}
+  .tag{
+    align-self:flex-start;font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;
+    letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border-radius:2px;
+    background:var(--blue-soft);color:var(--blue);
+  }
+  .tag.hot{background:var(--ember);color:var(--sheet)}
+  .opt-card ul{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:.92rem;color:var(--ink-2)}
+
+  /* ---------- spec grid ---------- */
+  .specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;background:var(--line)}
+  .spec{background:var(--sheet);padding:18px 20px;display:flex;flex-direction:column;gap:9px}
+  .spec h3{color:var(--ink)}
+  .spec ul{margin:0;padding-left:17px;display:flex;flex-direction:column;gap:6px;font-size:.9rem;color:var(--ink-2)}
+  .spec li strong{color:var(--ink);font-weight:600}
+
+  /* ---------- table ---------- */
+  .tablewrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{padding:11px 20px;text-align:left;border-bottom:1px solid var(--line)}
+  th{
+    font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-3);font-weight:600;background:var(--sheet-2);
+  }
+  td.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;text-align:right}
+  tr.total td{font-weight:600;border-bottom:0;background:var(--sheet-2)}
+  tr.new td{color:var(--ember)}
+
+  /* ---------- steps ---------- */
+  ol.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:flex;flex-direction:column}
+  ol.steps li{
+    counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:14px;
+    padding:14px 20px;border-bottom:1px solid var(--line);align-items:start;
+  }
+  ol.steps li:last-child{border-bottom:0}
+  ol.steps li::before{
+    content:counter(s,decimal-leading-zero);
+    font-family:"IBM Plex Mono",monospace;font-size:.82rem;font-weight:600;color:var(--blue);
+    padding-top:2px;
+  }
+  ol.steps b{display:block;font-weight:600}
+  ol.steps span{color:var(--ink-2);font-size:.92rem}
+
+  footer{color:var(--ink-3);font-size:.82rem;text-align:center;padding-top:6px}
+  @media (max-width:640px){
+    .meta div{border-right:0;border-bottom:1px solid var(--line)}
+    .wrap{padding:18px 12px 56px}
+  }
+</style>
+
+<div class="wrap">
+
+  <!-- ============ TITLE BLOCK ============ -->
+  <header class="titleblock">
+    <div class="top">
+      <p class="eyebrow">Veranda + pergolato · variante di progetto</p>
+      <h1>Zona barbecue dietro il pergolato</h1>
+      <p class="lead">Nuovo vano cucina esterna di 200 × 100 cm ricavato oltre il lato lungo del pergolato, sul fronte nord, vicino agli impianti della cucina interna e lontano dalla vetrata e dal tavolo all'aperto.</p>
+    </div>
+    <dl class="meta">
+      <div><dt>Veranda chiusa</dt><dd>800 × 700 cm</dd></div>
+      <div><dt>Pergolato</dt><dd>250 × 700 cm</dd></div>
+      <div><dt>Zona barbecue</dt><dd>200 × 100 cm</dd></div>
+      <div><dt>Ingombro totale</dt><dd>1250 × 700 cm</dd></div>
+    </dl>
+  </header>
+
+  <!-- ============ MAIN PLAN ============ -->
+  <section class="panel">
+    <div class="panel-head">
+      <span class="num">TAV. 01</span>
+      <h2>Pianta generale con la nuova zona barbecue</h2>
+    </div>
+    <div class="drawing">
+      <svg viewBox="-150 -130 1650 990" role="img" aria-label="Pianta della veranda 800x700 cm, del pergolato 250x700 cm e della nuova zona barbecue 200x100 cm posta dietro il pergolato">
+        <defs>
+          <pattern id="travi" width="12" height="46" patternUnits="userSpaceOnUse">
+            <line class="beam" x1="0" y1="1" x2="12" y2="1"/>
+          </pattern>
+          <pattern id="hatch" width="15" height="15" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line class="hatchline" x1="0" y1="0" x2="0" y2="15"/>
+          </pattern>
+        </defs>
+
+        <!-- pavimenti -->
+        <rect class="floor-in" x="0" y="0" width="800" height="700"/>
+        <rect class="floor-out" x="800" y="0" width="250" height="700"/>
+        <rect class="floor-bbq" x="1050" y="0" width="200" height="100"/>
+
+        <!-- pergolato: travi e piante -->
+        <rect x="800" y="0" width="250" height="700" fill="url(#travi)"/>
+        <rect x="800" y="0" width="250" height="700" fill="none" stroke="var(--wood)" stroke-width="5"/>
+        <circle class="plant" cx="820" cy="120" r="17"/>
+        <circle class="plant" cx="1030" cy="230" r="17"/>
+        <circle class="plant" cx="820" cy="470" r="17"/>
+        <circle class="plant" cx="1030" cy="600" r="17"/>
+
+        <!-- muri pieni veranda -->
+        <rect class="wall" x="0" y="0" width="690" height="20"/>
+        <rect class="wall" x="790" y="0" width="10" height="20"/>
+        <rect class="wall" x="0" y="0" width="20" height="700"/>
+        <rect class="wall" x="780" y="0" width="20" height="62"/>
+        <rect class="wall" x="780" y="638" width="20" height="62"/>
+        <rect class="wall" x="0" y="680" width="20" height="20"/>
+
+        <!-- vetrate fisse -->
+        <line class="glassline" x1="20" y1="690" x2="780" y2="690"/>
+        <line class="glassline" x1="790" y1="62" x2="790" y2="638"/>
+
+        <!-- porta a vetro 100 cm verso casa -->
+        <line x1="690" y1="10" x2="790" y2="10" stroke="var(--glass)" stroke-width="7"/>
+        <path d="M690 10 A100 100 0 0 1 790 110" fill="none" stroke="var(--line-strong)" stroke-width="2" stroke-dasharray="8 7"/>
+
+        <!-- arredi veranda -->
+        <rect class="furn" x="20" y="20" width="660" height="65"/>
+        <rect class="furn-soft" x="330" y="26" width="86" height="52"/>
+        <rect class="furn-soft" x="452" y="26" width="66" height="52"/>
+        <text class="t-lab" x="150" y="60">CUCINA LINEARE 660 cm</text>
+        <rect class="furn" x="20" y="95" width="66" height="300"/>
+        <text class="t-lab" x="53" y="250" transform="rotate(-90 53 250)" text-anchor="middle">FRIGO + COLONNE FORNO</text>
+        <rect class="furn" x="20" y="470" width="14" height="130"/>
+        <text class="t-lab" x="46" y="540" transform="rotate(-90 46 540)" text-anchor="middle">TV 65&#8221;</text>
+
+        <rect class="furn" x="160" y="265" width="290" height="88"/>
+        <text class="t-lab" x="305" y="316" text-anchor="middle">PENISOLA</text>
+        <circle class="furn" cx="205" cy="388" r="20"/><circle class="furn" cx="275" cy="388" r="20"/>
+        <circle class="furn" cx="345" cy="388" r="20"/><circle class="furn" cx="415" cy="388" r="20"/>
+
+        <rect class="wooditem" x="550" y="225" width="100" height="255"/>
+        <text class="t-lab" x="600" y="360" transform="rotate(-90 600 360)" text-anchor="middle">TAVOLO 10 POSTI</text>
+        <g class="furn">
+          <rect x="516" y="240" width="28" height="42"/><rect x="516" y="292" width="28" height="42"/>
+          <rect x="516" y="344" width="28" height="42"/><rect x="516" y="396" width="28" height="42"/>
+          <rect x="656" y="240" width="28" height="42"/><rect x="656" y="292" width="28" height="42"/>
+          <rect x="656" y="344" width="28" height="42"/><rect x="656" y="396" width="28" height="42"/>
+        </g>
+
+        <rect class="furn" x="270" y="520" width="250" height="82"/>
+        <rect class="furn" x="440" y="520" width="80" height="140"/>
+        <circle class="furn" cx="196" cy="586" r="46"/>
+        <text class="t-lab" x="330" y="568" text-anchor="middle">DIVANO A L</text>
+
+        <!-- tavolo pergolato -->
+        <rect class="wooditem" x="880" y="300" width="90" height="200"/>
+        <text class="t-lab" x="925" y="400" transform="rotate(-90 925 400)" text-anchor="middle">TAVOLO ESTERNO</text>
+
+        <!-- etichette ambienti -->
+        <text class="t-room" x="400" y="470" text-anchor="middle">VERANDA CHIUSA · 56,00 m&#178;</text>
+        <text class="t-room" x="925" y="660" text-anchor="middle" transform="rotate(-90 925 660)">PERGOLATO · 17,50 m&#178;</text>
+
+        <!-- ===== ZONA BARBECUE ===== -->
+        <rect class="cover" x="1042" y="-8" width="216" height="116"/>
+        <rect class="bbqzone" x="1050" y="0" width="200" height="100"/>
+        <rect class="block" x="1180" y="0" width="70" height="100"/>
+        <line x1="1192" y1="18" x2="1238" y2="18" stroke="var(--ember)" stroke-width="2.5"/>
+        <line x1="1192" y1="30" x2="1238" y2="30" stroke="var(--ember)" stroke-width="2.5"/>
+        <line x1="1192" y1="42" x2="1238" y2="42" stroke="var(--ember)" stroke-width="2.5"/>
+        <rect class="opt" x="1050" y="0" width="130" height="40"/>
+        <text class="t-lab" x="1115" y="26" text-anchor="middle">piano appoggio (opz.)</text>
+        <text class="t-lab-e" x="1215" y="76" text-anchor="middle" transform="rotate(-90 1215 76)">BBQ + CAPPA</text>
+        <text class="t-room-e" x="1150" y="150" text-anchor="middle">ZONA BARBECUE · 2,00 m&#178;</text>
+        <text class="t-note" x="1150" y="178" text-anchor="middle">profondit&#224; 200 &#215; larghezza 100 cm</text>
+
+        <!-- accesso dal pergolato -->
+        <path class="arrow" d="M1010 70 L1160 70"/>
+        <path class="arrow" d="M1148 62 L1162 70 L1148 78"/>
+        <text class="t-note" x="1078" y="58" text-anchor="middle">accesso</text>
+
+        <!-- fumi -->
+        <path class="smoke" d="M1215 -6 C1245 -40 1290 -50 1330 -46"/>
+        <path class="smoke" d="M1318 -56 L1334 -46 L1319 -36"/>
+        <text class="t-note" x="1290" y="-70" text-anchor="middle">fumi lontani da vetrata e tavolo</text>
+
+        <!-- distanze utili -->
+        <path class="arrow" d="M800 210 L1180 210" stroke-dasharray="9 7" opacity=".65"/>
+        <text class="t-note" x="990" y="200" text-anchor="middle">380 cm dalla vetrata della veranda</text>
+
+        <!-- ===== QUOTE ===== -->
+        <!-- estensioni superiori -->
+        <line class="ext" x1="0" y1="-14" x2="0" y2="-86"/>
+        <line class="ext" x1="800" y1="-14" x2="800" y2="-86"/>
+        <line class="ext" x1="1050" y1="-14" x2="1050" y2="-86"/>
+        <line class="ext-e" x1="1250" y1="-14" x2="1250" y2="-86"/>
+        <g class="dim">
+          <line x1="0" y1="-80" x2="800" y2="-80"/>
+          <line x1="0" y1="-88" x2="0" y2="-72"/><line x1="800" y1="-88" x2="800" y2="-72"/>
+          <line x1="800" y1="-80" x2="1050" y2="-80"/>
+          <line x1="1050" y1="-88" x2="1050" y2="-72"/>
+        </g>
+        <g class="dim-e">
+          <line x1="1050" y1="-80" x2="1250" y2="-80"/>
+          <line x1="1250" y1="-88" x2="1250" y2="-72"/>
+        </g>
+        <text class="t-dim" x="400" y="-92" text-anchor="middle">800 cm</text>
+        <text class="t-dim" x="925" y="-92" text-anchor="middle">250 cm</text>
+        <text class="t-dim-e" x="1150" y="-92" text-anchor="middle">200 cm</text>
+
+        <!-- quota sinistra 700 -->
+        <line class="ext" x1="-14" y1="0" x2="-86" y2="0"/>
+        <line class="ext" x1="-14" y1="700" x2="-86" y2="700"/>
+        <g class="dim">
+          <line x1="-80" y1="0" x2="-80" y2="700"/>
+          <line x1="-88" y1="0" x2="-72" y2="0"/><line x1="-88" y1="700" x2="-72" y2="700"/>
+        </g>
+        <text class="t-dim" x="-94" y="350" text-anchor="middle" transform="rotate(-90 -94 350)">700 cm</text>
+
+        <!-- quota destra 100 (larghezza bbq) -->
+        <line class="ext-e" x1="1264" y1="0" x2="1330" y2="0"/>
+        <line class="ext-e" x1="1264" y1="100" x2="1330" y2="100"/>
+        <g class="dim-e">
+          <line x1="1320" y1="0" x2="1320" y2="100"/>
+          <line x1="1312" y1="0" x2="1328" y2="0"/><line x1="1312" y1="100" x2="1328" y2="100"/>
+        </g>
+        <text class="t-dim-e" x="1348" y="50" text-anchor="middle" transform="rotate(-90 1348 50)">100 cm</text>
+
+        <!-- quota destra 700 (pergolato) -->
+        <g class="dim">
+          <line x1="1420" y1="0" x2="1420" y2="700"/>
+          <line x1="1412" y1="0" x2="1428" y2="0"/><line x1="1412" y1="700" x2="1428" y2="700"/>
+        </g>
+        <text class="t-dim" x="1448" y="350" text-anchor="middle" transform="rotate(-90 1448 350)">700 cm</text>
+
+        <!-- quota totale inferiore -->
+        <line class="ext" x1="0" y1="714" x2="0" y2="796"/>
+        <line class="ext" x1="1250" y1="114" x2="1250" y2="796"/>
+        <g class="dim">
+          <line x1="0" y1="790" x2="1250" y2="790"/>
+          <line x1="0" y1="782" x2="0" y2="798"/><line x1="1250" y1="782" x2="1250" y2="798"/>
+        </g>
+        <text class="t-dim" x="625" y="822" text-anchor="middle">1250 cm &#183; ingombro totale</text>
+
+        <!-- nord -->
+        <g transform="translate(1400,640)">
+          <circle r="40" fill="none" stroke="var(--line-strong)" stroke-width="2"/>
+          <path d="M0 -32 L11 12 L0 3 L-11 12 Z" fill="var(--ink-2)"/>
+          <text class="t-lab" x="0" y="-46" text-anchor="middle">N</text>
+        </g>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i class="sw sw-wall"></i>Muri pieni</span>
+      <span><i class="sw sw-glass"></i>Vetrate fisse</span>
+      <span><i class="sw sw-wood"></i>Travi del pergolato</span>
+      <span><i class="sw sw-bbq"></i>Perimetro zona barbecue</span>
+      <span><i class="sw sw-block"></i>Blocco in muratura</span>
+    </div>
+  </section>
+
+  <!-- ============ OPTIONS ============ -->
+  <section class="panel">
+    <div class="panel-head">
+      <span class="num">TAV. 02</span>
+      <h2>Due modi di occupare gli stessi 2 m&#178;</h2>
+    </div>
+    <div class="drawing">
+      <svg viewBox="-260 -150 1120 470" role="img" aria-label="Confronto fra la zona barbecue profonda 200 cm e larga 100 cm e la variante larga 200 cm e profonda 100 cm">
+        <defs>
+          <pattern id="travi2" width="12" height="40" patternUnits="userSpaceOnUse">
+            <line class="beam" x1="0" y1="1" x2="12" y2="1"/>
+          </pattern>
+        </defs>
+
+        <!-- ===== OPZIONE A ===== -->
+        <g>
+          <text class="t-room" x="-150" y="-110">OPZIONE A &#183; COME RICHIESTA</text>
+          <text class="t-note" x="-150" y="-84">nicchia 200 (prof.) &#215; 100 (largh.)</text>
+
+          <rect class="floor-out" x="-150" y="0" width="150" height="100"/>
+          <rect x="-150" y="0" width="150" height="100" fill="url(#travi2)"/>
+          <text class="t-lab" x="-75" y="130" text-anchor="middle">PERGOLATO</text>
+
+          <rect class="floor-bbq" x="0" y="0" width="200" height="100"/>
+          <rect class="bbqzone" x="0" y="0" width="200" height="100"/>
+          <rect class="block" x="130" y="0" width="70" height="100"/>
+          <text class="t-lab-e" x="165" y="55" text-anchor="middle" transform="rotate(-90 165 55)">BBQ 100&#215;70</text>
+          <rect class="opt" x="0" y="0" width="130" height="40"/>
+          <text class="t-lab" x="65" y="26" text-anchor="middle">appoggio 130&#215;40</text>
+
+          <path class="arrow" d="M8 72 L122 72"/>
+          <path class="arrow" d="M18 64 L6 72 L18 80"/><path class="arrow" d="M112 64 L124 72 L112 80"/>
+          <text class="t-note" x="65" y="96" text-anchor="middle">130 cm operativi &#183; 60 se metti l&#8217;appoggio</text>
+
+          <g class="dim-e">
+            <line x1="0" y1="-40" x2="200" y2="-40"/>
+            <line x1="0" y1="-48" x2="0" y2="-32"/><line x1="200" y1="-48" x2="200" y2="-32"/>
+            <line x1="250" y1="0" x2="250" y2="100"/>
+            <line x1="242" y1="0" x2="258" y2="0"/><line x1="242" y1="100" x2="258" y2="100"/>
+          </g>
+          <text class="t-dim-e" x="100" y="-52" text-anchor="middle">200 cm</text>
+          <text class="t-dim-e" x="278" y="50" text-anchor="middle" transform="rotate(-90 278 50)">100 cm</text>
+        </g>
+
+        <!-- ===== OPZIONE B ===== -->
+        <g transform="translate(600,0)">
+          <text class="t-room-e" x="-150" y="-110">OPZIONE B &#183; CONSIGLIATA</text>
+          <text class="t-note" x="-150" y="-84">fascia 200 (largh.) &#215; 100 (prof.)</text>
+
+          <rect class="floor-out" x="-150" y="0" width="150" height="200"/>
+          <rect x="-150" y="0" width="150" height="200" fill="url(#travi2)"/>
+          <text class="t-lab" x="-75" y="230" text-anchor="middle">PERGOLATO</text>
+
+          <rect class="floor-bbq" x="0" y="0" width="100" height="200"/>
+          <rect class="bbqzone" x="0" y="0" width="100" height="200"/>
+          <rect class="block" x="35" y="0" width="65" height="200"/>
+          <line x1="35" y1="55" x2="100" y2="55" stroke="var(--ember)" stroke-width="2.5"/>
+          <line x1="35" y1="115" x2="100" y2="115" stroke="var(--ember)" stroke-width="2.5"/>
+          <text class="t-lab-e" x="68" y="32" text-anchor="middle">LAVELLO 55</text>
+          <text class="t-lab-e" x="68" y="92" text-anchor="middle">PIANO 60</text>
+          <text class="t-lab-e" x="68" y="165" text-anchor="middle">BBQ 85</text>
+
+          <path class="arrow" d="M-140 100 L25 100"/>
+          <path class="arrow" d="M13 92 L27 100 L13 108"/>
+          <text class="t-note" x="-58" y="88" text-anchor="middle">zona operativa gi&#224; coperta dal pergolato</text>
+
+          <g class="dim-e">
+            <line x1="0" y1="-40" x2="100" y2="-40"/>
+            <line x1="0" y1="-48" x2="0" y2="-32"/><line x1="100" y1="-48" x2="100" y2="-32"/>
+            <line x1="150" y1="0" x2="150" y2="200"/>
+            <line x1="142" y1="0" x2="158" y2="0"/><line x1="142" y1="200" x2="158" y2="200"/>
+          </g>
+          <text class="t-dim-e" x="50" y="-52" text-anchor="middle">100 cm</text>
+          <text class="t-dim-e" x="178" y="100" text-anchor="middle" transform="rotate(-90 178 100)">200 cm</text>
+        </g>
+      </svg>
+    </div>
+    <div class="panel-body grid-2">
+      <div class="opt-card">
+        <span class="tag">Opzione A</span>
+        <h3>Nicchia profonda 2 m</h3>
+        <p>&#200; la misura che hai indicato: si entra dal pergolato e si va in profondit&#224; per 2 m, con il barbecue in fondo.</p>
+        <ul>
+          <li>Fronte di lavoro di soli <strong>100 cm</strong>: ci sta il barbecue, non il piano di appoggio accanto.</li>
+          <li>Se aggiungi il piano laterale il passaggio scende a 60 cm, stretto con il forno acceso.</li>
+          <li>Il fumo resta pi&#249; a lungo dentro la nicchia: serve una cappa vera, non solo il camino.</li>
+          <li>Sporge di 2 m oltre il pergolato: verifica per prima cosa la distanza dal confine.</li>
+        </ul>
+      </div>
+      <div class="opt-card reco">
+        <span class="tag hot">Opzione B</span>
+        <h3>Fascia larga 2 m, profonda 1 m</h3>
+        <p>Stessi 2,00 m&#178; ruotati di 90&#176;: il blocco corre lungo il fianco del pergolato e tu lavori standing gi&#224; all&#8217;ombra delle travi.</p>
+        <ul>
+          <li>Piano continuo da <strong>200 cm</strong>: lavello, zona di appoggio e barbecue affiancati.</li>
+          <li>Sporgenza di 1 m soltanto: pi&#249; facile con le distanze dai confini e con la copertura.</li>
+          <li>Chi cucina resta nel pergolato, in contatto con il tavolo.</li>
+          <li>Il fumo sale in campo aperto invece che dentro una nicchia chiusa su tre lati.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SPECS ============ -->
+  <section class="panel">
+    <div class="panel-head">
+      <span class="num">SCHEDA</span>
+      <h2>Cosa serve per realizzarla</h2>
+    </div>
+    <div class="specs">
+      <div class="spec">
+        <h3>Impianti</h3>
+        <ul>
+          <li><strong>Acqua e scarico</strong> se prevedi il lavello: la dorsale della cucina interna &#232; sulla parete alta, quindi il tratto resta corto.</li>
+          <li><strong>Due prese IP55</strong> pi&#249; una linea luce dedicata sotto il piano.</li>
+          <li><strong>Gas</strong> solo con attacco a norma e valvola in vista; con carbonella o pellet il problema non si pone.</li>
+          <li>Massetto con <strong>pendenza dell&#8217;1%</strong> verso l&#8217;esterno e un pozzetto di raccolta.</li>
+        </ul>
+      </div>
+      <div class="spec">
+        <h3>Fumi</h3>
+        <ul>
+          <li>Cappa sopra la griglia con <strong>canna fumaria</strong> che esce almeno 100 cm sopra il colmo del pergolato.</li>
+          <li>Comignolo antivento: il pergolato &#232; una struttura aperta e le raffiche riportano il fumo verso il basso.</li>
+          <li>Il blocco resta a <strong>380 cm dalla vetrata</strong> della veranda e a circa 280 cm dal tavolo esterno.</li>
+          <li>Nessun elemento in legno entro 40 cm dalla camera di combustione.</li>
+        </ul>
+      </div>
+      <div class="spec">
+        <h3>Materiali</h3>
+        <ul>
+          <li>Struttura in <strong>blocchi refrattari o cemento cellulare</strong>, rivestita a intonaco o pietra ricomposta.</li>
+          <li>Piano in <strong>gres spessorato o granito</strong>, resistente al gelo, con bordo a goccia.</li>
+          <li>Ante e cassetti in <strong>acciaio inox 304</strong> per esterni.</li>
+          <li>Pavimento in continuit&#224; con il pergolato, antiscivolo R11.</li>
+        </ul>
+      </div>
+      <div class="spec">
+        <h3>Distanze e permessi</h3>
+        <ul>
+          <li>Un barbecue in muratura con canna fumaria fissa non &#232; arredo da giardino: verifica in Comune se serve <strong>CILA</strong>.</li>
+          <li>Il Codice Civile chiede una distanza dal confine per forni e camini: il <strong>regolamento edilizio locale</strong> fissa la misura.</li>
+          <li>Controlla che i 2 m di sporgenza non invadano una fascia di rispetto o la distanza minima dai fabbricati.</li>
+          <li>Se il vicino confina proprio l&#236;, l&#8217;opzione B da 1 m riduce nettamente il problema.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SURFACES ============ -->
+  <section class="panel">
+    <div class="panel-head">
+      <span class="num">COMPUTO</span>
+      <h2>Superfici aggiornate</h2>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Ambiente</th><th>Dimensioni</th><th style="text-align:right">Superficie</th><th>Tipo</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Veranda chiusa</td><td class="mono">800 &#215; 700 cm</td><td class="num">56,00 m&#178;</td><td>Coperta e chiusa</td></tr>
+          <tr><td>Pergolato</td><td class="mono">250 &#215; 700 cm</td><td class="num">17,50 m&#178;</td><td>Aperta, ombreggiata</td></tr>
+          <tr class="new"><td>Zona barbecue &#8212; nuova</td><td class="mono">200 &#215; 100 cm</td><td class="num">2,00 m&#178;</td><td>Aperta, con tettoia</td></tr>
+          <tr class="total"><td>Totale</td><td class="mono">1250 &#215; 700 cm</td><td class="num">75,50 m&#178;</td><td>di cui 56,00 m&#178; chiusi</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ NEXT STEPS ============ -->
+  <section class="panel">
+    <div class="panel-head">
+      <span class="num">SEGUITO</span>
+      <h2>Prossimi passi, in ordine</h2>
+    </div>
+    <ol class="steps">
+      <li><b>Misura lo spazio reale dietro il pergolato</b><span>Serve sapere quanti centimetri ci sono fino al confine o al muro: da qui dipende se puoi tenere i 2 m di sporgenza o se conviene l&#8217;opzione B.</span></li>
+      <li><b>Scegli il combustibile</b><span>Carbonella, gas o pellet cambiano la cappa, la canna fumaria e la necessit&#224; dell&#8217;attacco gas.</span></li>
+      <li><b>Decidi se vuoi il lavello</b><span>&#200; l&#8217;unica voce che porta con s&#233; acqua e scarico, quindi va fissata prima del massetto.</span></li>
+      <li><b>Verifica in Comune</b><span>Titolo edilizio e distanza minima dal confine per canne fumarie e forni.</span></li>
+      <li><b>Definisci la copertura</b><span>Prolungamento delle travi del pergolato oppure tettoia autonoma: cambia l&#8217;altezza a cui deve arrivare il comignolo.</span></li>
+    </ol>
+  </section>
+
+  <footer>Disegno di studio, quote in centimetri &#183; misure da verificare in cantiere prima di ordinare i materiali.</footer>
+</div>
