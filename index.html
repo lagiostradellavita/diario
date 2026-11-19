@@ -48,7 +48,7 @@
      nuova di questa, mostra una barra "tocca per aggiornare". Evita di restare
      bloccati su una versione vecchia tenuta in cache da Safari. */
   (function(){
-    var RUNNING = 266; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
+    var RUNNING = 267; // numero di versione di QUESTO file (allineato al marcatore versione nel pie di pagina)
     try{ window.__APP_VER = RUNNING; }catch(e){}
     function banner(v, base){
       if(document.getElementById("updBar")) return;
@@ -1199,6 +1199,26 @@
       <div id="pilToday" style="margin-top:12px"></div>
     </section>
     <section class="card">
+      <h2 class="section-title" style="margin:0 0 4px">Presa una tantum</h2>
+      <p class="fineprint" style="margin:0 0 10px">Una pillola presa <b>una volta sola</b> (es. un Brufen per il mal di testa): si registra qui e finisce nello Storico, <b>senza</b> entrare nel programma di ogni giorno.</p>
+      <button class="link-btn" id="pilExtraBtn" style="text-align:left;padding:2px">＋ Ho preso una pillola, una volta sola</button>
+      <div class="detail" id="pilExtraForm" hidden style="margin-top:8px">
+        <div class="field"><label for="pilExtraNome">Cosa hai preso</label><input type="text" id="pilExtraNome" placeholder="es. Brufen 400" list="pilExtraSugg" autocomplete="off"><datalist id="pilExtraSugg"></datalist></div>
+        <div class="field"><label>Quando</label>
+          <div class="grid2">
+            <div class="field" style="margin:0"><label for="pilExtraData">Giorno</label><input type="date" id="pilExtraData"></div>
+            <div class="field" style="margin:0"><label for="pilExtraOra">Ora</label><input type="time" id="pilExtraOra"></div>
+          </div>
+          <p class="fineprint" style="margin:4px 0 0">Di partenza è adesso; se l'hai presa prima (es. ieri sera) cambia giorno e ora.</p>
+        </div>
+        <div class="field"><label for="pilExtraNota">Nota (facoltativa)</label><input type="text" id="pilExtraNota" placeholder="es. per mal di testa" autocomplete="off"></div>
+        <div class="panel-actions">
+          <button class="primary" id="pilExtraSave">Salva la presa</button>
+          <button class="link-btn" id="pilExtraCancel">Annulla</button>
+        </div>
+      </div>
+    </section>
+    <section class="card">
       <div class="food-cat" id="collapPilList">
         <button type="button" class="fc-head" id="headPilList"><span>💊 Le mie pillole</span><span class="fc-arrow">›</span></button>
         <div class="fc-body" id="bodyPilList" hidden>
@@ -1955,7 +1975,7 @@
   </section>
 
   <p style="text-align:center;font-size:11px;color:var(--muted);margin:4px 0 0;letter-spacing:.02em;">Diario Salute</p>
-  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v266 -->
+  <!-- Marcatore versione per il controllo automatico degli aggiornamenti (NON mostrato all'utente): Diario Salute · v267 -->
   <p id="admVerLine" style="text-align:center;font-size:10px;color:var(--muted);margin:2px 0 0;opacity:.6;display:none"></p>
 </div>
 
@@ -2648,6 +2668,9 @@
     var taken={}; try{ var _t=JSON.parse(localStorage.getItem(cfg.takenKey)); if(_t && typeof _t==="object") taken=_t; }catch(e){}
     function saveDefs(){ try{ localStorage.setItem(cfg.defsKey, JSON.stringify(defs)); }catch(e){} }
     function saveTaken(){ try{ localStorage.setItem(cfg.takenKey, JSON.stringify(taken)); }catch(e){} }
+    // Prese «una tantum»: pillole prese una volta sola, fuori dal programma. [{id, nome, ts, nota}]
+    var extra=[]; if(cfg.extraKey){ try{ var _ex=JSON.parse(localStorage.getItem(cfg.extraKey)); if(Array.isArray(_ex)) extra=_ex; }catch(e){} }
+    function saveExtra(){ if(!cfg.extraKey) return; try{ localStorage.setItem(cfg.extraKey, JSON.stringify(extra)); }catch(e){} }
     var notes={}; if(cfg.notesKey){ try{ var _n=JSON.parse(localStorage.getItem(cfg.notesKey)); if(_n && typeof _n==="object") notes=_n; }catch(e){} }
     function saveNotes(){ if(!cfg.notesKey) return; try{ localStorage.setItem(cfg.notesKey, JSON.stringify(notes)); }catch(e){} }
     var chlog=[]; if(cfg.logKey){ try{ var _lg=JSON.parse(localStorage.getItem(cfg.logKey)); if(Array.isArray(_lg)) chlog=_lg; }catch(e){} }
@@ -2771,6 +2794,12 @@
           defs.forEach(function(p){ if(p.dal){ if(dk<p.dal) return; } else if(p.createdTs && dayKey(new Date(p.createdTs))>dk) return; if(p.al && dk>p.al) return; if(p.attivo===false){ var _fk=(p.fine!=null)?dayKey(new Date(p.fine)):(p.al||null); if(!_fk || dk>_fk) return; }
             var os=(p.orari||[]); if(!os.length) return; var tset={}, pre=p.id+"|"; Object.keys(takenEff[dk]).forEach(function(kk){ if(kk.indexOf(pre)===0) tset[kk.slice(pre.length)]=true; }); var tc=0; for(var _k in tset) tc++; var skipN=os.length-Math.min(tc, os.length); if(skipN<=0) return; var missing=os.filter(function(o){ return !tset[o]; }); missing.slice(0, skipN).forEach(function(o){ var ts=new Date(dk+"T"+o+":00").getTime(); if(isNaN(ts)) ts=new Date(dk+"T23:59:00").getTime(); stRows.push({ ts:ts, dayKeyOverride:dk, emoji:"⚠️", text:p.nome+" · saltata (programmata "+o+")", rowClass:"pil-skip", onCheck:(function(pid,ora,tts){ return function(){ taken[pillDayKey(new Date(tts))+"|"+pid+"|"+ora]=tts; saveTaken(); render(); }; })(p.id,o,ts) }); }); });
         });
+        if(cfg.extraKey){ extra.forEach(function(e){ if(!e || typeof e.ts!=="number") return; stRows.push({ ts:e.ts, dayKeyOverride:dayKey(new Date(e.ts)), emoji:"💊", text:(e.nome||"Pillola")+" · una tantum", rowClass:"pil-extra", note:(e.nota||""),
+          onNote:(function(eid){ return function(v){ v=(v||"").trim(); extra.forEach(function(x){ if(x.id===eid) x.nota=v; }); saveExtra(); render(); }; })(e.id),
+          onTimeEdit:(function(eid){ return function(v){ if(v){ var pp=String(v).split(":"); extra.forEach(function(x){ if(x.id===eid){ var nd=new Date(x.ts); nd.setHours(parseInt(pp[0],10)||0, parseInt(pp[1],10)||0,0,0); x.ts=+nd; } }); saveExtra(); } render(); }; })(e.id),
+          onToSalute:(function(ee){ return function(){ pushToSalute(ee.nota?(ee.nome+" — "+ee.nota):ee.nome, "da Pillole (una tantum)", ee.ts); }; })(e),
+          onDelete:(function(eid,nm){ return function(){ if(confirm("Togliere «"+nm+"» (una tantum) dallo storico?")){ extra=extra.filter(function(x){ return x.id!==eid; }); saveExtra(); render(); } }; })(e.id, e.nome)
+        }); }); }
         renderStorico(I.storico, stRows, storicoOpen, {empty:"Nessuna pillola presa ancora.", ascending:true,
           dayClass:function(g){ var s=pillDayStat(g.dk); if(!s.sched) return ""; return s.taken>=s.sched?"done-ok":"done-miss"; },
           dayIcon:function(g){ return (chByDay[g.dk]&&chByDay[g.dk].length)?' <span class="dh-pin" title="Variazione (cambi, inizio/fine assunzione)">📌</span>':''; },
@@ -2862,6 +2891,22 @@
         saveTaken(); editId=null; document.getElementById(I.form).hidden=true; render(); toast("✓ Segnate "+n+" assunzioni di «"+p.nome+"»");
       };
     })();
+    // ---- Presa una tantum: modulo per registrare una pillola presa una volta sola ----
+    if(cfg.extraKey && I.extraBtn && document.getElementById(I.extraBtn)){
+      function _extraSugg(){ var dl=I.extraSugg?document.getElementById(I.extraSugg):null; if(!dl) return; var seen={}, opts=[]; function add(n){ n=(n||"").trim(); if(n && !seen[n.toLowerCase()]){ seen[n.toLowerCase()]=1; opts.push(n); } } extra.slice().sort(function(a,b){ return b.ts-a.ts; }).forEach(function(e){ add(e.nome); }); defs.forEach(function(p){ add(p.nome); }); dl.innerHTML=opts.map(function(n){ return '<option value="'+esc(n)+'"></option>'; }).join(""); }
+      function _g(id){ return id?document.getElementById(id):null; }
+      _g(I.extraBtn).onclick=function(){ var f=_g(I.extraForm); if(!f) return; f.hidden=false; var n=new Date(); if(_g(I.extraNome)) _g(I.extraNome).value=""; if(_g(I.extraNota)) _g(I.extraNota).value=""; if(_g(I.extraData)) _g(I.extraData).value=ymd(n); if(_g(I.extraOra)) _g(I.extraOra).value=hhmm(n); _extraSugg(); try{ _g(I.extraNome).focus(); }catch(e){} try{ f.scrollIntoView({block:"center"}); }catch(e){} };
+      if(_g(I.extraCancel)) _g(I.extraCancel).onclick=function(){ var f=_g(I.extraForm); if(f) f.hidden=true; };
+      if(_g(I.extraSave)) _g(I.extraSave).onclick=function(){
+        var nome=(_g(I.extraNome)?_g(I.extraNome).value:"")||""; nome=nome.trim();
+        if(!nome){ toast("Scrivi cosa hai preso"); try{ _g(I.extraNome).focus(); }catch(e){} return; }
+        var d=(_g(I.extraData)?_g(I.extraData).value:"")||"", o=(_g(I.extraOra)?_g(I.extraOra).value:"")||"";
+        var ts=NaN; if(d){ ts=new Date(d+"T"+(o||"12:00")+":00").getTime(); } if(!ts || isNaN(ts)) ts=Date.now();
+        var nota=((_g(I.extraNota)?_g(I.extraNota).value:"")||"").trim();
+        extra.push({id:uid(), nome:nome, ts:ts, nota:nota}); saveExtra();
+        var f=_g(I.extraForm); if(f) f.hidden=true; render(); toast("💊 «"+nome+"» registrata ✓");
+      };
+    }
     return {render:render, today:today, data:function(){ return {defs:defs, taken:taken}; }, activeDefs:function(){ return defs.filter(defActive); },
       check:function(key){ if(taken[key]) delete taken[key]; else taken[key]=Date.now(); saveTaken(); render(); },
       checkAt:function(key, ts){ if(ts==null){ delete taken[key]; } else { taken[key]=ts; } saveTaken(); render(); },
@@ -2871,8 +2916,8 @@
   }
 
   var Pillole=makeScheduler({
-    defsKey:"salute-pil-defs", takenKey:"salute-pil-taken", notesKey:"salute-pil-note", logKey:"salute-pil-log", defaultOra:"08:00",
-    ids:{date:"pilDate", summary:"pilSummary", today:"pilToday", list:"pilList", storico:"pilStorico", addBtn:"pilAddBtn", form:"pilForm", nome:"pilNome", orari:"pilOrari", addOra:"pilAddOra", save:"pilSave", cancel:"pilCancel", dal:"pilDal", al:"pilAl", editActions:"pilEditActions", finish:"pilFinish", del:"pilDelete", fillPeriod:"pilFillPeriod", finite:"pilFiniteWrap", modlog:"pilModLog"},
+    defsKey:"salute-pil-defs", takenKey:"salute-pil-taken", notesKey:"salute-pil-note", logKey:"salute-pil-log", extraKey:"salute-pil-extra", defaultOra:"08:00",
+    ids:{date:"pilDate", summary:"pilSummary", today:"pilToday", list:"pilList", storico:"pilStorico", addBtn:"pilAddBtn", form:"pilForm", nome:"pilNome", orari:"pilOrari", addOra:"pilAddOra", save:"pilSave", cancel:"pilCancel", dal:"pilDal", al:"pilAl", editActions:"pilEditActions", finish:"pilFinish", del:"pilDelete", fillPeriod:"pilFillPeriod", finite:"pilFiniteWrap", modlog:"pilModLog", extraBtn:"pilExtraBtn", extraForm:"pilExtraForm", extraNome:"pilExtraNome", extraSugg:"pilExtraSugg", extraData:"pilExtraData", extraOra:"pilExtraOra", extraNota:"pilExtraNota", extraSave:"pilExtraSave", extraCancel:"pilExtraCancel"},
     labels:{done:"prese", empty:"Nessuna medicina impostata.<br>Aggiungila qui sotto con i suoi orari.", needName:"Scrivi il nome della medicina", added:"Medicina aggiunta ✓"}
   });
   // ---- helper condivisi ----
