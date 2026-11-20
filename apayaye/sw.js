@@ -1,6 +1,8 @@
-/* Service worker minimo: mette in cache il "guscio" dell'app cosi' si apre
-   anche con poca rete. Alza CACHE a ogni modifica per servire i file nuovi. */
-var CACHE = "apayaye-v3";
+/* Service worker del gioco. "Stale-while-revalidate": apre subito dalla cache
+   (va anche con poca rete), ma in sottofondo riscarica sempre la versione nuova
+   e aggiorna la cache, cosi' alla riapertura dopo si vede l'ultima. Alzare CACHE
+   forza invece un aggiornamento immediato su tutti i telefoni. */
+var CACHE = "apayaye-v4";
 var GUSCIO = [
   ".", "index.html", "app.js", "luoghi.js", "manifest.json", "icon.svg"
 ];
@@ -20,11 +22,14 @@ self.addEventListener("fetch", function(e){
   if(url.origin !== self.location.origin) return; // lascia passare font e librerie
   e.respondWith(
     caches.match(req).then(function(hit){
-      return hit || fetch(req).then(function(res){
-        var copia = res.clone();
-        caches.open(CACHE).then(function(c){ c.put(req, copia); });
+      var fresco = fetch(req).then(function(res){
+        if(res && res.status === 200 && res.type === "basic"){
+          var copia = res.clone();
+          caches.open(CACHE).then(function(c){ c.put(req, copia); });
+        }
         return res;
-      }).catch(function(){ return caches.match("index.html"); });
+      }).catch(function(){ return hit || caches.match("index.html"); });
+      return hit || fresco;
     })
   );
 });
