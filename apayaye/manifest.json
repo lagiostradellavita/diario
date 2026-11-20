@@ -9,7 +9,7 @@
   "background_color": "#f3e6c6",
   "theme_color": "#2f9ec4",
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0AQMAAAAHA5RxAAAABlBMVEUvnsTz5sYJJRBqAAABzElEQVR42u2XMXKDMBBFv2RmTIdLFyk4RkpuFh2NkjJHoHCRkkmFPVhKAcYrtJK1Y6ezGjR//jwtq12QgPf4r9GQuc7w90L/wPsVMjhE16XMH9OLQsiJzEvhut4LE/0g5NQwwjw0rN5I40fNWpzrI/6DhK/i65acriGOv+D0Iu7XEn4Z5ygJ5wCQDX7srxN5aAScJsGpBf3unHPD832q/Jw+9OsUv8jnFKkqY/yfAKBaNg00EcvYz7rdco7LWxsWE4D2N936nOOaPsNiVtBckvvx7tCEcyS1a1jMDaQAYDcRz/WewQ8aws6wmAWktpgFpLcYAnIuBKkAM4N0gFlBX1uO6wEVYoBrAY2rCfQTAKAKOOl4AtBpeVYhBgqAsp79XC75cT7oZ51VAWbeLw90Ltf9cvQb0JF5tcUs9UNAM2apHwLqsur2cjNcfH0FdZl9dJ4fv0GfzqBvsA1p8/t9AgCB36a+S1M+xwHA+ILzj/FOZI/9bYLfCzh9gtMK/i/VWoN5647xdUWcKc6xnG7l55OJ013cP4r4JsoZWL0Vx8+fA3shZ6ArZ9wvKsfreyeMP+KfhPFb+5p7ipuEHFrpO6p3svtaLbzfvcfz4w/aUBNfnjOFEQAAAABJRU5ErkJggg==", "sizes": "180x180", "type": "image/png", "purpose": "any" },
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
   ]
 }
