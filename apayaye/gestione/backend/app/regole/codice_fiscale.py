@@ -9,6 +9,13 @@ MESI = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "H": 6,
 
 _RE = re.compile(r"^[A-Z]{6}\d{2}[A-EHLMPRST]\d{2}[A-Z]\d{3}[A-Z]$")
 
+# Data di avvio del progetto, dalla Dichiarazione di Inizio Attivita' (DIA)
+# firmata il 29/07/2025: "le attivita' ... inizieranno in data 22/09/2025".
+# La fascia d'eta' 11-17 si valuta a QUESTA data (eta' all'avvio del progetto),
+# non alla data odierna: un minore di 17 anni all'avvio resta ammissibile anche
+# se nel frattempo ha compiuto 18 anni.
+DATA_AVVIO = date(2025, 9, 22)
+
 
 def normalizza(cf):
     return re.sub(r"\s+", "", (cf or "")).upper()
@@ -42,7 +49,7 @@ def eta_a(nascita, riferimento):
 
 
 def controlla(cf, eta_min=11, eta_max=17, riferimento=None):
-    riferimento = riferimento or date.today()
+    riferimento = riferimento or DATA_AVVIO
     cf = normalizza(cf)
     out = {"cf": cf, "ok": False, "errori": [], "data_nascita": None, "genere": None, "eta": None}
     if len(cf) != 16:
@@ -61,7 +68,7 @@ def controlla(cf, eta_min=11, eta_max=17, riferimento=None):
     out["eta"] = eta
     if eta < eta_min or eta > eta_max:
         out["errori"].append(
-            "Eta' %d anni: fuori dalla fascia %d-%d prevista dal progetto." % (eta, eta_min, eta_max))
+            "Eta' %d anni all'avvio del progetto: fuori dalla fascia %d-%d prevista." % (eta, eta_min, eta_max))
         return out
     out["ok"] = True
     return out
