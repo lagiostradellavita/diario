@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="gioco-comic-180.png">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
   :root{
     color-scheme: light;
@@ -72,25 +73,39 @@
   .slot svg{width:100%;height:100%}
 
   .mappa-box{position:relative; width:100%; border-radius:22px; overflow:hidden;
-    box-shadow:var(--ombra); border:3px solid #cbb38a; background:var(--mare)}
-  .mappa-box > svg.base{display:block; width:100%; height:auto}
-  .marker{position:absolute; transform:translate(-50%,-85%); border:0; background:none; cursor:pointer;
-    padding:0; display:flex; flex-direction:column; align-items:center; gap:2px;
-    filter:drop-shadow(0 4px 4px rgba(0,0,0,.28))}
-  .marker:active{transform:translate(-50%,-85%) scale(.93)}
+    box-shadow:var(--ombra); border:3px solid #cbb38a; background:#dbe8ee}
+  #mappa{width:100%; height:62vh; min-height:340px; z-index:0; background:#dbe8ee}
+  .leaflet-container{font-family:var(--display),system-ui}
+  .leaflet-control-zoom a{border-radius:10px !important; color:var(--inchiostro)}
+  .pinwrap{background:none !important; border:0 !important; display:flex; flex-direction:column;
+    align-items:center; gap:2px; filter:drop-shadow(0 4px 4px rgba(0,0,0,.28))}
   .pin{width:40px;height:40px;border-radius:50% 50% 50% 8px; transform:rotate(45deg);
-    display:grid; place-items:center; border:3px solid #fff}
+    display:grid; place-items:center; border:3px solid #fff; position:relative}
   .pin>span{transform:rotate(-45deg); font-size:1.1rem; line-height:1}
-  .marker.catturato .pin{background:var(--verde) !important}
-  .marker .num{position:absolute; top:-6px; right:-6px; width:20px;height:20px;border-radius:50%;
+  .pinwrap.catturato .pin{background:var(--verde) !important}
+  .num{position:absolute; top:-6px; right:-6px; width:20px;height:20px;border-radius:50%;
     background:var(--inchiostro); color:#fff; font-family:var(--display); font-weight:700; font-size:.7rem;
     display:grid; place-items:center; border:2px solid #fff; transform:rotate(0)}
-  .marker.vicino .pin{animation:bob .9s ease-in-out infinite}
+  .pinwrap.vicino .pin{animation:bob .9s ease-in-out infinite}
   @keyframes bob{0%,100%{transform:rotate(45deg) translateY(0)}50%{transform:rotate(45deg) translateY(-4px)}}
   .lab{font-family:var(--display); font-weight:600; font-size:.64rem; color:#fff;
-    background:rgba(42,33,24,.72); padding:1px 6px; border-radius:999px; white-space:nowrap;
-    max-width:88px; overflow:hidden; text-overflow:ellipsis; pointer-events:none}
-  .marker.vicino .lab{background:var(--verde)}
+    background:rgba(42,33,24,.78); padding:1px 6px; border-radius:999px; white-space:nowrap;
+    max-width:96px; overflow:hidden; text-overflow:ellipsis; pointer-events:none}
+  .pinwrap.vicino .lab{background:var(--verde)}
+  .tu-ico{background:none !important; border:0 !important}
+  .tu-ico .ring{position:absolute; left:8px; top:8px; width:16px; height:16px; border-radius:50%;
+    background:#1d7ea6; transform:translate(-50%,-50%); animation:tupulse 1.8s ease-out infinite}
+  .tu-ico .core{position:absolute; left:8px; top:8px; width:14px; height:14px; border-radius:50%;
+    background:#2f9ec4; border:3px solid #fff; transform:translate(-50%,-50%); box-shadow:0 2px 6px rgba(0,0,0,.4)}
+  .tu-ico .lab{position:absolute; left:8px; top:18px; transform:translateX(-50%);
+    background:#1d7ea6; color:#fff; font-weight:700; font-size:.6rem; padding:1px 7px; border-radius:999px}
+  @keyframes tupulse{0%{transform:translate(-50%,-50%) scale(.5);opacity:.75}70%{transform:translate(-50%,-50%) scale(2.6);opacity:0}100%{opacity:0}}
+  .verbar{display:flex; justify-content:flex-end; align-items:center; gap:8px; margin:-2px 0 2px}
+  .ver{font-size:.72rem; color:var(--inchiostro-soft); font-weight:700}
+  .aggbtn{border:1.5px solid var(--panel-bordo); background:#fff6e4; color:var(--inchiostro);
+    border-radius:999px; padding:4px 11px; font-family:var(--display); font-weight:600; font-size:.74rem; cursor:pointer}
+  .aggbtn.nuovo{background:var(--verde); color:#fff; border-color:var(--verde); animation:pulse2 1.4s infinite}
+  @keyframes pulse2{0%,100%{box-shadow:0 0 0 0 rgba(62,143,63,.4)}50%{box-shadow:0 0 0 7px rgba(62,143,63,0)}}
 
   .nota{font-size:.8rem; color:var(--inchiostro-soft); text-align:center; text-wrap:balance; line-height:1.5}
   .nota b{color:var(--terracotta)}
@@ -178,10 +193,11 @@
 </head>
 <body>
 <div class="wrap">
+  <div class="verbar"><span id="ver" class="ver"></span><button id="aggiorna" class="aggbtn">↻ Aggiorna</button></div>
   <header>
     <div class="kicker">Progetto Apayaye · uscite 2026–2027</div>
     <h1>Esploratori Apayaye</h1>
-    <p class="sub">Raggiungi gli otto luoghi delle uscite e cattura il personaggio che custodisce ognuno.</p>
+    <p class="sub">Raggiungi i nove luoghi delle uscite e cattura il personaggio che custodisce ognuno.</p>
   </header>
 
   <div class="gps" id="gps"><span class="dot"></span><span id="gps-txt">Posizione non attiva</span></div>
@@ -196,23 +212,7 @@
     <div class="slots" id="slots"></div>
   </section>
 
-  <div class="mappa-box" id="mappa">
-    <svg class="base" viewBox="0 0 100 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-      <defs>
-        <linearGradient id="g-mare" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe7f2"/><stop offset="1" stop-color="#2f9ec4"/></linearGradient>
-        <linearGradient id="g-terra" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ead9ab"/><stop offset="1" stop-color="#d9c284"/></linearGradient>
-      </defs>
-      <rect x="0" y="0" width="100" height="120" fill="url(#g-mare)"/>
-      <g stroke="#fff" stroke-opacity=".5" stroke-width=".6" fill="none" stroke-linecap="round">
-        <path d="M8 10 q3 -2 6 0 t6 0"/><path d="M70 7 q3 -2 6 0 t6 0"/><path d="M40 16 q3 -2 6 0 t6 0"/>
-      </g>
-      <path d="M-2 40 Q 12 30 26 36 T 54 34 Q 70 30 86 40 T 102 44 L102 122 L-2 122 Z" fill="url(#g-terra)"/>
-      <path d="M-2 40 Q 12 30 26 36 T 54 34 Q 70 30 86 40 T 102 44" fill="none" stroke="#f4ead0" stroke-width="2.4"/>
-      <path d="M52 64 q10 -12 22 -6 q10 5 16 0 l0 30 q-20 6 -40 2 q-6 -16 2 -26Z" fill="#9cc26a" opacity=".85"/>
-      <path d="M18 84 q8 -10 18 -6 q8 4 14 1 l2 26 q-22 6 -40 1 q-4 -12 6 -22Z" fill="#8fbb5e" opacity=".8"/>
-      <path id="trail" fill="none" stroke="#2a2118" stroke-opacity=".28" stroke-width="1.1" stroke-dasharray="2.4 3" stroke-linecap="round"/>
-    </svg>
-  </div>
+  <div class="mappa-box"><div id="mappa"></div></div>
 
   <p class="nota" id="nota"><b>Come funziona:</b> arrivato sul posto, il personaggio si sblocca con il <b>GPS</b> o inquadrando il <b>QR</b> stampato dall'animatore. Per provare da casa accendi la <b>modalità prova</b>.</p>
   <button class="reset" id="reset">Svuota l'album</button>
@@ -254,6 +254,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="luoghi.js"></script>
 <script src="app.js"></script>
 </body>

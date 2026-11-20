@@ -32,25 +32,34 @@ function testoDistanza(m){
   return (m/1000).toFixed(1).replace(".", ",") + " km";
 }
 
-/* ---------- percorso tratteggiato sulla mappa ---------- */
+/* ---------- mappa stile Google Maps, stilizzata (Leaflet + CARTO Voyager) ---------- */
+var map = L.map("mappa", { zoomControl:true, attributionControl:true });
+L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+  subdomains:"abcd", maxZoom:19, minZoom:9, attribution:"\u00a9 OpenStreetMap, \u00a9 CARTO"
+}).addTo(map);
+
+/* percorso che unisce i luoghi in ordine */
 (function(){
   var ord = LUOGHI.slice().sort(function(a,b){ return a.num-b.num; });
-  var d = ord.map(function(l,i){ return (i?"L":"M")+l.map.x+" "+l.map.y; }).join(" ");
-  $("trail").setAttribute("d", d);
+  L.polyline(ord.map(function(l){ return l.coord; }),
+    { color:"#2a2118", opacity:.3, weight:3, dashArray:"5 9", lineCap:"round" }).addTo(map);
 })();
 
-/* ---------- marker sulla mappa ---------- */
+/* un pin colorato e numerato per ogni luogo */
+function pinIcon(l){
+  var lab = l.dove.split("\u2013")[0].split(" di ")[0].trim();
+  return L.divIcon({ className:"pinwrap",
+    html:'<span class="pin" style="background:'+l.col+'"><span>'+l.emblema+'</span><span class="num">'+l.num+'</span></span><span class="lab">'+lab+'</span>',
+    iconSize:[96,58], iconAnchor:[48,42] });
+}
 LUOGHI.forEach(function(l){
-  var b = document.createElement("button");
-  b.className = "marker"; b.style.left = l.map.x+"%"; b.style.top = l.map.y+"%";
-  b.setAttribute("aria-label", l.dove);
-  b.innerHTML = '<span class="pin" style="background:'+l.col+'"><span>'+l.emblema+'</span>'+
-    '<span class="num">'+l.num+'</span></span>' +
-    '<span class="lab">'+l.dove.split("–")[0].split(" di ")[0].trim()+'</span>';
-  b.addEventListener("click", function(){ apri(l); });
-  l._el = b;
-  mappa.appendChild(b);
+  l._marker = L.marker(l.coord, { icon:pinIcon(l), title:l.dove }).addTo(map);
+  l._marker.on("click", function(){ apri(l); });
 });
+
+/* inquadra tutti i luoghi, poi assesta le dimensioni */
+try{ map.fitBounds(L.latLngBounds(LUOGHI.map(function(l){ return l.coord; })).pad(0.15)); }catch(e){}
+setTimeout(function(){ try{ map.invalidateSize(); }catch(e){} }, 300);
 
 /* ---------- album ---------- */
 var slotEls = {};
@@ -70,8 +79,8 @@ function render(){
   LUOGHI.forEach(function(l){
     var preso = !!catturati[l.id];
     if(preso) n++;
-    l._el.classList.toggle("catturato", preso);
-    l._el.classList.toggle("vicino", !preso && entroRaggio(l));
+    var mel = l._marker && l._marker.getElement && l._marker.getElement();
+    if(mel){ mel.classList.toggle("catturato", preso); mel.classList.toggle("vicino", !preso && entroRaggio(l)); }
     var s = slotEls[l.id];
     if(preso){
       s.classList.add("filled");
@@ -188,32 +197,20 @@ function cattura(l, metodo){
   }
 }
 
-/* ---------- "sei qui": proietta la posizione sulla mappa illustrata ---------- */
-/* Interpolazione pesata sui luoghi (1/distanza^2): se sei SU un luogo, il puntino
-   ci cade esatto; tra i luoghi, si posiziona in mezzo in modo naturale. */
-function geoAMappa(lat,lng){
-  var sx=0, sy=0, sw=0, trovato=false;
-  LUOGHI.forEach(function(l){
-    var d=distanza(lat,lng,l.coord[0],l.coord[1]);
-    var w=1/Math.pow(d<1?1:d,2);
-    sx+=w*l.map.x; sy+=w*l.map.y; sw+=w; trovato=true;
-  });
-  if(!trovato || !sw) return null;
-  return { x:Math.max(2,Math.min(98,sx/sw)), y:Math.max(2,Math.min(99,sy/sw)) };
-}
-var tuEl=null;
+/* ---------- "sei qui": posizione reale sulla mappa ---------- */
+var tuMarker=null, tuCircle=null;
 function piazzaTu(){
-  if(!posizione) return;
-  var pt=geoAMappa(posizione.lat, posizione.lng); if(!pt) return;
-  if(!tuEl){
-    var st=document.createElement("style");
-    st.textContent="@keyframes tupulse{0%{transform:translate(-50%,-50%) scale(.5);opacity:.75}70%{transform:translate(-50%,-50%) scale(2.4);opacity:0}100%{opacity:0}}.tu-dot{position:absolute;z-index:6;transform:translate(-50%,-50%);pointer-events:none}.tu-dot .ring{position:absolute;left:0;top:0;width:16px;height:16px;border-radius:50%;background:#1d7ea6;transform:translate(-50%,-50%);animation:tupulse 1.8s ease-out infinite}.tu-dot .core{position:absolute;left:0;top:0;width:14px;height:14px;border-radius:50%;background:#2f9ec4;border:3px solid #fff;transform:translate(-50%,-50%);box-shadow:0 2px 6px rgba(0,0,0,.4)}.tu-dot .lab{position:absolute;left:0;top:11px;transform:translateX(-50%);background:#1d7ea6;color:#fff;font-family:var(--display),system-ui;font-weight:700;font-size:.6rem;padding:1px 7px;border-radius:999px;white-space:nowrap}";
-    document.head.appendChild(st);
-    tuEl=document.createElement("div"); tuEl.className="tu-dot";
-    tuEl.innerHTML='<span class="ring"></span><span class="core"></span><span class="lab">Tu</span>';
-    mappa.appendChild(tuEl);
+  if(!posizione || typeof map === "undefined" || !map) return;
+  var ll=[posizione.lat, posizione.lng];
+  var rag=Math.max(12, Math.min(posizione.acc||40, 140));
+  if(!tuMarker){
+    tuMarker = L.marker(ll, { interactive:false, zIndexOffset:1000,
+      icon:L.divIcon({ className:"tu-ico", iconSize:[16,16], iconAnchor:[8,8],
+        html:'<span class="ring"></span><span class="core"></span><span class="lab">Tu</span>' }) }).addTo(map);
+    tuCircle = L.circle(ll, { radius:rag, color:"#1d7ea6", weight:1, opacity:.5, fillColor:"#2f9ec4", fillOpacity:.12 }).addTo(map);
+  } else {
+    tuMarker.setLatLng(ll); tuCircle.setLatLng(ll).setRadius(rag);
   }
-  tuEl.style.left=pt.x+"%"; tuEl.style.top=pt.y+"%"; tuEl.style.display="";
 }
 
 /* ---------- GPS ---------- */
@@ -341,3 +338,22 @@ if("serviceWorker" in navigator){
     }).catch(function(){});
   }catch(e){}
 }
+
+/* ---------- versione e aggiornamento ---------- */
+var APP_VERSION = "2.0";
+(function(){
+  try{ var v=$("ver"); if(v) v.textContent = "v"+APP_VERSION; }catch(e){}
+  var b=$("aggiorna");
+  if(b){ b.addEventListener("click", function(){ location.replace(location.pathname + "?r=" + Date.now()); }); }
+  function controlla(){
+    try{
+      fetch("app.js?c="+Date.now(), { cache:"no-store" }).then(function(r){ return r.text(); }).then(function(t){
+        var m = t.match(/APP_VERSION\s*=\s*"([^"]+)"/);
+        var b=$("aggiorna");
+        if(m && b && m[1] !== APP_VERSION){ b.textContent = "\u21bb Aggiorna a v"+m[1]; b.className = "aggbtn nuovo"; }
+      }).catch(function(){});
+    }catch(e){}
+  }
+  controlla(); setInterval(controlla, 120000);
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) controlla(); });
+})();
