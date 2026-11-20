@@ -9,12 +9,15 @@ MESI = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "H": 6,
 
 _RE = re.compile(r"^[A-Z]{6}\d{2}[A-EHLMPRST]\d{2}[A-Z]\d{3}[A-Z]$")
 
-# Data di avvio del progetto, dalla Dichiarazione di Inizio Attivita' (DIA)
-# firmata il 29/07/2025: "le attivita' ... inizieranno in data 22/09/2025".
-# La fascia d'eta' 11-17 si valuta a QUESTA data (eta' all'avvio del progetto),
-# non alla data odierna: un minore di 17 anni all'avvio resta ammissibile anche
-# se nel frattempo ha compiuto 18 anni.
+# Periodo del progetto, dalla Dichiarazione di Inizio Attivita' (DIA) firmata il
+# 29/07/2025: "le attivita' ... inizieranno in data 22/09/2025 e dureranno 24 mesi".
 DATA_AVVIO = date(2025, 9, 22)
+DATA_FINE = date(2027, 9, 22)
+
+# Un minore e' ammissibile se rientra nella fascia 11-17 in un QUALUNQUE momento del
+# progetto: non ha ancora compiuto 18 anni all'avvio (eta' all'avvio <= 17) e compie
+# almeno 11 anni entro la fine (eta' a fine progetto >= 11). Scelta di Gianluca
+# (20/11/2026): includere chi compie 11 anni durante il progetto.
 
 
 def normalizza(cf):
@@ -49,7 +52,6 @@ def eta_a(nascita, riferimento):
 
 
 def controlla(cf, eta_min=11, eta_max=17, riferimento=None):
-    riferimento = riferimento or DATA_AVVIO
     cf = normalizza(cf)
     out = {"cf": cf, "ok": False, "errori": [], "data_nascita": None, "genere": None, "eta": None}
     if len(cf) != 16:
@@ -62,13 +64,20 @@ def controlla(cf, eta_min=11, eta_max=17, riferimento=None):
     if dati is None:
         out["errori"].append("La data di nascita nel codice fiscale non esiste.")
         return out
-    out["data_nascita"] = dati["data_nascita"]
+    nascita = dati["data_nascita"]
+    out["data_nascita"] = nascita
     out["genere"] = dati["genere"]
-    eta = eta_a(dati["data_nascita"], riferimento)
-    out["eta"] = eta
-    if eta < eta_min or eta > eta_max:
+    eta_avvio = eta_a(nascita, DATA_AVVIO)
+    eta_fine = eta_a(nascita, DATA_FINE)
+    out["eta"] = eta_avvio
+    # Fascia 11-17 raggiunta in un qualunque momento del progetto (dall'avvio alla fine).
+    if eta_avvio > eta_max:
         out["errori"].append(
-            "Eta' %d anni all'avvio del progetto: fuori dalla fascia %d-%d prevista." % (eta, eta_min, eta_max))
+            "Eta' %d anni all'avvio del progetto: oltre i %d anni previsti." % (eta_avvio, eta_max))
+        return out
+    if eta_fine < eta_min:
+        out["errori"].append(
+            "Eta' %d anni a fine progetto: sotto gli %d anni previsti." % (eta_fine, eta_min))
         return out
     out["ok"] = True
     return out
