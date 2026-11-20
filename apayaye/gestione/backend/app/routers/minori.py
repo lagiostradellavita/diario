@@ -88,9 +88,14 @@ class ImportIn(BaseModel):
 
 @router.post("/importa")
 def importa(dati: ImportIn, u: dict = Depends(SOLO_UFFICIO), db=Depends(get_session)):
-    """Import dall'Excel dei minori. prova=true mostra, prova=false scrive."""
+    """Import dall'Excel dei minori. prova=true mostra, prova=false scrive.
+    Legge i codici fiscali gia' presenti in UNA sola interrogazione (niente una query
+    per riga: su un database in rete erano centinaia di andate e ritorni, lenti e fragili)."""
+    esistenti = {row["codice_fiscale"]: row["id"] for row in db.execute(
+        text("select id, codice_fiscale from minori")).mappings().all()}
     creati, aggiornati, scartati = 0, 0, []
     visti = set()
+    da_inserire, da_aggiornare = [], []
     for i, r in enumerate(dati.righe, start=1):
         c = cf.controlla(r.get("codice_fiscale"))
         if not c["ok"]:
@@ -101,32 +106,29 @@ def importa(dati: ImportIn, u: dict = Depends(SOLO_UFFICIO), db=Depends(get_sess
             scartati.append({"riga": i, "motivo": "codice fiscale duplicato nel file", "cf": c["cf"]})
             continue
         visti.add(c["cf"])
-        esiste = db.execute(text("select id from minori where codice_fiscale=:cf"),
-                            {"cf": c["cf"]}).mappings().first()
-        if dati.prova:
-            if esiste:
-                aggiornati += 1
-            else:
-                creati += 1
-            continue
         campi = {"co": (r.get("cognome") or "").strip(), "no": (r.get("nome") or "").strip(),
                  "cf": c["cf"], "sn": r.get("stato_nascita"), "cn": r.get("comune_nascita"),
                  "pr": r.get("provincia"), "ge": r.get("genere") or c["genere"],
                  "dn": c["data_nascita"], "clp": r.get("clp"), "sc": r.get("scuola"),
                  "op": r.get("ore_previste"), "st": r.get("stato"),
                  "mi": bool(r.get("modulo_iscrizione"))}
-        if esiste:
-            campi["i"] = esiste["id"]
+        if c["cf"] in esistenti:
+            campi["i"] = esistenti[c["cf"]]
+            da_aggiornare.append(campi)
+            aggiornati += 1
+        else:
+            da_inserire.append(campi)
+            creati += 1
+    if not dati.prova:
+        for campi in da_aggiornare:
             db.execute(text(
                 "update minori set cognome=:co, nome=:no, stato_nascita=:sn, comune_nascita=:cn, "
                 "provincia=:pr, genere=:ge, data_nascita=:dn, clp=:clp, scuola=:sc, ore_previste=:op, "
                 "stato=:st, modulo_iscrizione=:mi where id=:i"), campi)
-            aggiornati += 1
-        else:
+        if da_inserire:
             db.execute(text(
                 "insert into minori (cognome, nome, codice_fiscale, stato_nascita, comune_nascita, "
                 "provincia, genere, data_nascita, clp, scuola, ore_previste, stato, modulo_iscrizione) "
-                "values (:co, :no, :cf, :sn, :cn, :pr, :ge, :dn, :clp, :sc, :op, :st, :mi)"), campi)
-            creati += 1
+                "values (:co, :no, :cf, :sn, :cn, :pr, :ge, :dn, :clp, :sc, :op, :st, :mi)"), da_inserire)
     return {"prova": dati.prova, "creati": creati, "aggiornati": aggiornati,
             "scartati": scartati, "totale_righe": len(dati.righe)}
