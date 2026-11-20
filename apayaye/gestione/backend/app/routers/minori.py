@@ -9,6 +9,20 @@ router = APIRouter(prefix="/minori", tags=["minori"])
 
 SOLO_UFFICIO = richiedi("ufficio", "admin")
 
+# Valori ammessi dalla colonna "stato" (vincolo minori_stato_check). Tutto il resto -> NULL.
+STATI_MINORE = {"Nuovo inserimento", "Concluso", "Rinunciatario"}
+
+INSERT_MINORE = (
+    "insert into minori (cognome, nome, codice_fiscale, stato_nascita, comune_nascita, "
+    "provincia, genere, data_nascita, clp, scuola, ore_previste, stato, modulo_iscrizione) "
+    "values (:co, :no, :cf, :sn, :cn, :pr, :ge, :dn, :clp, :sc, :op, :st, :mi)"
+)
+UPDATE_MINORE = (
+    "update minori set cognome=:co, nome=:no, stato_nascita=:sn, comune_nascita=:cn, "
+    "provincia=:pr, genere=:ge, data_nascita=:dn, clp=:clp, scuola=:sc, ore_previste=:op, "
+    "stato=:st, modulo_iscrizione=:mi where id=:i"
+)
+
 
 class MinoreIn(BaseModel):
     cognome: str
@@ -46,15 +60,14 @@ def crea(dati: MinoreIn, u: dict = Depends(SOLO_UFFICIO), db=Depends(get_session
                      {"cf": c["cf"]}).first()
     if gia:
         raise HTTPException(status_code=409, detail="Esiste gia' un minore con questo codice fiscale")
-    row = db.execute(text(
-        "insert into minori (cognome, nome, codice_fiscale, stato_nascita, comune_nascita, provincia, "
-        "genere, data_nascita, clp, scuola, ore_previste, stato, modulo_iscrizione, note) "
-        "values (:co, :no, :cf, :sn, :cn, :pr, :ge, :dn, :clp, :sc, :op, :st, :mi, :nt) returning id"
-    ), {"co": dati.cognome.strip(), "no": dati.nome.strip(), "cf": c["cf"],
-        "sn": dati.stato_nascita, "cn": dati.comune_nascita, "pr": dati.provincia,
-        "ge": dati.genere or c["genere"], "dn": c["data_nascita"], "clp": dati.clp,
-        "sc": dati.scuola, "op": dati.ore_previste, "st": dati.stato,
-        "mi": dati.modulo_iscrizione, "nt": dati.note}).mappings().first()
+    st = dati.stato if dati.stato in STATI_MINORE else None
+    ge = dati.genere if dati.genere in ("M", "F") else c["genere"]
+    row = db.execute(text(INSERT_MINORE + " returning id"),
+        {"co": dati.cognome.strip(), "no": dati.nome.strip(), "cf": c["cf"],
+         "sn": dati.stato_nascita, "cn": dati.comune_nascita, "pr": dati.provincia,
+         "ge": ge, "dn": c["data_nascita"], "clp": dati.clp,
+         "sc": dati.scuola, "op": dati.ore_previste, "st": st,
+         "mi": dati.modulo_iscrizione}).mappings().first()
     return {"id": row["id"], "ok": True}
 
 
@@ -67,14 +80,16 @@ def modifica(mid: int, dati: MinoreIn, u: dict = Depends(SOLO_UFFICIO), db=Depen
                        {"cf": c["cf"], "i": mid}).first()
     if altro:
         raise HTTPException(status_code=409, detail="Un altro minore ha gia' questo codice fiscale")
+    st = dati.stato if dati.stato in STATI_MINORE else None
+    ge = dati.genere if dati.genere in ("M", "F") else c["genere"]
     r = db.execute(text(
         "update minori set cognome=:co, nome=:no, codice_fiscale=:cf, stato_nascita=:sn, "
         "comune_nascita=:cn, provincia=:pr, genere=:ge, data_nascita=:dn, clp=:clp, scuola=:sc, "
         "ore_previste=:op, stato=:st, modulo_iscrizione=:mi, note=:nt where id=:i"
     ), {"co": dati.cognome.strip(), "no": dati.nome.strip(), "cf": c["cf"],
         "sn": dati.stato_nascita, "cn": dati.comune_nascita, "pr": dati.provincia,
-        "ge": dati.genere or c["genere"], "dn": c["data_nascita"], "clp": dati.clp,
-        "sc": dati.scuola, "op": dati.ore_previste, "st": dati.stato,
+        "ge": ge, "dn": c["data_nascita"], "clp": dati.clp,
+        "sc": dati.scuola, "op": dati.ore_previste, "st": st,
         "mi": dati.modulo_iscrizione, "nt": dati.note, "i": mid}).rowcount
     if not r:
         raise HTTPException(status_code=404, detail="Minore non trovato")
@@ -89,11 +104,14 @@ class ImportIn(BaseModel):
 @router.post("/importa")
 def importa(dati: ImportIn, u: dict = Depends(SOLO_UFFICIO), db=Depends(get_session)):
     """Import dall'Excel dei minori. prova=true mostra, prova=false scrive.
-    Legge i codici fiscali gia' presenti in UNA sola interrogazione (niente una query
-    per riga: su un database in rete erano centinaia di andate e ritorni, lenti e fragili)."""
+    - Legge i codici fiscali gia' presenti in UNA sola interrogazione.
+    - 'stato' fuori dai valori ammessi (o vuoto) -> NULL; 'genere' non M/F -> quello del CF
+      (altrimenti il database rifiuta la riga per i vincoli di controllo).
+    - In scrittura inserisce in blocco; se una riga da' problemi, le altre entrano lo stesso
+      e quella si segnala (niente piu' 'tutto o niente')."""
     esistenti = {row["codice_fiscale"]: row["id"] for row in db.execute(
         text("select id, codice_fiscale from minori")).mappings().all()}
-    creati, aggiornati, scartati = 0, 0, []
+    scartati = []
     visti = set()
     da_inserire, da_aggiornare = [], []
     for i, r in enumerate(dati.righe, start=1):
@@ -106,29 +124,50 @@ def importa(dati: ImportIn, u: dict = Depends(SOLO_UFFICIO), db=Depends(get_sess
             scartati.append({"riga": i, "motivo": "codice fiscale duplicato nel file", "cf": c["cf"]})
             continue
         visti.add(c["cf"])
+        ge = r.get("genere")
+        if ge not in ("M", "F"):
+            ge = c["genere"]
+        st = r.get("stato")
+        if st not in STATI_MINORE:
+            st = None
         campi = {"co": (r.get("cognome") or "").strip(), "no": (r.get("nome") or "").strip(),
-                 "cf": c["cf"], "sn": r.get("stato_nascita"), "cn": r.get("comune_nascita"),
-                 "pr": r.get("provincia"), "ge": r.get("genere") or c["genere"],
-                 "dn": c["data_nascita"], "clp": r.get("clp"), "sc": r.get("scuola"),
-                 "op": r.get("ore_previste"), "st": r.get("stato"),
+                 "cf": c["cf"], "sn": r.get("stato_nascita") or None,
+                 "cn": r.get("comune_nascita") or None, "pr": r.get("provincia") or None,
+                 "ge": ge, "dn": c["data_nascita"], "clp": r.get("clp") or None,
+                 "sc": r.get("scuola") or None, "op": r.get("ore_previste"), "st": st,
                  "mi": bool(r.get("modulo_iscrizione"))}
         if c["cf"] in esistenti:
             campi["i"] = esistenti[c["cf"]]
             da_aggiornare.append(campi)
-            aggiornati += 1
         else:
             da_inserire.append(campi)
-            creati += 1
+    creati, aggiornati = len(da_inserire), len(da_aggiornare)
     if not dati.prova:
+        aggiornati = 0
         for campi in da_aggiornare:
-            db.execute(text(
-                "update minori set cognome=:co, nome=:no, stato_nascita=:sn, comune_nascita=:cn, "
-                "provincia=:pr, genere=:ge, data_nascita=:dn, clp=:clp, scuola=:sc, ore_previste=:op, "
-                "stato=:st, modulo_iscrizione=:mi where id=:i"), campi)
+            try:
+                with db.begin_nested():
+                    db.execute(text(UPDATE_MINORE), campi)
+                aggiornati += 1
+            except Exception as e:
+                scartati.append({"riga": "-", "motivo": "non aggiornata (%s)" % type(e).__name__,
+                                 "cognome": campi.get("co"), "nome": campi.get("no"), "cf": campi.get("cf")})
+        inseriti = 0
         if da_inserire:
-            db.execute(text(
-                "insert into minori (cognome, nome, codice_fiscale, stato_nascita, comune_nascita, "
-                "provincia, genere, data_nascita, clp, scuola, ore_previste, stato, modulo_iscrizione) "
-                "values (:co, :no, :cf, :sn, :cn, :pr, :ge, :dn, :clp, :sc, :op, :st, :mi)"), da_inserire)
+            try:
+                with db.begin_nested():
+                    db.execute(text(INSERT_MINORE), da_inserire)
+                inseriti = len(da_inserire)
+            except Exception:
+                inseriti = 0
+                for campi in da_inserire:
+                    try:
+                        with db.begin_nested():
+                            db.execute(text(INSERT_MINORE), campi)
+                        inseriti += 1
+                    except Exception as e:
+                        scartati.append({"riga": "-", "motivo": "non inserita (%s)" % type(e).__name__,
+                                         "cognome": campi.get("co"), "nome": campi.get("no"), "cf": campi.get("cf")})
+        creati = inseriti
     return {"prova": dati.prova, "creati": creati, "aggiornati": aggiornati,
             "scartati": scartati, "totale_righe": len(dati.righe)}
