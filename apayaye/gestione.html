@@ -50,12 +50,21 @@
   label{display:block;font-weight:700;font-size:.82rem;margin:10px 0 3px;color:var(--soft)}
   input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-family:var(--f);font-size:.95rem;background:#fff}
   input:focus,select:focus{outline:2px solid #bfe0ee;border-color:var(--mare)}
+  /* Tabelle: stile "foglio" (come l'app contabilità) */
+  .scroll{overflow-x:auto;border:1px solid #d6dde2;border-radius:12px;box-shadow:0 1px 3px rgba(20,40,55,.07);background:#fff}
   table{width:100%;border-collapse:collapse;font-size:.88rem}
-  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-  th{color:var(--soft);font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}
-  tr.verifica td{background:var(--giallo)}
-  td.nota{white-space:normal;max-width:240px;line-height:1.25}
-  .scroll{overflow-x:auto}
+  thead th{background:#263038;color:#fff;font-weight:700;text-transform:none;letter-spacing:0;
+    font-size:.82rem;text-align:left;padding:11px 12px;white-space:nowrap;border-bottom:0}
+  thead th:first-child{border-top-left-radius:11px}
+  thead th:last-child{border-top-right-radius:11px}
+  tbody td{text-align:left;padding:9px 12px;border-bottom:1px solid #eef1f3;white-space:nowrap;color:var(--ink)}
+  tbody td:first-child{font-weight:700;color:#1f2a30}
+  tbody tr:nth-child(even) td{background:#f3f6f8}
+  tbody tr:hover td{background:#e7f0f5}
+  tbody tr:last-child td{border-bottom:0}
+  tr.verifica td, tbody tr.verifica:nth-child(even) td{background:var(--giallo)}
+  tr.verifica:hover td{background:#fbeeb8}
+  td.nota{white-space:normal;max-width:240px;line-height:1.25;font-weight:400;color:var(--ink)}
   .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.76rem;font-weight:700}
   .pill.ok{background:#e4f2e4;color:var(--verde)} .pill.no{background:#fbe6e3;color:var(--rosso)}
   .pill.att{background:var(--giallo);color:var(--ambra)}
@@ -124,7 +133,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "2.0";
+var APP_VERSION = "2.1";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
