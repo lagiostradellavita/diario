@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gestione Apayaye</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+  :root{
+    color-scheme:light;
+    --ink:#1f2a33; --soft:#5a6a76; --line:#dce5ea; --bg:#eef3f6; --panel:#fff;
+    --mare:#1d7ea6; --mare-scuro:#145d79; --verde:#3e8f3f; --rosso:#c0392b; --ambra:#b9770e;
+    --giallo:#fdf3cf;
+    --f:"Nunito",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--f);color:var(--ink);background:var(--bg);font-size:15px}
+  a{color:var(--mare)}
+  .topbar{background:linear-gradient(90deg,#1d7ea6,#145d79);color:#fff;padding:12px 18px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .topbar b{font-weight:800;font-size:1.1rem}
+  .topbar .who{font-size:.86rem;opacity:.95;display:flex;gap:10px;align-items:center}
+  .btn{border:0;border-radius:9px;padding:9px 14px;font-family:var(--f);font-weight:700;font-size:.9rem;cursor:pointer}
+  .btn.p{background:var(--mare);color:#fff}
+  .btn.g{background:#eef3f6;color:var(--ink);border:1px solid var(--line)}
+  .btn.d{background:var(--rosso);color:#fff}
+  .btn.v{background:var(--verde);color:#fff}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn.sm{padding:6px 10px;font-size:.82rem}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px}
+  .layout{display:grid;grid-template-columns:200px 1fr;gap:18px}
+  @media(max-width:760px){.layout{grid-template-columns:1fr}}
+  nav.side{display:flex;flex-direction:column;gap:4px}
+  @media(max-width:760px){nav.side{flex-direction:row;flex-wrap:wrap}}
+  nav.side button{text-align:left;border:0;background:none;padding:10px 12px;border-radius:9px;
+    font-family:var(--f);font-weight:700;color:var(--soft);cursor:pointer}
+  nav.side button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  h1{font-size:1.3rem;margin:.1em 0 .4em}
+  h2{font-size:1.05rem;margin:.2em 0 .6em}
+  .muted{color:var(--soft)}
+  label{display:block;font-weight:700;font-size:.82rem;margin:10px 0 3px;color:var(--soft)}
+  input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-family:var(--f);font-size:.95rem;background:#fff}
+  input:focus,select:focus{outline:2px solid #bfe0ee;border-color:var(--mare)}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{color:var(--soft);font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}
+  tr.verifica td{background:var(--giallo)}
+  td.nota{white-space:normal;max-width:240px;line-height:1.25}
+  .scroll{overflow-x:auto}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.76rem;font-weight:700}
+  .pill.ok{background:#e4f2e4;color:var(--verde)} .pill.no{background:#fbe6e3;color:var(--rosso)}
+  .pill.att{background:var(--giallo);color:var(--ambra)}
+  .msg{padding:10px 13px;border-radius:10px;margin:10px 0;font-weight:700;font-size:.9rem}
+  .msg.err{background:#fbe6e3;color:var(--rosso)} .msg.ok{background:#e4f2e4;color:var(--verde)}
+  .msg.inf{background:#e7f0f5;color:var(--mare-scuro)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  .row>div{flex:1;min-width:150px}
+  .login{max-width:380px;margin:8vh auto;padding:26px}
+  .login h1{text-align:center}
+  .right{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+  .hidden{display:none}
+  .mini{font-size:.8rem;color:var(--soft)}
+  code{background:#eef3f6;padding:1px 5px;border-radius:5px;font-size:.85em}
+  ul.chk{list-style:none;padding:0;margin:0}
+  ul.chk li{padding:8px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+  ul.chk li .chi{margin-left:auto;font-size:.78rem;color:var(--soft);white-space:nowrap}
+  .tag{font-size:.72rem;background:#eef3f6;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--soft)}
+  .ver{font-size:.72rem;font-weight:400;opacity:.85;margin-left:8px}
+  .tb-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .aggbtn{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:8px;padding:5px 10px;font-family:var(--f);font-weight:700;font-size:.78rem;cursor:pointer}
+  .aggbtn.nuovo{background:var(--ambra);border-color:var(--ambra);animation:pulsa 1.3s infinite}
+  @keyframes pulsa{0%,100%{opacity:1}50%{opacity:.55}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tb-left"><b>Gestione Apayaye</b><span class="ver" id="ver"></span><button class="aggbtn" id="aggiorna" title="Aggiorna all'ultima versione">↻ Aggiorna</button></div>
+  <div class="who" id="who"></div>
+</div>
+
+<!-- LOGIN -->
+<div id="vista-login" class="wrap">
+  <div class="card login">
+    <h1>Area riservata</h1>
+    <p class="muted" style="text-align:center;margin-top:-6px">Progetto Apayaye · accesso per ufficio e operatori</p>
+    <div id="login-msg"></div>
+    <label>Email</label>
+    <input id="l-email" type="email" autocomplete="username" placeholder="nome@esempio.it">
+    <label>Password</label>
+    <input id="l-pwd" type="password" autocomplete="current-password" placeholder="La tua password">
+    <div style="margin-top:16px"><button class="btn p" id="l-go" style="width:100%">Entra</button></div>
+    <details style="margin-top:14px"><summary class="mini">Impostazioni avanzate</summary>
+      <label>Indirizzo del server (API)</label>
+      <input id="l-api" type="text" placeholder="https://apayaye-api-ggr3.onrender.com">
+      <p class="mini">Si cambia solo se il server ha un altro indirizzo.</p>
+    </details>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="vista-app" class="wrap hidden">
+  <div class="layout">
+    <nav class="side" id="nav"></nav>
+    <main id="main"></main>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+"use strict";
+var APP_VERSION = "1.5";
+var LS = {
+  get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
+  del:function(k){try{localStorage.removeItem(k)}catch(e){}}
+};
+var API = LS.get("apayaye.gestione.api") || "https://apayaye-api-ggr3.onrender.com";
+var token = LS.get("apayaye.gestione.token") || "";
+var ruolo = LS.get("apayaye.gestione.ruolo") || "";
+var email = LS.get("apayaye.gestione.email") || "";
+
+function $(id){return document.getElementById(id)}
+try{ $("ver").textContent = "v"+APP_VERSION; }catch(e){}
+function ricaricaUltima(){ try{ location.replace(location.pathname + "?r=" + Date.now()); }catch(e){ location.reload(); } }
+function controllaAggiornamenti(){
+  fetch(location.pathname + "?c=" + Date.now(), {cache:"no-store"}).then(function(r){return r.text()}).then(function(t){
+    var m = t.match(/APP_VERSION\s*=\s*"([^"]+)"/);
+    var b = $("aggiorna");
+    if(m && b && m[1] !== APP_VERSION){ b.textContent = "↻ Aggiorna a v"+m[1]; b.className = "aggbtn nuovo"; }
+  }).catch(function(){});
+}
+try{ $("aggiorna").addEventListener("click", ricaricaUltima); }catch(e){}
+setTimeout(controllaAggiornamenti, 3000); setInterval(controllaAggiornamenti, 120000);
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]})}
+function normTxt(s){ return String(s==null?"":s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); }
+
+async function api(path, opt){
+  opt = opt || {};
+  var h = {"Content-Type":"application/json"};
+  if(opt.auth !== false && token) h["Authorization"] = "Bearer " + token;
+  var res, tent = 0;
+  while(true){
+    try{
+      res = await fetch(API + path, {method: opt.method||"GET", headers:h,
+        body: opt.body ? JSON.stringify(opt.body) : undefined});
+      break;
+    }catch(e){
+      tent++;
+      if(tent >= 7) throw new Error("Server non raggiungibile dopo vari tentativi. Il server gratuito potrebbe essere spento: apri https://apayaye-api-ggr3.onrender.com/health e riprova.");
+      await new Promise(function(rs){ setTimeout(rs, 9000); });
+    }
+  }
+  if(res.status === 401){ logout(); throw new Error("Sessione scaduta: rientra."); }
+  var dati = null;
+  try{ dati = await res.json(); }catch(e){}
+  if(!res.ok){ throw new Error((dati && dati.detail) ? dati.detail : ("Errore "+res.status)); }
+  return dati;
+}
+
+/* ---------- login ---------- */
+$("l-api").value = API === "https://apayaye-api-ggr3.onrender.com" ? "" : API;
+$("l-go").addEventListener("click", login);
+$("l-pwd").addEventListener("keydown", function(e){ if(e.key==="Enter") login(); });
+async function login(){
+  var a = $("l-api").value.trim();
+  if(a){ API = a.replace(/\/+$/,""); LS.set("apayaye.gestione.api", API); }
+  var m = $("login-msg"); m.innerHTML = "";
+  var em = $("l-email").value.trim(), pw = $("l-pwd").value;
+  if(!em || !pw){ m.innerHTML = '<div class="msg err">Scrivi email e password.</div>'; return; }
+  $("l-go").disabled = true; $("l-go").textContent = "Entro…";
+  try{
+    var r = await api("/auth/login", {method:"POST", auth:false, body:{email:em, password:pw}});
+    token = r.token; ruolo = r.ruolo; email = em;
+    LS.set("apayaye.gestione.token", token); LS.set("apayaye.gestione.ruolo", ruolo); LS.set("apayaye.gestione.email", em);
+    avviaApp();
+  }catch(e){ m.innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+  $("l-go").disabled = false; $("l-go").textContent = "Entra";
+}
+function logout(){
+  token=""; ruolo=""; LS.del("apayaye.gestione.token"); LS.del("apayaye.gestione.ruolo");
+  $("vista-app").classList.add("hidden"); $("vista-login").classList.remove("hidden");
+  $("who").innerHTML=""; $("l-pwd").value="";
+}
+
+/* ---------- navigazione ---------- */
+var VOCI = [
+  {id:"minori", et:"Minori", ruoli:["ufficio","admin"]},
+  {id:"importa", et:"Importa Excel", ruoli:["ufficio","admin"]},
+  {id:"export", et:"Export ReGiS", ruoli:["ufficio","admin"]},
+  {id:"rendic", et:"Rendicontazione", ruoli:["ufficio","admin","operatore"]},
+  {id:"attivita", et:"Attività e ore", ruoli:["ufficio","admin","operatore"]},
+  {id:"documenti", et:"Documenti", ruoli:["ufficio","admin","operatore"]},
+  {id:"utenti", et:"Utenti e accessi", ruoli:["admin"]}
+];
+var vistaCorr = "minori";
+
+function avviaApp(){
+  $("vista-login").classList.add("hidden"); $("vista-app").classList.remove("hidden");
+  $("who").innerHTML = esc(email) + ' <span class="tag">'+esc(ruolo)+'</span> '+
+    '<button class="btn g sm" id="b-logout">Esci</button>';
+  $("b-logout").addEventListener("click", logout);
+  var voci = VOCI.filter(function(v){ return v.ruoli.indexOf(ruolo) >= 0; });
+  if(voci.length && voci.map(function(v){return v.id}).indexOf(vistaCorr) < 0) vistaCorr = voci[0].id;
+  $("nav").innerHTML = voci.map(function(v){
+    return '<button data-v="'+v.id+'" class="'+(v.id===vistaCorr?"on":"")+'">'+esc(v.et)+'</button>';
+  }).join("");
+  Array.prototype.forEach.call($("nav").querySelectorAll("button"), function(b){
+    b.addEventListener("click", function(){ vistaCorr = b.getAttribute("data-v"); avviaApp(); });
+  });
+  render();
+}
+
+function render(){
+  var m = $("main");
+  if(vistaCorr==="minori") return vistaMinori(m);
+  if(vistaCorr==="importa") return vistaImporta(m);
+  if(vistaCorr==="export") return vistaExport(m);
+  if(vistaCorr==="rendic") return vistaRendic(m);
+  if(vistaCorr==="utenti") return vistaUtenti(m);
+  if(vistaCorr==="attivita" || vistaCorr==="documenti")
+    m.innerHTML = '<div class="card"><h1>'+esc(VOCI.filter(function(v){return v.id===vistaCorr})[0].et)+
+      '</h1><p class="muted">In preparazione: questa parte arriva con il prossimo aggiornamento. '+
+      'Il backend è già pronto a riceverla.</p></div>';
+}
+
+/* ---------- MINORI ---------- */
+var minoriCache = [];
+var mFiltri = {q:"", stato:"", iscr:"", ver:""};
+function daVerificare(r){ return !!(r.note && String(r.note).trim()); }
+function notaBreve(n){ return String(n==null?"":n).replace(/^Codice fiscale da verificare:\s*/i,""); }
+
+async function vistaMinori(m){
+  m.innerHTML = '<div class="card"><div class="right"><button class="btn p sm" id="m-nuovo">+ Nuovo minore</button></div>'+
+    '<h1>Minori destinatari</h1><div id="m-msg"></div><div id="m-strumenti"></div><div id="m-body" class="muted">Carico…</div></div>'+
+    '<div id="m-form"></div>';
+  $("m-nuovo").addEventListener("click", function(){ formMinore(null); });
+  try{
+    minoriCache = await api("/minori");
+    if(!minoriCache.length){ $("m-body").innerHTML = '<p class="muted">Ancora nessun minore. Usa «Importa Excel» per caricarli tutti, o «+ Nuovo minore».</p>'; return; }
+    disegnaStrumentiMinori();
+    disegnaTabellaMinori();
+  }catch(e){ $("m-body").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+}
+
+function disegnaStrumentiMinori(){
+  var stati = [];
+  minoriCache.forEach(function(r){ if(r.stato && stati.indexOf(r.stato)<0) stati.push(r.stato); });
+  var nVer = minoriCache.filter(daVerificare).length;
+  var h = '<div class="row" style="margin:4px 0 2px">'+
+    '<div style="flex:2"><label>Cerca (cognome, nome, codice fiscale)</label>'+
+      '<input id="m-q" type="search" placeholder="Scrivi per filtrare…" value="'+esc(mFiltri.q)+'"></div>'+
+    '<div><label>Stato</label><select id="m-fs"><option value="">Tutti</option>'+
+      stati.map(function(s){return '<option'+(mFiltri.stato===s?" selected":"")+'>'+esc(s)+'</option>'}).join("")+'</select></div>'+
+    '<div><label>Iscrizione</label><select id="m-fi"><option value="">Tutte</option>'+
+      '<option value="si"'+(mFiltri.iscr==="si"?" selected":"")+'>Con modulo</option>'+
+      '<option value="no"'+(mFiltri.iscr==="no"?" selected":"")+'>Senza modulo</option></select></div>'+
+    '<div><label>Da verificare</label><select id="m-fv"><option value="">Tutti</option>'+
+      '<option value="si"'+(mFiltri.ver==="si"?" selected":"")+'>Solo da verificare</option>'+
+      '<option value="no"'+(mFiltri.ver==="no"?" selected":"")+'>Solo a posto</option></select></div>'+
+    '</div>';
+  if(nVer){ h += '<p class="mini" style="margin-top:8px"><span class="pill att">⚠ '+nVer+' da verificare</span> &nbsp;codice fiscale da controllare: apri la riga, correggilo e salva.</p>'; }
+  $("m-strumenti").innerHTML = h;
+  $("m-q").addEventListener("input", function(){ mFiltri.q=this.value; disegnaTabellaMinori(); });
+  $("m-fs").addEventListener("change", function(){ mFiltri.stato=this.value; disegnaTabellaMinori(); });
+  $("m-fi").addEventListener("change", function(){ mFiltri.iscr=this.value; disegnaTabellaMinori(); });
+  $("m-fv").addEventListener("change", function(){ mFiltri.ver=this.value; disegnaTabellaMinori(); });
+}
+
+function minoriFiltrati(){
+  var q = normTxt(mFiltri.q).trim();
+  return minoriCache.filter(function(r){
+    if(mFiltri.stato && r.stato !== mFiltri.stato) return false;
+    if(mFiltri.iscr === "si" && !r.modulo_iscrizione) return false;
+    if(mFiltri.iscr === "no" && r.modulo_iscrizione) return false;
+    if(mFiltri.ver === "si" && !daVerificare(r)) return false;
+    if(mFiltri.ver === "no" && daVerificare(r)) return false;
+    if(q){
+      var blob = normTxt((r.cognome||"")+" "+(r.nome||"")+" "+(r.codice_fiscale||""));
+      if(blob.indexOf(q) < 0) return false;
+    }
+    return true;
+  });
+}
+
+function disegnaTabellaMinori(){
+  var righe = minoriFiltrati();
+  var h = '<div class="scroll"><table><thead><tr><th>Cognome</th><th>Nome</th><th>Codice fiscale</th>'+
+    '<th>Nascita</th><th>Scuola</th><th>Stato</th><th>Iscriz.</th><th>Da verificare</th><th></th></tr></thead><tbody>';
+  if(!righe.length){
+    h += '<tr><td colspan="9" class="muted" style="padding:14px">Nessun minore con questi filtri.</td></tr>';
+  }
+  righe.forEach(function(r){
+    var ver = daVerificare(r);
+    h += '<tr'+(ver?' class="verifica"':'')+'><td>'+esc(r.cognome)+'</td><td>'+esc(r.nome)+'</td><td>'+esc(r.codice_fiscale)+'</td>'+
+      '<td>'+esc(r.data_nascita||"")+'</td><td>'+esc(r.scuola||"")+'</td><td>'+esc(r.stato||"")+'</td>'+
+      '<td>'+(r.modulo_iscrizione?'<span class="pill ok">sì</span>':'<span class="pill no">no</span>')+'</td>'+
+      '<td class="nota">'+(ver?'<span class="pill att">⚠ da verificare</span><div class="mini">'+esc(notaBreve(r.note))+'</div>':'')+'</td>'+
+      '<td><button class="btn g sm" data-id="'+r.id+'">Apri</button></td></tr>';
+  });
+  var filtriAttivi = mFiltri.q || mFiltri.stato || mFiltri.iscr || mFiltri.ver;
+  h += '</tbody></table></div><p class="mini">'+righe.length+' di '+minoriCache.length+' minori'+(filtriAttivi?' (filtrati)':'')+'.</p>';
+  $("m-body").innerHTML = h;
+  Array.prototype.forEach.call($("m-body").querySelectorAll("button[data-id]"), function(b){
+    b.addEventListener("click", function(){ formMinore(minoriCache.filter(function(x){return x.id==b.getAttribute("data-id")})[0]); });
+  });
+}
+function campo(l,id,v,t){ return '<div><label>'+l+'</label><input id="'+id+'" type="'+(t||"text")+'" value="'+esc(v||"")+'"></div>'; }
+function formMinore(r){
+  r = r || {};
+  var f = $("m-form");
+  var nota = (r.note && String(r.note).trim()) ? '<div class="msg inf">⚠ Questo minore è da verificare: '+esc(notaBreve(r.note))+' Correggi il codice fiscale e salva: la nota sparisce da sola.</div>' : '';
+  f.innerHTML = '<div class="card"><h2>'+(r.id?"Modifica minore":"Nuovo minore")+'</h2><div id="f-msg"></div>'+nota+
+    '<div class="row">'+campo("Cognome","f-cognome",r.cognome)+campo("Nome","f-nome",r.nome)+'</div>'+
+    '<div class="row">'+campo("Codice fiscale","f-cf",r.codice_fiscale)+
+      '<div><label>Stato</label><select id="f-stato"><option value="">—</option>'+
+      ["Nuovo inserimento","Concluso","Rinunciatario"].map(function(s){return '<option'+(r.stato===s?" selected":"")+'>'+s+'</option>'}).join("")+'</select></div></div>'+
+    '<div class="row">'+campo("Stato di nascita","f-sn",r.stato_nascita)+campo("Comune di nascita","f-cn",r.comune_nascita)+campo("Provincia","f-pr",r.provincia)+'</div>'+
+    '<div class="row">'+campo("Scuola","f-sc",r.scuola)+campo("Ore previste","f-op",r.ore_previste,"number")+
+      '<div><label>Modulo iscrizione</label><select id="f-mi"><option value="no"'+(!r.modulo_iscrizione?" selected":"")+'>No</option><option value="si"'+(r.modulo_iscrizione?" selected":"")+'>Sì</option></select></div></div>'+
+    '<p class="mini">Data di nascita e genere si ricavano dal codice fiscale.</p>'+
+    '<div class="right" style="margin-top:12px"><button class="btn g sm" id="f-ann">Annulla</button><button class="btn p sm" id="f-salva">Salva</button></div></div>';
+  f.scrollIntoView({behavior:"smooth"});
+  $("f-ann").addEventListener("click", function(){ f.innerHTML=""; });
+  $("f-salva").addEventListener("click", async function(){
+    var body = {cognome:$("f-cognome").value.trim(), nome:$("f-nome").value.trim(),
+      codice_fiscale:$("f-cf").value.trim(), stato_nascita:$("f-sn").value.trim(),
+      comune_nascita:$("f-cn").value.trim(), provincia:$("f-pr").value.trim(),
+      scuola:$("f-sc").value.trim(), ore_previste: $("f-op").value?parseFloat($("f-op").value):null,
+      stato: $("f-stato").value||null, modulo_iscrizione: $("f-mi").value==="si"};
+    try{
+      if(r.id) await api("/minori/"+r.id, {method:"PUT", body:body});
+      else await api("/minori", {method:"POST", body:body});
+      f.innerHTML=""; vistaMinori($("main"));
+    }catch(e){ $("f-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+  });
+}
+
+/* ---------- IMPORTA ---------- */
+var importRighe = null;
+function vistaImporta(m){
+  m.innerHTML = '<div class="card"><h1>Importa l\'Excel dei minori</h1>'+
+    '<p class="muted">Carica il file «Elenco minori» del progetto: l\'app legge le colonne, controlla i codici fiscali '+
+    '(età 11-17, niente doppioni) e <b>prima mostra</b> cosa farebbe, poi scrivi.</p>'+
+    '<input id="imp-file" type="file" accept=".xlsx,.xls">'+
+    '<div id="imp-msg"></div><div id="imp-ris"></div></div>';
+  $("imp-file").addEventListener("change", leggiFile);
+}
+function leggiFile(ev){
+  var file = ev.target.files[0]; if(!file) return;
+  var rd = new FileReader();
+  rd.onload = function(e){
+    try{
+      var wb = XLSX.read(new Uint8Array(e.target.result), {type:"array"});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var aoa = XLSX.utils.sheet_to_json(ws, {header:1, raw:false});
+      importRighe = estraiRighe(aoa);
+      if(!importRighe.length){ $("imp-msg").innerHTML = '<div class="msg err">Non ho trovato righe con un codice fiscale in questo foglio.</div>'; return; }
+      anteprima();
+    }catch(err){ $("imp-msg").innerHTML = '<div class="msg err">Non riesco a leggere il file: '+esc(err.message)+'</div>'; }
+  };
+  rd.readAsArrayBuffer(file);
+}
+function estraiRighe(aoa){
+  var hi = -1;
+  for(var i=0;i<aoa.length;i++){
+    var riga = aoa[i]||[];
+    if(riga.some(function(c){ return /codice fiscale/i.test(String(c||"")); })){ hi=i; break; }
+  }
+  if(hi<0) return [];
+  var head = aoa[hi].map(function(c){return String(c||"").toLowerCase()});
+  function col(re){ for(var j=0;j<head.length;j++){ if(re.test(head[j])) return j; } return -1; }
+  var c = {cog:col(/cognome/), nom:col(/\bnome\b/), cf:col(/codice fiscale/), sn:col(/stato di nascita/),
+    cn:col(/comune di nascita/), pr:col(/provincia/), ge:col(/genere/), note:col(/note/)};
+  var out=[];
+  for(var r=hi+1;r<aoa.length;r++){
+    var row=aoa[r]||[]; var cf=(row[c.cf]||"").toString().trim();
+    var cog=(c.cog>=0?row[c.cog]:"")||""; 
+    if(!cf || !String(cog).trim()) continue;
+    out.push({cognome:String(cog).trim(), nome:(c.nom>=0?String(row[c.nom]||"").trim():""),
+      codice_fiscale:cf, stato_nascita:c.sn>=0?row[c.sn]:"", comune_nascita:c.cn>=0?row[c.cn]:"",
+      provincia:c.pr>=0?row[c.pr]:"", genere:c.ge>=0?row[c.ge]:"",
+      stato:c.note>=0?(row[c.note]||"").toString().trim():"", modulo_iscrizione:true});
+  }
+  return out;
+}
+async function anteprima(){
+  $("imp-msg").innerHTML = '<div class="msg inf">Letti '+importRighe.length+' minori dal file. Controllo… (se il server era spento, puo\' metterci fino a un minuto)</div>';
+  try{
+    var r = await api("/minori/importa", {method:"POST", body:{prova:true, righe:importRighe}});
+    var daVer = r.da_verificare||0;
+    var h = '<div class="msg ok">Pronti: <b>'+r.creati+'</b> da aggiungere, <b>'+r.aggiornati+'</b> da aggiornare'+
+      (daVer?(' · <b>'+daVer+'</b> entrano segnati «da verificare»'):'')+
+      (r.scartati.length?(' · <b>'+r.scartati.length+'</b> esclusi'):'')+'.</div>';
+    if(r.scartati.length){
+      h += '<div class="card"><h2>Esclusi (non verranno scritti)</h2><div class="scroll"><table><thead><tr><th>Riga</th><th>Chi</th><th>Motivo</th></tr></thead><tbody>'+
+        r.scartati.map(function(s){return '<tr><td>'+esc(s.riga)+'</td><td>'+esc((s.cognome||"")+" "+(s.nome||""))+'</td><td>'+esc(s.motivo)+'</td></tr>'}).join("")+
+        '</tbody></table></div></div>';
+    }
+    h += '<div class="right"><button class="btn v" id="imp-scrivi">Scrivi i '+(r.creati+r.aggiornati+daVer)+' minori nell\'archivio</button></div>';
+    $("imp-ris").innerHTML = h;
+    $("imp-scrivi").addEventListener("click", scrivi);
+  }catch(e){ $("imp-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+}
+async function scrivi(){
+  $("imp-scrivi").disabled = true; $("imp-scrivi").textContent = "Scrivo…";
+  try{
+    var r = await api("/minori/importa", {method:"POST", body:{prova:false, righe:importRighe}});
+    var daVer = r.da_verificare||0;
+    $("imp-ris").innerHTML = '<div class="msg ok">Fatto: '+r.creati+' aggiunti, '+r.aggiornati+' aggiornati'+
+      (daVer?(', '+daVer+' da verificare'):'')+(r.scartati.length?(', '+r.scartati.length+' esclusi'):'')+'. Vai in «Minori» per vederli.</div>';
+  }catch(e){ $("imp-ris").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+}
+
+/* ---------- EXPORT REGIS ---------- */
+function vistaExport(m){
+  m.innerHTML = '<div class="card"><h1>Export per ReGiS</h1>'+
+    '<p class="muted">Scarica l\'«Elenco minori destinatari» nel formato del Ministero, con le ore erogate sommate da sole. '+
+    'Prima controllo che non ci siano codici fiscali doppi o fuori fascia.</p>'+
+    '<button class="btn p" id="ex-go">Prepara l\'elenco</button><div id="ex-msg"></div></div>';
+  $("ex-go").addEventListener("click", async function(){
+    $("ex-msg").innerHTML = '<div class="msg inf">Preparo…</div>';
+    try{
+      var r = await api("/export/elenco-minori");
+      var h = "";
+      if(r.problemi && r.problemi.length){
+        h += '<div class="msg err"><b>Da sistemare prima dell\'invio ('+r.problemi.length+'):</b><ul>'+
+          r.problemi.map(function(p){return '<li>'+esc(p)+'</li>'}).join("")+'</ul></div>';
+      } else {
+        h += '<div class="msg ok">Nessun problema: elenco pronto.</div>';
+      }
+      h += '<button class="btn v" id="ex-scarica">Scarica il foglio .xlsx</button>';
+      $("ex-msg").innerHTML = h;
+      $("ex-scarica").addEventListener("click", function(){
+        var ws = XLSX.utils.aoa_to_sheet(r.matrice);
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Elenco minori");
+        XLSX.writeFile(wb, "Elenco minori Apayaye.xlsx");
+      });
+    }catch(e){ $("ex-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+  });
+}
+
+/* ---------- RENDICONTAZIONE ---------- */
+var CHECKLIST = [
+  ["Elenco minori destinatari (template ministeriale)","ufficio","si esporta dall'app, formato ReGiS"],
+  ["Autocertificazione monte ore (ex art. 17.1)","ufficio","le ore erogate devono coincidere con l'elenco"],
+  ["Allegato G","operatore / ufficio",""],
+  ["Registri firma dei minori","operatore",""],
+  ["Registri firma degli operatori","operatore",""],
+  ["Relazioni delle attività","operatore",""],
+  ["Fatture ricevute / giustificativi di spesa","ufficio / operatore","porta un importo → contabilità"],
+  ["Compensi operatori (ore × tariffa)","ufficio","calcolati dall'app, + forfait 40% → contabilità"],
+  ["Moduli di iscrizione e consensi","ufficio",""]
+];
+function vistaRendic(m){
+  m.innerHTML = '<div class="card"><h1>Rendicontazione</h1>'+
+    '<p class="muted">Tutto quello che serve per le attività e la rendicontazione del progetto (PNRR · ReGiS). '+
+    'Le voci con l\'importo alimentano la contabilità (progetti → Apayaye).</p>'+
+    '<ul class="chk">'+CHECKLIST.map(function(c){
+      return '<li><span>✓</span><div><b>'+esc(c[0])+'</b>'+(c[2]?'<div class="mini">'+esc(c[2])+'</div>':'')+'</div><span class="chi">'+esc(c[1])+'</span></li>';
+    }).join("")+'</ul></div>'+
+    '<div class="card"><h2>La guida ufficiale</h2><p class="muted">I documenti ReGiS stanno nella cartella del progetto su Dropbox («10 - Regis»): Linee guida rendicontazione (SA) 2025, le slide del webinar, gli Indicatori e Target. '+
+    'Il collegamento diretto lo agganciamo quando sei nell\'app.</p></div>';
+}
+
+/* ---------- UTENTI ---------- */
+async function vistaUtenti(m){
+  m.innerHTML = '<div class="card"><h1>Utenti e accessi</h1><div id="u-msg"></div>'+
+    '<div class="card" style="background:#f8fbfc"><h2>Invita un utente</h2>'+
+    '<div class="row">'+campo("Email","u-email",""," ")+
+    '<div><label>Ruolo</label><select id="u-ruolo"><option value="ufficio">ufficio</option><option value="operatore">operatore</option><option value="genitore">genitore</option><option value="admin">admin</option></select></div>'+
+    '<div style="flex:0"><label>&nbsp;</label><button class="btn p" id="u-invita">Invita</button></div></div>'+
+    '<div id="u-invmsg"></div></div>'+
+    '<div id="u-body" class="muted">Carico…</div></div>';
+  $("u-invita").addEventListener("click", async function(){
+    var em = $("u-email").value.trim();
+    if(!em){ return; }
+    try{
+      var r = await api("/auth/inviti", {method:"POST", body:{email:em, ruolo:$("u-ruolo").value}});
+      $("u-invmsg").innerHTML = '<div class="msg ok">Invitato '+esc(r.email)+'. Password provvisoria da consegnare: <code>'+esc(r.password_provvisoria)+'</code> (la cambierà al primo accesso).</div>';
+      $("u-email").value=""; caricaUtenti();
+    }catch(e){ $("u-invmsg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+  });
+  caricaUtenti();
+}
+async function caricaUtenti(){
+  try{
+    var righe = await api("/auth/utenti");
+    var h = '<div class="scroll"><table><thead><tr><th>Email</th><th>Ruolo</th><th>Stato</th><th></th></tr></thead><tbody>';
+    righe.forEach(function(r){
+      h += '<tr><td>'+esc(r.email)+'</td><td>'+esc(r.ruolo)+'</td>'+
+        '<td>'+(r.attivo?'<span class="pill ok">attivo</span>':'<span class="pill no">sospeso</span>')+'</td>'+
+        '<td><button class="btn g sm" data-id="'+r.id+'" data-a="'+(r.attivo?0:1)+'">'+(r.attivo?"Sospendi":"Riattiva")+'</button></td></tr>';
+    });
+    h += '</tbody></table></div>';
+    $("u-body").innerHTML = h;
+    Array.prototype.forEach.call($("u-body").querySelectorAll("button[data-id]"), function(b){
+      b.addEventListener("click", async function(){
+        try{ await api("/auth/utenti/"+b.getAttribute("data-id")+"/attivo", {method:"POST", body:{attivo: b.getAttribute("data-a")==="1"}}); caricaUtenti(); }
+        catch(e){ $("u-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+      });
+    });
+  }catch(e){ $("u-body").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+}
+
+/* ---------- avvio ---------- */
+if(token && ruolo){ avviaApp(); }
+</script>
+</body>
+</html>
