@@ -68,7 +68,7 @@ class MinoreIn(BaseModel):
 def elenco(u: dict = Depends(SOLO_UFFICIO), db=Depends(get_session)):
     righe = db.execute(text(
         "select id, cognome, nome, codice_fiscale, stato_nascita, comune_nascita, provincia, "
-        "genere, data_nascita, clp, scuola, ore_previste, stato, modulo_iscrizione, note "
+        "genere, data_nascita, clp, scuola, ore_previste, stato, modulo_iscrizione, note, scheda_link "
         "from minori order by cognome, nome"
     )).mappings().all()
     return [dict(r) for r in righe]
@@ -149,10 +149,12 @@ def importa(dati: ImportIn, u: dict = Depends(SOLO_UFFICIO), db=Depends(get_sess
                 "mi": bool(r.get("modulo_iscrizione"))}
         if not c["ok"]:
             normcf = cf.normalizza(r.get("codice_fiscale"))
+            # eta' fuori fascia (eta' calcolata) oppure codice fiscale mancante: non entra
             if c["eta"] is not None or not normcf:
                 scartati.append({"riga": i, "motivo": "; ".join(c["errori"]),
                                  "cognome": r.get("cognome"), "nome": r.get("nome")})
                 continue
+            # codice fiscale di forma sbagliata: entra segnato "da verificare"
             if normcf in visti or normcf in esistenti:
                 scartati.append({"riga": i, "motivo": "codice fiscale gia' presente (da verificare)",
                                  "cf": normcf})
@@ -192,3 +194,54 @@ def importa(dati: ImportIn, u: dict = Depends(SOLO_UFFICIO), db=Depends(get_sess
         verificare = _inserisci(db, da_verificare, scartati)
     return {"prova": dati.prova, "creati": creati, "aggiornati": aggiornati,
             "da_verificare": verificare, "scartati": scartati, "totale_righe": len(dati.righe)}
+
+
+class ImportSchedeIn(BaseModel):
+    prova: bool = True
+    righe: List[Dict[str, Any]]
+
+
+@router.post("/importa-schede")
+def importa_schede(dati: ImportSchedeIn, u: dict = Depends(SOLO_UFFICIO), db=Depends(get_session)):
+    """Collega a ogni minore il link alla sua scheda di iscrizione (il PDF su
+    Dropbox), abbinando per codice fiscale. prova=true mostra, prova=false scrive.
+    - Accetta solo link http/https; una cella senza link non tocca niente.
+    - Un codice fiscale non in archivio si dichiara, non blocca gli altri."""
+    esistenti = {cf.normalizza(row["codice_fiscale"]): row["id"] for row in db.execute(
+        text("select id, codice_fiscale from minori")).mappings().all()}
+    da_scrivere = []
+    visti = set()
+    non_trovati = []
+    non_validi = 0
+    senza_link = 0
+    for r in dati.righe:
+        cfn = cf.normalizza(r.get("codice_fiscale"))
+        link = (r.get("link") or "").strip()
+        if not cfn:
+            continue
+        if not link:
+            senza_link += 1
+            continue
+        if not (link.startswith("http://") or link.startswith("https://")):
+            non_validi += 1
+            continue
+        if cfn in visti:
+            continue
+        visti.add(cfn)
+        mid = esistenti.get(cfn)
+        if not mid:
+            non_trovati.append({"cf": cfn, "cognome": r.get("cognome"), "nome": r.get("nome")})
+            continue
+        da_scrivere.append({"i": mid, "l": link})
+    collegati = len(da_scrivere)
+    if not dati.prova:
+        collegati = 0
+        for campi in da_scrivere:
+            try:
+                with db.begin_nested():
+                    db.execute(text("update minori set scheda_link=:l where id=:i"), campi)
+                collegati += 1
+            except Exception:
+                pass
+    return {"prova": dati.prova, "collegati": collegati, "non_trovati": non_trovati,
+            "non_validi": non_validi, "senza_link": senza_link, "totale_righe": len(dati.righe)}

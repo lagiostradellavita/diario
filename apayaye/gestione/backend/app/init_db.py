@@ -1,6 +1,6 @@
 """Prepara l'archivio al primo avvio: crea le tabelle (se non ci sono),
-mette la riga del progetto e il primo amministratore.
-Si lancia da entrypoint.sh prima di avviare l'API. E' idempotente."""
+aggiorna lo schema (colonne nuove), mette la riga del progetto e il primo
+amministratore. Si lancia da entrypoint.sh prima di avviare l'API. E' idempotente."""
 import os
 from sqlalchemy import text
 from .db import engine, SessionLocal
@@ -9,12 +9,24 @@ from .security import hash_password
 
 SCHEMA = os.path.join(os.path.dirname(__file__), "schema.sql")
 
+# Aggiornamenti di schema idempotenti: su un archivio gia' creato le "create table
+# if not exists" non aggiungono le colonne nuove, quindi le aggiungiamo qui.
+MIGRAZIONI = [
+    "alter table minori add column if not exists scheda_link text",
+]
+
 
 def crea_tabelle():
     with open(SCHEMA, "r", encoding="utf-8") as f:
         sql = f.read()
     with engine.begin() as con:
         con.exec_driver_sql(sql)
+
+
+def migra():
+    with engine.begin() as con:
+        for passo in MIGRAZIONI:
+            con.exec_driver_sql(passo)
 
 
 def semina():
@@ -45,6 +57,7 @@ def semina():
 
 def main():
     crea_tabelle()
+    migra()
     semina()
     print("[init] archivio pronto")
 

@@ -39,6 +39,7 @@ create table if not exists minori (
   stato           text check (stato in ('Nuovo inserimento','Concluso','Rinunciatario')),
   modulo_iscrizione boolean not null default false,
   note            text,
+  scheda_link     text,
   creato_il       timestamptz not null default now()
 );
 
