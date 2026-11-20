@@ -255,9 +255,12 @@ $("reset").addEventListener("click", function(){
 /* ---------- avvio ---------- */
 render();
 
-/* PWA: installa l'app sul telefono (home screen) */
+/* Niente cache del gioco: si carica sempre la versione fresca. Se un vecchio
+   service worker era rimasto (e teneva bloccata una copia), lo togliamo. */
 if("serviceWorker" in navigator){
-  window.addEventListener("load", function(){
-    navigator.serviceWorker.register("sw.js").catch(function(){ /* niente: l'app gira comunque */ });
-  });
+  try{
+    navigator.serviceWorker.getRegistrations().then(function(rs){
+      rs.forEach(function(r){ r.unregister(); });
+    }).catch(function(){});
+  }catch(e){}
 }
