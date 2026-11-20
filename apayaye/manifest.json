@@ -9,7 +9,17 @@
   "background_color": "#f3e6c6",
   "theme_color": "#2f9ec4",
   "icons": [
-    { "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0AQMAAAAHA5RxAAAABlBMVEUvnsTz5sYJJRBqAAABzElEQVR42u2XMXKDMBBFv2RmTIdLFyk4RkpuFh2NkjJHoHCRkkmFPVhKAcYrtJK1Y6ezGjR//jwtq12QgPf4r9GQuc7w90L/wPsVMjhE16XMH9OLQsiJzEvhut4LE/0g5NQwwjw0rN5I40fNWpzrI/6DhK/i65acriGOv+D0Iu7XEn4Z5ygJ5wCQDX7srxN5aAScJsGpBf3unHPD832q/Jw+9OsUv8jnFKkqY/yfAKBaNg00EcvYz7rdco7LWxsWE4D2N936nOOaPsNiVtBckvvx7tCEcyS1a1jMDaQAYDcRz/WewQ8aws6wmAWktpgFpLcYAnIuBKkAM4N0gFlBX1uO6wEVYoBrAY2rCfQTAKAKOOl4AtBpeVYhBgqAsp79XC75cT7oZ51VAWbeLw90Ltf9cvQb0JF5tcUs9UNAM2apHwLqsur2cjNcfH0FdZl9dJ4fv0GfzqBvsA1p8/t9AgCB36a+S1M+xwHA+ILzj/FOZI/9bYLfCzh9gtMK/i/VWoN5647xdUWcKc6xnG7l55OJ013cP4r4JsoZWL0Vx8+fA3shZ6ArZ9wvKsfreyeMP+KfhPFb+5p7ipuEHFrpO6p3svtaLbzfvcfz4w/aUBNfnjOFEQAAAABJRU5ErkJggg==", "sizes": "180x180", "type": "image/png", "purpose": "any" },
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+    {
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0BAMAAADP4xsBAAAAMFBMVEX///82rdU1qdAzpswyo8kwn8QtmLwpj7Ilhqghf6IgeZkdc5IbbowZaIYWY4AUXnvU5KYVAAACTElEQVR42u2YPXKDMBCFF4+TsTANN0uTK4SWI9CmU0un1G44gg+Q+zDGRVIk42CD0P7AIDJLwUis+ObpSUgrkhyWunagaEUrmnDt9WtUtM5r9VrROvkUreiV5vUe3/QEAABPL9j2ySsJTIEjvb6exsty1Y8wlPAdhwzXZib0iAEYNgJ9RT+koj0CTzOgG+JzPPpKDtwm39t0vHP+2JtMtWPGwuiOHQyinSC62lbQCewKoJ1gkKfRXajPXYxeu+Drjonuwsq6+AxxiPfdOikOwUdjAQq82YQUpwYAqNty/pyv/pMuzvne790YFH6uj1Kquie2ntkQ6ymz0Bcc4CJVbbwVsSF2ohbVGmL9FhhUF/7z4c4G6nraVfRi6DJQ395PiyQnq6565fY+1PraRTZDSvooYtEt+O2how84wEE8+UqyH2h0L9Ur5MNYjbvdTrXiTb5iIJ+fXw/YY/k1Dz0Y+7YgzaOVvsYK8X4VneqD5FsMqK4kfsS7y5icrTqU21n+8mRAEF5vA7OC6E7QZSPbCix/kEPoidN+LfN6otcGpGhvt60cvWD2ZJh+8NeQJJ/BEEd4SkSn6IdRJcGO5cfaqlOW1TjVjuPH6meZlOPH+icwx7AaiU4ZfkRwJHV0P7CL6vNdLZ9T9dFbkXvdeMpRD2PfhCNsRnXP4GZu9JHqRxy/EBuiH3GcwH4bZvkCqs+9+2aGEbLbbUuq4UyymoTOSH5E80P/TPEjGtUZxWpIPuNQvdTyFJNqRSta0fqhK1rRin7IQ77UEEUrmnB9A0SQYUztdroAAAAAAElFTkSuQmCC",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
   ]
 }

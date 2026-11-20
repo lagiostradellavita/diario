@@ -2,7 +2,7 @@
    (va anche con poca rete), ma in sottofondo riscarica sempre la versione nuova
    e aggiorna la cache, cosi' alla riapertura dopo si vede l'ultima. Alzare CACHE
    forza invece un aggiornamento immediato su tutti i telefoni. */
-var CACHE = "apayaye-v4";
+var CACHE = "apayaye-v5";
 var GUSCIO = [
   ".", "index.html", "app.js", "luoghi.js", "manifest.json", "icon.svg"
 ];
