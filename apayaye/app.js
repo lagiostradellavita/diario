@@ -169,6 +169,34 @@ function cattura(l, metodo){
   }
 }
 
+/* ---------- "sei qui": proietta la posizione sulla mappa illustrata ---------- */
+/* Interpolazione pesata sui luoghi (1/distanza^2): se sei SU un luogo, il puntino
+   ci cade esatto; tra i luoghi, si posiziona in mezzo in modo naturale. */
+function geoAMappa(lat,lng){
+  var sx=0, sy=0, sw=0, trovato=false;
+  LUOGHI.forEach(function(l){
+    var d=distanza(lat,lng,l.coord[0],l.coord[1]);
+    var w=1/Math.pow(d<1?1:d,2);
+    sx+=w*l.map.x; sy+=w*l.map.y; sw+=w; trovato=true;
+  });
+  if(!trovato || !sw) return null;
+  return { x:Math.max(2,Math.min(98,sx/sw)), y:Math.max(2,Math.min(99,sy/sw)) };
+}
+var tuEl=null;
+function piazzaTu(){
+  if(!posizione) return;
+  var pt=geoAMappa(posizione.lat, posizione.lng); if(!pt) return;
+  if(!tuEl){
+    var st=document.createElement("style");
+    st.textContent="@keyframes tupulse{0%{transform:translate(-50%,-50%) scale(.5);opacity:.75}70%{transform:translate(-50%,-50%) scale(2.4);opacity:0}100%{opacity:0}}.tu-dot{position:absolute;z-index:6;transform:translate(-50%,-50%);pointer-events:none}.tu-dot .ring{position:absolute;left:0;top:0;width:16px;height:16px;border-radius:50%;background:#1d7ea6;transform:translate(-50%,-50%);animation:tupulse 1.8s ease-out infinite}.tu-dot .core{position:absolute;left:0;top:0;width:14px;height:14px;border-radius:50%;background:#2f9ec4;border:3px solid #fff;transform:translate(-50%,-50%);box-shadow:0 2px 6px rgba(0,0,0,.4)}.tu-dot .lab{position:absolute;left:0;top:11px;transform:translateX(-50%);background:#1d7ea6;color:#fff;font-family:var(--display),system-ui;font-weight:700;font-size:.6rem;padding:1px 7px;border-radius:999px;white-space:nowrap}";
+    document.head.appendChild(st);
+    tuEl=document.createElement("div"); tuEl.className="tu-dot";
+    tuEl.innerHTML='<span class="ring"></span><span class="core"></span><span class="lab">Tu</span>';
+    mappa.appendChild(tuEl);
+  }
+  tuEl.style.left=pt.x+"%"; tuEl.style.top=pt.y+"%"; tuEl.style.display="";
+}
+
 /* ---------- GPS ---------- */
 $("b-gps").addEventListener("click", function(){
   if(!("geolocation" in navigator)){ toast("Questo telefono non dà la posizione."); return; }
@@ -178,7 +206,7 @@ $("b-gps").addEventListener("click", function(){
     gpsOn = true;
     $("gps").classList.add("on");
     $("gps-txt").textContent = "Posizione attiva (±" + Math.round(posizione.acc) + " m)";
-    render(); aggiornaScheda();
+    render(); aggiornaScheda(); piazzaTu();
   }, function(err){
     $("gps").classList.remove("on");
     $("gps-txt").textContent = err.code === 1 ? "Permesso posizione negato" : "Posizione non disponibile";
