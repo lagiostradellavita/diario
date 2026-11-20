@@ -101,16 +101,17 @@ function mostraCuriosita(l){
   var ex = $("sheet-extra");
   if(!ex){
     var st=document.createElement("style");
-    st.textContent=".extra{margin:12px 0 2px;font-size:.92rem;line-height:1.45;color:#5a4a2a}.extra b{display:block;color:#8a5a2a;margin-bottom:4px}.extra ul{margin:0;padding-left:20px}.extra li{margin:4px 0}";
+    st.textContent=".extra{margin:12px 0 2px;font-size:.92rem;line-height:1.45;color:#5a4a2a}.extra>div{margin-bottom:12px}.extra b{display:block;color:#8a5a2a;margin-bottom:4px}.extra .storia p{margin:0}.extra ul{margin:0;padding-left:20px}.extra li{margin:4px 0}";
     document.head.appendChild(st);
     ex=document.createElement("div"); ex.id="sheet-extra"; ex.className="extra";
     var fb=$("sheet-fatto").parentNode;
     fb.parentNode.insertBefore(ex, fb.nextSibling);
   }
-  if(l.curiosita && l.curiosita.length){
-    ex.innerHTML='<b>Lo sapevi?</b><ul>'+l.curiosita.map(function(c){return '<li>'+c+'</li>';}).join('')+'</ul>';
-    ex.style.display="";
-  } else { ex.style.display="none"; }
+  var html="";
+  if(l.storia){ html += '<div class="storia"><b>\uD83D\uDCD6 La sua storia</b><p>'+l.storia+'</p></div>'; }
+  if(l.curiosita && l.curiosita.length){ html += '<div class="cur"><b>Lo sapevi?</b><ul>'+l.curiosita.map(function(c){return '<li>'+c+'</li>';}).join('')+'</ul></div>'; }
+  ex.innerHTML = html;
+  ex.style.display = html ? "" : "none";
 }
 function chiudi(){ velo.classList.remove("on"); sheet.classList.remove("on"); corrente = null; if("speechSynthesis" in window) speechSynthesis.cancel(); }
 velo.addEventListener("click", chiudi);
@@ -153,8 +154,9 @@ function vocePreferita(){
   return belle[0] || it[0];
 }
 function narrazione(l){
+  var st = l.storia ? (" " + l.storia) : "";
   var c = (l.curiosita && l.curiosita.length) ? (" Lo sapevi? " + l.curiosita.join(" ")) : "";
-  return "Ciao! Sono " + l.nome + ", il personaggio di " + l.dove + ". " + l.frase + " " + l.blurb + " " + l.fatto + c;
+  return "Ciao! Sono " + l.nome + ", il personaggio di " + l.dove + ". " + l.frase + " " + l.blurb + st + " " + l.fatto + c;
 }
 function parla(l){
   if(!("speechSynthesis" in window)){ toast("La voce non è disponibile su questo telefono."); return; }

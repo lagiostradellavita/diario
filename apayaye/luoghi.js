@@ -22,6 +22,7 @@ var LUOGHI = [
     map:{x:33,y:48}, col:"#e4532f", col2:"#f2a33a", emblema:"🎡",
     frase:"Gira, gira: ogni mia ruota racconta una storia!",
     blurb:"Il carretto siciliano è un carro a due ruote, tirato da un cavallo o da un asino. Tra l'Ottocento e il Novecento era il «camion» della Sicilia: portava grano, vino, sale, legna e perfino le persone, e negli anni Venti ne circolavano a migliaia per le strade dell'isola. Non lo costruiva una persona sola: ci lavoravano insieme più artigiani. Il carradore faceva la struttura di legno e le ruote, lo scultore intagliava le sponde, il fabbro batteva il ferro; poi il decoratore riempiva le parti lisce di disegni geometrici e, alla fine, il pittore dipingeva le grandi scene colorate sulle fiancate. Un carretto così non era soltanto un mezzo di lavoro: era un'opera d'arte che camminava.",
+    storia:"I primi carretti comparvero in Sicilia tra la fine del Settecento e l'Ottocento, quando le strade divennero abbastanza larghe per i carri. Per quasi un secolo furono il mezzo di trasporto più importante dell'isola, finché arrivarono i camion e le automobili. Allora i carretti sparirono quasi del tutto dal lavoro, ma non dalle feste: oggi sono un simbolo della Sicilia, e botteghe come questa tengono viva l'arte di costruirli e dipingerli.",
     fatto:"Le fiancate raccontano una «storia figurata»: duelli di paladini, cavalieri, re e santi. Si credeva che quelle immagini portassero fortuna e tenessero lontano il malocchio, come un portafortuna gigante montato su ruote.",
     curiosita:[
       "A Palermo i carretti hanno le sponde a forma di trapezio, il fondo giallo e tanti disegni geometrici.",
@@ -29,6 +30,8 @@ var LUOGHI = [
       "C'era il «carretto da lavoro», per le merci, e il «carretto da gara», tutto lucido, per le feste e i matrimoni.",
       "Le storie dipinte erano spesso quelle dei paladini di Francia, come nell'Opera dei Pupi.",
       "Le ruote erano la parte più difficile: i mozzi venivano fusi in una lega di rame e stagno.",
+      "Costruire e decorare un carretto richiedeva mesi di lavoro di più artigiani diversi.",
+      "Oltre ai colori, il carretto aveva sonagli e pennacchi: passava facendo festa.",
       "Oggi i carretti non lavorano più, ma sfilano nelle feste e qualcuno li dipinge perfino sulle Ape a tre ruote."
     ] },
   { id:"guttuso", num:2, nome:"Pennellina", dove:"Museo Guttuso – Villa Cattolica", quando:"febbraio 2027",
@@ -36,6 +39,7 @@ var LUOGHI = [
     map:{x:60,y:60}, col:"#c2418a", col2:"#f0a33a", emblema:"🎨",
     frase:"Dammi un colore e ti dipingo tutto il mondo!",
     blurb:"Villa Cattolica è una grande villa barocca di Bagheria, costruita fra il 1706 e il 1736 per la famiglia Bonanno, con una curiosa pianta a forma di quadrifoglio. «Barocca» vuol dire ricca di curve, scaloni e decorazioni: era la casa di campagna di una famiglia nobile. Dal 1973 è diventata un museo, perché il pittore Renato Guttuso — nato proprio a Bagheria nel 1911 — regalò alla sua città tante opere. Oggi, salendo le scale, si incontrano i suoi quadri dai colori accesi: contadini al lavoro, mercati pieni di cibo, limoni, tetti e il mare della Sicilia; e accanto ci sono opere di molti altri artisti.",
+    storia:"La villa fu costruita all'inizio del Settecento come residenza di campagna dei nobili Bonanno, principi di Cattolica. Per secoli restò una casa privata; poi, nel 1973, Renato Guttuso, ormai pittore famoso, donò molte opere alla sua Bagheria e la villa diventò un museo pubblico. Dopo alcuni restauri ha riaperto nel 2016. Guttuso morì nel 1987 e volle essere sepolto proprio qui, nel giardino della villa della sua città.",
     fatto:"Guttuso è sepolto nel giardino della villa, dentro una grande arca di pietra scolpita apposta dal suo amico, il famoso scultore Giacomo Manzù: una tomba che è anche un'opera d'arte.",
     curiosita:[
       "Guttuso è uno dei pittori italiani più famosi del Novecento, conosciuto in tutto il mondo.",
@@ -43,13 +47,16 @@ var LUOGHI = [
       "Amava dipingere la vita vera: la gente che lavora, la frutta, i fichidindia, le battaglie.",
       "La villa è protetta come monumento fin dal 1931, quasi cento anni fa.",
       "Nel museo sono raccolte quasi duecento opere, fra quadri donati e lavori di tanti artisti diversi.",
-      "Bagheria è chiamata «la città delle ville»: Villa Cattolica è una delle più grandi."
+      "Bagheria è chiamata «la città delle ville»: Villa Cattolica è una delle più grandi.",
+      "Guttuso cominciò a dipingere da ragazzo, qui nella sua Bagheria.",
+      "Il giardino della villa, con la tomba di Manzù, si può visitare insieme al museo."
     ] },
   { id:"orto", num:3, nome:"Germoglio", dove:"Orto botanico di Palermo", quando:"marzo 2027",
     coord:[38.11250, 13.37250], raggio:250, approx:false, qr:"APAYAYE:orto:FOGLIA3",
     map:{x:15,y:55}, col:"#3f9e54", col2:"#8fcf5a", emblema:"🌿",
     frase:"Da piccolo seme divento più alto di una casa!",
     blurb:"L'Orto botanico di Palermo è un giardino scientifico immenso, fondato nel 1789 e aperto nel 1795: più di duecento anni fa. Lo progettarono l'architetto francese Léon Dufourny e il siciliano Giuseppe Venanzio Marvuglia, e col tempo è cresciuto fino a circa dieci ettari, grande come tanti campi di calcio messi uno accanto all'altro. Dentro vivono oltre dodicimila tipi di piante arrivate da tutto il mondo: palme altissime, bambù, cactus e piante grasse enormi, un intero boschetto di palme e tanti alberi di agrumi. Ci sono laghetti con le ninfee, un acquario rotondo pieno di papiri e grandi serre calde per le piante dei paesi tropicali.",
+    storia:"L'Orto nacque alla fine del Settecento, quando in tutta Europa si creavano giardini per studiare le piante. I lavori iniziarono nel 1789 e il giardino aprì nel 1795, accanto all'università. Con il tempo si riempì di piante portate dai viaggi in terre lontane e si allargò fino a diventare uno dei più ricchi del Mediterraneo. Ancora oggi è un luogo di studio dell'università di Palermo, oltre che un parco bellissimo da visitare.",
     fatto:"Il re del giardino è un gigantesco Ficus magnolioides, arrivato dall'isola di Norfolk nel 1845: le sue radici scendono dai rami e si allargano a terra come colonne, formando un tetto d'ombra grande come una piazza. È uno degli alberi più grandi d'Europa.",
     curiosita:[
       "È nato come giardino di studio: serviva a conoscere le piante utili e le medicine che se ne ricavano.",
@@ -57,6 +64,8 @@ var LUOGHI = [
       "L'acquario è una vasca rotonda con papiri e ninfee, le piante che vivono dentro l'acqua.",
       "Le piante sono ordinate in «stanze verdi»: le palme con le palme, i cactus con i cactus.",
       "Ci sono serre calde, come la Serra Maria Carolina, per le piante che amano il caldo tutto l'anno.",
+      "Vivono qui enormi cactus e piante grasse arrivati dall'America.",
+      "L'Orto scambia semi con altri giardini botanici di tutto il mondo.",
       "Tante piante vivono qui da oltre cento anni: erano già grandi al tempo dei nostri bisnonni."
     ] },
   { id:"acciuga", num:4, nome:"Acciughina", dove:"Museo dell'Acciuga di Aspra", quando:"marzo 2027",
@@ -64,6 +73,7 @@ var LUOGHI = [
     map:{x:49,y:37}, col:"#4aa0c4", col2:"#cfe3ec", emblema:"🐟",
     frase:"Piccola piccola, ma il mare è casa mia!",
     blurb:"Aspra è un piccolo borgo di pescatori affacciato sul mare, una frazione di Bagheria. Qui i fratelli Balistreri hanno preso il vecchio stabilimento della loro famiglia — il posto dove si lavorava il pesce — e l'hanno trasformato in un museo tutto dedicato all'acciuga. Dentro raccontano come si usciva in barca di notte, come si tirava la rete e come si salavano le acciughe nei barili per farle durare: un mestiere antichissimo, conosciuto in Sicilia fin dal Medioevo, che per tanto tempo ha dato da mangiare a tutto il paese. È un museo nato dall'amore dei pescatori per il loro lavoro.",
+    storia:"Aspra vive di mare da sempre. Per secoli i suoi abitanti sono usciti in barca a pescare e hanno salato il pesce per conservarlo e venderlo: la lavorazione dell'acciuga sotto sale è conosciuta in Sicilia fin dal Medioevo. La famiglia Balistreri ha portato avanti questo mestiere di generazione in generazione, e quando il lavoro è cambiato ha deciso di non far dimenticare tutto quel sapere: così il vecchio stabilimento è diventato un museo, aperto più di vent'anni fa.",
     fatto:"Dentro si vedono reti, ceste, lampade, modellini di barche e perfino la vera barca usata per pescare: tutto il mondo del mare raccolto in un edificio solo.",
     curiosita:[
       "Le acciughe si conservano sotto sale dentro grossi contenitori e si girano a mano, con tanta pazienza.",
@@ -71,6 +81,8 @@ var LUOGHI = [
       "Nel museo è esposto anche lo scheletro di una grande balenottera.",
       "L'acciuga è un pesce piccolissimo, ma è il «pane del mare»: sfama e dà sapore a tanti piatti.",
       "Un tempo ad Aspra quasi tutte le famiglie vivevano di pesca e di sale.",
+      "Oltre alle acciughe si pescavano sardine e tanti altri pesci azzurri.",
+      "Il sale per conservare il pesce arrivava dalle saline della Sicilia occidentale.",
       "Il museo ha ricevuto un premio grazie ai bei giudizi dei visitatori."
     ] },
   { id:"grano", num:5, nome:"Granello", dove:"Laboratorio del grano Tumminia", quando:"aprile 2027",
@@ -78,6 +90,7 @@ var LUOGHI = [
     map:{x:47,y:74}, col:"#d79a2a", col2:"#f0cf6a", emblema:"🌾",
     frase:"Da un chicco nasce il pane… e la merenda!",
     blurb:"La Tumminia (in siciliano «timilia») è un grano duro antico, coltivato in Sicilia fin dai tempi degli antichi Greci, soprattutto nella zona di Trapani. «Grano antico» vuol dire che è rimasto lo stesso di secoli fa: la pianta è alta, con lunghe spighe, e resiste bene al caldo e alla siccità dell'isola. In una fattoria didattica si può seguire tutto il viaggio del grano: il chicco seminato nel campo in autunno, la spiga dorata che matura al sole, la macina di pietra che lo trasforma in farina e, alla fine, le mani che impastano il pane. La sua farina è color nocciola e profuma di mandorle tostate.",
+    storia:"Il grano è coltivato in Sicilia da migliaia di anni: già gli antichi Greci e i Romani chiamavano l'isola «il granaio» del Mediterraneo. La Tumminia è uno di quei grani antichi, usato per secoli dai contadini siciliani. Poi, nel Novecento, arrivarono grani nuovi più comodi da coltivare e la Tumminia quasi scomparve. Da qualche anno è tornata, perché la sua farina è buona e genuina, e oggi piccoli produttori la coltivano di nuovo con orgoglio.",
     fatto:"Con la Tumminia si fa un pane scuro e profumato, il famoso «pane nero»: la farina si macina lentamente fra due pietre, e l'impasto ha bisogno di più tempo per lievitare rispetto a quello normale.",
     curiosita:[
       "È un «grano antico»: la pianta è più alta di quelle moderne e non teme il caldo né la siccità.",
@@ -85,6 +98,8 @@ var LUOGHI = [
       "Si macina «a pietra», come una volta, e così la farina conserva tutto il suo profumo.",
       "Dal chicco alla pagnotta passano mesi: si semina in autunno e si miete all'inizio dell'estate.",
       "Il pane di Tumminia resta buono e morbido anche per più giorni.",
+      "In Sicilia il grano un tempo si macinava nei mulini a vento e ad acqua.",
+      "Un tempo quasi ogni famiglia contadina faceva il pane in casa, nel forno a legna.",
       "Impastare a mano è anche un gioco: si sente la farina che pian piano diventa pane."
     ] },
   { id:"mezzojuso", num:6, nome:"Pergamena", dove:"Mezzojuso", quando:"maggio 2027",
@@ -92,6 +107,7 @@ var LUOGHI = [
     map:{x:38,y:100}, col:"#8a5bc0", col2:"#e0a93a", emblema:"📜",
     frase:"Shh… custodisco parole di cinquecento anni fa.",
     blurb:"Mezzojuso è un paese di montagna vicino a Palermo, nato come colonia arbëreshe nel Quattrocento: vi arrivarono famiglie dall'Albania, che portarono la loro lingua, i loro canti e le loro feste. È una cosa rara e preziosa, perché ancora oggi molti abitanti parlano l'arbëresh e seguono il rito greco-bizantino durante la Messa; per questo il paese è chiamato l'«Atene» degli arbëreshe. Nel 1601 qui fu fondato un monastero che divenne un grande centro di cultura, con una biblioteca famosa. Passeggiare per i vicoli di Mezzojuso è come visitare un pezzetto d'Albania rimasto in Sicilia da più di cinquecento anni.",
+    storia:"Nel Quattrocento molte famiglie albanesi lasciarono la loro terra, invasa dai turchi, e trovarono rifugio in Italia; alcune si stabilirono qui, a Mezzojuso, fondando una colonia arbëreshe. Portarono con sé la lingua, la fede di rito greco-bizantino e le loro tradizioni, e le conservarono con cura per oltre cinquecento anni. Nel 1601 fondarono un monastero che divenne un faro di cultura, con la sua biblioteca di libri antichi. Ancora oggi Mezzojuso è fiero delle sue radici albanesi.",
     fatto:"Il monastero custodisce una biblioteca preziosissima, con antichi codici scritti a mano in greco e libri stampati cinquecento anni fa: veri tesori di carta e di pergamena, da proteggere con cura.",
     curiosita:[
       "A Mezzojuso si parla ancora l'arbëresh, la lingua arrivata dall'Albania secoli fa.",
@@ -99,6 +115,8 @@ var LUOGHI = [
       "La festa più famosa è il «Mastro di Campo»: un cavaliere mascherato «assalta» il castello per amore della regina.",
       "Quella pantomima si recita a Carnevale, in piazza, da più di due secoli.",
       "La sua storia ricorda la regina Bianca di Navarra e l'antico castello di Solanto.",
+      "«Arbëreshe» sono gli italiani di origine albanese, presenti in diversi paesi del Sud.",
+      "Nelle chiese di rito greco si vedono icone dorate, diverse dalle altre.",
       "I libri un tempo si scrivevano e si copiavano a mano, molto prima che esistessero le stampanti."
     ] },
   { id:"catalfano", num:7, nome:"Falchetto", dove:"Monte Catalfano", quando:"maggio 2027",
@@ -106,6 +124,7 @@ var LUOGHI = [
     map:{x:75,y:47}, col:"#b07a3e", col2:"#8ec3e0", emblema:"🦅",
     frase:"Dalla cima vedo il mare, le isole e anche te!",
     blurb:"Monte Catalfano è una collina verde di circa 370 metri che sovrasta Bagheria e guarda il Golfo di Palermo. È il «polmone verde» della zona: un grande parco di quasi trecento ettari, fatto di roccia calcarea chiara e di macchia mediterranea profumata — rosmarino, timo, mirto, finocchietto — dove volano falchi e tanti altri uccelli. Si cammina lungo i sentieri tra gli odori delle erbe, e dalla cima si apre una vista enorme sul mare, sulle isole e su tutta la città. Ma la sorpresa più grande è sotto i piedi: sul monte ci sono le rovine di un'intera città antica.",
+    storia:"Solunto fu fondata dai Fenici e poi rifondata, più di duemila anni fa, in cima al Monte Catalfano, in una posizione sicura e con una vista stupenda sul mare. Fu una città greca e poi romana, con strade, templi, un teatro e case eleganti. Col tempo i suoi abitanti scesero a vivere vicino al mare e la città in alto venne abbandonata, e a poco a poco dimenticata. Solo molto più tardi gli archeologi la riportarono alla luce, ed è così che oggi possiamo ancora passeggiare tra le sue rovine.",
     fatto:"Tra gli alberi si trovano le rovine di Solunto, una città di oltre duemila anni fa: aveva strade dritte a griglia, un teatro affacciato sul mare, una palestra e case ricche con pavimenti a mosaico. Passò sotto Roma nel 254 a.C.",
     curiosita:[
       "Le strade di Solunto erano così in pendenza che in alcuni punti salgono come uno scivolo ripido.",
@@ -113,6 +132,8 @@ var LUOGHI = [
       "La casa più famosa è la «Casa di Leda», con bellissimi mosaici colorati.",
       "All'ingresso c'è un piccolo museo, l'Antiquarium, con gli oggetti ritrovati fra le rovine.",
       "La collina è di roccia calcarea: tantissimo tempo fa era un isolotto in mezzo al mare.",
+      "Il nome Solunto viene dall'antico nome della città, Solus.",
+      "Nelle giornate limpide, dalla cima si vedono perfino le Isole Eolie.",
       "Camminare fra le rovine è come fare un viaggio nel tempo fino agli antichi Greci e Romani."
     ] },
   { id:"barca", num:8, nome:"Ondina", dove:"Giro in barca", quando:"giugno/luglio 2027",
@@ -120,6 +141,7 @@ var LUOGHI = [
     map:{x:64,y:19}, col:"#2f9ec4", col2:"#bfe7f2", emblema:"🌊",
     frase:"Saliamo? Ti porto dove finisce la terra!",
     blurb:"Dal porticciolo di Aspra si sale in barca per guardare la costa di Bagheria da un punto di vista speciale: il mare. Appena ci si allontana da terra, tutto cambia. Le scogliere, le casette dei pescatori e le grotte si vedono in un modo completamente nuovo, e l'acqua passa dal verde chiaro vicino alla riva all'azzurro profondo al largo. È lo stesso modo in cui, da sempre, i pescatori di Aspra hanno imparato a conoscere il loro mare: osservando il vento, le onde e la linea della costa. Dalla barca si capisce quanto il mare sia importante per chi vive qui.",
+    storia:"Il mare davanti a Bagheria e Aspra è stato per secoli una strada e una dispensa: di qui passavano le barche dei pescatori e i commerci, e ancora oggi i pescatori del porticciolo conoscono ogni scoglio e ogni grotta. Guardare la costa dalla barca è il modo più antico di conoscerla, lo stesso dei naviganti di un tempo. E non lontano, dall'alto del Monte Catalfano, gli abitanti di Solunto guardavano questo stesso mare più di duemila anni fa.",
     fatto:"Alcune grotte lungo la costa si possono raggiungere soltanto dal mare: da terra, a piedi, non ci si arriva proprio. Sono nascondigli che solo chi va in barca può scoprire.",
     curiosita:[
       "Aspra è un borgo di pescatori: le barche partono dal suo porticciolo ancora oggi.",
@@ -127,6 +149,8 @@ var LUOGHI = [
       "Più ci si allontana dalla riva, più l'acqua diventa blu scuro: vuol dire che è profonda.",
       "Spesso i gabbiani seguono la barca, e a volte un pesce salta fuori dall'acqua.",
       "Dal mare si vedono bene il Monte Catalfano e le ville di Bagheria, tutti insieme.",
+      "Il porticciolo di Aspra è piccolo e colorato, pieno di barche da pesca.",
+      "Questo mare fa parte del Golfo di Palermo, una grande baia riparata.",
       "I pescatori conoscono il mare a memoria: sanno dove sono le secche e le grotte senza bisogno di mappe."
     ] },
   { id:"palagonia", num:9, nome:"Mostrino", dove:"Villa Palagonia, la Villa dei Mostri", quando:"gennaio 2027",
@@ -134,6 +158,7 @@ var LUOGHI = [
     map:{x:70,y:72}, col:"#8e6fb3", col2:"#8fcf5a", emblema:"🗿",
     frase:"Non avere paura: siamo mostri… ma simpatici!",
     blurb:"Villa Palagonia, a Bagheria, è una villa barocca iniziata nel 1715 e conosciuta da tutti come la «Villa dei Mostri». È famosa in tutta Europa, e deve il suo soprannome alle decine di statue di pietra stranissime che stanno sul muro di cinta: musicisti, dame, cavalieri, animali, draghi, nani e creature mai viste, scolpite nel tenero tufo giallo di Aspra. A volerle, nel Settecento, fu il principe Ferdinando Francesco II Gravina, soprannominato «il Negromante», un uomo bizzarro che amava tutto ciò che era strano e fantastico. Entrando si sale uno scalone a doppia rampa e si arriva a saloni pieni di marmi, vetri colorati e specchi.",
+    storia:"La villa fu iniziata nel 1715 dal principe di Palagonia come residenza di campagna. Ma la sua fama nacque più tardi, con il nipote Ferdinando Francesco II, un principe considerato bizzarro, che fece scolpire sul muro di cinta centinaia di statue di mostri e creature strane. Nel Settecento la villa divenne famosa in tutta Europa: viaggiatori, scrittori e curiosi venivano apposta a vederla, tra loro il grande Goethe nel 1787. Ancora oggi è una delle ville più celebri e misteriose della Sicilia.",
     fatto:"La stanza più magica è il Salone degli Specchi: il soffitto è dipinto con un cielo azzurro e tanti uccelli, e le pareti sono ricoperte di specchi che un tempo deformavano in modo buffo l'immagine di chi entrava, come in una casa degli specchi.",
     curiosita:[
       "Un tempo le statue erano circa duecento; oggi ne restano una sessantina sul muro.",
@@ -141,6 +166,8 @@ var LUOGHI = [
       "Si racconta che il principe credesse che i «mostri» lo proteggessero dagli spiriti cattivi.",
       "Il grande scrittore tedesco Goethe la visitò nel 1787 e ne scrisse nel suo diario di viaggio.",
       "Si dice che quelle creature abbiano ispirato alcuni mostri di una sua opera famosa, il «Faust».",
+      "Oltre ai mostri ci sono statue di dame, cavalieri e musicisti eleganti.",
+      "I viaggiatori di un tempo restavano a bocca aperta: c'era chi la trovava magnifica e chi spaventosa.",
       "Ogni statua è diversa dalle altre: è come una galleria di personaggi di pietra, una più buffa dell'altra."
     ] }
 ];
