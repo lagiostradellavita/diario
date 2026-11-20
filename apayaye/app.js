@@ -92,9 +92,25 @@ function apri(l){
   $("sheet-voce").textContent = "« " + l.frase + " »";
   $("sheet-blurb").textContent = l.blurb;
   $("sheet-fatto").textContent = l.fatto;
+  mostraCuriosita(l);
   creaEl.innerHTML = artLuogo(l);
   aggiornaScheda();
   velo.classList.add("on"); sheet.classList.add("on");
+}
+function mostraCuriosita(l){
+  var ex = $("sheet-extra");
+  if(!ex){
+    var st=document.createElement("style");
+    st.textContent=".extra{margin:12px 0 2px;font-size:.92rem;line-height:1.45;color:#5a4a2a}.extra b{display:block;color:#8a5a2a;margin-bottom:4px}.extra ul{margin:0;padding-left:20px}.extra li{margin:4px 0}";
+    document.head.appendChild(st);
+    ex=document.createElement("div"); ex.id="sheet-extra"; ex.className="extra";
+    var fb=$("sheet-fatto").parentNode;
+    fb.parentNode.insertBefore(ex, fb.nextSibling);
+  }
+  if(l.curiosita && l.curiosita.length){
+    ex.innerHTML='<b>Lo sapevi?</b><ul>'+l.curiosita.map(function(c){return '<li>'+c+'</li>';}).join('')+'</ul>';
+    ex.style.display="";
+  } else { ex.style.display="none"; }
 }
 function chiudi(){ velo.classList.remove("on"); sheet.classList.remove("on"); corrente = null; if("speechSynthesis" in window) speechSynthesis.cancel(); }
 velo.addEventListener("click", chiudi);
@@ -137,7 +153,8 @@ function vocePreferita(){
   return belle[0] || it[0];
 }
 function narrazione(l){
-  return "Ciao! Sono " + l.nome + ", il personaggio di " + l.dove + ". " + l.frase + " " + l.blurb + " " + l.fatto;
+  var c = (l.curiosita && l.curiosita.length) ? (" Lo sapevi? " + l.curiosita.join(" ")) : "";
+  return "Ciao! Sono " + l.nome + ", il personaggio di " + l.dove + ". " + l.frase + " " + l.blurb + " " + l.fatto + c;
 }
 function parla(l){
   if(!("speechSynthesis" in window)){ toast("La voce non è disponibile su questo telefono."); return; }
@@ -198,7 +215,7 @@ function piazzaTu(){
 }
 
 /* ---------- GPS ---------- */
-$("b-gps").addEventListener("click", function(){
+function avviaGps(){
   if(!("geolocation" in navigator)){ toast("Questo telefono non dà la posizione."); return; }
   $("gps-txt").textContent = "Cerco la posizione…";
   navigator.geolocation.watchPosition(function(p){
@@ -211,7 +228,8 @@ $("b-gps").addEventListener("click", function(){
     $("gps").classList.remove("on");
     $("gps-txt").textContent = err.code === 1 ? "Permesso posizione negato" : "Posizione non disponibile";
   }, { enableHighAccuracy:true, maximumAge:5000, timeout:20000 });
-});
+}
+$("b-gps").addEventListener("click", avviaGps);
 
 /* ---------- modalità prova ---------- */
 $("b-test").addEventListener("click", function(){
@@ -309,6 +327,8 @@ $("reset").addEventListener("click", function(){
 
 /* ---------- avvio ---------- */
 render();
+/* Attiva la posizione da sola: se il permesso è già dato, il puntino "Tu" compare subito. */
+try{ avviaGps(); }catch(e){}
 
 /* Niente cache del gioco: si carica sempre la versione fresca. Se un vecchio
    service worker era rimasto (e teneva bloccata una copia), lo togliamo. */
