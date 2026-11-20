@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QR dei luoghi — Apayaye</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap">
+<style>
+  :root{--display:"Fredoka",system-ui,sans-serif;--testo:"Nunito",system-ui,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0; font-family:var(--testo); color:#2a2118; background:#f3e6c6; padding:20px}
+  .wrap{max-width:900px; margin:0 auto}
+  h1{font-family:var(--display); margin:0 0 4px}
+  .intro{background:#fffdf6; border:2px solid #e7d7b2; border-radius:16px; padding:16px 18px; margin:14px 0; line-height:1.5}
+  .stampa{border:0; border-radius:12px; padding:12px 18px; font-family:var(--display); font-weight:700;
+    font-size:1rem; color:#fff; background:#d2603a; cursor:pointer}
+  .cards{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:16px}
+  .card{background:#fff; border-radius:18px; overflow:hidden; border:2px solid #e7d7b2;
+    display:flex; flex-direction:column; align-items:center; text-align:center; break-inside:avoid}
+  .cap{width:100%; padding:12px; color:#fff; font-family:var(--display); font-weight:700; font-size:1.1rem}
+  .qr{padding:16px}
+  .qr img, .qr canvas{display:block}
+  .msg{padding:0 14px 14px; font-weight:700; font-size:.9rem; color:#6a5c45}
+  .num{font-family:var(--display); font-weight:700}
+  @media print{
+    body{background:#fff; padding:0}
+    .intro,.stampa,.no-print{display:none}
+    .cards{gap:10px}
+    .card{border:1px solid #ccc}
+    @page{margin:12mm}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>QR dei luoghi — Esploratori Apayaye</h1>
+  <div class="intro no-print">
+    <p style="margin:0 0 10px"><b>Per gli animatori.</b> Stampa questa pagina (anche in bianco e nero va bene) e attacca ogni codice <b>sul posto della sua uscita</b>. Quando un ragazzo lo inquadra con l'app, cattura il personaggio di quel luogo — funziona anche al chiuso, dove il GPS non prende.</p>
+    <button class="stampa" onclick="window.print()">🖨️ Stampa i codici</button>
+  </div>
+  <div class="cards" id="cards"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="luoghi.js"></script>
+<script>
+  var cards = document.getElementById("cards");
+  LUOGHI.forEach(function(l){
+    var card = document.createElement("div"); card.className = "card";
+    var cap = document.createElement("div"); cap.className = "cap"; cap.style.background = l.col;
+    cap.innerHTML = '<span class="num">'+l.num+'.</span> ' + l.dove;
+    var qr = document.createElement("div"); qr.className = "qr";
+    var msg = document.createElement("div"); msg.className = "msg";
+    msg.textContent = "Inquadra con l'app · personaggio: " + l.nome;
+    card.appendChild(cap); card.appendChild(qr); card.appendChild(msg);
+    cards.appendChild(card);
+    new QRCode(qr, { text:l.qr, width:220, height:220, correctLevel:QRCode.CorrectLevel.M });
+  });
+</script>
+</body>
+</html>
