@@ -46,6 +46,8 @@
   table{width:100%;border-collapse:collapse;font-size:.88rem}
   th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
   th{color:var(--soft);font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}
+  tr.verifica td{background:var(--giallo)}
+  td.nota{white-space:normal;max-width:240px;line-height:1.25}
   .scroll{overflow-x:auto}
   .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.76rem;font-weight:700}
   .pill.ok{background:#e4f2e4;color:var(--verde)} .pill.no{background:#fbe6e3;color:var(--rosso)}
@@ -108,7 +110,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "1.4";
+var APP_VERSION = "1.5";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -132,6 +134,7 @@ function controllaAggiornamenti(){
 try{ $("aggiorna").addEventListener("click", ricaricaUltima); }catch(e){}
 setTimeout(controllaAggiornamenti, 3000); setInterval(controllaAggiornamenti, 120000);
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]})}
+function normTxt(s){ return String(s==null?"":s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); }
 
 async function api(path, opt){
   opt = opt || {};
@@ -223,34 +226,92 @@ function render(){
 }
 
 /* ---------- MINORI ---------- */
+var minoriCache = [];
+var mFiltri = {q:"", stato:"", iscr:"", ver:""};
+function daVerificare(r){ return !!(r.note && String(r.note).trim()); }
+function notaBreve(n){ return String(n==null?"":n).replace(/^Codice fiscale da verificare:\s*/i,""); }
+
 async function vistaMinori(m){
   m.innerHTML = '<div class="card"><div class="right"><button class="btn p sm" id="m-nuovo">+ Nuovo minore</button></div>'+
-    '<h1>Minori destinatari</h1><div id="m-msg"></div><div id="m-body" class="muted">Carico…</div></div>'+
+    '<h1>Minori destinatari</h1><div id="m-msg"></div><div id="m-strumenti"></div><div id="m-body" class="muted">Carico…</div></div>'+
     '<div id="m-form"></div>';
   $("m-nuovo").addEventListener("click", function(){ formMinore(null); });
   try{
-    var righe = await api("/minori");
-    if(!righe.length){ $("m-body").innerHTML = '<p class="muted">Ancora nessun minore. Usa «Importa Excel» per caricarli tutti, o «+ Nuovo minore».</p>'; return; }
-    var h = '<div class="scroll"><table><thead><tr><th>Cognome</th><th>Nome</th><th>Codice fiscale</th>'+
-      '<th>Nascita</th><th>Scuola</th><th>Stato</th><th>Iscriz.</th><th></th></tr></thead><tbody>';
-    righe.forEach(function(r){
-      h += '<tr><td>'+esc(r.cognome)+'</td><td>'+esc(r.nome)+'</td><td>'+esc(r.codice_fiscale)+'</td>'+
-        '<td>'+esc(r.data_nascita||"")+'</td><td>'+esc(r.scuola||"")+'</td><td>'+esc(r.stato||"")+'</td>'+
-        '<td>'+(r.modulo_iscrizione?'<span class="pill ok">sì</span>':'<span class="pill no">no</span>')+'</td>'+
-        '<td><button class="btn g sm" data-id="'+r.id+'">Apri</button></td></tr>';
-    });
-    h += '</tbody></table></div><p class="mini">'+righe.length+' minori.</p>';
-    $("m-body").innerHTML = h;
-    Array.prototype.forEach.call($("m-body").querySelectorAll("button[data-id]"), function(b){
-      b.addEventListener("click", function(){ formMinore(righe.filter(function(x){return x.id==b.getAttribute("data-id")})[0]); });
-    });
+    minoriCache = await api("/minori");
+    if(!minoriCache.length){ $("m-body").innerHTML = '<p class="muted">Ancora nessun minore. Usa «Importa Excel» per caricarli tutti, o «+ Nuovo minore».</p>'; return; }
+    disegnaStrumentiMinori();
+    disegnaTabellaMinori();
   }catch(e){ $("m-body").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+}
+
+function disegnaStrumentiMinori(){
+  var stati = [];
+  minoriCache.forEach(function(r){ if(r.stato && stati.indexOf(r.stato)<0) stati.push(r.stato); });
+  var nVer = minoriCache.filter(daVerificare).length;
+  var h = '<div class="row" style="margin:4px 0 2px">'+
+    '<div style="flex:2"><label>Cerca (cognome, nome, codice fiscale)</label>'+
+      '<input id="m-q" type="search" placeholder="Scrivi per filtrare…" value="'+esc(mFiltri.q)+'"></div>'+
+    '<div><label>Stato</label><select id="m-fs"><option value="">Tutti</option>'+
+      stati.map(function(s){return '<option'+(mFiltri.stato===s?" selected":"")+'>'+esc(s)+'</option>'}).join("")+'</select></div>'+
+    '<div><label>Iscrizione</label><select id="m-fi"><option value="">Tutte</option>'+
+      '<option value="si"'+(mFiltri.iscr==="si"?" selected":"")+'>Con modulo</option>'+
+      '<option value="no"'+(mFiltri.iscr==="no"?" selected":"")+'>Senza modulo</option></select></div>'+
+    '<div><label>Da verificare</label><select id="m-fv"><option value="">Tutti</option>'+
+      '<option value="si"'+(mFiltri.ver==="si"?" selected":"")+'>Solo da verificare</option>'+
+      '<option value="no"'+(mFiltri.ver==="no"?" selected":"")+'>Solo a posto</option></select></div>'+
+    '</div>';
+  if(nVer){ h += '<p class="mini" style="margin-top:8px"><span class="pill att">⚠ '+nVer+' da verificare</span> &nbsp;codice fiscale da controllare: apri la riga, correggilo e salva.</p>'; }
+  $("m-strumenti").innerHTML = h;
+  $("m-q").addEventListener("input", function(){ mFiltri.q=this.value; disegnaTabellaMinori(); });
+  $("m-fs").addEventListener("change", function(){ mFiltri.stato=this.value; disegnaTabellaMinori(); });
+  $("m-fi").addEventListener("change", function(){ mFiltri.iscr=this.value; disegnaTabellaMinori(); });
+  $("m-fv").addEventListener("change", function(){ mFiltri.ver=this.value; disegnaTabellaMinori(); });
+}
+
+function minoriFiltrati(){
+  var q = normTxt(mFiltri.q).trim();
+  return minoriCache.filter(function(r){
+    if(mFiltri.stato && r.stato !== mFiltri.stato) return false;
+    if(mFiltri.iscr === "si" && !r.modulo_iscrizione) return false;
+    if(mFiltri.iscr === "no" && r.modulo_iscrizione) return false;
+    if(mFiltri.ver === "si" && !daVerificare(r)) return false;
+    if(mFiltri.ver === "no" && daVerificare(r)) return false;
+    if(q){
+      var blob = normTxt((r.cognome||"")+" "+(r.nome||"")+" "+(r.codice_fiscale||""));
+      if(blob.indexOf(q) < 0) return false;
+    }
+    return true;
+  });
+}
+
+function disegnaTabellaMinori(){
+  var righe = minoriFiltrati();
+  var h = '<div class="scroll"><table><thead><tr><th>Cognome</th><th>Nome</th><th>Codice fiscale</th>'+
+    '<th>Nascita</th><th>Scuola</th><th>Stato</th><th>Iscriz.</th><th>Da verificare</th><th></th></tr></thead><tbody>';
+  if(!righe.length){
+    h += '<tr><td colspan="9" class="muted" style="padding:14px">Nessun minore con questi filtri.</td></tr>';
+  }
+  righe.forEach(function(r){
+    var ver = daVerificare(r);
+    h += '<tr'+(ver?' class="verifica"':'')+'><td>'+esc(r.cognome)+'</td><td>'+esc(r.nome)+'</td><td>'+esc(r.codice_fiscale)+'</td>'+
+      '<td>'+esc(r.data_nascita||"")+'</td><td>'+esc(r.scuola||"")+'</td><td>'+esc(r.stato||"")+'</td>'+
+      '<td>'+(r.modulo_iscrizione?'<span class="pill ok">sì</span>':'<span class="pill no">no</span>')+'</td>'+
+      '<td class="nota">'+(ver?'<span class="pill att">⚠ da verificare</span><div class="mini">'+esc(notaBreve(r.note))+'</div>':'')+'</td>'+
+      '<td><button class="btn g sm" data-id="'+r.id+'">Apri</button></td></tr>';
+  });
+  var filtriAttivi = mFiltri.q || mFiltri.stato || mFiltri.iscr || mFiltri.ver;
+  h += '</tbody></table></div><p class="mini">'+righe.length+' di '+minoriCache.length+' minori'+(filtriAttivi?' (filtrati)':'')+'.</p>';
+  $("m-body").innerHTML = h;
+  Array.prototype.forEach.call($("m-body").querySelectorAll("button[data-id]"), function(b){
+    b.addEventListener("click", function(){ formMinore(minoriCache.filter(function(x){return x.id==b.getAttribute("data-id")})[0]); });
+  });
 }
 function campo(l,id,v,t){ return '<div><label>'+l+'</label><input id="'+id+'" type="'+(t||"text")+'" value="'+esc(v||"")+'"></div>'; }
 function formMinore(r){
   r = r || {};
   var f = $("m-form");
-  f.innerHTML = '<div class="card"><h2>'+(r.id?"Modifica minore":"Nuovo minore")+'</h2><div id="f-msg"></div>'+
+  var nota = (r.note && String(r.note).trim()) ? '<div class="msg inf">⚠ Questo minore è da verificare: '+esc(notaBreve(r.note))+' Correggi il codice fiscale e salva: la nota sparisce da sola.</div>' : '';
+  f.innerHTML = '<div class="card"><h2>'+(r.id?"Modifica minore":"Nuovo minore")+'</h2><div id="f-msg"></div>'+nota+
     '<div class="row">'+campo("Cognome","f-cognome",r.cognome)+campo("Nome","f-nome",r.nome)+'</div>'+
     '<div class="row">'+campo("Codice fiscale","f-cf",r.codice_fiscale)+
       '<div><label>Stato</label><select id="f-stato"><option value="">—</option>'+
@@ -328,14 +389,16 @@ async function anteprima(){
   $("imp-msg").innerHTML = '<div class="msg inf">Letti '+importRighe.length+' minori dal file. Controllo… (se il server era spento, puo\' metterci fino a un minuto)</div>';
   try{
     var r = await api("/minori/importa", {method:"POST", body:{prova:true, righe:importRighe}});
-    var h = '<div class="msg ok">Pronti: <b>'+r.creati+'</b> da aggiungere, <b>'+r.aggiornati+'</b> da aggiornare.'+
-      (r.scartati.length?(' · <b>'+r.scartati.length+'</b> da controllare.'):'')+'</div>';
+    var daVer = r.da_verificare||0;
+    var h = '<div class="msg ok">Pronti: <b>'+r.creati+'</b> da aggiungere, <b>'+r.aggiornati+'</b> da aggiornare'+
+      (daVer?(' · <b>'+daVer+'</b> entrano segnati «da verificare»'):'')+
+      (r.scartati.length?(' · <b>'+r.scartati.length+'</b> esclusi'):'')+'.</div>';
     if(r.scartati.length){
-      h += '<div class="card"><h2>Da controllare (non verranno scritti)</h2><div class="scroll"><table><thead><tr><th>Riga</th><th>Chi</th><th>Motivo</th></tr></thead><tbody>'+
+      h += '<div class="card"><h2>Esclusi (non verranno scritti)</h2><div class="scroll"><table><thead><tr><th>Riga</th><th>Chi</th><th>Motivo</th></tr></thead><tbody>'+
         r.scartati.map(function(s){return '<tr><td>'+esc(s.riga)+'</td><td>'+esc((s.cognome||"")+" "+(s.nome||""))+'</td><td>'+esc(s.motivo)+'</td></tr>'}).join("")+
         '</tbody></table></div></div>';
     }
-    h += '<div class="right"><button class="btn v" id="imp-scrivi">Scrivi i '+(r.creati+r.aggiornati)+' minori nell\'archivio</button></div>';
+    h += '<div class="right"><button class="btn v" id="imp-scrivi">Scrivi i '+(r.creati+r.aggiornati+daVer)+' minori nell\'archivio</button></div>';
     $("imp-ris").innerHTML = h;
     $("imp-scrivi").addEventListener("click", scrivi);
   }catch(e){ $("imp-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
@@ -344,8 +407,9 @@ async function scrivi(){
   $("imp-scrivi").disabled = true; $("imp-scrivi").textContent = "Scrivo…";
   try{
     var r = await api("/minori/importa", {method:"POST", body:{prova:false, righe:importRighe}});
+    var daVer = r.da_verificare||0;
     $("imp-ris").innerHTML = '<div class="msg ok">Fatto: '+r.creati+' aggiunti, '+r.aggiornati+' aggiornati'+
-      (r.scartati.length?(', '+r.scartati.length+' saltati'):'')+'. Vai in «Minori» per vederli.</div>';
+      (daVer?(', '+daVer+' da verificare'):'')+(r.scartati.length?(', '+r.scartati.length+' esclusi'):'')+'. Vai in «Minori» per vederli.</div>';
   }catch(e){ $("imp-ris").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
 }
 
