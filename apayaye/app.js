@@ -75,7 +75,7 @@ function render(){
     var s = slotEls[l.id];
     if(preso){
       s.classList.add("filled");
-      s.innerHTML = creatura(l.col, l.col2, 0, l.emblema);
+      s.innerHTML = artLuogo(l);
     } else { s.classList.remove("filled"); s.innerHTML = ""; }
   });
   contaEl.textContent = n + " / " + LUOGHI.length;
@@ -91,7 +91,7 @@ function apri(l){
   $("sheet-quando").textContent = "Uscita · " + l.quando;
   $("sheet-blurb").textContent = l.blurb;
   $("sheet-fatto").textContent = l.fatto;
-  creaEl.innerHTML = creatura(l.col, l.col2, 0, l.emblema);
+  creaEl.innerHTML = artLuogo(l);
   aggiornaScheda();
   velo.classList.add("on"); sheet.classList.add("on");
 }

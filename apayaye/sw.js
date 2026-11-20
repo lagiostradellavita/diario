@@ -1,6 +1,6 @@
 /* Service worker minimo: mette in cache il "guscio" dell'app così si apre
    anche con poca rete. Alza CACHE a ogni modifica per servire i file nuovi. */
-var CACHE = "apayaye-v1";
+var CACHE = "apayaye-v2";
 var GUSCIO = [
   ".", "index.html", "app.js", "luoghi.js", "manifest.json", "icon.svg"
 ];
