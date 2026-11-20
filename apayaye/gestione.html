@@ -82,6 +82,32 @@
   ul.chk{list-style:none;padding:0;margin:0}
   ul.chk li{padding:8px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
   ul.chk li .chi{margin-left:auto;font-size:.78rem;color:var(--soft);white-space:nowrap}
+  /* Rendicontazione */
+  .rc-band{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:#263038;color:#fff;border-radius:12px;padding:12px 16px;margin:-2px 0 12px}
+  .rc-band h1{margin:0;font-size:1.2rem;color:#fff}
+  .rc-band span{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+  .rc-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+  .rc-item{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 1px 2px rgba(20,40,55,.05)}
+  .rc-head{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;width:100%;border:0;background:#fff;text-align:left;font-family:var(--f)}
+  .rc-head:hover{background:#f6f9fb}
+  .rc-check{width:26px;height:26px;border-radius:50%;background:#e4f2ec;color:var(--verde);display:grid;place-items:center;font-weight:800;flex:0 0 auto;font-size:.9rem}
+  .rc-tit{flex:1;min-width:0}
+  .rc-tit b{font-size:.98rem}
+  .rc-chip{font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap;flex:0 0 auto}
+  .rc-chip.ufficio{background:#e7f0f5;color:var(--mare-scuro)}
+  .rc-chip.operatore{background:#fde4d6;color:var(--ambra)}
+  .rc-chip.misto{background:#eee9f6;color:#6b4fae}
+  .rc-caret{transition:transform .2s;color:var(--soft);flex:0 0 auto;font-size:1.3rem;line-height:1}
+  .rc-item.open .rc-caret{transform:rotate(90deg)}
+  .rc-body{padding:2px 14px 14px;display:none}
+  .rc-item.open .rc-body{display:block}
+  .rc-link{color:var(--mare);font-weight:700;text-decoration:none;white-space:nowrap;border:0;background:none;font-family:var(--f);font-size:.86rem;cursor:pointer;padding:0}
+  .rc-link:hover{text-decoration:underline}
+  .rc-tag{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:7px;background:#eef2f4;color:var(--soft)}
+  .rc-tag.modello{background:#e4f2ec;color:var(--verde)}
+  .rc-tag.cartella{background:#e7f0f5;color:var(--mare-scuro)}
+  .rc-tag.app{background:#efe7f6;color:#6b4fae}
   .tag{font-size:.72rem;background:#eef3f6;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--soft)}
   .ver{font-size:.72rem;font-weight:400;opacity:.85;margin-left:8px}
   .tb-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -133,7 +159,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "2.1";
+var APP_VERSION = "2.2";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -587,26 +613,83 @@ function vistaExport(m){
 }
 
 /* ---------- RENDICONTAZIONE ---------- */
+var DBX_BASE = "/08 - Progetti in itinere/2023 - Agenzia coesione - Apayaye";
+function dbxUrl(p, kind){
+  var path = (DBX_BASE + p).replace(/^\//,"");
+  return "https://www.dropbox.com/" + (kind==="file"?"preview":"home") + "/" + encodeURI(path);
+}
 var CHECKLIST = [
-  ["Elenco minori destinatari (template ministeriale)","ufficio","si esporta dall'app, formato ReGiS"],
-  ["Autocertificazione monte ore (ex art. 17.1)","ufficio","le ore erogate devono coincidere con l'elenco"],
-  ["Allegato G","operatore / ufficio",""],
-  ["Registri firma dei minori","operatore",""],
-  ["Registri firma degli operatori","operatore",""],
-  ["Relazioni delle attività","operatore",""],
-  ["Fatture ricevute / giustificativi di spesa","ufficio / operatore","porta un importo → contabilità"],
-  ["Compensi operatori (ore × tariffa)","ufficio","calcolati dall'app, + forfait 40% → contabilità"],
-  ["Moduli di iscrizione e consensi","ufficio",""]
+  { t:"Elenco minori destinatari (template ministeriale)", chi:"ufficio", nota:"si esporta dall'app, formato ReGiS",
+    docs:[ {t:"Esporta l'elenco dall'app", k:"app", v:"export"},
+           {t:"Iscrizioni minori", k:"folder", p:"/04 - Iscrizioni minori", tag:"cartella"},
+           {t:"Caricamento su ReGiS", k:"folder", p:"/10 - Regis", tag:"cartella"} ] },
+  { t:"Autocertificazione monte ore (ex art. 17.1)", chi:"ufficio", nota:"le ore erogate devono coincidere con l'elenco",
+    docs:[ {t:"Ore del mese (app)", k:"app", v:"attivita"},
+           {t:"Modello timesheet PE PNRR", k:"file", p:"/08 - Rendicontazione/Modulistica/g_format_timesheet-pe_pnrr.xlsx", tag:"modello"},
+           {t:"Rendicontazione 2026", k:"folder", p:"/08 - Rendicontazione/2026", tag:"cartella"} ] },
+  { t:"Allegato G", chi:"misto", nota:"",
+    docs:[ {t:"Modello determinazione costo orario", k:"file", p:"/08 - Rendicontazione/Modulistica/f_format_pe_determinazione_costo_orario_dip.xlsx", tag:"modello"},
+           {t:"Fascicoli per ReGiS", k:"folder", p:"/08 - Rendicontazione/09 - Fascicoli per ReGis", tag:"cartella"} ] },
+  { t:"Registri firma dei minori", chi:"operatore", nota:"",
+    docs:[ {t:"Registri firma 2026-2027", k:"folder", p:"/07 - Attività/Registri firma 2026-2027", tag:"cartella"},
+           {t:"Registri firma 2025-2026", k:"folder", p:"/07 - Attività/Registri firma 2025-2026", tag:"cartella"} ] },
+  { t:"Registri firma degli operatori", chi:"operatore", nota:"",
+    docs:[ {t:"Lettere incarico · Fogli firma · relazioni", k:"folder", p:"/05 - Risorse umane/02 - Lettere incarico - Fogli firma - relazioni", tag:"cartella"} ] },
+  { t:"Relazioni delle attività", chi:"operatore", nota:"",
+    docs:[ {t:"Modello relazione (stato avanzamento)", k:"file", p:"/08 - Rendicontazione/Modulistica/h_relazione_stato_avanzamento_progetto.docx", tag:"modello"},
+           {t:"Attività svolte", k:"folder", p:"/07 - Attività", tag:"cartella"},
+           {t:"Relazioni operatori", k:"folder", p:"/05 - Risorse umane/02 - Lettere incarico - Fogli firma - relazioni", tag:"cartella"} ] },
+  { t:"Fatture ricevute / giustificativi di spesa", chi:"misto", nota:"porta un importo → contabilità",
+    docs:[ {t:"Tutti i bonifici", k:"folder", p:"/08 - Rendicontazione/Tutti i bonifici", tag:"cartella"},
+           {t:"Rendicontazione 2026", k:"folder", p:"/08 - Rendicontazione/2026", tag:"cartella"},
+           {t:"Fascicoli per ReGiS", k:"folder", p:"/08 - Rendicontazione/09 - Fascicoli per ReGis", tag:"cartella"} ] },
+  { t:"Compensi operatori (ore × tariffa)", chi:"ufficio", nota:"calcolati dall'app, + forfait 40% → contabilità",
+    docs:[ {t:"Ore e compensi (app)", k:"app", v:"attivita"},
+           {t:"Risorse umane", k:"folder", p:"/05 - Risorse umane", tag:"cartella"},
+           {t:"Modello determinazione costo orario", k:"file", p:"/08 - Rendicontazione/Modulistica/f_format_pe_determinazione_costo_orario_dip.xlsx", tag:"modello"} ] },
+  { t:"Moduli di iscrizione e consensi", chi:"ufficio", nota:"",
+    docs:[ {t:"Iscrizioni minori (moduli e consensi)", k:"folder", p:"/04 - Iscrizioni minori", tag:"cartella"} ] }
 ];
+function rcChip(chi){
+  var cls = chi==="ufficio"?"ufficio":(chi==="operatore"?"operatore":"misto");
+  var lab = chi==="misto"?"ufficio / operatore":chi;
+  return '<span class="rc-chip '+cls+'">'+lab+'</span>';
+}
+function rcTabella(docs){
+  var righe = docs.map(function(d){
+    var tipo = d.k==="app" ? '<span class="rc-tag app">app</span>'
+             : '<span class="rc-tag '+(d.tag||"")+'">'+(d.tag||"file")+'</span>';
+    var link = d.k==="app"
+      ? '<button class="rc-link app" data-v="'+d.v+'" title="Apri nell\'app">Apri →</button>'
+      : '<a class="rc-link" href="'+dbxUrl(d.p,d.k)+'" target="_blank" rel="noopener" title="Apri su Dropbox">Apri ↗</a>';
+    return '<tr><td>'+esc(d.t)+'</td><td>'+tipo+'</td><td style="text-align:right">'+link+'</td></tr>';
+  }).join("");
+  var haCartelle = docs.some(function(d){ return d.k==="folder"; });
+  return '<div class="scroll"><table><thead><tr><th>Documento</th><th>Tipo</th><th></th></tr></thead><tbody>'+righe+'</tbody></table></div>'+
+    (haCartelle?'<p class="mini" style="margin:8px 2px 0">I singoli file (con i nomi dei minori) si aprono dentro la cartella su Dropbox.</p>':'');
+}
 function vistaRendic(m){
-  m.innerHTML = '<div class="card"><h1>Rendicontazione</h1>'+
-    '<p class="muted">Tutto quello che serve per le attività e la rendicontazione del progetto (PNRR · ReGiS). '+
+  m.innerHTML = '<div class="card rc-intro"><div class="rc-band"><h1>Rendicontazione</h1><span>PNRR · ReGiS</span></div>'+
+    '<p class="muted">Tutto quello che serve per le attività e la rendicontazione del progetto. '+
+    'Tocca una voce per aprire i <b>collegamenti ai documenti</b> dentro la cartella del progetto su Dropbox («Progetti in itinere → Apayaye»). '+
     'Le voci con l\'importo alimentano la contabilità (progetti → Apayaye).</p>'+
-    '<ul class="chk">'+CHECKLIST.map(function(c){
-      return '<li><span>✓</span><div><b>'+esc(c[0])+'</b>'+(c[2]?'<div class="mini">'+esc(c[2])+'</div>':'')+'</div><span class="chi">'+esc(c[1])+'</span></li>';
+    '<ul class="rc-list">'+CHECKLIST.map(function(c,i){
+      return '<li class="rc-item" data-i="'+i+'">'+
+        '<button class="rc-head" type="button"><span class="rc-check">✓</span>'+
+        '<span class="rc-tit"><b>'+esc(c.t)+'</b>'+(c.nota?'<div class="mini">'+esc(c.nota)+'</div>':'')+'</span>'+
+        rcChip(c.chi)+'<span class="rc-caret">›</span></button>'+
+        '<div class="rc-body">'+rcTabella(c.docs)+'</div></li>';
     }).join("")+'</ul></div>'+
-    '<div class="card"><h2>La guida ufficiale</h2><p class="muted">I documenti ReGiS stanno nella cartella del progetto su Dropbox («10 - Regis»): Linee guida rendicontazione (SA) 2025, le slide del webinar, gli Indicatori e Target. '+
-    'Il collegamento diretto lo agganciamo quando sei nell\'app.</p></div>';
+    '<div class="card"><h2>La guida ufficiale</h2><p class="muted">I documenti ReGiS stanno nella cartella «10 - Regis» del progetto su Dropbox: Linee guida rendicontazione (SA) 2025, le slide del webinar, gli Indicatori e Target.</p>'+
+    rcTabella([ {t:"Linee guida rendicontazione (SA) 2025", k:"file", p:"/08 - Rendicontazione/Modulistica/pe_linee_guida_sa_2025.pdf", tag:"modello"},
+                {t:"Cartella ReGiS (guide, indicatori, target)", k:"folder", p:"/10 - Regis", tag:"cartella"},
+                {t:"Modulistica ministeriale", k:"folder", p:"/08 - Rendicontazione/Modulistica", tag:"cartella"} ])+'</div>';
+  Array.prototype.forEach.call(m.querySelectorAll(".rc-head"), function(h){
+    h.addEventListener("click", function(){ h.parentNode.classList.toggle("open"); });
+  });
+  Array.prototype.forEach.call(m.querySelectorAll(".rc-link.app"), function(b){
+    b.addEventListener("click", function(e){ e.stopPropagation(); vistaCorr = b.getAttribute("data-v"); avviaApp(); });
+  });
 }
 
 /* ---------- UTENTI ---------- */
