@@ -96,7 +96,7 @@ function apri(l){
   aggiornaScheda();
   velo.classList.add("on"); sheet.classList.add("on");
 }
-function chiudi(){ velo.classList.remove("on"); sheet.classList.remove("on"); corrente = null; }
+function chiudi(){ velo.classList.remove("on"); sheet.classList.remove("on"); corrente = null; if("speechSynthesis" in window) speechSynthesis.cancel(); }
 velo.addEventListener("click", chiudi);
 
 function aggiornaScheda(){
@@ -127,6 +127,33 @@ cta.addEventListener("click", function(){
   if(corrente && sbloccabile(corrente)) cattura(corrente, testMode ? "prova" : "gps");
 });
 ctaScan.addEventListener("click", function(){ apriScanner(); });
+
+/* ---------- voce del personaggio (parla la descrizione) ---------- */
+function vocePreferita(){
+  var vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+  var it = vs.filter(function(v){ return /^it/i.test(v.lang || ""); });
+  if(!it.length) return null;
+  var belle = it.filter(function(v){ return /(siri|alice|federica|luca|enhanced|premium|neural)/i.test(v.name || ""); });
+  return belle[0] || it[0];
+}
+function narrazione(l){
+  return "Ciao! Sono " + l.nome + ", il personaggio di " + l.dove + ". " + l.frase + " " + l.blurb + " " + l.fatto;
+}
+function parla(l){
+  if(!("speechSynthesis" in window)){ toast("La voce non è disponibile su questo telefono."); return; }
+  try{
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(narrazione(l));
+    u.lang = "it-IT";
+    var v = vocePreferita(); if(v) u.voice = v;
+    u.rate = (l.voce && l.voce.rate) || 0.98;
+    u.pitch = (l.voce && l.voce.pitch) || 1;
+    speechSynthesis.speak(u);
+  }catch(e){ toast("Non riesco a far partire la voce."); }
+}
+if("speechSynthesis" in window){ try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function(){ speechSynthesis.getVoices(); }; }catch(e){} }
+var bAudio = $("b-audio");
+if(bAudio){ bAudio.addEventListener("click", function(){ if(corrente) parla(corrente); }); }
 
 /* ---------- cattura ---------- */
 function cattura(l, metodo){
