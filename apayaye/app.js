@@ -89,6 +89,7 @@ function apri(l){
   $("sheet-nome").textContent = l.nome;
   $("sheet-dove").textContent = l.dove;
   $("sheet-quando").textContent = "Uscita · " + l.quando;
+  $("sheet-voce").textContent = "« " + l.frase + " »";
   $("sheet-blurb").textContent = l.blurb;
   $("sheet-fatto").textContent = l.fatto;
   creaEl.innerHTML = artLuogo(l);
