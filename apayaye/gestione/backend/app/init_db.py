@@ -13,6 +13,11 @@ SCHEMA = os.path.join(os.path.dirname(__file__), "schema.sql")
 # if not exists" non aggiungono le colonne nuove, quindi le aggiungiamo qui.
 MIGRAZIONI = [
     "alter table minori add column if not exists scheda_link text",
+    "alter table minori add column if not exists doc_modulo boolean not null default false",
+    "alter table minori add column if not exists doc_identita_genitore boolean not null default false",
+    "alter table minori add column if not exists doc_consenso_privacy boolean not null default false",
+    "alter table minori add column if not exists doc_consenso_immagini boolean not null default false",
+    "alter table minori add column if not exists doc_note text",
 ]
 
 

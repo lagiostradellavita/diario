@@ -68,7 +68,8 @@ class MinoreIn(BaseModel):
 def elenco(u: dict = Depends(SOLO_UFFICIO), db=Depends(get_session)):
     righe = db.execute(text(
         "select id, cognome, nome, codice_fiscale, stato_nascita, comune_nascita, provincia, "
-        "genere, data_nascita, clp, scuola, ore_previste, stato, modulo_iscrizione, note, scheda_link "
+        "genere, data_nascita, clp, scuola, ore_previste, stato, modulo_iscrizione, note, scheda_link, "
+        "doc_modulo, doc_identita_genitore, doc_consenso_privacy, doc_consenso_immagini, doc_note "
         "from minori order by cognome, nome"
     )).mappings().all()
     return [dict(r) for r in righe]
@@ -114,6 +115,29 @@ def modifica(mid: int, dati: MinoreIn, u: dict = Depends(SOLO_UFFICIO), db=Depen
         "ge": ge, "dn": c["data_nascita"], "clp": dati.clp,
         "sc": dati.scuola, "op": dati.ore_previste, "st": st,
         "mi": dati.modulo_iscrizione, "nt": dati.note, "i": mid}).rowcount
+    if not r:
+        raise HTTPException(status_code=404, detail="Minore non trovato")
+    return {"ok": True}
+
+
+class DocumentiIn(BaseModel):
+    doc_modulo: bool = False
+    doc_identita_genitore: bool = False
+    doc_consenso_privacy: bool = False
+    doc_consenso_immagini: bool = False
+    doc_note: Optional[str] = None
+
+
+@router.put("/{mid}/documenti")
+def documenti(mid: int, dati: DocumentiIn, u: dict = Depends(SOLO_UFFICIO), db=Depends(get_session)):
+    """Segna quali documenti del fascicolo di quel minore sono presenti
+    (modulo di iscrizione, documento d'identita' del genitore, consenso privacy,
+    consenso immagini), piu' una nota. Non tocca gli altri campi del minore."""
+    r = db.execute(text(
+        "update minori set doc_modulo=:a, doc_identita_genitore=:b, doc_consenso_privacy=:c, "
+        "doc_consenso_immagini=:d, doc_note=:n where id=:i"
+    ), {"a": dati.doc_modulo, "b": dati.doc_identita_genitore, "c": dati.doc_consenso_privacy,
+        "d": dati.doc_consenso_immagini, "n": (dati.doc_note or None), "i": mid}).rowcount
     if not r:
         raise HTTPException(status_code=404, detail="Minore non trovato")
     return {"ok": True}
