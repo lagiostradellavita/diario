@@ -117,7 +117,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "1.6";
+var APP_VERSION = "1.7";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -294,9 +294,9 @@ function minoriFiltrati(){
 function disegnaTabellaMinori(){
   var righe = minoriFiltrati();
   var h = '<div class="scroll"><table><thead><tr><th>Cognome</th><th>Nome</th><th>Codice fiscale</th>'+
-    '<th>Nascita</th><th>Scuola</th><th>Stato</th><th>Iscriz.</th><th>Da verificare</th><th></th></tr></thead><tbody>';
+    '<th>Nascita</th><th>Scuola</th><th>Stato</th><th>Iscriz.</th><th>Da verificare</th><th>Scheda</th><th></th></tr></thead><tbody>';
   if(!righe.length){
-    h += '<tr><td colspan="9" class="muted" style="padding:14px">Nessun minore con questi filtri.</td></tr>';
+    h += '<tr><td colspan="10" class="muted" style="padding:14px">Nessun minore con questi filtri.</td></tr>';
   }
   righe.forEach(function(r){
     var ver = daVerificare(r);
@@ -304,6 +304,7 @@ function disegnaTabellaMinori(){
       '<td>'+esc(r.data_nascita||"")+'</td><td>'+esc(r.scuola||"")+'</td><td>'+esc(r.stato||"")+'</td>'+
       '<td>'+(r.modulo_iscrizione?'<span class="pill ok">sì</span>':'<span class="pill no">no</span>')+'</td>'+
       '<td class="nota">'+(ver?'<span class="pill att">⚠ da verificare</span><div class="mini">'+esc(notaBreve(r.note))+'</div>':'')+'</td>'+
+      '<td>'+(r.scheda_link?'<a href="'+esc(r.scheda_link)+'" target="_blank" rel="noopener" title="Apri la scheda di iscrizione">📄</a>':'')+'</td>'+
       '<td><button class="btn g sm" data-id="'+r.id+'">Apri</button></td></tr>';
   });
   var filtriAttivi = mFiltri.q || mFiltri.stato || mFiltri.iscr || mFiltri.ver;
@@ -318,7 +319,10 @@ function formMinore(r){
   r = r || {};
   var f = $("m-form");
   var nota = (r.note && String(r.note).trim()) ? '<div class="msg inf">⚠ Questo minore è da verificare: '+esc(notaBreve(r.note))+' Correggi il codice fiscale e salva: la nota sparisce da sola.</div>' : '';
-  f.innerHTML = '<div class="card"><h2>'+(r.id?"Modifica minore":"Nuovo minore")+'</h2><div id="f-msg"></div>'+nota+
+  var sched = r.scheda_link
+    ? '<div class="msg ok" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>📄 Scheda di iscrizione collegata</span><a class="btn p sm" href="'+esc(r.scheda_link)+'" target="_blank" rel="noopener">Apri scheda di iscrizione</a></div>'
+    : (r.id ? '<p class="mini">Nessuna scheda di iscrizione collegata. Si collegano tutte insieme da «Importa Excel» → «Collega le schede».</p>' : '');
+  f.innerHTML = '<div class="card"><h2>'+(r.id?"Modifica minore":"Nuovo minore")+'</h2><div id="f-msg"></div>'+nota+sched+
     '<div class="row">'+campo("Cognome","f-cognome",r.cognome)+campo("Nome","f-nome",r.nome)+'</div>'+
     '<div class="row">'+campo("Codice fiscale","f-cf",r.codice_fiscale)+
       '<div><label>Stato</label><select id="f-stato"><option value="">—</option>'+
@@ -346,13 +350,21 @@ function formMinore(r){
 
 /* ---------- IMPORTA ---------- */
 var importRighe = null;
+var schedeRighe = null;
 function vistaImporta(m){
   m.innerHTML = '<div class="card"><h1>Importa l\'Excel dei minori</h1>'+
     '<p class="muted">Carica il file «Elenco minori» del progetto: l\'app legge le colonne, controlla i codici fiscali '+
     '(età 11-17, niente doppioni) e <b>prima mostra</b> cosa farebbe, poi scrivi.</p>'+
     '<input id="imp-file" type="file" accept=".xlsx,.xls">'+
-    '<div id="imp-msg"></div><div id="imp-ris"></div></div>';
+    '<div id="imp-msg"></div><div id="imp-ris"></div></div>'+
+    '<div class="card"><h2>Collega le schede di iscrizione</h2>'+
+    '<p class="muted">Carica il file di abbinamento (codice fiscale → link alla scheda su Dropbox) già preparato: '+
+    'l\'app collega a ogni minore il suo modulo di iscrizione. <b>Prima mostra</b> cosa farebbe, poi scrivi. '+
+    'Il link apre il PDF su Dropbox (serve essere collegati a Dropbox).</p>'+
+    '<input id="sch-file" type="file" accept=".csv,.xlsx,.xls">'+
+    '<div id="sch-msg"></div><div id="sch-ris"></div></div>';
   $("imp-file").addEventListener("change", leggiFile);
+  $("sch-file").addEventListener("change", leggiFileSchede);
 }
 function leggiFile(ev){
   var file = ev.target.files[0]; if(!file) return;
@@ -418,6 +430,66 @@ async function scrivi(){
     $("imp-ris").innerHTML = '<div class="msg ok">Fatto: '+r.creati+' aggiunti, '+r.aggiornati+' aggiornati'+
       (daVer?(', '+daVer+' da verificare'):'')+(r.scartati.length?(', '+r.scartati.length+' esclusi'):'')+'. Vai in «Minori» per vederli.</div>';
   }catch(e){ $("imp-ris").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+}
+function leggiFileSchede(ev){
+  var file = ev.target.files[0]; if(!file) return;
+  var rd = new FileReader();
+  rd.onload = function(e){
+    try{
+      var wb = XLSX.read(new Uint8Array(e.target.result), {type:"array"});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var aoa = XLSX.utils.sheet_to_json(ws, {header:1, raw:false});
+      schedeRighe = estraiSchede(aoa);
+      if(!schedeRighe.length){ $("sch-msg").innerHTML = '<div class="msg err">Non ho trovato righe con «codice fiscale» e «link» in questo file.</div>'; return; }
+      anteprimaSchede();
+    }catch(err){ $("sch-msg").innerHTML = '<div class="msg err">Non riesco a leggere il file: '+esc(err.message)+'</div>'; }
+  };
+  rd.readAsArrayBuffer(file);
+}
+function estraiSchede(aoa){
+  var hi = -1;
+  for(var i=0;i<aoa.length;i++){
+    var riga = aoa[i]||[];
+    if(riga.some(function(c){ return /codice fiscale/i.test(String(c||"")); }) && riga.some(function(c){ return /link/i.test(String(c||"")); })){ hi=i; break; }
+  }
+  if(hi<0) return [];
+  var head = aoa[hi].map(function(c){return String(c||"").toLowerCase()});
+  function col(re){ for(var j=0;j<head.length;j++){ if(re.test(head[j])) return j; } return -1; }
+  var cCf=col(/codice fiscale/), cLink=col(/link/), cCog=col(/cognome/), cNom=col(/\bnome\b/);
+  var out=[];
+  for(var r=hi+1;r<aoa.length;r++){
+    var row=aoa[r]||[];
+    var cfv=String((cCf>=0?row[cCf]:"")||"").trim();
+    var lk=String((cLink>=0?row[cLink]:"")||"").trim();
+    if(!cfv || !lk) continue;
+    out.push({codice_fiscale:cfv, link:lk, cognome:cCog>=0?String(row[cCog]||"").trim():"", nome:cNom>=0?String(row[cNom]||"").trim():""});
+  }
+  return out;
+}
+async function anteprimaSchede(){
+  $("sch-msg").innerHTML = '<div class="msg inf">Leggo '+schedeRighe.length+' abbinamenti. Controllo…</div>';
+  try{
+    var r = await api("/minori/importa-schede", {method:"POST", body:{prova:true, righe:schedeRighe}});
+    var nt = r.non_trovati || [];
+    var h = '<div class="msg ok">Pronti da collegare: <b>'+r.collegati+'</b>.'+
+      (nt.length?(' · <b>'+nt.length+'</b> codici fiscali non in archivio'):'')+
+      (r.non_validi?(' · '+r.non_validi+' link non validi'):'')+'.</div>';
+    if(nt.length){
+      h += '<div class="card"><h2>Non in archivio (non collegati)</h2><div class="scroll"><table><thead><tr><th>Chi</th><th>Codice fiscale</th></tr></thead><tbody>'+
+        nt.map(function(s){return '<tr><td>'+esc((s.cognome||"")+" "+(s.nome||""))+'</td><td>'+esc(s.cf)+'</td></tr>'}).join("")+
+        '</tbody></table></div></div>';
+    }
+    h += '<div class="right"><button class="btn v" id="sch-scrivi">Collega le '+r.collegati+' schede</button></div>';
+    $("sch-ris").innerHTML = h;
+    $("sch-scrivi").addEventListener("click", scriviSchede);
+  }catch(e){ $("sch-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+}
+async function scriviSchede(){
+  $("sch-scrivi").disabled = true; $("sch-scrivi").textContent = "Collego…";
+  try{
+    var r = await api("/minori/importa-schede", {method:"POST", body:{prova:false, righe:schedeRighe}});
+    $("sch-ris").innerHTML = '<div class="msg ok">Fatto: '+r.collegati+' schede collegate. Apri un minore in «Minori»: trovi «Apri scheda di iscrizione».</div>';
+  }catch(e){ $("sch-ris").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
 }
 
 /* ---------- EXPORT REGIS ---------- */
