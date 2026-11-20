@@ -78,6 +78,8 @@
   .tb-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .aggbtn{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:8px;padding:5px 10px;font-family:var(--f);font-weight:700;font-size:.78rem;cursor:pointer}
   .aggbtn.nuovo{background:var(--ambra);border-color:var(--ambra);animation:pulsa 1.3s infinite}
+  .spunta{display:flex;align-items:center;gap:9px;font-weight:700;color:var(--ink);margin:9px 0}
+  .spunta input{width:auto;margin:0}
   @keyframes pulsa{0%,100%{opacity:1}50%{opacity:.55}}
 </style>
 </head>
@@ -117,7 +119,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "1.7";
+var APP_VERSION = "1.8";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -234,9 +236,11 @@ function render(){
 
 /* ---------- MINORI ---------- */
 var minoriCache = [];
-var mFiltri = {q:"", stato:"", iscr:"", ver:""};
+var mFiltri = {q:"", stato:"", iscr:"", ver:"", doc:""};
 function daVerificare(r){ return !!(r.note && String(r.note).trim()); }
 function notaBreve(n){ return String(n==null?"":n).replace(/^Codice fiscale da verificare:\s*/i,""); }
+function docCount(r){ return (r.doc_modulo?1:0)+(r.doc_identita_genitore?1:0)+(r.doc_consenso_privacy?1:0)+(r.doc_consenso_immagini?1:0); }
+function docManca(r){ var m=[]; if(!r.doc_modulo)m.push("modulo"); if(!r.doc_identita_genitore)m.push("doc. genitore"); if(!r.doc_consenso_privacy)m.push("consenso privacy"); if(!r.doc_consenso_immagini)m.push("consenso immagini"); return m; }
 
 async function vistaMinori(m){
   m.innerHTML = '<div class="card"><div class="right"><button class="btn p sm" id="m-nuovo">+ Nuovo minore</button></div>'+
@@ -255,6 +259,7 @@ function disegnaStrumentiMinori(){
   var stati = [];
   minoriCache.forEach(function(r){ if(r.stato && stati.indexOf(r.stato)<0) stati.push(r.stato); });
   var nVer = minoriCache.filter(daVerificare).length;
+  var nDocInc = minoriCache.filter(function(r){ return docCount(r)<4; }).length;
   var h = '<div class="row" style="margin:4px 0 2px">'+
     '<div style="flex:2"><label>Cerca (cognome, nome, codice fiscale)</label>'+
       '<input id="m-q" type="search" placeholder="Scrivi per filtrare…" value="'+esc(mFiltri.q)+'"></div>'+
@@ -266,13 +271,21 @@ function disegnaStrumentiMinori(){
     '<div><label>Da verificare</label><select id="m-fv"><option value="">Tutti</option>'+
       '<option value="si"'+(mFiltri.ver==="si"?" selected":"")+'>Solo da verificare</option>'+
       '<option value="no"'+(mFiltri.ver==="no"?" selected":"")+'>Solo a posto</option></select></div>'+
+    '<div><label>Documenti</label><select id="m-fd"><option value="">Tutti</option>'+
+      '<option value="completi"'+(mFiltri.doc==="completi"?" selected":"")+'>Completi (4/4)</option>'+
+      '<option value="incompleti"'+(mFiltri.doc==="incompleti"?" selected":"")+'>Incompleti</option>'+
+      '<option value="manca_gen"'+(mFiltri.doc==="manca_gen"?" selected":"")+'>Manca doc. genitore</option></select></div>'+
     '</div>';
-  if(nVer){ h += '<p class="mini" style="margin-top:8px"><span class="pill att">⚠ '+nVer+' da verificare</span> &nbsp;codice fiscale da controllare: apri la riga, correggilo e salva.</p>'; }
+  var avvisi = [];
+  if(nVer){ avvisi.push('<span class="pill att">⚠ '+nVer+' da verificare</span>'); }
+  if(nDocInc){ avvisi.push('<span class="pill att">📁 '+nDocInc+' con documenti incompleti</span>'); }
+  if(avvisi.length){ h += '<p class="mini" style="margin-top:8px">'+avvisi.join(" &nbsp; ")+'</p>'; }
   $("m-strumenti").innerHTML = h;
   $("m-q").addEventListener("input", function(){ mFiltri.q=this.value; disegnaTabellaMinori(); });
   $("m-fs").addEventListener("change", function(){ mFiltri.stato=this.value; disegnaTabellaMinori(); });
   $("m-fi").addEventListener("change", function(){ mFiltri.iscr=this.value; disegnaTabellaMinori(); });
   $("m-fv").addEventListener("change", function(){ mFiltri.ver=this.value; disegnaTabellaMinori(); });
+  $("m-fd").addEventListener("change", function(){ mFiltri.doc=this.value; disegnaTabellaMinori(); });
 }
 
 function minoriFiltrati(){
@@ -283,6 +296,9 @@ function minoriFiltrati(){
     if(mFiltri.iscr === "no" && r.modulo_iscrizione) return false;
     if(mFiltri.ver === "si" && !daVerificare(r)) return false;
     if(mFiltri.ver === "no" && daVerificare(r)) return false;
+    if(mFiltri.doc === "completi" && docCount(r) < 4) return false;
+    if(mFiltri.doc === "incompleti" && docCount(r) >= 4) return false;
+    if(mFiltri.doc === "manca_gen" && r.doc_identita_genitore) return false;
     if(q){
       var blob = normTxt((r.cognome||"")+" "+(r.nome||"")+" "+(r.codice_fiscale||""));
       if(blob.indexOf(q) < 0) return false;
@@ -294,20 +310,25 @@ function minoriFiltrati(){
 function disegnaTabellaMinori(){
   var righe = minoriFiltrati();
   var h = '<div class="scroll"><table><thead><tr><th>Cognome</th><th>Nome</th><th>Codice fiscale</th>'+
-    '<th>Nascita</th><th>Scuola</th><th>Stato</th><th>Iscriz.</th><th>Da verificare</th><th>Scheda</th><th></th></tr></thead><tbody>';
+    '<th>Nascita</th><th>Scuola</th><th>Stato</th><th>Iscriz.</th><th>Da verificare</th><th>Scheda</th><th>Doc.</th><th></th></tr></thead><tbody>';
   if(!righe.length){
-    h += '<tr><td colspan="10" class="muted" style="padding:14px">Nessun minore con questi filtri.</td></tr>';
+    h += '<tr><td colspan="11" class="muted" style="padding:14px">Nessun minore con questi filtri.</td></tr>';
   }
   righe.forEach(function(r){
     var ver = daVerificare(r);
+    var dc = docCount(r);
+    var manca = docManca(r);
+    var docCell = (dc===4) ? '<span class="pill ok">4/4</span>'
+      : '<span class="pill att" title="manca: '+esc(manca.join(", "))+'">'+dc+'/4</span>';
     h += '<tr'+(ver?' class="verifica"':'')+'><td>'+esc(r.cognome)+'</td><td>'+esc(r.nome)+'</td><td>'+esc(r.codice_fiscale)+'</td>'+
       '<td>'+esc(r.data_nascita||"")+'</td><td>'+esc(r.scuola||"")+'</td><td>'+esc(r.stato||"")+'</td>'+
       '<td>'+(r.modulo_iscrizione?'<span class="pill ok">sì</span>':'<span class="pill no">no</span>')+'</td>'+
       '<td class="nota">'+(ver?'<span class="pill att">⚠ da verificare</span><div class="mini">'+esc(notaBreve(r.note))+'</div>':'')+'</td>'+
       '<td>'+(r.scheda_link?'<a href="'+esc(r.scheda_link)+'" target="_blank" rel="noopener" title="Apri la scheda di iscrizione">📄</a>':'')+'</td>'+
+      '<td>'+docCell+'</td>'+
       '<td><button class="btn g sm" data-id="'+r.id+'">Apri</button></td></tr>';
   });
-  var filtriAttivi = mFiltri.q || mFiltri.stato || mFiltri.iscr || mFiltri.ver;
+  var filtriAttivi = mFiltri.q || mFiltri.stato || mFiltri.iscr || mFiltri.ver || mFiltri.doc;
   h += '</tbody></table></div><p class="mini">'+righe.length+' di '+minoriCache.length+' minori'+(filtriAttivi?' (filtrati)':'')+'.</p>';
   $("m-body").innerHTML = h;
   Array.prototype.forEach.call($("m-body").querySelectorAll("button[data-id]"), function(b){
@@ -315,6 +336,7 @@ function disegnaTabellaMinori(){
   });
 }
 function campo(l,id,v,t){ return '<div><label>'+l+'</label><input id="'+id+'" type="'+(t||"text")+'" value="'+esc(v||"")+'"></div>'; }
+function spunta(id,lab,on){ return '<label class="spunta"><input type="checkbox" id="'+id+'"'+(on?" checked":"")+'> '+lab+'</label>'; }
 function formMinore(r){
   r = r || {};
   var f = $("m-form");
@@ -322,6 +344,17 @@ function formMinore(r){
   var sched = r.scheda_link
     ? '<div class="msg ok" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>📄 Scheda di iscrizione collegata</span><a class="btn p sm" href="'+esc(r.scheda_link)+'" target="_blank" rel="noopener">Apri scheda di iscrizione</a></div>'
     : (r.id ? '<p class="mini">Nessuna scheda di iscrizione collegata. Si collegano tutte insieme da «Importa Excel» → «Collega le schede».</p>' : '');
+  var docSec = r.id
+    ? '<div class="card" style="background:#f8fbfc"><h2>Documenti del fascicolo</h2>'+
+      '<p class="mini">Apri la scheda qui sopra, guarda il PDF e spunta cosa c\'è davvero dentro. Serve per la rendicontazione.</p>'+
+      '<div id="d-msg"></div>'+
+      spunta("d-mod","Modulo di iscrizione firmato",r.doc_modulo)+
+      spunta("d-gen","Documento d'identità del genitore",r.doc_identita_genitore)+
+      spunta("d-priv","Consenso privacy",r.doc_consenso_privacy)+
+      spunta("d-img","Consenso immagini",r.doc_consenso_immagini)+
+      '<label>Note sul fascicolo</label><textarea id="d-note" rows="2">'+esc(r.doc_note||"")+'</textarea>'+
+      '<div class="right" style="margin-top:10px"><button class="btn v sm" id="d-salva">Salva documenti</button></div></div>'
+    : '';
   f.innerHTML = '<div class="card"><h2>'+(r.id?"Modifica minore":"Nuovo minore")+'</h2><div id="f-msg"></div>'+nota+sched+
     '<div class="row">'+campo("Cognome","f-cognome",r.cognome)+campo("Nome","f-nome",r.nome)+'</div>'+
     '<div class="row">'+campo("Codice fiscale","f-cf",r.codice_fiscale)+
@@ -331,7 +364,7 @@ function formMinore(r){
     '<div class="row">'+campo("Scuola","f-sc",r.scuola)+campo("Ore previste","f-op",r.ore_previste,"number")+
       '<div><label>Modulo iscrizione</label><select id="f-mi"><option value="no"'+(!r.modulo_iscrizione?" selected":"")+'>No</option><option value="si"'+(r.modulo_iscrizione?" selected":"")+'>Sì</option></select></div></div>'+
     '<p class="mini">Data di nascita e genere si ricavano dal codice fiscale.</p>'+
-    '<div class="right" style="margin-top:12px"><button class="btn g sm" id="f-ann">Annulla</button><button class="btn p sm" id="f-salva">Salva</button></div></div>';
+    '<div class="right" style="margin-top:12px"><button class="btn g sm" id="f-ann">Annulla</button><button class="btn p sm" id="f-salva">Salva</button></div></div>'+docSec;
   f.scrollIntoView({behavior:"smooth"});
   $("f-ann").addEventListener("click", function(){ f.innerHTML=""; });
   $("f-salva").addEventListener("click", async function(){
@@ -346,6 +379,24 @@ function formMinore(r){
       f.innerHTML=""; vistaMinori($("main"));
     }catch(e){ $("f-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
   });
+  if(r.id && $("d-salva")){
+    $("d-salva").addEventListener("click", async function(){
+      var body = {doc_modulo:$("d-mod").checked, doc_identita_genitore:$("d-gen").checked,
+        doc_consenso_privacy:$("d-priv").checked, doc_consenso_immagini:$("d-img").checked,
+        doc_note:$("d-note").value.trim()};
+      $("d-salva").disabled = true; $("d-salva").textContent = "Salvo…";
+      try{
+        await api("/minori/"+r.id+"/documenti", {method:"PUT", body:body});
+        var it = minoriCache.filter(function(x){return x.id==r.id})[0];
+        if(it){ it.doc_modulo=body.doc_modulo; it.doc_identita_genitore=body.doc_identita_genitore;
+          it.doc_consenso_privacy=body.doc_consenso_privacy; it.doc_consenso_immagini=body.doc_consenso_immagini;
+          it.doc_note=body.doc_note; }
+        disegnaStrumentiMinori(); disegnaTabellaMinori();
+        $("d-msg").innerHTML = '<div class="msg ok">Documenti salvati.</div>';
+      }catch(e){ $("d-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+      $("d-salva").disabled = false; $("d-salva").textContent = "Salva documenti";
+    });
+  }
 }
 
 /* ---------- IMPORTA ---------- */
