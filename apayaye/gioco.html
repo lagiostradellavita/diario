@@ -98,12 +98,12 @@
   .velo{position:fixed; inset:0; background:rgba(30,20,8,.5); opacity:0; pointer-events:none;
     transition:opacity .2s; z-index:30}
   .velo.on{opacity:1; pointer-events:auto}
-  .sheet{position:fixed; left:0; right:0; bottom:0; z-index:40; transform:translateY(110%);
-    transition:transform .32s cubic-bezier(.2,.9,.3,1);
+  .sheet{position:fixed; left:0; right:0; bottom:0; z-index:40; transform:translateY(110%); opacity:0; visibility:hidden; pointer-events:none;
+    transition:transform .32s cubic-bezier(.2,.9,.3,1), opacity .25s, visibility .32s;
     background:var(--panel); border-radius:26px 26px 0 0; box-shadow:0 -12px 40px rgba(40,25,0,.3);
     padding:10px 20px calc(24px + var(--safe-bot)); max-width:720px; margin:0 auto;
     border:2px solid var(--panel-bordo); border-bottom:0}
-  .sheet.on{transform:translateY(0)}
+  .sheet.on{transform:translateY(0); opacity:1; visibility:visible; pointer-events:auto}
   @media(min-width:560px){
     .sheet{bottom:auto; top:50%; left:50%; right:auto; width:470px;
       transform:translate(-50%,-46%) scale(.96); border-radius:26px; border-bottom:2px solid var(--panel-bordo)}
