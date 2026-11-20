@@ -86,7 +86,7 @@
     <div style="margin-top:16px"><button class="btn p" id="l-go" style="width:100%">Entra</button></div>
     <details style="margin-top:14px"><summary class="mini">Impostazioni avanzate</summary>
       <label>Indirizzo del server (API)</label>
-      <input id="l-api" type="text" placeholder="https://apayaye-api.onrender.com">
+      <input id="l-api" type="text" placeholder="https://apayaye-api-ggr3.onrender.com">
       <p class="mini">Si cambia solo se il server ha un altro indirizzo.</p>
     </details>
   </div>
@@ -108,7 +108,7 @@ var LS = {
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
   del:function(k){try{localStorage.removeItem(k)}catch(e){}}
 };
-var API = LS.get("apayaye.gestione.api") || "https://apayaye-api.onrender.com";
+var API = LS.get("apayaye.gestione.api") || "https://apayaye-api-ggr3.onrender.com";
 var token = LS.get("apayaye.gestione.token") || "";
 var ruolo = LS.get("apayaye.gestione.ruolo") || "";
 var email = LS.get("apayaye.gestione.email") || "";
@@ -133,7 +133,7 @@ async function api(path, opt){
 }
 
 /* ---------- login ---------- */
-$("l-api").value = API === "https://apayaye-api.onrender.com" ? "" : API;
+$("l-api").value = API === "https://apayaye-api-ggr3.onrender.com" ? "" : API;
 $("l-go").addEventListener("click", login);
 $("l-pwd").addEventListener("keydown", function(e){ if(e.key==="Enter") login(); });
 async function login(){
@@ -286,7 +286,7 @@ function estraiRighe(aoa){
   if(hi<0) return [];
   var head = aoa[hi].map(function(c){return String(c||"").toLowerCase()});
   function col(re){ for(var j=0;j<head.length;j++){ if(re.test(head[j])) return j; } return -1; }
-  var c = {cog:col(/cognome/), nom:col(/nome/), cf:col(/codice fiscale/), sn:col(/stato di nascita/),
+  var c = {cog:col(/cognome/), nom:col(/\bnome\b/), cf:col(/codice fiscale/), sn:col(/stato di nascita/),
     cn:col(/comune di nascita/), pr:col(/provincia/), ge:col(/genere/), note:col(/note/)};
   var out=[];
   for(var r=hi+1;r<aoa.length;r++){
