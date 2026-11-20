@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#1d7ea6">
 <title>Gestione Apayaye</title>
 <link rel="manifest" href="gestione.manifest.json">
-<link rel="icon" href="gestione-icona.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="gestione-icona.svg">
+<link rel="icon" href="apayaye-512.png" type="image/png">
+<link rel="apple-touch-icon" sizes="180x180" href="apayaye-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Gestione">
@@ -85,7 +85,7 @@
 </head>
 <body>
 <div class="topbar">
-  <div class="tb-left"><b>Gestione Apayaye</b><span class="ver" id="ver"></span><button class="aggbtn" id="aggiorna" title="Aggiorna all'ultima versione">↻ Aggiorna</button></div>
+  <div class="tb-left"><img src="apayaye-mark.png" alt="Apayaye" style="height:24px;width:auto;vertical-align:middle;margin-right:8px"><b>Gestione Apayaye</b><span class="ver" id="ver"></span><button class="aggbtn" id="aggiorna" title="Aggiorna all'ultima versione">↻ Aggiorna</button></div>
   <div class="who" id="who"></div>
 </div>
 
@@ -119,7 +119,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "1.8";
+var APP_VERSION = "1.9";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},

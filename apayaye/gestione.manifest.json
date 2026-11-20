@@ -11,15 +11,21 @@
   "theme_color": "#1d7ea6",
   "icons": [
     {
-      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0BAMAAADP4xsBAAAAMFBMVEX///8cfaQce6IceqEbeJ4adpsZcpYZcJMYbpEYa40XaooWZoYWZIMVYoAUYH0UXnvhBZCEAAABmUlEQVR42u3YsVKEMBAG4J8bZUQq3szGq2PDM1CmtKTFilobep5LZLDQhskkgiR76ATHPwW53Ox8t7dHdsIlBX5rnECaNOlj0Ffc6KR5h5DmzUeaNGn2ENaaNGnSpLea6tc3XnB9ZxbvXahzv3wrKd31E4BUzYupDc+x9BVkMhcAEMgrsae1gNb6nNAxxbtDJmdqRVLLLXMUOnUmJZJUvIIoO4FUAqU+OnWi1J56LApSWt3JenVBd1p0Pp6vudFJk+YzOs/XFW60WYw61Hn0Z13ZXriMykuP5gIAWvD1tY/WdtgoqewY7w4ZnUmLJM0eIuohb/N8SWNJis2sM2eqRXQdr9a1nUAmgTIfnTlR9Z56LArSAJmJysLtZuV3bbhlSPMcQpo0z9fuOOO2NYtBhTrP/qzPthcu4+ylB3MBfvhvLWWHDZLKDvH69eucQfFd/TbGQ8ctcxA6d6ZOJHXxCtLZCeQSKPfRuRPV7anHoiA9kJuoPNzuV87XPc983OikSfO5kbUmTZo0ewjp/00nHywIadKkSf8F+hON4UY6oaIs5QAAAABJRU5ErkJggg==",
+      "src": "apayaye-180.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "gestione-icona.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "apayaye-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "apayaye-mask-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ]
