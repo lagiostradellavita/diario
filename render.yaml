@@ -1,17 +1,21 @@
-# Blueprint per il deploy su Render (https://render.com) del backend del Diario Salute.
-# Il database e' Neon (PostgreSQL): la sua stringa di connessione va incollata
-# a mano in DATABASE_URL dal pannello di Render.
+# Blueprint Render per il backend della gestione Apayaye.
+# Render legge questo file dalla radice del repo e crea il servizio in un clic.
+# La stringa di connessione Neon (PostgreSQL, regione UE) va in DATABASE_URL.
 services:
   - type: web
-    name: diario-salute-api
+    name: apayaye-api
     runtime: docker
-    rootDir: backend
+    rootDir: apayaye/gestione/backend
     plan: free
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
-        sync: false            # da incollare a mano (stringa di connessione di Neon)
+        sync: false
       - key: SECRET_KEY
-        generateValue: true    # generata automaticamente da Render
+        generateValue: true
       - key: FRONTEND_ORIGIN
         value: https://lagiostradellavita.github.io
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
