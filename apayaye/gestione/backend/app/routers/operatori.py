@@ -29,6 +29,32 @@ def elenco(u: dict = Depends(SOLO_UFFICIO), db=Depends(get_session)):
     return {"operatori": [dict(r) for r in righe]}
 
 
+@router.get("/timbrature")
+def timbrature_tutte(mese: Optional[str] = None, operatore_id: Optional[int] = None,
+                     u: dict = Depends(SOLO_UFFICIO), db=Depends(get_session)):
+    """Vista d'insieme per l'amministrazione: le timbrature di tutti gli operatori
+    (o di uno), di un mese (AAAA-MM), con le ore gia' calcolate."""
+    cond = ["t.uscita is not null"]
+    par: dict = {}
+    if mese:
+        cond.append("to_char(t.entrata, 'YYYY-MM') = :mese")
+        par["mese"] = mese
+    if operatore_id:
+        cond.append("t.operatore_id = :oid")
+        par["oid"] = operatore_id
+    rows = db.execute(text(
+        "select t.id, t.operatore_id, o.cognome, o.nome, t.entrata, t.uscita, "
+        "t.incarico_id, t.scuola_id, i.descrizione as incarico, i.tariffa, "
+        "s.nome as scuola, "
+        "round(extract(epoch from (t.uscita - t.entrata))/3600.0, 2) as ore "
+        "from timbrature t join operatori o on o.id = t.operatore_id "
+        "left join catalogo_incarichi i on i.id = t.incarico_id "
+        "left join scuole s on s.id = t.scuola_id "
+        "where " + " and ".join(cond) + " order by o.cognome, o.nome, t.entrata"
+    ), par).mappings().all()
+    return {"timbrature": [dict(x) for x in rows]}
+
+
 class OperatoreIn(BaseModel):
     cognome: str
     nome: str

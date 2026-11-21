@@ -634,9 +634,9 @@ function intestazioneProgetto(){
     'CLP 2024-PE4-00024 · CUP J54C25000220004</div>'+
     '<div class="muted">La Giostra della Vita Società Cooperativa Sociale</div>';
 }
-function generaAllegatoG(mese){
-  var righe=timbMese(mese); var op=timbCtx.operatore||{};
-  if(!righe.length){ tbMsg("Nessuna timbratura chiusa in "+mese+".","err"); return; }
+function generaAllegatoG(mese, op, righe){
+  op=op||(timbCtx&&timbCtx.operatore)||{}; righe=righe||timbMese(mese);
+  if(!righe.length){ (window.opTimbMsg||tbMsg)("Nessuna timbratura chiusa in "+mese+".","err"); return; }
   righe.sort(function(a,b){ return String(a.entrata).localeCompare(String(b.entrata)); });
   var tot=0, body="";
   righe.forEach(function(t){ tot+=Number(t.ore)||0;
@@ -651,9 +651,9 @@ function generaAllegatoG(mese){
     '<div class="firma"><div>Data ____________________</div><div>Firma dell’operatore ________________________</div></div>';
   stampaFinestra("Allegato G "+mese, h);
 }
-function generaRicevuta(mese){
-  var righe=timbMese(mese); var op=timbCtx.operatore||{};
-  if(!righe.length){ tbMsg("Nessuna timbratura chiusa in "+mese+".","err"); return; }
+function generaRicevuta(mese, op, righe){
+  op=op||(timbCtx&&timbCtx.operatore)||{}; righe=righe||timbMese(mese);
+  if(!righe.length){ (window.opTimbMsg||tbMsg)("Nessuna timbratura chiusa in "+mese+".","err"); return; }
   var perInc={}, senzaTariffa=0, totOre=0;
   righe.forEach(function(t){ var ore=Number(t.ore)||0; totOre+=ore;
     if(t.tariffa==null){ senzaTariffa+=ore; return; }
@@ -689,9 +689,42 @@ function generaRicevuta(mese){
 var opCache=[];
 function opMsg(t,cls){ var e=$("op-msg"); if(e) e.innerHTML='<div class="msg '+(cls||"inf")+'">'+esc(t)+'</div>'; }
 async function vistaOperatori(m){
-  m.innerHTML='<div class="card"><h1>Operatori</h1><p class="muted">Anagrafica degli operatori: i dati servono alla ricevuta (compenso). Collega poi un operatore a un accesso da <b>Utenti e accessi</b>, così può entrare e timbrare.</p><div id="op-msg"></div></div><div id="op-body" class="muted">Carico…</div>';
+  m.innerHTML='<div class="card"><h1>Operatori</h1><p class="muted">Anagrafica degli operatori: i dati servono alla ricevuta (compenso). Collega poi un operatore a un accesso da <b>Utenti e accessi</b>, così può entrare e timbrare.</p><div id="op-msg"></div></div><div id="op-body" class="muted">Carico…</div>'+
+    '<div class="card" style="margin-top:14px"><h2>Timbrature del mese</h2><div id="op-timb-msg"></div>'+
+    '<div class="row" style="align-items:flex-end"><div><label>Mese</label><input id="op-tmese" type="month" value="'+meseCorr()+'"></div>'+
+    '<div><label>Operatore</label><select id="op-tfiltro"><option value="">— tutti —</option></select></div>'+
+    '<div style="flex:0"><label>&nbsp;</label><button class="btn g" id="op-tcarica">Mostra</button></div></div>'+
+    '<div id="op-timb" class="muted" style="margin-top:12px">Scegli un mese e premi Mostra.</div></div>';
   try{ var r=await api("/operatori"); opCache=r.operatori||[]; }catch(e){ $("op-body").innerHTML='<div class="msg err">'+esc(e.message)+'</div>'; return; }
   disegnaOperatori();
+  $("op-tfiltro").innerHTML='<option value="">— tutti —</option>'+opCache.map(function(o){ return '<option value="'+o.id+'">'+esc(o.cognome+" "+o.nome)+'</option>'; }).join("");
+  $("op-tcarica").addEventListener("click", caricaTimbratureAdmin);
+}
+window.opTimbMsg=function(t,cls){ var e=$("op-timb-msg"); if(e) e.innerHTML='<div class="msg '+(cls||"inf")+'">'+esc(t)+'</div>'; };
+async function caricaTimbratureAdmin(){
+  var mese=$("op-tmese").value, fop=$("op-tfiltro").value;
+  var L=$("op-timb"); L.innerHTML='<p class="muted">Carico…</p>';
+  try{
+    var r=await api("/operatori/timbrature?mese="+encodeURIComponent(mese)+(fop?"&operatore_id="+fop:""));
+    var rows=r.timbrature||[];
+    if(!rows.length){ L.innerHTML='<p class="muted">Nessuna timbratura chiusa in questo mese.</p>'; return; }
+    // raggruppa per operatore
+    var grp={}; rows.forEach(function(t){ (grp[t.operatore_id]=grp[t.operatore_id]||[]).push(t); });
+    var h="";
+    Object.keys(grp).forEach(function(oid){
+      var rr=grp[oid], tot=rr.reduce(function(a,t){return a+(Number(t.ore)||0);},0), nome=rr[0].cognome+" "+rr[0].nome;
+      h+='<div class="card" style="background:#f8fbfc;margin-bottom:10px"><div class="row" style="justify-content:space-between;align-items:center">'+
+        '<b>'+esc(nome)+'</b> <span class="mini">'+rr.length+' timbrature · '+tot.toFixed(2).replace(".",",")+' ore</span></div>'+
+        '<div class="scroll" style="margin-top:6px"><table><thead><tr><th>Giorno</th><th>Entrata</th><th>Uscita</th><th>Ore</th><th>Incarico</th><th>Scuola</th></tr></thead><tbody>'+
+        rr.map(function(t){ return '<tr><td>'+esc(soloData(t.entrata))+'</td><td>'+esc(soloOra(t.entrata))+'</td><td>'+esc(soloOra(t.uscita))+'</td><td>'+(t.ore!=null?t.ore:"")+'</td><td>'+esc(t.incarico||"")+'</td><td>'+esc(t.scuola||"")+'</td></tr>'; }).join("")+
+        '</tbody></table></div>'+
+        '<div style="margin-top:8px"><button class="btn g sm" data-g="'+oid+'">Allegato G</button> <button class="btn g sm" data-r="'+oid+'">Ricevuta</button></div></div>';
+    });
+    L.innerHTML=h;
+    function opDi(oid){ for(var i=0;i<opCache.length;i++){ if(String(opCache[i].id)===String(oid)) return opCache[i]; } return {}; }
+    L.querySelectorAll("[data-g]").forEach(function(b){ b.addEventListener("click", function(){ generaAllegatoG(mese, opDi(b.getAttribute("data-g")), grp[b.getAttribute("data-g")]); }); });
+    L.querySelectorAll("[data-r]").forEach(function(b){ b.addEventListener("click", function(){ generaRicevuta(mese, opDi(b.getAttribute("data-r")), grp[b.getAttribute("data-r")]); }); });
+  }catch(e){ L.innerHTML='<div class="msg err">'+esc(e.message)+'</div>'; }
 }
 function rigaOp(x){
   x=x||{};
