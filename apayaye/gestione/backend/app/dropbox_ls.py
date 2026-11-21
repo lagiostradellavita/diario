@@ -100,6 +100,32 @@ def carica(cartella: str, nome_file: str, raw: bytes) -> dict:
     return {"path": d.get("path_display") or d.get("path_lower") or dest, "nome": d.get("name") or nome_file}
 
 
+def scarica(path: str) -> bytes:
+    """Scarica il contenuto di un file (serve a montare i fascicoli)."""
+    if not disponibile():
+        raise RuntimeError("Dropbox non configurato")
+    tok = _access_token()
+    headers = {"Authorization": "Bearer " + tok, "Dropbox-API-Arg": json.dumps({"path": path})}
+    if settings.dropbox_path_root:
+        headers["Dropbox-API-Path-Root"] = json.dumps({".tag": "root", "root": settings.dropbox_path_root})
+    req = urllib.request.Request("https://content.dropboxapi.com/2/files/download", headers=headers)
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return r.read()
+
+
+def copia(sorgente: str, destinazione: str) -> dict:
+    """Copia un file dentro Dropbox (mode add + autorename: non sovrascrive).
+    Torna il percorso effettivo della copia."""
+    if not disponibile():
+        raise RuntimeError("Dropbox non configurato")
+    tok = _access_token()
+    d = _post("https://api.dropboxapi.com/2/files/copy_v2",
+              {"from_path": sorgente, "to_path": destinazione, "autorename": True}, tok)
+    meta = d.get("metadata", {})
+    return {"path": meta.get("path_display") or meta.get("path_lower") or destinazione,
+            "nome": meta.get("name")}
+
+
 def elenca(path: str, recursivo: bool = False) -> list:
     """Elenca i figli di una cartella. Torna [{nome, cartella, path}].
     Con recursivo=True scende anche nelle sottocartelle (utile per le buste

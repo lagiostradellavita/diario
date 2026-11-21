@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     # ott-nov 2026). Finche' e' vuota, la schermata "Buste paga" dice che non ce
     # ne sono ancora. Si imposta su Render quando la cartella esiste.
     buste_paga_path: str = ""
+    # Cartelle per i fascicoli ReGiS (percorsi Dropbox). Default: dentro la
+    # Rendicontazione del progetto. Si possono cambiare su Render se la struttura
+    # e' diversa, senza toccare il codice.
+    fascicoli_fonte_path: str = ""   # dove stanno bonifici e F24 (vuoto = default sotto)
+    fascicoli_dest_path: str = ""    # dove scrivere i fascicoli (vuoto = default sotto)
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @field_validator("database_url")
