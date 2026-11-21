@@ -167,7 +167,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "3.2";
+var APP_VERSION = "3.3";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -862,7 +862,7 @@ async function preparaFascicoli(){
       '<td style="white-space:nowrap"><button class="btn g sm" data-pre="'+v.operatore_id+'">Anteprima</button></td></tr>';
   }).join("");
   var azioni = conf
-    ? '<button class="btn p" id="fa-scrivi">Scrivi i fascicoli su Dropbox</button> <span class="mini">li scrive in: '+esc(d.dropbox_dest||"")+'</span>'
+    ? '<button class="btn p" id="fa-scrivi">Scrivi i fascicoli su Dropbox</button> <span class="mini">in due cartelle: <b>Fascicoli per ReGiS</b> e <b>2026</b> (divisa per mesi)</span>'
     : '<div class="msg inf">Dropbox non è collegato: posso già farti vedere il prospetto e l’<b>Anteprima</b> (Ricevuta + Allegato G). Per scrivere i fascicoli completi su Dropbox, collega Dropbox su Render (vedi COLLEGARE-DROPBOX.md).</div>';
   L.innerHTML='<div class="card" style="background:#f8fbfc"><div class="row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">Prospetto delle voci — '+esc(nomeMese)+'</h2>'+
     '<button class="btn g sm" id="fa-csv">Scarica prospetto (CSV)</button></div>'+
@@ -885,7 +885,7 @@ async function preparaFascicoli(){
   });
 }
 async function scriviFascicoli(mese, quanti){
-  if(!window.confirm("Scrivo "+quanti+" fascicoli nella cartella ReGiS su Dropbox?\nPer ogni voce: Ricevuta e Allegato G (generati), piu’ bonifico e F24 se ci sono.\nNon sovrascrive niente (al massimo crea una copia).")) return;
+  if(!window.confirm("Scrivo "+quanti+" fascicoli su Dropbox, in DUE cartelle (Fascicoli per ReGiS e 2026 divisa per mesi)?\nPer ogni voce: Ricevuta e Allegato G (generati), piu’ bonifico e F24 se ci sono.\nNon sovrascrive niente (al massimo crea una copia).")) return;
   var btn=$("fa-scrivi"); if(btn){ btn.disabled=true; btn.textContent="Scrivo…"; }
   var E=$("fa-esito"); E.innerHTML='<p class="muted">Scrivo i fascicoli… può richiedere un minuto.</p>';
   try{

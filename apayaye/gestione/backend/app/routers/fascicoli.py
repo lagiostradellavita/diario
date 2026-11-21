@@ -27,6 +27,16 @@ def _dest_path() -> str:
         settings.apayaye_root + "/08 - Rendicontazione/09 - Fascicoli per ReGis/00 - Giustificativi per ReGiS 2026")
 
 
+def _dest_mese_base() -> str:
+    return settings.fascicoli_dest_mese_base or (settings.apayaye_root + "/08 - Rendicontazione/2026")
+
+
+def _cartella_mese(mm: int, anno: int) -> str:
+    """Sottocartella per mese, nello stile della cartella 2026: 'MM - Mese AAAA'."""
+    nome = FR.MESI_LUNGO[mm].capitalize() if 1 <= mm <= 12 else str(mm)
+    return "%s/%02d - %s %d" % (_dest_mese_base(), mm, nome, anno)
+
+
 def _intest() -> dict:
     return {"titolo": settings.titolo, "clp": settings.clp, "cup": settings.cup,
             "soggetto": settings.soggetto, "committente_piva": settings.committente_piva,
@@ -123,7 +133,8 @@ def voci(mese: str = Query(...), u: dict = Depends(SOLO_UFFICIO), db=Depends(get
             "f24": bool(f24), "f24_nome": f24["nome"] if f24 else None,
         })
     return {"mese": mese, "configurato": conf, "errore": errore,
-            "dropbox_fonte": _fonte_path(), "dropbox_dest": _dest_path(), "voci": out}
+            "dropbox_fonte": _fonte_path(), "dropbox_dest": _dest_path(),
+            "dropbox_dest_mese": _dest_mese_base(), "voci": out}
 
 
 @router.get("/anteprima")
@@ -159,35 +170,39 @@ def scrivi(mese: str = Query(...), u: dict = Depends(SOLO_UFFICIO), db=Depends(g
         fonti = _fonti()
     except Exception as e:
         raise HTTPException(status_code=400, detail="Non riesco a leggere i bonifici su Dropbox: %s" % str(e)[:200])
-    dest = _dest_path()
+    mm, anno = vv[0]["mese"], vv[0]["anno"]
+    # Due destinazioni: l'elenco numerato dei Fascicoli ReGiS E la cartella 2026
+    # divisa per mesi (richiesta di Gianluca, 'sia dentro 2026 divisa per mesi,
+    # sia dentro fascicoli per Regis'). La carica crea da sola le cartelle mancanti.
+    dests = [_dest_path(), _cartella_mese(mm, anno)]
     esito = []
     for i, v in enumerate(vv):
         n = i + 1
         riga = {"n": n, "operatore": (v["cognome"] + " " + v["nome"]).strip(), "scritti": [], "mancanti": [], "errore": None}
         try:
-            # 2 - Ricevuta e Allegato G (generato)
             pdf = _pdf_ricevuta_allegato(v)
-            nome2 = FR.nome_regis(n, v, 2, "Ricevuta e Allegato G", v["lordo"])
-            r = dropbox_ls.carica(dest, nome2, pdf)
-            riga["scritti"].append(r.get("nome") or nome2)
-            # 1 - Bonifico (copiato)
             bon = FR.abbina(v, fonti, "bonifico")
-            if bon:
-                nome1 = FR.nome_regis(n, v, 1, "Bonifico", bon.get("importo") or v["netto"])
-                c = dropbox_ls.copia(bon["path"], dest.rstrip("/") + "/" + nome1)
-                riga["scritti"].append(c.get("nome") or nome1)
-            else:
+            f24 = FR.abbina(v, fonti, "f24") if (v["ritenuta"] and v["ritenuta"] > 0) else None
+            if not bon:
                 riga["mancanti"].append("bonifico")
-            # 3 - F24 (copiato) - solo se c'e' una ritenuta
-            if v["ritenuta"] and v["ritenuta"] > 0:
-                f24 = FR.abbina(v, fonti, "f24")
+            if v["ritenuta"] and v["ritenuta"] > 0 and not f24:
+                riga["mancanti"].append("F24")
+            for dest in dests:
+                nome2 = FR.nome_regis(n, v, 2, "Ricevuta e Allegato G", v["lordo"])
+                dropbox_ls.carica(dest, nome2, pdf)
+                if bon:
+                    nome1 = FR.nome_regis(n, v, 1, "Bonifico", bon.get("importo") or v["netto"])
+                    dropbox_ls.copia(bon["path"], dest.rstrip("/") + "/" + nome1)
                 if f24:
                     nome3 = FR.nome_regis(n, v, 3, "F24", f24.get("importo") or v["ritenuta"])
-                    c = dropbox_ls.copia(f24["path"], dest.rstrip("/") + "/" + nome3)
-                    riga["scritti"].append(c.get("nome") or nome3)
-                else:
-                    riga["mancanti"].append("F24")
+                    dropbox_ls.copia(f24["path"], dest.rstrip("/") + "/" + nome3)
+            # Riepilogo dei pezzi scritti (uguali nelle due cartelle).
+            riga["scritti"].append("Ricevuta e Allegato G")
+            if bon:
+                riga["scritti"].append("Bonifico")
+            if f24:
+                riga["scritti"].append("F24")
         except Exception as e:
             riga["errore"] = "%s: %s" % (type(e).__name__, str(e)[:200])
         esito.append(riga)
-    return {"mese": mese, "dest": dest, "esito": esito}
+    return {"mese": mese, "dest": dests, "esito": esito}

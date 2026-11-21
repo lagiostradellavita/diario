@@ -39,7 +39,8 @@ class Settings(BaseSettings):
     # Rendicontazione del progetto. Si possono cambiare su Render se la struttura
     # e' diversa, senza toccare il codice.
     fascicoli_fonte_path: str = ""   # dove stanno bonifici e F24 (vuoto = default sotto)
-    fascicoli_dest_path: str = ""    # dove scrivere i fascicoli (vuoto = default sotto)
+    fascicoli_dest_path: str = ""    # fascicoli ReGiS, elenco numerato (vuoto = default sotto)
+    fascicoli_dest_mese_base: str = ""  # base della cartella "2026" divisa per mesi (vuoto = default)
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @field_validator("database_url")
