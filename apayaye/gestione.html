@@ -167,7 +167,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "2.3";
+var APP_VERSION = "2.4";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -276,10 +276,143 @@ function render(){
   if(vistaCorr==="export") return vistaExport(m);
   if(vistaCorr==="rendic") return vistaRendic(m);
   if(vistaCorr==="utenti") return vistaUtenti(m);
-  if(vistaCorr==="attivita" || vistaCorr==="documenti")
-    m.innerHTML = '<div class="card"><h1>'+esc(VOCI.filter(function(v){return v.id===vistaCorr})[0].et)+
-      '</h1><p class="muted">In preparazione: questa parte arriva con il prossimo aggiornamento. '+
-      'Il backend è già pronto a riceverla.</p></div>';
+  if(vistaCorr==="attivita") return vistaAttivita(m);
+  if(vistaCorr==="documenti") return vistaDocumenti(m);
+}
+
+/* ---------- PRESENZE / DOCUMENTI (operatore) ---------- */
+var TIPIDOC={foglio_firma:"Foglio firma", allegato_g:"Allegato G", altro:"Altro"};
+function soloOperatore(m, titolo){
+  if(ruolo==="operatore") return false;
+  m.innerHTML='<div class="card"><h1>'+esc(titolo)+'</h1><p class="muted">Questa sezione è per gli <b>operatori</b>: registrano le presenze dei minori e caricano i documenti (foglio firma, Allegato G) dal telefono. La vista d\'insieme per l\'amministrazione arriva col prossimo passo.</p></div>';
+  return true;
+}
+function prMsg(t,cls){ var e=$("pr-msg"); if(e) e.innerHTML='<div class="msg '+(cls||"inf")+'">'+esc(t)+'</div>'; }
+function docMsg(t,cls){ var e=$("doc-msg"); if(e) e.innerHTML='<div class="msg '+(cls||"inf")+'">'+esc(t)+'</div>'; }
+
+var presCtx=null, presSess=null;
+async function vistaAttivita(m){
+  if(soloOperatore(m,"Presenze dei minori")) return;
+  m.innerHTML='<div class="card"><h1>Presenze dei minori</h1><div id="pr-msg"></div><div id="pr-body" class="muted">Carico…</div></div>';
+  try{ presCtx=await api("/presenze/contesto"); }
+  catch(e){ $("pr-body").innerHTML='<div class="msg inf">'+esc(e.message)+'</div>'; return; }
+  disegnaPresenze();
+}
+function disegnaPresenze(){
+  var c=presCtx, oggi=new Date().toISOString().slice(0,10);
+  var attOpts=c.attivita.map(function(a){return '<option value="'+a.id+'">'+esc(a.nome)+'</option>';}).join("");
+  var h='<div class="card" style="margin:0 0 14px"><h2>Nuova registrazione</h2>'+
+    '<div class="row">'+
+      '<div><label>Attività</label><select id="pr-att"><option value="">— scegli —</option>'+attOpts+'<option value="__new">+ nuova attività…</option></select></div>'+
+      '<div><label>Data</label><input id="pr-data" type="date" value="'+oggi+'"></div>'+
+      '<div><label>Ore (tue)</label><input id="pr-ore" type="number" step="0.5" min="0" value="2"></div>'+
+    '</div>'+
+    '<div id="pr-newatt" class="hidden" style="margin-top:8px"><label>Nome nuova attività</label><input id="pr-attnome" placeholder="es. Doposcuola"></div>'+
+    '<div style="margin-top:12px"><button class="btn p" id="pr-crea">Crea e scegli i presenti</button></div></div>'+
+    '<div id="pr-presenti"></div>';
+  if(c.sessioni.length){
+    h+='<div class="card" style="margin-top:14px"><h2>Le tue ultime registrazioni</h2><div class="scroll"><table><thead><tr><th>Data</th><th>Attività</th><th>Presenti</th><th></th></tr></thead><tbody>'+
+      c.sessioni.map(function(sx){ return '<tr><td>'+esc(sx.data)+'</td><td>'+esc(sx.attivita)+'</td><td>'+sx.presenti+'</td><td><button class="btn g sm" data-s="'+sx.id+'">Apri</button></td></tr>'; }).join("")+
+      '</tbody></table></div></div>';
+  }
+  $("pr-body").innerHTML=h;
+  $("pr-att").addEventListener("change", function(){ $("pr-newatt").classList.toggle("hidden", this.value!=="__new"); });
+  $("pr-crea").addEventListener("click", creaSessione);
+  Array.prototype.forEach.call($("pr-body").querySelectorAll("[data-s]"), function(b){ b.addEventListener("click", function(){ apriSessione(+b.getAttribute("data-s")); }); });
+}
+async function creaSessione(){
+  var att=$("pr-att").value, body={data:$("pr-data").value, ore:parseFloat($("pr-ore").value||"0")};
+  if(att==="__new"){ body.attivita_nome=($("pr-attnome").value||"").trim(); if(!body.attivita_nome){ prMsg("Scrivi il nome dell'attività.","err"); return; } }
+  else if(att){ body.attivita_id=+att; }
+  else { prMsg("Scegli un'attività.","err"); return; }
+  if(!body.data){ prMsg("Scegli la data.","err"); return; }
+  try{ var r=await api("/presenze/sessione",{method:"POST",body:body}); await apriSessione(r.id); }
+  catch(e){ prMsg(e.message,"err"); }
+}
+async function apriSessione(sid){
+  try{
+    var d=await api("/presenze/sessione/"+sid);
+    presSess={id:sid, pres:{}};
+    (d.presenze||[]).forEach(function(p){ presSess.pres[p.minore_id]=p.ore; });
+    disegnaPresenti(d.sessione);
+  }catch(e){ prMsg(e.message,"err"); }
+}
+function disegnaPresenti(s){
+  var c=presCtx, box=$("pr-presenti"), oreDef=(s&&s.ore)?s.ore:2;
+  var righe=c.minori.map(function(mn){
+    var on=presSess.pres[mn.id]!==undefined, ore=on?presSess.pres[mn.id]:oreDef;
+    return '<tr data-m="'+mn.id+'"><td><label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" class="pr-on" style="width:auto"'+(on?' checked':'')+'> '+esc(mn.cognome)+' '+esc(mn.nome)+'</label></td>'+
+      '<td style="width:96px"><input type="number" step="0.5" min="0" class="pr-h" value="'+ore+'" style="width:84px"></td></tr>';
+  }).join("");
+  box.innerHTML='<div class="card"><h2>Chi era presente'+(s?' · '+esc(s.attivita)+' · '+esc(s.data):'')+'</h2><div id="pr-msg2"></div>'+
+    '<p class="mini">Spunta i minori presenti e, se serve, correggi le ore.</p>'+
+    '<div class="scroll"><table><thead><tr><th>Minore</th><th>Ore</th></tr></thead><tbody>'+righe+'</tbody></table></div>'+
+    '<div style="margin-top:12px"><button class="btn v" id="pr-salva">Salva presenze</button> <button class="btn g" id="pr-tutti">Spunta tutti</button></div></div>';
+  if(box.scrollIntoView) box.scrollIntoView({behavior:"smooth", block:"nearest"});
+  $("pr-salva").addEventListener("click", salvaPresenze);
+  $("pr-tutti").addEventListener("click", function(){ Array.prototype.forEach.call(box.querySelectorAll(".pr-on"), function(ck){ck.checked=true;}); });
+}
+async function salvaPresenze(){
+  var box=$("pr-presenti"), pres=[];
+  Array.prototype.forEach.call(box.querySelectorAll("tr[data-m]"), function(tr){
+    if(tr.querySelector(".pr-on").checked){ pres.push({minore_id:+tr.getAttribute("data-m"), ore:parseFloat(tr.querySelector(".pr-h").value||"0")}); }
+  });
+  try{
+    await api("/presenze/sessione/"+presSess.id+"/presenze",{method:"POST",body:{presenze:pres}});
+    prMsg("Salvato: "+pres.length+" presenti.","ok");
+    vistaAttivita($("main"));
+  }catch(e){ var e2=$("pr-msg2"); if(e2) e2.innerHTML='<div class="msg err">'+esc(e.message)+'</div>'; }
+}
+
+async function vistaDocumenti(m){
+  if(soloOperatore(m,"I miei documenti")) return;
+  m.innerHTML='<div class="card"><h1>I miei documenti</h1>'+
+    '<p class="muted">Carica la foto del <b>foglio firma</b> o l\'<b>Allegato G</b>. Restano nell\'archivio: li vedi tu e l\'amministrazione.</p><div id="doc-msg"></div>'+
+    '<div class="row">'+
+      '<div><label>Tipo</label><select id="doc-tipo"><option value="foglio_firma">Foglio firma</option><option value="allegato_g">Allegato G</option><option value="altro">Altro</option></select></div>'+
+      '<div><label>Periodo (facolt.)</label><input id="doc-periodo" placeholder="es. nov 2026"></div>'+
+    '</div>'+
+    '<div style="margin-top:8px"><label>File (foto o PDF)</label><input id="doc-file" type="file" accept="image/*,application/pdf"></div>'+
+    '<div style="margin-top:12px"><button class="btn p" id="doc-carica">Carica</button></div></div>'+
+    '<div class="card"><h2>Caricati</h2><div id="doc-lista" class="muted">Carico…</div></div>';
+  $("doc-carica").addEventListener("click", caricaDoc);
+  caricaListaDoc();
+}
+async function caricaListaDoc(){
+  try{
+    var r=await api("/presenze/documenti"), L=$("doc-lista");
+    if(!r.documenti.length){ L.innerHTML='<p class="muted">Ancora nessun documento.</p>'; return; }
+    L.innerHTML='<div class="scroll"><table><thead><tr><th>Documento</th><th>Tipo</th><th>Periodo</th><th>Quando</th><th></th></tr></thead><tbody>'+
+      r.documenti.map(function(d){ return '<tr><td>'+esc(d.titolo||d.nome_file)+'</td><td>'+esc(TIPIDOC[d.tipo]||d.tipo)+'</td><td>'+esc(d.periodo||"")+'</td><td>'+esc((d.caricato_il||"").slice(0,10))+'</td><td><button class="btn g sm" data-apri="'+d.id+'">Apri</button> <button class="btn d sm" data-del="'+d.id+'">✕</button></td></tr>'; }).join("")+
+      '</tbody></table></div>';
+    Array.prototype.forEach.call(L.querySelectorAll("[data-apri]"), function(b){ b.addEventListener("click", function(){ apriDoc(+b.getAttribute("data-apri")); }); });
+    Array.prototype.forEach.call(L.querySelectorAll("[data-del]"), function(b){ b.addEventListener("click", function(){ elimDoc(+b.getAttribute("data-del")); }); });
+  }catch(e){ $("doc-lista").innerHTML='<div class="msg inf">'+esc(e.message)+'</div>'; }
+}
+function caricaDoc(){
+  var f=$("doc-file").files[0];
+  if(!f){ docMsg("Scegli un file.","err"); return; }
+  if(f.size>10*1024*1024){ docMsg("File troppo grande (max 10 MB).","err"); return; }
+  var rd=new FileReader();
+  rd.onload=async function(){
+    try{
+      await api("/presenze/documento",{method:"POST",body:{tipo:$("doc-tipo").value, titolo:f.name, periodo:$("doc-periodo").value||null, nome_file:f.name, mime:f.type||null, contenuto_base64:String(rd.result)}});
+      docMsg("Caricato.","ok"); $("doc-file").value=""; caricaListaDoc();
+    }catch(e){ docMsg(e.message,"err"); }
+  };
+  rd.readAsDataURL(f);
+}
+async function apriDoc(id){
+  try{
+    var res=await fetch(API+"/presenze/documento/"+id,{headers:{Authorization:"Bearer "+token}});
+    if(!res.ok) throw new Error("Errore "+res.status);
+    var blob=await res.blob(), url=URL.createObjectURL(blob);
+    window.open(url,"_blank"); setTimeout(function(){URL.revokeObjectURL(url);},60000);
+  }catch(e){ docMsg(e.message,"err"); }
+}
+async function elimDoc(id){
+  if(!window.confirm("Eliminare questo documento?")) return;
+  try{ await api("/presenze/documento/"+id,{method:"DELETE"}); caricaListaDoc(); }catch(e){ docMsg(e.message,"err"); }
 }
 
 /* ---------- MINORI ---------- */
