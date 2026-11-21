@@ -167,7 +167,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "2.7";
+var APP_VERSION = "2.8";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -247,9 +247,11 @@ var VOCI = [
   {id:"importa", et:"Importa Excel", ruoli:["ufficio","admin"]},
   {id:"export", et:"Export ReGiS", ruoli:["ufficio","admin"]},
   {id:"rendic", et:"Rendicontazione", ruoli:["ufficio","admin","operatore"]},
+  {id:"timbratura", et:"Timbratura", ruoli:["operatore"]},
   {id:"attivita", et:"Attività e ore", ruoli:["ufficio","admin","operatore"]},
   {id:"documenti", et:"Documenti", ruoli:["ufficio","admin","operatore"]},
   {id:"indicatori", et:"Indicatori", ruoli:["ufficio","admin"]},
+  {id:"operatori", et:"Operatori", ruoli:["ufficio","admin"]},
   {id:"catalogo", et:"Catalogo", ruoli:["ufficio","admin"]},
   {id:"utenti", et:"Utenti e accessi", ruoli:["admin"]}
 ];
@@ -278,6 +280,8 @@ function render(){
   if(vistaCorr==="export") return vistaExport(m);
   if(vistaCorr==="rendic") return vistaRendic(m);
   if(vistaCorr==="indicatori") return vistaIndicatori(m);
+  if(vistaCorr==="operatori") return vistaOperatori(m);
+  if(vistaCorr==="timbratura") return vistaTimbratura(m);
   if(vistaCorr==="catalogo") return vistaCatalogo(m);
   if(vistaCorr==="utenti") return vistaUtenti(m);
   if(vistaCorr==="attivita") return vistaAttivita(m);
@@ -540,6 +544,189 @@ async function apriDoc(id){
 async function elimDoc(id){
   if(!window.confirm("Eliminare questo documento?")) return;
   try{ await api("/presenze/documento/"+id,{method:"DELETE"}); caricaListaDoc(); }catch(e){ docMsg(e.message,"err"); }
+}
+
+/* ---------- TIMBRATURA (operatore) ---------- */
+var timbCtx=null;
+function tbMsg(t,cls){ var e=$("tb-msg"); if(e) e.innerHTML='<div class="msg '+(cls||"inf")+'">'+esc(t)+'</div>'; }
+function dataOra(iso){ if(!iso) return "—"; var d=new Date(iso); if(isNaN(d.getTime())) return esc(String(iso)); return d.toLocaleDateString("it-IT")+" "+d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}); }
+function soloOra(iso){ if(!iso) return "—"; var d=new Date(iso); return isNaN(d.getTime())?"":d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}); }
+function soloData(iso){ if(!iso) return ""; var d=new Date(iso); return isNaN(d.getTime())?"":d.toLocaleDateString("it-IT"); }
+function eur(n){ return (Number(n)||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2})+" €"; }
+function meseCorr(){ return new Date().toISOString().slice(0,7); }
+
+async function vistaTimbratura(m){
+  if(soloOperatore(m,"Timbratura")) return;
+  m.innerHTML='<div class="card"><h1>Timbratura</h1><div id="tb-msg"></div><div id="tb-body" class="muted">Carico…</div></div>';
+  try{ timbCtx=await api("/presenze/contesto"); }
+  catch(e){ $("tb-body").innerHTML='<div class="msg inf">'+esc(e.message)+'</div>'; return; }
+  disegnaTimbratura();
+}
+function disegnaTimbratura(){
+  var c=timbCtx, ap=c.timbratura_aperta, h="";
+  if(ap){
+    h+='<div class="card" style="margin:0 0 14px;background:#eef7ef;border-color:#bfe0c4"><h2>Turno aperto</h2>'+
+      '<p>Entrata: <b>'+dataOra(ap.entrata)+'</b>'+(ap.incarico?' · '+esc(ap.incarico):'')+(ap.scuola?' · '+esc(ap.scuola):'')+'</p>'+
+      '<div style="margin-top:10px"><button class="btn d" id="tb-esci">Timbra uscita</button></div></div>';
+  } else {
+    var inc=(c.incarichi||[]).map(function(i){ return '<option value="'+i.id+'">'+esc((i.codice?i.codice+" · ":"")+i.descrizione)+(i.tariffa!=null?" ("+i.tariffa+" €/h)":"")+'</option>'; }).join("");
+    var sc=(c.scuole||[]).map(function(s){ return '<option value="'+s.id+'">'+esc(s.nome)+(s.comune?" — "+esc(s.comune):"")+'</option>'; }).join("");
+    h+='<div class="card" style="margin:0 0 14px"><h2>Timbra l’entrata</h2>'+
+      '<div class="row">'+
+        '<div><label>Incarico</label><select id="tb-inc"><option value="">— scegli —</option>'+inc+'</select></div>'+
+        '<div><label>Scuola</label><select id="tb-sc"><option value="">— scegli —</option>'+sc+'</select></div>'+
+      '</div>'+
+      '<div style="margin-top:8px"><label>Nota (facolt.)</label><input id="tb-note" placeholder="es. supplenza, aula 3…"></div>'+
+      '<div style="margin-top:12px"><button class="btn v" id="tb-entra">Timbra entrata</button></div>'+
+      '<p class="mini">Scegli l’incarico e la scuola: servono a costruire l’Allegato G e la ricevuta.</p></div>';
+  }
+  var mese=meseCorr();
+  h+='<div class="card"><h2>Le tue timbrature</h2>'+
+    '<div class="row" style="align-items:flex-end"><div><label>Mese</label><input id="tb-mese" type="month" value="'+mese+'"></div>'+
+    '<div style="flex:0"><label>&nbsp;</label><button class="btn g" id="tb-g">Allegato G del mese</button></div>'+
+    '<div style="flex:0"><label>&nbsp;</label><button class="btn g" id="tb-ric">Ricevuta del mese</button></div></div>'+
+    '<div id="tb-lista" class="muted" style="margin-top:12px">Carico…</div></div>';
+  $("tb-body").innerHTML=h;
+  if(ap){ $("tb-esci").addEventListener("click", timbraEsci); }
+  else { $("tb-entra").addEventListener("click", timbraEntra); }
+  $("tb-g").addEventListener("click", function(){ generaAllegatoG($("tb-mese").value); });
+  $("tb-ric").addEventListener("click", function(){ generaRicevuta($("tb-mese").value); });
+  caricaTimbrature();
+}
+async function timbraEntra(){
+  var body={ incarico_id:$("tb-inc").value?+$("tb-inc").value:null, scuola_id:$("tb-sc").value?+$("tb-sc").value:null, note:$("tb-note").value||null };
+  try{ await api("/presenze/timbra/entra",{method:"POST",body:body}); tbMsg("Entrata registrata.","ok"); vistaTimbratura($("main")); }
+  catch(e){ tbMsg(e.message,"err"); }
+}
+async function timbraEsci(){
+  try{ await api("/presenze/timbra/esci",{method:"POST",body:{}}); tbMsg("Uscita registrata.","ok"); vistaTimbratura($("main")); }
+  catch(e){ tbMsg(e.message,"err"); }
+}
+var timbCache=[];
+async function caricaTimbrature(){
+  try{
+    var r=await api("/presenze/timbrature"); timbCache=r.timbrature||[];
+    var L=$("tb-lista");
+    if(!timbCache.length){ L.innerHTML='<p class="muted">Ancora nessuna timbratura.</p>'; return; }
+    L.innerHTML='<div class="scroll"><table><thead><tr><th>Giorno</th><th>Entrata</th><th>Uscita</th><th>Ore</th><th>Incarico</th><th>Scuola</th></tr></thead><tbody>'+
+      timbCache.map(function(t){ return '<tr><td>'+esc(soloData(t.entrata))+'</td><td>'+esc(soloOra(t.entrata))+'</td><td>'+(t.uscita?esc(soloOra(t.uscita)):'<span class="pill no">aperto</span>')+'</td><td>'+(t.ore!=null?t.ore:"—")+'</td><td>'+esc(t.incarico||"")+'</td><td>'+esc(t.scuola||"")+'</td></tr>'; }).join("")+
+      '</tbody></table></div>';
+  }catch(e){ $("tb-lista").innerHTML='<div class="msg inf">'+esc(e.message)+'</div>'; }
+}
+function timbMese(mese){ return timbCache.filter(function(t){ return t.uscita && String(t.entrata).slice(0,7)===mese; }); }
+function stampaFinestra(titolo, html){
+  var w=window.open("","_blank");
+  if(!w){ tbMsg("Il browser ha bloccato la finestra di stampa: consenti i popup.","err"); return; }
+  w.document.write('<!doctype html><html lang="it"><head><meta charset="utf-8"><title>'+esc(titolo)+'</title>'+
+    '<style>body{font-family:Arial,Helvetica,sans-serif;color:#15202b;margin:28px;font-size:13px}'+
+    'h1{font-size:18px;margin:0 0 4px}h2{font-size:14px;margin:18px 0 6px}'+
+    '.muted{color:#5b6b78}table{border-collapse:collapse;width:100%;margin-top:8px}'+
+    'th,td{border:1px solid #c7d2da;padding:5px 7px;text-align:left}th{background:#eef3f6}'+
+    '.tot{font-weight:700;background:#f4f8fa}.firma{margin-top:40px;display:flex;justify-content:space-between}'+
+    '.box{border:1px solid #c7d2da;padding:10px;border-radius:6px;margin-top:10px}'+
+    '@media print{button{display:none}}</style></head><body>'+
+    '<button onclick="window.print()" style="float:right;padding:6px 12px">Stampa / Salva PDF</button>'+
+    html+'</body></html>');
+  w.document.close();
+}
+function intestazioneProgetto(){
+  return '<div class="muted">Progetto Apayaye — Avviso 1/2022 “Personalizzazione” — '+
+    'CLP 2024-PE4-00024 · CUP J54C25000220004</div>'+
+    '<div class="muted">La Giostra della Vita Società Cooperativa Sociale</div>';
+}
+function generaAllegatoG(mese){
+  var righe=timbMese(mese); var op=timbCtx.operatore||{};
+  if(!righe.length){ tbMsg("Nessuna timbratura chiusa in "+mese+".","err"); return; }
+  righe.sort(function(a,b){ return String(a.entrata).localeCompare(String(b.entrata)); });
+  var tot=0, body="";
+  righe.forEach(function(t){ tot+=Number(t.ore)||0;
+    body+='<tr><td>'+esc(soloData(t.entrata))+'</td><td>'+esc(soloOra(t.entrata))+'</td><td>'+esc(soloOra(t.uscita))+'</td><td>'+(t.ore!=null?t.ore:"")+'</td><td>'+esc(t.incarico||"")+'</td><td>'+esc(t.scuola||"")+'</td></tr>';
+  });
+  var nomeMese=new Date(mese+"-01").toLocaleDateString("it-IT",{month:"long",year:"numeric"});
+  var h='<h1>Allegato G — Timesheet mensile</h1>'+intestazioneProgetto()+
+    '<div class="box"><b>Operatore:</b> '+esc((op.cognome||"")+" "+(op.nome||""))+(op.codice_fiscale?' · C.F. '+esc(op.codice_fiscale):'')+'<br><b>Mese:</b> '+esc(nomeMese)+'</div>'+
+    '<table><thead><tr><th>Giorno</th><th>Entrata</th><th>Uscita</th><th>Ore</th><th>Attività / incarico</th><th>Sede</th></tr></thead><tbody>'+body+
+    '<tr class="tot"><td colspan="3">Totale ore</td><td>'+tot.toFixed(2).replace(".",",")+'</td><td colspan="2"></td></tr></tbody></table>'+
+    '<p class="muted" style="margin-top:10px">Le ore sono calcolate dalle timbrature di entrata e uscita registrate nell’app.</p>'+
+    '<div class="firma"><div>Data ____________________</div><div>Firma dell’operatore ________________________</div></div>';
+  stampaFinestra("Allegato G "+mese, h);
+}
+function generaRicevuta(mese){
+  var righe=timbMese(mese); var op=timbCtx.operatore||{};
+  if(!righe.length){ tbMsg("Nessuna timbratura chiusa in "+mese+".","err"); return; }
+  var perInc={}, senzaTariffa=0, totOre=0;
+  righe.forEach(function(t){ var ore=Number(t.ore)||0; totOre+=ore;
+    if(t.tariffa==null){ senzaTariffa+=ore; return; }
+    var k=(t.incarico||"")+"|"+t.tariffa; if(!perInc[k]) perInc[k]={incarico:t.incarico||"", tariffa:Number(t.tariffa), ore:0}; perInc[k].ore+=ore;
+  });
+  var lordo=0, body="";
+  Object.keys(perInc).forEach(function(k){ var r=perInc[k], imp=r.ore*r.tariffa; lordo+=imp;
+    body+='<tr><td>'+esc(r.incarico)+'</td><td>'+r.ore.toFixed(2).replace(".",",")+'</td><td>'+eur(r.tariffa)+'</td><td>'+eur(imp)+'</td></tr>';
+  });
+  var rit=op.ritenuta!=null?Number(op.ritenuta):0.20;
+  var ritImp=lordo*rit, netto=lordo-ritImp, bollo=lordo>77.47?2:0;
+  var nomeMese=new Date(mese+"-01").toLocaleDateString("it-IT",{month:"long",year:"numeric"});
+  var indir=[op.indirizzo, (op.cap||"")+" "+(op.comune||""), op.provincia].filter(function(x){return x&&String(x).trim();}).join(" — ");
+  var h='<h1>Ricevuta per prestazione occasionale</h1>'+intestazioneProgetto()+
+    '<div class="box"><b>'+esc((op.cognome||"")+" "+(op.nome||""))+'</b>'+(op.codice_fiscale?'<br>C.F. '+esc(op.codice_fiscale):'')+
+    (indir?'<br>'+esc(indir):'')+(op.iban?'<br>IBAN '+esc(op.iban):'')+'</div>'+
+    '<p>Per l’attività svolta nel mese di <b>'+esc(nomeMese)+'</b> nell’ambito del progetto Apayaye:</p>'+
+    '<table><thead><tr><th>Incarico</th><th>Ore</th><th>Tariffa</th><th>Importo</th></tr></thead><tbody>'+body+
+    '<tr class="tot"><td>Compenso lordo</td><td>'+totOre.toFixed(2).replace(".",",")+'</td><td></td><td>'+eur(lordo)+'</td></tr></tbody></table>'+
+    '<table style="margin-top:12px"><tbody>'+
+    '<tr><td>Compenso lordo</td><td style="text-align:right">'+eur(lordo)+'</td></tr>'+
+    '<tr><td>Ritenuta d’acconto ('+Math.round(rit*100)+'%)</td><td style="text-align:right">− '+eur(ritImp)+'</td></tr>'+
+    '<tr class="tot"><td>Netto a pagare</td><td style="text-align:right">'+eur(netto)+'</td></tr>'+
+    (bollo?'<tr><td>Marca da bollo (compenso &gt; 77,47 €)</td><td style="text-align:right">'+eur(bollo)+'</td></tr>':'')+
+    '</tbody></table>'+
+    (senzaTariffa?'<p class="muted" style="margin-top:8px">⚠ '+senzaTariffa.toFixed(2).replace(".",",")+' ore senza tariffa (incarico senza €/h nel catalogo): non sono nel totale.</p>':'')+
+    '<p class="muted" style="margin-top:8px">Bozza da verificare con l’ufficio prima dell’invio.</p>'+
+    '<div class="firma"><div>Data ____________________</div><div>Firma ________________________</div></div>';
+  stampaFinestra("Ricevuta "+mese, h);
+}
+
+/* ---------- OPERATORI (anagrafica) ---------- */
+var opCache=[];
+function opMsg(t,cls){ var e=$("op-msg"); if(e) e.innerHTML='<div class="msg '+(cls||"inf")+'">'+esc(t)+'</div>'; }
+async function vistaOperatori(m){
+  m.innerHTML='<div class="card"><h1>Operatori</h1><p class="muted">Anagrafica degli operatori: i dati servono alla ricevuta (compenso). Collega poi un operatore a un accesso da <b>Utenti e accessi</b>, così può entrare e timbrare.</p><div id="op-msg"></div></div><div id="op-body" class="muted">Carico…</div>';
+  try{ var r=await api("/operatori"); opCache=r.operatori||[]; }catch(e){ $("op-body").innerHTML='<div class="msg err">'+esc(e.message)+'</div>'; return; }
+  disegnaOperatori();
+}
+function rigaOp(x){
+  x=x||{};
+  return '<tr data-id="'+(x.id||"")+'">'+
+    '<td><input class="o-cognome" value="'+esc(x.cognome||"")+'" style="width:110px"></td>'+
+    '<td><input class="o-nome" value="'+esc(x.nome||"")+'" style="width:110px"></td>'+
+    '<td><input class="o-cf" value="'+esc(x.codice_fiscale||"")+'" style="width:150px"></td>'+
+    '<td><select class="o-tipo">'+optSel(["autonomo","dipendente"], x.tipo, "—")+'</select></td>'+
+    '<td><input class="o-iban" value="'+esc(x.iban||"")+'" style="width:190px"></td>'+
+    '<td><input class="o-rit" type="number" step="1" min="0" max="100" value="'+(x.ritenuta!=null?Math.round(x.ritenuta*100):"")+'" style="width:56px" title="% ritenuta"></td>'+
+    '<td style="white-space:nowrap"><button class="btn v sm o-salva">Salva</button> '+(x.id?'<span class="mini">'+(x.utente_email?esc(x.utente_email):'<i>no accesso</i>')+'</span>':'<button class="btn p sm o-add">Aggiungi</button>')+'</td></tr>';
+}
+function corpoOp(tr){
+  var rit=tr.querySelector(".o-rit").value;
+  return { cognome:tr.querySelector(".o-cognome").value.trim(), nome:tr.querySelector(".o-nome").value.trim(),
+    codice_fiscale:tr.querySelector(".o-cf").value.trim()||null, tipo:tr.querySelector(".o-tipo").value||null,
+    iban:tr.querySelector(".o-iban").value.trim()||null, ritenuta:rit!==""?(parseFloat(rit)/100):null };
+}
+function disegnaOperatori(){
+  var head='<tr><th>Cognome</th><th>Nome</th><th>Codice fiscale</th><th>Tipo</th><th>IBAN</th><th>Rit.%</th><th></th></tr>';
+  var righe=opCache.map(rigaOp).join("");
+  $("op-body").innerHTML='<div class="card"><div class="scroll"><table><thead>'+head+'</thead><tbody>'+righe+'<tr>'+rigaOp({}).replace(/^<tr[^>]*>/,"").replace(/<\/tr>$/,"")+'</tr></tbody></table></div>'+
+    '<p class="mini">Modifica una riga e premi <b>Salva</b>. L’ultima riga aggiunge un operatore. La colonna a destra mostra l’accesso collegato.</p></div>';
+  var box=$("op-body");
+  box.querySelectorAll(".o-salva").forEach(function(b){ b.addEventListener("click", function(){ salvaOp(b.closest("tr")); }); });
+  box.querySelectorAll(".o-add").forEach(function(b){ b.addEventListener("click", function(){ salvaOp(b.closest("tr"), true); }); });
+}
+async function salvaOp(tr, nuovo){
+  var body=corpoOp(tr);
+  if(!body.cognome || !body.nome){ opMsg("Cognome e nome sono obbligatori.","err"); return; }
+  try{
+    if(nuovo || !tr.getAttribute("data-id")){ await api("/operatori",{method:"POST",body:body}); }
+    else { await api("/operatori/"+tr.getAttribute("data-id"),{method:"PUT",body:body}); }
+    opMsg("Salvato.","ok"); var r=await api("/operatori"); opCache=r.operatori||[]; disegnaOperatori();
+  }catch(e){ opMsg(e.message,"err"); }
 }
 
 /* ---------- MINORI ---------- */
@@ -1045,18 +1232,28 @@ async function vistaUtenti(m){
 async function caricaUtenti(){
   try{
     var righe = await api("/auth/utenti");
-    var h = '<div class="scroll"><table><thead><tr><th>Email</th><th>Ruolo</th><th>Stato</th><th></th></tr></thead><tbody>';
+    var ops=[]; try{ ops=(await api("/operatori")).operatori||[]; }catch(e){}
+    function opOpts(sel){ return '<option value="">— nessuno —</option>'+ops.map(function(o){ return '<option value="'+o.id+'"'+(String(o.id)===String(sel||"")?' selected':'')+'>'+esc(o.cognome+" "+o.nome)+'</option>'; }).join(""); }
+    var h = '<div class="scroll"><table><thead><tr><th>Email</th><th>Ruolo</th><th>Operatore collegato</th><th>Stato</th><th></th></tr></thead><tbody>';
     righe.forEach(function(r){
       h += '<tr><td>'+esc(r.email)+'</td><td>'+esc(r.ruolo)+'</td>'+
+        '<td><select class="u-op" data-id="'+r.id+'" data-ge="'+(r.genitore_id||"")+'">'+opOpts(r.operatore_id)+'</select></td>'+
         '<td>'+(r.attivo?'<span class="pill ok">attivo</span>':'<span class="pill no">sospeso</span>')+'</td>'+
         '<td><button class="btn g sm" data-id="'+r.id+'" data-a="'+(r.attivo?0:1)+'">'+(r.attivo?"Sospendi":"Riattiva")+'</button></td></tr>';
     });
-    h += '</tbody></table></div>';
+    h += '</tbody></table></div><p class="mini">Collega un accesso <b>operatore</b> al suo nominativo: così potrà timbrare e generare la ricevuta.</p>';
     $("u-body").innerHTML = h;
     Array.prototype.forEach.call($("u-body").querySelectorAll("button[data-id]"), function(b){
       b.addEventListener("click", async function(){
         try{ await api("/auth/utenti/"+b.getAttribute("data-id")+"/attivo", {method:"POST", body:{attivo: b.getAttribute("data-a")==="1"}}); caricaUtenti(); }
         catch(e){ $("u-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+      });
+    });
+    Array.prototype.forEach.call($("u-body").querySelectorAll("select.u-op"), function(s){
+      s.addEventListener("change", async function(){
+        try{ await api("/auth/utenti/"+s.getAttribute("data-id")+"/collega", {method:"POST", body:{operatore_id: s.value?+s.value:null, genitore_id: s.getAttribute("data-ge")?+s.getAttribute("data-ge"):null}});
+          $("u-msg").innerHTML='<div class="msg ok">Collegamento aggiornato.</div>'; }
+        catch(e){ $("u-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; caricaUtenti(); }
       });
     });
   }catch(e){ $("u-body").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }

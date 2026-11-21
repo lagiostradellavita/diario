@@ -87,6 +87,26 @@ def utenti(u: dict = Depends(richiedi("admin")), db=Depends(get_session)):
     return [dict(r) for r in righe]
 
 
+class CollegaIn(BaseModel):
+    operatore_id: Optional[int] = None
+    genitore_id: Optional[int] = None
+
+
+@router.post("/utenti/{uid}/collega")
+def collega(uid: int, dati: CollegaIn, u: dict = Depends(richiedi("admin")), db=Depends(get_session)):
+    """Collega un accesso a un operatore (per timbratura e ricevuta) o a un
+    genitore (per vedere le presenze dei figli). None stacca il collegamento."""
+    if dati.operatore_id and not db.execute(
+            text("select 1 from operatori where id=:i"), {"i": dati.operatore_id}).first():
+        raise HTTPException(status_code=400, detail="Operatore non trovato")
+    r = db.execute(text(
+        "update utenti set operatore_id=:op, genitore_id=:ge where id=:i"
+    ), {"op": dati.operatore_id, "ge": dati.genitore_id, "i": uid}).rowcount
+    if not r:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    return {"ok": True}
+
+
 class StatoIn(BaseModel):
     attivo: bool
 

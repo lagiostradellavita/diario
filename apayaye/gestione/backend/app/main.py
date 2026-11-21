@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from .config import settings
-from .routers import auth, minori, export, rendicontazione, presenze, catalogo, indicatori
+from .routers import auth, minori, export, rendicontazione, presenze, catalogo, indicatori, operatori
 
 app = FastAPI(title="Apayaye Gestione API", version="0.1.0")
 
@@ -47,6 +47,7 @@ app.include_router(rendicontazione.router)
 app.include_router(presenze.router)
 app.include_router(catalogo.router)
 app.include_router(indicatori.router)
+app.include_router(operatori.router)
 
 
 @app.get("/health", tags=["system"])

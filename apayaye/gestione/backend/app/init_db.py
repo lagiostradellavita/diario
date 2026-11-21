@@ -19,6 +19,14 @@ MIGRAZIONI = [
     "alter table minori add column if not exists doc_consenso_immagini boolean not null default false",
     "alter table minori add column if not exists doc_note text",
     "alter table minori add column if not exists scuola_id integer",
+    "alter table operatori add column if not exists indirizzo text",
+    "alter table operatori add column if not exists cap text",
+    "alter table operatori add column if not exists comune text",
+    "alter table operatori add column if not exists provincia text",
+    "alter table operatori add column if not exists iban text",
+    "alter table operatori add column if not exists tipo text",
+    "alter table operatori add column if not exists ore_settimanali numeric(5,2)",
+    "alter table operatori add column if not exists ritenuta numeric(5,4)",
 ]
 
 

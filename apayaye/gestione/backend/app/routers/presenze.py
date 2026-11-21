@@ -46,7 +46,10 @@ def contesto(u: dict = Depends(utente_corrente), db=Depends(get_session)):
     """Tutto quello che serve alla schermata dell'operatore: chi sei, le attivita'
     disponibili, l'elenco dei minori da spuntare, le tue ultime sessioni."""
     oid = _op_id(u)
-    op = db.execute(text("select id, cognome, nome from operatori where id=:i"), {"i": oid}).mappings().first()
+    op = db.execute(text(
+        "select id, cognome, nome, codice_fiscale, indirizzo, cap, comune, provincia, "
+        "iban, tipo, ritenuta from operatori where id=:i"
+    ), {"i": oid}).mappings().first()
     attivita = db.execute(text("select id, nome from attivita where attiva order by nome")).mappings().all()
     minori = db.execute(text(
         "select id, cognome, nome from minori "
@@ -60,12 +63,97 @@ def contesto(u: dict = Depends(utente_corrente), db=Depends(get_session)):
         "join attivita a on a.id = s.attivita_id "
         "where oo.operatore_id = :i order by s.data desc, s.id desc limit 30"
     ), {"i": oid}).mappings().all()
+    incarichi = db.execute(text(
+        "select id, codice, descrizione, ruolo, tariffa from catalogo_incarichi "
+        "where attivo order by descrizione"
+    )).mappings().all()
+    scuole = db.execute(text(
+        "select id, nome, comune from scuole where attiva order by nome"
+    )).mappings().all()
+    aperta = db.execute(text(
+        "select t.id, t.incarico_id, t.scuola_id, t.entrata, "
+        "i.descrizione as incarico, s.nome as scuola "
+        "from timbrature t "
+        "left join catalogo_incarichi i on i.id = t.incarico_id "
+        "left join scuole s on s.id = t.scuola_id "
+        "where t.operatore_id = :i and t.uscita is null order by t.entrata desc limit 1"
+    ), {"i": oid}).mappings().first()
     return {
         "operatore": dict(op) if op else None,
         "attivita": [dict(x) for x in attivita],
         "minori": [dict(x) for x in minori],
         "sessioni": [dict(x) for x in sess],
+        "incarichi": [dict(x) for x in incarichi],
+        "scuole": [dict(x) for x in scuole],
+        "timbratura_aperta": dict(aperta) if aperta else None,
     }
+
+
+# ---------- timbratura entrata/uscita ----------
+class EntraIn(BaseModel):
+    incarico_id: Optional[int] = None
+    scuola_id: Optional[int] = None
+    note: Optional[str] = None
+
+
+@router.post("/timbra/entra")
+def timbra_entra(dati: EntraIn, u: dict = Depends(utente_corrente), db=Depends(get_session)):
+    """Apre un turno. L'indice unico parziale impedisce due turni aperti insieme."""
+    oid = _op_id(u)
+    gia = db.execute(text(
+        "select id from timbrature where operatore_id=:o and uscita is null"
+    ), {"o": oid}).first()
+    if gia:
+        raise HTTPException(status_code=409, detail="Hai gia' un turno aperto: timbra prima l'uscita.")
+    if dati.incarico_id and not db.execute(
+            text("select 1 from catalogo_incarichi where id=:i"), {"i": dati.incarico_id}).first():
+        raise HTTPException(status_code=400, detail="Incarico non trovato")
+    if dati.scuola_id and not db.execute(
+            text("select 1 from scuole where id=:i"), {"i": dati.scuola_id}).first():
+        raise HTTPException(status_code=400, detail="Scuola non trovata")
+    tid = db.execute(text(
+        "insert into timbrature (operatore_id, incarico_id, scuola_id, entrata, note) "
+        "values (:o, :i, :s, now(), :n) returning id"
+    ), {"o": oid, "i": dati.incarico_id, "s": dati.scuola_id, "n": dati.note}).scalar()
+    return {"id": tid}
+
+
+class EsciIn(BaseModel):
+    note: Optional[str] = None
+
+
+@router.post("/timbra/esci")
+def timbra_esci(dati: EsciIn, u: dict = Depends(utente_corrente), db=Depends(get_session)):
+    """Chiude il turno aperto DI CHI CHIEDE (operatore dal token), non quello che
+    arriva dal telefono."""
+    oid = _op_id(u)
+    r = db.execute(text(
+        "select id from timbrature where operatore_id=:o and uscita is null "
+        "order by entrata desc limit 1"
+    ), {"o": oid}).first()
+    if not r:
+        raise HTTPException(status_code=409, detail="Non hai un turno aperto.")
+    db.execute(text(
+        "update timbrature set uscita = now(), note = coalesce(:n, note) where id = :t"
+    ), {"n": dati.note, "t": r[0]})
+    return {"ok": True}
+
+
+@router.get("/timbrature")
+def mie_timbrature(u: dict = Depends(utente_corrente), db=Depends(get_session)):
+    """Le timbrature dell'operatore, piu' recenti prima, con le ore gia' calcolate
+    (vuote finche' il turno e' aperto)."""
+    oid = _op_id(u)
+    rows = db.execute(text(
+        "select t.id, t.entrata, t.uscita, t.incarico_id, t.scuola_id, t.note, "
+        "i.descrizione as incarico, i.tariffa, s.nome as scuola, "
+        "round(extract(epoch from (t.uscita - t.entrata))/3600.0, 2) as ore "
+        "from timbrature t "
+        "left join catalogo_incarichi i on i.id = t.incarico_id "
+        "left join scuole s on s.id = t.scuola_id "
+        "where t.operatore_id = :o order by t.entrata desc limit 200"
+    ), {"o": oid}).mappings().all()
+    return {"timbrature": [dict(x) for x in rows]}
 
 
 class SessioneIn(BaseModel):

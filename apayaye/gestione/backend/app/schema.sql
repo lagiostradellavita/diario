@@ -162,3 +162,19 @@ create table if not exists minore_attivita (
   attivita_id integer not null references attivita(id) on delete cascade,
   primary key (minore_id, attivita_id)
 );
+
+-- Timbrature degli operatori (entrata/uscita), agganciate a incarico e scuola.
+-- Da qui si costruiscono Allegato G (timesheet) e Ricevuta.
+create table if not exists timbrature (
+  id            serial primary key,
+  operatore_id  integer not null references operatori(id) on delete cascade,
+  incarico_id   integer references catalogo_incarichi(id),
+  scuola_id     integer references scuole(id),
+  entrata       timestamptz not null,
+  uscita        timestamptz,
+  note          text,
+  creato_il     timestamptz not null default now()
+);
+create index if not exists ix_timbr_op on timbrature(operatore_id);
+-- Un solo turno aperto per volta per operatore.
+create unique index if not exists ux_timbr_aperta on timbrature(operatore_id) where uscita is null;
