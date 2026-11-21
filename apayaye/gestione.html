@@ -167,7 +167,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "3.0";
+var APP_VERSION = "3.1";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -254,6 +254,7 @@ var VOCI = [
   {id:"documenti", et:"Documenti", ruoli:["ufficio","admin","operatore"]},
   {id:"indicatori", et:"Indicatori", ruoli:["ufficio","admin"]},
   {id:"operatori", et:"Operatori", ruoli:["ufficio","admin"]},
+  {id:"fascicoli", et:"Fascicoli ReGiS", ruoli:["ufficio","admin"]},
   {id:"catalogo", et:"Catalogo", ruoli:["ufficio","admin"]},
   {id:"utenti", et:"Utenti e accessi", ruoli:["admin"]}
 ];
@@ -286,6 +287,7 @@ function render(){
   if(vistaCorr==="rendic") return vistaRendic(m);
   if(vistaCorr==="indicatori") return vistaIndicatori(m);
   if(vistaCorr==="operatori") return vistaOperatori(m);
+  if(vistaCorr==="fascicoli") return vistaFascicoli(m);
   if(vistaCorr==="timbratura") return vistaTimbratura(m);
   if(vistaCorr==="figli") return vistaFigli(m);
   if(vistaCorr==="buste") return vistaBuste(m);
@@ -817,6 +819,75 @@ async function salvaOp(tr, nuovo){
     opMsg("Salvato.","ok"); var r=await api("/operatori"); opCache=r.operatori||[]; disegnaOperatori();
   }catch(e){ opMsg(e.message,"err"); }
 }
+
+/* ---------- FASCICOLI ReGiS ---------- */
+function scaricaCSV(nome, matrice){
+  var sep=";", BOM="﻿";
+  var testo=matrice.map(function(r){ return r.map(function(c){ var s=String(c==null?"":c); if(/[";\n]/.test(s)) s='"'+s.replace(/"/g,'""')+'"'; return s; }).join(sep); }).join("\r\n");
+  var blob=new Blob([BOM+testo],{type:"text/csv;charset=utf-8"}), url=URL.createObjectURL(blob);
+  var a=document.createElement("a"); a.href=url; a.download=nome; document.body.appendChild(a); a.click();
+  setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },1000);
+}
+var fasc={ops:[], timb:[]};
+function fascMsg(t,cls){ var e=$("fa-msg"); if(e) e.innerHTML='<div class="msg '+(cls||"inf")+'">'+esc(t)+'</div>'; }
+window.opTimbMsg=window.opTimbMsg||function(t,cls){ var e=$("op-timb-msg")||$("fa-msg"); if(e) e.innerHTML='<div class="msg '+(cls||"inf")+'">'+esc(t)+'</div>'; };
+async function vistaFascicoli(m){
+  m.innerHTML='<div class="card"><h1>Fascicoli ReGiS</h1>'+
+    '<p class="muted">Il prospetto numerato delle voci di spesa del personale (lavoratori autonomi) e i documenti che l’app sa produrre: <b>Ricevuta</b> e <b>Allegato G</b>. Bonifico e F24 vengono dalla contabilità/banca.</p>'+
+    '<div id="fa-msg"></div>'+
+    '<div class="row" style="align-items:flex-end"><div><label>Mese</label><input id="fa-mese" type="month" value="'+meseCorr()+'"></div>'+
+    '<div style="flex:0"><label>&nbsp;</label><button class="btn p" id="fa-prepara">Prepara</button></div></div>'+
+    '<div id="fa-body" class="muted" style="margin-top:12px">Scegli il mese e premi Prepara.</div></div>';
+  $("fa-prepara").addEventListener("click", preparaFascicoli);
+}
+async function preparaFascicoli(){
+  var mese=$("fa-mese").value, L=$("fa-body"); L.innerHTML='<p class="muted">Preparo…</p>';
+  try{
+    fasc.ops=(await api("/operatori")).operatori||[];
+    fasc.timb=(await api("/operatori/timbrature?mese="+encodeURIComponent(mese))).timbrature||[];
+  }catch(e){ L.innerHTML='<div class="msg err">'+esc(e.message)+'</div>'; return; }
+  // raggruppa le timbrature per operatore
+  var perOp={}; fasc.timb.forEach(function(t){ (perOp[t.operatore_id]=perOp[t.operatore_id]||[]).push(t); });
+  function opDi(id){ for(var i=0;i<fasc.ops.length;i++){ if(String(fasc.ops[i].id)===String(id)) return fasc.ops[i]; } return {}; }
+  var nomeMese=new Date(mese+"-01").toLocaleDateString("it-IT",{month:"short",year:"numeric"});
+  var voci=[], ordina=Object.keys(perOp).map(function(id){ return {id:id, op:opDi(id)}; })
+    .filter(function(x){ return x.op && x.op.tipo==="autonomo"; })
+    .sort(function(a,b){ return String((a.op.cognome||"")+a.op.nome).localeCompare((b.op.cognome||"")+b.op.nome); });
+  ordina.forEach(function(x, i){
+    var rr=perOp[x.id], op=x.op, lordo=0, ore=0;
+    rr.forEach(function(t){ var o=Number(t.ore)||0; ore+=o; if(t.tariffa!=null) lordo+=o*Number(t.tariffa); });
+    var rit=op.ritenuta!=null?Number(op.ritenuta):0.20, ritImp=lordo*rit, netto=lordo-ritImp;
+    voci.push({n:i+1, id:x.id, op:op, righe:rr, cognome:op.cognome||"", nome:op.nome||"", ore:ore, lordo:lordo, rit:rit, ritImp:ritImp, netto:netto});
+  });
+  if(!voci.length){ L.innerHTML='<p class="muted">Nessun lavoratore autonomo con ore in questo mese. (Servono: operatore di tipo <b>autonomo</b>, con tariffa sull’incarico e timbrature chiuse nel mese.)</p>'; return; }
+  var tL=0,tR=0,tN=0;
+  var righe=voci.map(function(v){ tL+=v.lordo; tR+=v.ritImp; tN+=v.netto;
+    var nn=("0"+v.n).slice(-2);
+    return '<tr><td>'+nn+'</td><td>'+esc(v.cognome+" "+v.nome)+'</td><td>'+esc(v.op.codice_fiscale||"")+'</td><td>'+esc(nomeMese)+'</td><td>'+v.ore.toFixed(2).replace(".",",")+'</td>'+
+      '<td style="text-align:right">'+eur(v.lordo)+'</td><td style="text-align:right">'+eur(v.ritImp)+'</td><td style="text-align:right">'+eur(v.netto)+'</td>'+
+      '<td style="white-space:nowrap"><button class="btn g sm" data-g="'+v.id+'">Allegato G</button> <button class="btn g sm" data-r="'+v.id+'">Ricevuta</button></td></tr>';
+  }).join("");
+  L.innerHTML='<div class="card" style="background:#f8fbfc"><div class="row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">Prospetto delle voci — '+esc(nomeMese)+'</h2>'+
+    '<button class="btn g sm" id="fa-csv">Scarica prospetto (CSV)</button></div>'+
+    '<div class="scroll" style="margin-top:8px"><table><thead><tr><th>N</th><th>Operatore</th><th>C.F.</th><th>Mese</th><th>Ore</th><th>Lordo</th><th>Ritenuta (F24)</th><th>Netto (bonifico)</th><th></th></tr></thead><tbody>'+righe+
+    '<tr class="tot"><td colspan="5">Totali</td><td style="text-align:right"><b>'+eur(tL)+'</b></td><td style="text-align:right"><b>'+eur(tR)+'</b></td><td style="text-align:right"><b>'+eur(tN)+'</b></td><td></td></tr>'+
+    '</tbody></table></div>'+
+    '<p class="mini">Il <b>Lordo</b> è il compenso (ore × tariffa); la <b>Ritenuta</b> è l’F24 atteso; il <b>Netto</b> è il bonifico atteso. Bonifico e F24 veri vengono dalla banca.</p></div>'+
+    '<div class="card"><h3>Per montare il fascicolo COMPLETO su Dropbox servono due cose</h3><ul class="muted" style="margin:6px 0 0 18px">'+
+    '<li>attivare il <b>permesso di scrittura Dropbox</b> su Render (lo stesso che serve per vedere/aggiungere file);</li>'+
+    '<li>dirmi <b>dove stanno i bonifici e gli F24</b> su Dropbox e come sono nominati, così l’app li abbina a ogni voce.</li></ul>'+
+    '<p class="mini">Intanto, da ogni riga qui sopra puoi generare <b>Ricevuta</b> e <b>Allegato G</b>.</p></div>';
+  var box=$("fa-body");
+  box.querySelectorAll("[data-g]").forEach(function(b){ b.addEventListener("click", function(){ var vv=trovaVoce(voci,b.getAttribute("data-g")); generaAllegatoG(mese, vv.op, vv.righe); }); });
+  box.querySelectorAll("[data-r]").forEach(function(b){ b.addEventListener("click", function(){ var vv=trovaVoce(voci,b.getAttribute("data-r")); generaRicevuta(mese, vv.op, vv.righe); }); });
+  $("fa-csv").addEventListener("click", function(){
+    var mat=[["N","Operatore","Codice fiscale","Mese","Ore","Lordo","Ritenuta (F24)","Netto (bonifico)"]];
+    voci.forEach(function(v){ mat.push([("0"+v.n).slice(-2), v.cognome+" "+v.nome, v.op.codice_fiscale||"", nomeMese, v.ore.toFixed(2).replace(".",","), v.lordo.toFixed(2).replace(".",","), v.ritImp.toFixed(2).replace(".",","), v.netto.toFixed(2).replace(".",",")]); });
+    mat.push(["","","","","", tL.toFixed(2).replace(".",","), tR.toFixed(2).replace(".",","), tN.toFixed(2).replace(".",",")]);
+    scaricaCSV("Prospetto fascicoli ReGiS "+mese+".csv", mat);
+  });
+}
+function trovaVoce(voci, id){ for(var i=0;i<voci.length;i++){ if(String(voci[i].id)===String(id)) return voci[i]; } return voci[0]; }
 
 /* ---------- MINORI ---------- */
 var minoriCache = [];
