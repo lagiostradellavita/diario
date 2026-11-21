@@ -15,8 +15,8 @@ NOTA_CF = "Codice fiscale da verificare"
 
 INSERT_MINORE = (
     "insert into minori (cognome, nome, codice_fiscale, stato_nascita, comune_nascita, "
-    "provincia, genere, data_nascita, clp, scuola, ore_previste, stato, modulo_iscrizione, note) "
-    "values (:co, :no, :cf, :sn, :cn, :pr, :ge, :dn, :clp, :sc, :op, :st, :mi, :nt)"
+    "provincia, genere, data_nascita, clp, scuola, scuola_id, ore_previste, stato, modulo_iscrizione, note) "
+    "values (:co, :no, :cf, :sn, :cn, :pr, :ge, :dn, :clp, :sc, :scid, :op, :st, :mi, :nt)"
 )
 UPDATE_MINORE = (
     "update minori set cognome=:co, nome=:no, stato_nascita=:sn, comune_nascita=:cn, "
@@ -58,21 +58,53 @@ class MinoreIn(BaseModel):
     data_nascita: Optional[str] = None
     clp: Optional[str] = None
     scuola: Optional[str] = None
+    scuola_id: Optional[int] = None
+    attivita_ids: Optional[List[int]] = None
     ore_previste: Optional[float] = None
     stato: Optional[str] = None
     modulo_iscrizione: bool = False
     note: Optional[str] = None
 
 
+def _sync_attivita(db, mid, ids):
+    if ids is None:
+        return
+    db.execute(text("delete from minore_attivita where minore_id=:m"), {"m": mid})
+    for aid in ids:
+        db.execute(text(
+            "insert into minore_attivita (minore_id, attivita_id) values (:m, :a) on conflict do nothing"
+        ), {"m": mid, "a": aid})
+
+
+@router.get("/opzioni")
+def opzioni(u: dict = Depends(SOLO_UFFICIO), db=Depends(get_session)):
+    """Scuole e attivita' da proporre nel modulo del minore."""
+    scuole = db.execute(text(
+        "select id, nome, comune, grado from scuole where attiva order by grado, comune, nome"
+    )).mappings().all()
+    att = db.execute(text(
+        "select id, nome from attivita where attiva and coalesce(tipo,'')='minori' order by nome"
+    )).mappings().all()
+    return {"scuole": [dict(x) for x in scuole], "attivita": [dict(x) for x in att]}
+
+
 @router.get("")
 def elenco(u: dict = Depends(SOLO_UFFICIO), db=Depends(get_session)):
     righe = db.execute(text(
         "select id, cognome, nome, codice_fiscale, stato_nascita, comune_nascita, provincia, "
-        "genere, data_nascita, clp, scuola, ore_previste, stato, modulo_iscrizione, note, scheda_link, "
+        "genere, data_nascita, clp, scuola, scuola_id, ore_previste, stato, modulo_iscrizione, note, scheda_link, "
         "doc_modulo, doc_identita_genitore, doc_consenso_privacy, doc_consenso_immagini, doc_note "
         "from minori order by cognome, nome"
     )).mappings().all()
-    return [dict(r) for r in righe]
+    legami = {}
+    for r in db.execute(text("select minore_id, attivita_id from minore_attivita")).all():
+        legami.setdefault(r[0], []).append(r[1])
+    out = []
+    for r in righe:
+        d = dict(r)
+        d["attivita_ids"] = legami.get(r["id"], [])
+        out.append(d)
+    return out
 
 
 @router.post("")
@@ -90,8 +122,9 @@ def crea(dati: MinoreIn, u: dict = Depends(SOLO_UFFICIO), db=Depends(get_session
         {"co": dati.cognome.strip(), "no": dati.nome.strip(), "cf": c["cf"],
          "sn": dati.stato_nascita, "cn": dati.comune_nascita, "pr": dati.provincia,
          "ge": ge, "dn": c["data_nascita"], "clp": dati.clp,
-         "sc": dati.scuola, "op": dati.ore_previste, "st": st,
+         "sc": dati.scuola, "scid": dati.scuola_id, "op": dati.ore_previste, "st": st,
          "mi": dati.modulo_iscrizione, "nt": dati.note}).mappings().first()
+    _sync_attivita(db, row["id"], dati.attivita_ids)
     return {"id": row["id"], "ok": True}
 
 
@@ -108,15 +141,16 @@ def modifica(mid: int, dati: MinoreIn, u: dict = Depends(SOLO_UFFICIO), db=Depen
     ge = dati.genere if dati.genere in ("M", "F") else c["genere"]
     r = db.execute(text(
         "update minori set cognome=:co, nome=:no, codice_fiscale=:cf, stato_nascita=:sn, "
-        "comune_nascita=:cn, provincia=:pr, genere=:ge, data_nascita=:dn, clp=:clp, scuola=:sc, "
+        "comune_nascita=:cn, provincia=:pr, genere=:ge, data_nascita=:dn, clp=:clp, scuola=:sc, scuola_id=:scid, "
         "ore_previste=:op, stato=:st, modulo_iscrizione=:mi, note=:nt where id=:i"
     ), {"co": dati.cognome.strip(), "no": dati.nome.strip(), "cf": c["cf"],
         "sn": dati.stato_nascita, "cn": dati.comune_nascita, "pr": dati.provincia,
         "ge": ge, "dn": c["data_nascita"], "clp": dati.clp,
-        "sc": dati.scuola, "op": dati.ore_previste, "st": st,
+        "sc": dati.scuola, "scid": dati.scuola_id, "op": dati.ore_previste, "st": st,
         "mi": dati.modulo_iscrizione, "nt": dati.note, "i": mid}).rowcount
     if not r:
         raise HTTPException(status_code=404, detail="Minore non trovato")
+    _sync_attivita(db, mid, dati.attivita_ids)
     return {"ok": True}
 
 

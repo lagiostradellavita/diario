@@ -167,7 +167,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "2.6";
+var APP_VERSION = "2.7";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -249,6 +249,7 @@ var VOCI = [
   {id:"rendic", et:"Rendicontazione", ruoli:["ufficio","admin","operatore"]},
   {id:"attivita", et:"Attività e ore", ruoli:["ufficio","admin","operatore"]},
   {id:"documenti", et:"Documenti", ruoli:["ufficio","admin","operatore"]},
+  {id:"indicatori", et:"Indicatori", ruoli:["ufficio","admin"]},
   {id:"catalogo", et:"Catalogo", ruoli:["ufficio","admin"]},
   {id:"utenti", et:"Utenti e accessi", ruoli:["admin"]}
 ];
@@ -276,12 +277,31 @@ function render(){
   if(vistaCorr==="importa") return vistaImporta(m);
   if(vistaCorr==="export") return vistaExport(m);
   if(vistaCorr==="rendic") return vistaRendic(m);
+  if(vistaCorr==="indicatori") return vistaIndicatori(m);
   if(vistaCorr==="catalogo") return vistaCatalogo(m);
   if(vistaCorr==="utenti") return vistaUtenti(m);
   if(vistaCorr==="attivita") return vistaAttivita(m);
   if(vistaCorr==="documenti") return vistaDocumenti(m);
 }
 
+/* ---------- INDICATORI ReGiS ---------- */
+async function vistaIndicatori(m){
+  m.innerHTML='<div class="card"><h1>Indicatori ReGiS</h1><p class="muted">Conteggi dei minori beneficiari, ricavati dalla data di nascita (fascia) e dal genere. I minori rinunciatari non contano.</p><div id="ind-body" class="muted">Carico\u2026</div></div>';
+  var d; try{ d=await api("/indicatori"); }catch(e){ $("ind-body").innerHTML='<div class="msg inf">'+esc(e.message)+'</div>'; return; }
+  function tab(obj){ return '<div class="scroll"><table><thead><tr><th></th><th>Femmine</th><th>Maschi</th><th>Totale</th></tr></thead><tbody><tr><td>minori</td><td>'+obj.F+'</td><td>'+obj.M+'</td><td><b>'+obj.tot+'</b></td></tr></tbody></table></div>'; }
+  var h='<div class="row" style="gap:12px">'+
+    '<div class="card" style="flex:1;text-align:center;min-width:150px"><div class="mini">Totale beneficiari</div><div style="font-size:1.9rem;font-weight:800;color:var(--mare)">'+d.totale_beneficiari+'</div></div>'+
+    '<div class="card" style="flex:1;text-align:center;min-width:150px"><div class="mini">T0158 \u2014 minori supportati (cumulato)</div><div style="font-size:1.9rem;font-weight:800;color:var(--mare)">'+d.T0158+'</div></div></div>'+
+    '<div class="card"><h2>C10 \u2014 minori 11-17 che ricevono istruzione/formazione</h2>'+tab(d.C10)+'</div>'+
+    '<div class="card"><h2>C14 \u2014 minori 15-17 che ricevono sostegno</h2>'+tab(d.C14)+'</div>'+
+    '<div class="card"><h2>Per fascia d\'et\u00e0</h2><div class="scroll"><table><thead><tr><th>Fascia</th><th>Femmine</th><th>Maschi</th><th>Totale</th></tr></thead><tbody>';
+  [["11-14","11-14 anni"],["15-17","15-17 anni"],["fuori","Fuori 11-17"],["senza_data","Senza data di nascita"]].forEach(function(p){ var o=d.per_fascia[p[0]]; h+='<tr><td>'+p[1]+'</td><td>'+o.F+'</td><td>'+o.M+'</td><td><b>'+o.tot+'</b></td></tr>'; });
+  h+='</tbody></table></div>';
+  if(d.fuori_fascia||d.senza_data){ h+='<p class="mini" style="margin-top:8px">\u26a0 '+(d.fuori_fascia?d.fuori_fascia+' fuori dalla fascia 11-17. ':'')+(d.senza_data?d.senza_data+' senza data di nascita (controlla il codice fiscale).':'')+'</p>'; }
+  if(d.rinunciatari){ h+='<p class="mini">'+d.rinunciatari+' rinunciatari (esclusi dai conteggi).</p>'; }
+  h+='</div>';
+  $("ind-body").innerHTML=h;
+}
 /* ---------- CATALOGO (incarichi + scuole) ---------- */
 var catDati=null;
 var RUOLI=["Animatore","Tutor","Esperto","Formatore"];
@@ -525,6 +545,16 @@ async function elimDoc(id){
 /* ---------- MINORI ---------- */
 var minoriCache = [];
 var mFiltri = {q:"", stato:"", iscr:"", ver:"", doc:""};
+var minoriOpz = {scuole:[], attivita:[]};
+function fasciaDa(dn){
+  if(!dn) return "\u2014";
+  var d=new Date(String(dn).slice(0,10)); if(isNaN(d.getTime())) return "\u2014";
+  var o=new Date(), e=o.getFullYear()-d.getFullYear(), m=o.getMonth()-d.getMonth();
+  if(m<0 || (m===0 && o.getDate()<d.getDate())) e--;
+  if(e>=11 && e<=14) return "11-14";
+  if(e>=15 && e<=17) return "15-17";
+  return e+" anni";
+}
 function daVerificare(r){ return !!(r.note && String(r.note).trim()); }
 function notaBreve(n){ return String(n==null?"":n).replace(/^Codice fiscale da verificare:\s*/i,""); }
 function docCount(r){ return (r.doc_modulo?1:0)+(r.doc_identita_genitore?1:0)+(r.doc_consenso_privacy?1:0)+(r.doc_consenso_immagini?1:0); }
@@ -537,6 +567,7 @@ async function vistaMinori(m){
   $("m-nuovo").addEventListener("click", function(){ formMinore(null); });
   try{
     minoriCache = await api("/minori");
+    try{ minoriOpz = await api("/minori/opzioni"); }catch(e){ minoriOpz={scuole:[],attivita:[]}; }
     if(!minoriCache.length){ $("m-body").innerHTML = '<p class="muted">Ancora nessun minore. Usa «Importa Excel» per caricarli tutti, o «+ Nuovo minore».</p>'; return; }
     disegnaStrumentiMinori();
     disegnaTabellaMinori();
@@ -598,9 +629,9 @@ function minoriFiltrati(){
 function disegnaTabellaMinori(){
   var righe = minoriFiltrati();
   var h = '<div class="scroll"><table><thead><tr><th>Cognome</th><th>Nome</th><th>Codice fiscale</th>'+
-    '<th>Nascita</th><th>Scuola</th><th>Stato</th><th>Iscriz.</th><th>Da verificare</th><th>Scheda</th><th>Doc.</th><th></th></tr></thead><tbody>';
+    '<th>Nascita</th><th>Fascia</th><th>Scuola</th><th>Stato</th><th>Iscriz.</th><th>Da verificare</th><th>Scheda</th><th>Doc.</th><th></th></tr></thead><tbody>';
   if(!righe.length){
-    h += '<tr><td colspan="11" class="muted" style="padding:14px">Nessun minore con questi filtri.</td></tr>';
+    h += '<tr><td colspan="12" class="muted" style="padding:14px">Nessun minore con questi filtri.</td></tr>';
   }
   righe.forEach(function(r){
     var ver = daVerificare(r);
@@ -609,7 +640,7 @@ function disegnaTabellaMinori(){
     var docCell = (dc===4) ? '<span class="pill ok">4/4</span>'
       : '<span class="pill att" title="manca: '+esc(manca.join(", "))+'">'+dc+'/4</span>';
     h += '<tr'+(ver?' class="verifica"':'')+'><td>'+esc(r.cognome)+'</td><td>'+esc(r.nome)+'</td><td>'+esc(r.codice_fiscale)+'</td>'+
-      '<td>'+esc(r.data_nascita||"")+'</td><td>'+esc(r.scuola||"")+'</td><td>'+esc(r.stato||"")+'</td>'+
+      '<td>'+esc(r.data_nascita||"")+'</td><td>'+esc(fasciaDa(r.data_nascita))+'</td><td>'+esc(r.scuola||"")+'</td><td>'+esc(r.stato||"")+'</td>'+
       '<td>'+(r.modulo_iscrizione?'<span class="pill ok">sì</span>':'<span class="pill no">no</span>')+'</td>'+
       '<td class="nota">'+(ver?'<span class="pill att">⚠ da verificare</span><div class="mini">'+esc(notaBreve(r.note))+'</div>':'')+'</td>'+
       '<td>'+(r.scheda_link?'<a href="'+esc(r.scheda_link)+'" target="_blank" rel="noopener" title="Apri la scheda di iscrizione">📄</a>':'')+'</td>'+
@@ -625,6 +656,19 @@ function disegnaTabellaMinori(){
 }
 function campo(l,id,v,t){ return '<div><label>'+l+'</label><input id="'+id+'" type="'+(t||"text")+'" value="'+esc(v||"")+'"></div>'; }
 function spunta(id,lab,on){ return '<label class="spunta"><input type="checkbox" id="'+id+'"'+(on?" checked":"")+'> '+lab+'</label>'; }
+function scuolaSelect(r){
+  var cur=r.scuola_id, opts='<option value="">\u2014 scegli \u2014</option>';
+  (minoriOpz.scuole||[]).forEach(function(sx){ opts+='<option value="'+sx.id+'"'+(String(cur)===String(sx.id)?' selected':'')+'>'+esc(sx.nome)+(sx.comune?' ('+esc(sx.comune)+')':'')+'</option>'; });
+  if(!cur && r.scuola){ opts+='<option value="_keep" selected>'+esc(r.scuola)+' (attuale)</option>'; }
+  return '<div><label>Scuola</label><select id="f-scid">'+opts+'</select></div>';
+}
+function fasciaRiga(r){ return '<p class="mini">Fascia: <b>'+esc(fasciaDa(r.data_nascita))+'</b> (dalla data di nascita) \u00b7 Genere: <b>'+esc(r.genere||"\u2014")+'</b></p>'; }
+function attivitaBox(r){
+  var ids=r.attivita_ids||[];
+  if(!(minoriOpz.attivita||[]).length) return '<p class="mini">Nessuna attivit\u00e0 a catalogo (si aggiungono dal Catalogo).</p>';
+  var box=(minoriOpz.attivita).map(function(a){ return '<label class="spunta"><input type="checkbox" class="f-att" value="'+a.id+'"'+(ids.indexOf(a.id)>=0?' checked':'')+'> '+esc(a.nome)+'</label>'; }).join("");
+  return '<label>Attivit\u00e0 a cui partecipa</label><div style="display:flex;flex-direction:column;gap:2px;margin:4px 0 8px">'+box+'</div>';
+}
 function formMinore(r){
   r = r || {};
   var f = $("m-form");
@@ -649,9 +693,9 @@ function formMinore(r){
       '<div><label>Stato</label><select id="f-stato"><option value="">—</option>'+
       ["Nuovo inserimento","Concluso","Rinunciatario"].map(function(s){return '<option'+(r.stato===s?" selected":"")+'>'+s+'</option>'}).join("")+'</select></div></div>'+
     '<div class="row">'+campo("Stato di nascita","f-sn",r.stato_nascita)+campo("Comune di nascita","f-cn",r.comune_nascita)+campo("Provincia","f-pr",r.provincia)+'</div>'+
-    '<div class="row">'+campo("Scuola","f-sc",r.scuola)+campo("Ore previste","f-op",r.ore_previste,"number")+
+    '<div class="row">'+scuolaSelect(r)+campo("Ore previste","f-op",r.ore_previste,"number")+
       '<div><label>Modulo iscrizione</label><select id="f-mi"><option value="no"'+(!r.modulo_iscrizione?" selected":"")+'>No</option><option value="si"'+(r.modulo_iscrizione?" selected":"")+'>Sì</option></select></div></div>'+
-    '<p class="mini">Data di nascita e genere si ricavano dal codice fiscale.</p>'+
+    fasciaRiga(r)+attivitaBox(r)+'<p class="mini">Data di nascita e genere si ricavano dal codice fiscale.</p>'+
     '<div class="right" style="margin-top:12px"><button class="btn g sm" id="f-ann">Annulla</button><button class="btn p sm" id="f-salva">Salva</button></div></div>'+docSec;
   f.scrollIntoView({behavior:"smooth"});
   $("f-ann").addEventListener("click", function(){ f.innerHTML=""; });
@@ -659,8 +703,13 @@ function formMinore(r){
     var body = {cognome:$("f-cognome").value.trim(), nome:$("f-nome").value.trim(),
       codice_fiscale:$("f-cf").value.trim(), stato_nascita:$("f-sn").value.trim(),
       comune_nascita:$("f-cn").value.trim(), provincia:$("f-pr").value.trim(),
-      scuola:$("f-sc").value.trim(), ore_previste: $("f-op").value?parseFloat($("f-op").value):null,
+      ore_previste: $("f-op").value?parseFloat($("f-op").value):null,
       stato: $("f-stato").value||null, modulo_iscrizione: $("f-mi").value==="si"};
+    var scidv=$("f-scid")?$("f-scid").value:"";
+    if(scidv==="_keep"){ body.scuola_id=null; body.scuola=r.scuola||null; }
+    else if(scidv){ var so=(minoriOpz.scuole||[]).filter(function(x){return String(x.id)===scidv;})[0]; body.scuola_id=+scidv; body.scuola=so?so.nome:null; }
+    else { body.scuola_id=null; body.scuola=null; }
+    body.attivita_ids=Array.prototype.map.call(document.querySelectorAll(".f-att:checked"), function(c){return +c.value;});
     try{
       if(r.id) await api("/minori/"+r.id, {method:"PUT", body:body});
       else await api("/minori", {method:"POST", body:body});

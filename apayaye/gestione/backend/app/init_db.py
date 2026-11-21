@@ -18,6 +18,7 @@ MIGRAZIONI = [
     "alter table minori add column if not exists doc_consenso_privacy boolean not null default false",
     "alter table minori add column if not exists doc_consenso_immagini boolean not null default false",
     "alter table minori add column if not exists doc_note text",
+    "alter table minori add column if not exists scuola_id integer",
 ]
 
 
@@ -64,6 +65,36 @@ SCUOLE_SEED = [
     {"n": "I.P.S.A.S.R. Salvo D'Acquisto", "co": "Bagheria", "g": "II"},
     {"n": "I.T.E.T. Don Luigi Sturzo", "co": "Bagheria", "g": "II"},
 ]
+
+
+ATTIVITA_MINORI_SEED = [
+    "Supporto scolastico minori con BES (11-14)",
+    "Supporto apprendimento (15-17)",
+    "Attivita' extrascolastica di socializzazione",
+    "Valutazione e profilazione BES",
+    "Laboratorio: dietro i social",
+    "Laboratorio: scacchi",
+    "Laboratorio: teatro sociale",
+    "Laboratorio: cinema e narrazioni",
+    "Laboratorio: grafica",
+    "Laboratorio: video e montaggio",
+    "Laboratorio: coprogettazione",
+    "Laboratorio: affettivita'",
+    "Laboratorio: matematica e logica",
+]
+
+
+def semina_attivita():
+    db = SessionLocal()
+    try:
+        for nome in ATTIVITA_MINORI_SEED:
+            db.execute(text(
+                "insert into attivita (nome, tipo, attiva) "
+                "select :n, 'minori', true where not exists (select 1 from attivita where lower(nome)=lower(:n))"
+            ), {"n": nome})
+        db.commit()
+    finally:
+        db.close()
 
 
 def semina_catalogo():
@@ -117,6 +148,7 @@ def main():
     migra()
     semina()
     semina_catalogo()
+    semina_attivita()
     print("[init] archivio pronto")
 
 

@@ -155,3 +155,10 @@ create table if not exists scuole (
   pec             text,
   attiva          boolean not null default true
 );
+
+-- Collegamento minore <-> attivita' del progetto (a quali attivita' partecipa).
+create table if not exists minore_attivita (
+  minore_id   integer not null references minori(id) on delete cascade,
+  attivita_id integer not null references attivita(id) on delete cascade,
+  primary key (minore_id, attivita_id)
+);
