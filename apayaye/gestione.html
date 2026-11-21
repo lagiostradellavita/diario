@@ -248,6 +248,7 @@ var VOCI = [
   {id:"export", et:"Export ReGiS", ruoli:["ufficio","admin"]},
   {id:"rendic", et:"Rendicontazione", ruoli:["ufficio","admin","operatore"]},
   {id:"timbratura", et:"Timbratura", ruoli:["operatore"]},
+  {id:"figli", et:"I miei figli", ruoli:["genitore"]},
   {id:"attivita", et:"Attività e ore", ruoli:["ufficio","admin","operatore"]},
   {id:"documenti", et:"Documenti", ruoli:["ufficio","admin","operatore"]},
   {id:"indicatori", et:"Indicatori", ruoli:["ufficio","admin"]},
@@ -282,6 +283,7 @@ function render(){
   if(vistaCorr==="indicatori") return vistaIndicatori(m);
   if(vistaCorr==="operatori") return vistaOperatori(m);
   if(vistaCorr==="timbratura") return vistaTimbratura(m);
+  if(vistaCorr==="figli") return vistaFigli(m);
   if(vistaCorr==="catalogo") return vistaCatalogo(m);
   if(vistaCorr==="utenti") return vistaUtenti(m);
   if(vistaCorr==="attivita") return vistaAttivita(m);
@@ -683,6 +685,31 @@ function generaRicevuta(mese, op, righe){
     '<p class="muted" style="margin-top:8px">Bozza da verificare con l’ufficio prima dell’invio.</p>'+
     '<div class="firma"><div>Data ____________________</div><div>Firma ________________________</div></div>';
   stampaFinestra("Ricevuta "+mese, h);
+}
+
+/* ---------- GENITORE: i miei figli ---------- */
+async function vistaFigli(m){
+  if(ruolo!=="genitore"){ m.innerHTML='<div class="card"><h1>I miei figli</h1><p class="muted">Questa sezione è per i <b>genitori</b>.</p></div>'; return; }
+  m.innerHTML='<div class="card"><h1>I miei figli</h1><p class="muted">Le presenze dei tuoi figli alle attività del progetto.</p><div id="fg-body" class="muted">Carico…</div></div>';
+  var d; try{ d=await api("/genitore/figli"); }catch(e){ $("fg-body").innerHTML='<div class="msg inf">'+esc(e.message)+'</div>'; return; }
+  if(!d.figli.length){ $("fg-body").innerHTML='<p class="muted">Nessun figlio collegato. Chiedi all’ufficio di collegarti.</p>'; return; }
+  $("fg-body").innerHTML=d.figli.map(function(f){
+    return '<div class="card" style="background:#f8fbfc;margin-bottom:10px"><div class="row" style="justify-content:space-between;align-items:center">'+
+      '<b>'+esc(f.cognome+" "+f.nome)+'</b> <span class="mini">'+f.presenze+' presenze · '+(Number(f.ore_totali)||0).toFixed(2).replace(".",",")+' ore</span></div>'+
+      '<div style="margin-top:8px"><button class="btn g sm" data-f="'+f.id+'">Vedi le presenze</button></div>'+
+      '<div id="fg-pr-'+f.id+'"></div></div>';
+  }).join("");
+  $("fg-body").querySelectorAll("[data-f]").forEach(function(b){ b.addEventListener("click", function(){ figliPresenze(+b.getAttribute("data-f")); }); });
+}
+async function figliPresenze(mid){
+  var box=$("fg-pr-"+mid); box.innerHTML='<p class="muted" style="margin-top:8px">Carico…</p>';
+  try{
+    var d=await api("/genitore/figlio/"+mid+"/presenze");
+    if(!d.presenze.length){ box.innerHTML='<p class="muted" style="margin-top:8px">Ancora nessuna presenza.</p>'; return; }
+    box.innerHTML='<div class="scroll" style="margin-top:8px"><table><thead><tr><th>Data</th><th>Attività</th><th>Ore</th></tr></thead><tbody>'+
+      d.presenze.map(function(p){ return '<tr><td>'+esc(soloData(p.data)||p.data)+'</td><td>'+esc(p.attivita)+'</td><td>'+(p.ore!=null?p.ore:"")+'</td></tr>'; }).join("")+
+      '</tbody></table></div>';
+  }catch(e){ box.innerHTML='<div class="msg inf" style="margin-top:8px">'+esc(e.message)+'</div>'; }
 }
 
 /* ---------- OPERATORI (anagrafica) ---------- */
@@ -1266,15 +1293,17 @@ async function caricaUtenti(){
   try{
     var righe = await api("/auth/utenti");
     var ops=[]; try{ ops=(await api("/operatori")).operatori||[]; }catch(e){}
-    function opOpts(sel){ return '<option value="">— nessuno —</option>'+ops.map(function(o){ return '<option value="'+o.id+'"'+(String(o.id)===String(sel||"")?' selected':'')+'>'+esc(o.cognome+" "+o.nome)+'</option>'; }).join(""); }
-    var h = '<div class="scroll"><table><thead><tr><th>Email</th><th>Ruolo</th><th>Operatore collegato</th><th>Stato</th><th></th></tr></thead><tbody>';
+    var gens=[]; try{ gens=(await api("/genitore/elenco")).genitori||[]; }catch(e){}
+    function opts(lista, sel){ return '<option value="">— nessuno —</option>'+lista.map(function(o){ return '<option value="'+o.id+'"'+(String(o.id)===String(sel||"")?' selected':'')+'>'+esc(o.cognome+" "+o.nome)+'</option>'; }).join(""); }
+    var h = '<div class="scroll"><table><thead><tr><th>Email</th><th>Ruolo</th><th>Operatore</th><th>Genitore</th><th>Stato</th><th></th></tr></thead><tbody>';
     righe.forEach(function(r){
-      h += '<tr><td>'+esc(r.email)+'</td><td>'+esc(r.ruolo)+'</td>'+
-        '<td><select class="u-op" data-id="'+r.id+'" data-ge="'+(r.genitore_id||"")+'">'+opOpts(r.operatore_id)+'</select></td>'+
+      h += '<tr data-uid="'+r.id+'"><td>'+esc(r.email)+'</td><td>'+esc(r.ruolo)+'</td>'+
+        '<td><select class="u-op">'+opts(ops, r.operatore_id)+'</select></td>'+
+        '<td><select class="u-ge">'+opts(gens, r.genitore_id)+'</select></td>'+
         '<td>'+(r.attivo?'<span class="pill ok">attivo</span>':'<span class="pill no">sospeso</span>')+'</td>'+
         '<td><button class="btn g sm" data-id="'+r.id+'" data-a="'+(r.attivo?0:1)+'">'+(r.attivo?"Sospendi":"Riattiva")+'</button></td></tr>';
     });
-    h += '</tbody></table></div><p class="mini">Collega un accesso <b>operatore</b> al suo nominativo: così potrà timbrare e generare la ricevuta.</p>';
+    h += '</tbody></table></div><p class="mini">Collega un accesso <b>operatore</b> (per timbrare e la ricevuta) o <b>genitore</b> (per vedere le presenze dei figli) al suo nominativo.</p>';
     $("u-body").innerHTML = h;
     Array.prototype.forEach.call($("u-body").querySelectorAll("button[data-id]"), function(b){
       b.addEventListener("click", async function(){
@@ -1282,12 +1311,14 @@ async function caricaUtenti(){
         catch(e){ $("u-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
       });
     });
-    Array.prototype.forEach.call($("u-body").querySelectorAll("select.u-op"), function(s){
-      s.addEventListener("change", async function(){
-        try{ await api("/auth/utenti/"+s.getAttribute("data-id")+"/collega", {method:"POST", body:{operatore_id: s.value?+s.value:null, genitore_id: s.getAttribute("data-ge")?+s.getAttribute("data-ge"):null}});
-          $("u-msg").innerHTML='<div class="msg ok">Collegamento aggiornato.</div>'; }
-        catch(e){ $("u-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; caricaUtenti(); }
-      });
+    async function collega(tr){
+      var uid=tr.getAttribute("data-uid"), op=tr.querySelector(".u-op").value, ge=tr.querySelector(".u-ge").value;
+      try{ await api("/auth/utenti/"+uid+"/collega", {method:"POST", body:{operatore_id: op?+op:null, genitore_id: ge?+ge:null}});
+        $("u-msg").innerHTML='<div class="msg ok">Collegamento aggiornato.</div>'; }
+      catch(e){ $("u-msg").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; caricaUtenti(); }
+    }
+    Array.prototype.forEach.call($("u-body").querySelectorAll("select.u-op, select.u-ge"), function(s){
+      s.addEventListener("change", function(){ collega(s.closest("tr")); });
     });
   }catch(e){ $("u-body").innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
 }
