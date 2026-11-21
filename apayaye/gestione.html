@@ -167,7 +167,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "2.4";
+var APP_VERSION = "2.5";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -372,7 +372,7 @@ async function vistaDocumenti(m){
       '<div><label>Tipo</label><select id="doc-tipo"><option value="foglio_firma">Foglio firma</option><option value="allegato_g">Allegato G</option><option value="altro">Altro</option></select></div>'+
       '<div><label>Periodo (facolt.)</label><input id="doc-periodo" placeholder="es. nov 2026"></div>'+
     '</div>'+
-    '<div style="margin-top:8px"><label>File (foto o PDF)</label><input id="doc-file" type="file" accept="image/*,application/pdf"></div>'+
+    '<div style="margin-top:8px"><label>File (foto o PDF — anche più di uno)</label><input id="doc-file" type="file" accept="image/*,.heic,.heif,.pdf,application/pdf" multiple><p class="mini">Puoi scegliere più foto insieme (iPhone, Android o scanner). Formati: JPG, PNG, HEIC, PDF…</p></div>'+
     '<div style="margin-top:12px"><button class="btn p" id="doc-carica">Carica</button></div></div>'+
     '<div class="card"><h2>Caricati</h2><div id="doc-lista" class="muted">Carico…</div></div>';
   $("doc-carica").addEventListener("click", caricaDoc);
@@ -389,18 +389,26 @@ async function caricaListaDoc(){
     Array.prototype.forEach.call(L.querySelectorAll("[data-del]"), function(b){ b.addEventListener("click", function(){ elimDoc(+b.getAttribute("data-del")); }); });
   }catch(e){ $("doc-lista").innerHTML='<div class="msg inf">'+esc(e.message)+'</div>'; }
 }
-function caricaDoc(){
-  var f=$("doc-file").files[0];
-  if(!f){ docMsg("Scegli un file.","err"); return; }
-  if(f.size>10*1024*1024){ docMsg("File troppo grande (max 10 MB).","err"); return; }
-  var rd=new FileReader();
-  rd.onload=async function(){
+function docABase64(f){ return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){ res(String(r.result)); }; r.onerror=function(){ rej(new Error("file non leggibile")); }; r.readAsDataURL(f); }); }
+async function caricaDoc(){
+  var files=$("doc-file").files;
+  if(!files || !files.length){ docMsg("Scegli uno o più file.","err"); return; }
+  var tipo=$("doc-tipo").value, periodo=$("doc-periodo").value||null, btn=$("doc-carica");
+  btn.disabled=true;
+  var ok=0, errori=[];
+  for(var i=0;i<files.length;i++){
+    var f=files[i];
+    if(f.size>10*1024*1024){ errori.push(esc(f.name)+": troppo grande (max 10 MB)"); continue; }
+    docMsg("Carico "+(i+1)+" di "+files.length+"\u2026","inf");
     try{
-      await api("/presenze/documento",{method:"POST",body:{tipo:$("doc-tipo").value, titolo:f.name, periodo:$("doc-periodo").value||null, nome_file:f.name, mime:f.type||null, contenuto_base64:String(rd.result)}});
-      docMsg("Caricato.","ok"); $("doc-file").value=""; caricaListaDoc();
-    }catch(e){ docMsg(e.message,"err"); }
-  };
-  rd.readAsDataURL(f);
+      var b64=await docABase64(f);
+      await api("/presenze/documento",{method:"POST",body:{tipo:tipo, titolo:f.name, periodo:periodo, nome_file:f.name, mime:f.type||null, contenuto_base64:b64}});
+      ok++;
+    }catch(e){ errori.push(esc(f.name)+": "+esc(e.message)); }
+  }
+  btn.disabled=false; $("doc-file").value="";
+  docMsg("Caricati "+ok+" file"+(errori.length?" \u00b7 "+errori.length+" non riusciti ("+errori.join("; ")+")":"")+".", errori.length?"err":"ok");
+  caricaListaDoc();
 }
 async function apriDoc(id){
   try{
