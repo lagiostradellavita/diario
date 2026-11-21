@@ -56,7 +56,9 @@ si rompe.
 
 Come collegarlo (variabili d'ambiente su Render, servizio del backend):
 1. Su dropbox.com/developers crea un'app (Scoped access, tipo *Full Dropbox*),
-   con permesso **`files.metadata.read`** (sola lettura).
+   con i permessi **`files.metadata.read`** (elencare i file), **`files.content.read`**
+   (aprirli) e **`files.content.write`** (caricare nuovi file dall'app nella cartella
+   giusta). Dopo aver aggiunto/cambiato i permessi, **rigenera il refresh token**.
 2. Genera un **refresh token** e imposta su Render:
    - `DROPBOX_REFRESH_TOKEN`, `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET`
    - (in alternativa, solo per prove: `DROPBOX_TOKEN` = token diretto, che scade)

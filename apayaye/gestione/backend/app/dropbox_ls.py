@@ -74,6 +74,32 @@ def _post(url: str, payload: dict, tok: str) -> dict:
         return json.loads(r.read().decode())
 
 
+def carica(cartella: str, nome_file: str, raw: bytes) -> dict:
+    """Carica un file DENTRO una cartella di Dropbox (richiede lo scope
+    files.content.write sull'app Dropbox). Usa mode 'add' + autorename: non
+    sovrascrive mai un file esistente (al massimo crea un '(1)'). Torna il
+    percorso e il nome effettivi."""
+    if not disponibile():
+        raise RuntimeError("Dropbox non configurato")
+    tok = _access_token()
+    dest = cartella.rstrip("/") + "/" + nome_file
+    arg = {"path": dest, "mode": "add", "autorename": True, "mute": True}
+    headers = {
+        "Authorization": "Bearer " + tok,
+        "Content-Type": "application/octet-stream",
+        # json.dumps mette gli accenti in \uXXXX: l'intestazione resta ASCII (richiesto da Dropbox).
+        "Dropbox-API-Arg": json.dumps(arg),
+    }
+    if settings.dropbox_path_root:
+        headers["Dropbox-API-Path-Root"] = json.dumps({".tag": "root", "root": settings.dropbox_path_root})
+    req = urllib.request.Request(
+        "https://content.dropboxapi.com/2/files/upload", data=raw, headers=headers
+    )
+    with urllib.request.urlopen(req, timeout=60) as r:
+        d = json.loads(r.read().decode())
+    return {"path": d.get("path_display") or d.get("path_lower") or dest, "nome": d.get("name") or nome_file}
+
+
 def elenca(path: str) -> list:
     """Elenca i figli diretti di una cartella. Torna [{nome, cartella, path}]."""
     if not disponibile():
