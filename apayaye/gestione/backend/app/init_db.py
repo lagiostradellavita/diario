@@ -34,6 +34,58 @@ def migra():
             con.exec_driver_sql(passo)
 
 
+INCARICHI_SEED = [
+    {"c": "A01", "d": "Animatore attivita' extrascolastica di socializzazione", "r": "Animatore", "t": 20, "f": None, "m": "19283", "p": "GdV", "o": 60},
+    {"c": "A02", "d": "Tutor attivita' extrascolastica di socializzazione", "r": "Tutor", "t": 16, "f": None, "m": "19283", "p": "GdV", "o": 60},
+    {"c": "S01", "d": "Esperto supporto scolastico minori con BES (11-14)", "r": "Esperto", "t": 20, "f": "11-14", "m": "19283", "p": "GdV", "o": 550},
+    {"c": "S02", "d": "Tutor supporto scolastico minori con BES (11-14)", "r": "Tutor", "t": 16, "f": "11-14", "m": "19283", "p": "GdV", "o": 550},
+    {"c": "S03", "d": "Esperto supporto apprendimento (15-17)", "r": "Esperto", "t": 20, "f": "15-17", "m": "19283", "p": "GdV", "o": 550},
+    {"c": "S04", "d": "Tutor supporto apprendimento (15-17)", "r": "Tutor", "t": 16, "f": "15-17", "m": "19283", "p": "GdV", "o": 550},
+    {"c": "V01", "d": "Esperto analisi e valutazione minori con BES", "r": "Esperto", "t": 40, "f": None, "m": "19258", "p": "GdV", "o": 160},
+    {"c": "F01", "d": "Formatore corso BES - integrazione e inclusione", "r": "Formatore", "t": 30, "f": None, "m": "19254", "p": "GdV", "o": 40},
+    {"c": "F02", "d": "Formatore corso ABA", "r": "Formatore", "t": 50, "f": None, "m": "19254", "p": "GdV", "o": 80},
+    {"c": "TC", "d": "Tutor del corso (BES / ABA)", "r": "Tutor", "t": 16, "f": None, "m": "19254", "p": "GdV", "o": None},
+    {"c": None, "d": "Laboratorio Percorsi di potenziamento - Esperto", "r": "Esperto", "t": 30, "f": None, "m": "19283", "p": "Bocs", "o": None},
+    {"c": None, "d": "Laboratorio Percorsi di potenziamento - Tutor", "r": "Tutor", "t": 16, "f": None, "m": "19283", "p": "Bocs", "o": None},
+]
+
+SCUOLE_SEED = [
+    {"n": "ICS Ignazio Buttitta", "co": "Bagheria", "g": "I"},
+    {"n": "ICS Tommaso Aiello", "co": "Bagheria", "g": "I"},
+    {"n": "ICS Falcone-Borsellino (Aspra)", "co": "Bagheria", "g": "I"},
+    {"n": "ICS Carducci-Gramsci", "co": "Bagheria", "g": "I"},
+    {"n": "ICS Giuseppe Bagnera", "co": "Bagheria", "g": "I"},
+    {"n": "ICS Scianna", "co": "Bagheria", "g": "I"},
+    {"n": "ICS Karol Wojtyla", "co": "Santa Flavia", "g": "I"},
+    {"n": "ICS Rosario Livatino", "co": "Ficarazzi", "g": "I"},
+    {"n": "Liceo Ginnasio F. Scaduto (Classico/Linguistico)", "co": "Bagheria", "g": "II"},
+    {"n": "Liceo Scientifico G.P. D'Alessandro", "co": "Bagheria", "g": "II"},
+    {"n": "Liceo Artistico Renato Guttuso", "co": "Bagheria", "g": "II"},
+    {"n": "I.P.S.A.S.R. Salvo D'Acquisto", "co": "Bagheria", "g": "II"},
+    {"n": "I.T.E.T. Don Luigi Sturzo", "co": "Bagheria", "g": "II"},
+]
+
+
+def semina_catalogo():
+    db = SessionLocal()
+    try:
+        n = db.execute(text("select count(*) c from catalogo_incarichi")).mappings().first()["c"]
+        if not n:
+            for r in INCARICHI_SEED:
+                db.execute(text(
+                    "insert into catalogo_incarichi (codice, descrizione, ruolo, tariffa, fascia, macro, partner, ore_monte) "
+                    "values (:c, :d, :r, :t, :f, :m, :p, :o)"), r)
+            print("[init] catalogo incarichi seminato:", len(INCARICHI_SEED))
+        ns = db.execute(text("select count(*) c from scuole")).mappings().first()["c"]
+        if not ns:
+            for r in SCUOLE_SEED:
+                db.execute(text("insert into scuole (nome, comune, grado) values (:n, :co, :g)"), r)
+            print("[init] scuole seminate:", len(SCUOLE_SEED))
+        db.commit()
+    finally:
+        db.close()
+
+
 def semina():
     db = SessionLocal()
     try:
@@ -64,6 +116,7 @@ def main():
     crea_tabelle()
     migra()
     semina()
+    semina_catalogo()
     print("[init] archivio pronto")
 
 

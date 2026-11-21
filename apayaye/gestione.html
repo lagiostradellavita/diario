@@ -167,7 +167,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "2.5";
+var APP_VERSION = "2.6";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -249,6 +249,7 @@ var VOCI = [
   {id:"rendic", et:"Rendicontazione", ruoli:["ufficio","admin","operatore"]},
   {id:"attivita", et:"Attività e ore", ruoli:["ufficio","admin","operatore"]},
   {id:"documenti", et:"Documenti", ruoli:["ufficio","admin","operatore"]},
+  {id:"catalogo", et:"Catalogo", ruoli:["ufficio","admin"]},
   {id:"utenti", et:"Utenti e accessi", ruoli:["admin"]}
 ];
 var vistaCorr = "minori";
@@ -275,9 +276,107 @@ function render(){
   if(vistaCorr==="importa") return vistaImporta(m);
   if(vistaCorr==="export") return vistaExport(m);
   if(vistaCorr==="rendic") return vistaRendic(m);
+  if(vistaCorr==="catalogo") return vistaCatalogo(m);
   if(vistaCorr==="utenti") return vistaUtenti(m);
   if(vistaCorr==="attivita") return vistaAttivita(m);
   if(vistaCorr==="documenti") return vistaDocumenti(m);
+}
+
+/* ---------- CATALOGO (incarichi + scuole) ---------- */
+var catDati=null;
+var RUOLI=["Animatore","Tutor","Esperto","Formatore"];
+function optSel(valori, sel, vuoto){
+  var h = vuoto!=null ? '<option value="">'+esc(vuoto)+'</option>' : '';
+  return h + valori.map(function(v){ return '<option'+(String(v)===String(sel||"")?' selected':'')+'>'+esc(v)+'</option>'; }).join("");
+}
+function catMsg(t,cls){ var e=$("cat-msg"); if(e) e.innerHTML='<div class="msg '+(cls||"inf")+'">'+esc(t)+'</div>'; }
+async function vistaCatalogo(m){
+  m.innerHTML='<div class="card"><h1>Catalogo del progetto</h1><p class="muted">Incarichi (ruoli e tariffe) e scuole: sono il riferimento per timbrature, Allegato G e ricevute.</p><div id="cat-msg"></div></div><div id="cat-inc" class="muted">Carico…</div><div id="cat-sc"></div>';
+  try{ catDati=await api("/catalogo"); }catch(e){ $("cat-inc").innerHTML='<div class="msg err">'+esc(e.message)+'</div>'; return; }
+  disegnaIncarichi(); disegnaScuole();
+}
+function rigaInc(x){
+  x=x||{};
+  return '<tr data-id="'+(x.id||"")+'">'+
+    '<td><input class="ci-codice" value="'+esc(x.codice||"")+'" style="width:58px"></td>'+
+    '<td><input class="ci-descr" value="'+esc(x.descrizione||"")+'" style="min-width:220px;width:100%"></td>'+
+    '<td><select class="ci-ruolo">'+optSel(RUOLI, x.ruolo, "—")+'</select></td>'+
+    '<td><input class="ci-tariffa" type="number" step="0.5" min="0" value="'+(x.tariffa!=null?x.tariffa:"")+'" style="width:72px"></td>'+
+    '<td><select class="ci-fascia">'+optSel(["11-14","15-17"], x.fascia, "—")+'</select></td>'+
+    '<td><input class="ci-macro" value="'+esc(x.macro||"")+'" style="width:64px"></td>'+
+    '<td><input class="ci-partner" value="'+esc(x.partner||"")+'" style="width:90px"></td>'+
+    '<td><input class="ci-ore" type="number" step="1" min="0" value="'+(x.ore_monte!=null?x.ore_monte:"")+'" style="width:70px"></td>'+
+    '<td style="text-align:center"><input class="ci-attivo" type="checkbox"'+(x.attivo!==false?' checked':'')+' style="width:auto"></td>'+
+    '<td style="white-space:nowrap"><button class="btn v sm ci-salva">Salva</button> '+(x.id?'<button class="btn d sm ci-del">✕</button>':'<button class="btn p sm ci-add">Aggiungi</button>')+'</td></tr>';
+}
+function corpoInc(tr){
+  return { codice:tr.querySelector(".ci-codice").value.trim()||null, descrizione:tr.querySelector(".ci-descr").value.trim(),
+    ruolo:tr.querySelector(".ci-ruolo").value||null, tariffa:tr.querySelector(".ci-tariffa").value!==""?parseFloat(tr.querySelector(".ci-tariffa").value):null,
+    fascia:tr.querySelector(".ci-fascia").value||null, macro:tr.querySelector(".ci-macro").value.trim()||null,
+    partner:tr.querySelector(".ci-partner").value.trim()||null, ore_monte:tr.querySelector(".ci-ore").value!==""?parseFloat(tr.querySelector(".ci-ore").value):null,
+    attivo:tr.querySelector(".ci-attivo").checked };
+}
+function disegnaIncarichi(){
+  var head='<tr><th>Codice</th><th>Descrizione</th><th>Ruolo</th><th>€/h</th><th>Fascia</th><th>Macro</th><th>Partner</th><th>Ore</th><th>Attivo</th><th></th></tr>';
+  var righe=(catDati.incarichi||[]).map(rigaInc).join("");
+  $("cat-inc").innerHTML='<div class="card"><h2>Incarichi (ruoli e tariffe)</h2>'+
+    '<div class="scroll"><table><thead>'+head+'</thead><tbody>'+righe+'<tr class="cat-nuova">'+rigaInc({}).replace(/^<tr[^>]*>/,'').replace(/<\/tr>$/,'')+'</tr></tbody></table></div>'+
+    '<p class="mini">Modifica un valore e premi <b>Salva</b> sulla sua riga. L\'ultima riga serve ad aggiungerne uno nuovo.</p></div>';
+  var box=$("cat-inc");
+  box.querySelectorAll(".ci-salva").forEach(function(b){ b.addEventListener("click", function(){ salvaInc(b.closest("tr")); }); });
+  box.querySelectorAll(".ci-del").forEach(function(b){ b.addEventListener("click", function(){ elimInc(b.closest("tr")); }); });
+  box.querySelectorAll(".ci-add").forEach(function(b){ b.addEventListener("click", function(){ salvaInc(b.closest("tr"), true); }); });
+}
+async function salvaInc(tr, nuovo){
+  var body=corpoInc(tr);
+  if(!body.descrizione){ catMsg("La descrizione e' obbligatoria.","err"); return; }
+  try{
+    if(nuovo || !tr.getAttribute("data-id")){ await api("/catalogo/incarichi",{method:"POST",body:body}); }
+    else { await api("/catalogo/incarichi/"+tr.getAttribute("data-id"),{method:"PUT",body:body}); }
+    catMsg("Salvato.","ok"); catDati=await api("/catalogo"); disegnaIncarichi();
+  }catch(e){ catMsg(e.message,"err"); }
+}
+async function elimInc(tr){
+  if(!window.confirm("Eliminare questo incarico?")) return;
+  try{ await api("/catalogo/incarichi/"+tr.getAttribute("data-id"),{method:"DELETE"}); catDati=await api("/catalogo"); disegnaIncarichi(); }
+  catch(e){ catMsg(e.message,"err"); }
+}
+function rigaSc(x){
+  x=x||{};
+  return '<tr data-id="'+(x.id||"")+'">'+
+    '<td><input class="cs-nome" value="'+esc(x.nome||"")+'" style="min-width:200px;width:100%"></td>'+
+    '<td><input class="cs-comune" value="'+esc(x.comune||"")+'" style="width:120px"></td>'+
+    '<td><select class="cs-grado">'+optSel(["I","II"], x.grado, "—")+'</select></td>'+
+    '<td style="text-align:center"><input class="cs-attiva" type="checkbox"'+(x.attiva!==false?' checked':'')+' style="width:auto"></td>'+
+    '<td style="white-space:nowrap"><button class="btn v sm cs-salva">Salva</button> '+(x.id?'<button class="btn d sm cs-del">✕</button>':'<button class="btn p sm cs-add">Aggiungi</button>')+'</td></tr>';
+}
+function corpoSc(tr){
+  return { nome:tr.querySelector(".cs-nome").value.trim(), comune:tr.querySelector(".cs-comune").value.trim()||null,
+    grado:tr.querySelector(".cs-grado").value||null, attiva:tr.querySelector(".cs-attiva").checked };
+}
+function disegnaScuole(){
+  var head='<tr><th>Scuola</th><th>Comune</th><th>Grado</th><th>Attiva</th><th></th></tr>';
+  var righe=(catDati.scuole||[]).map(rigaSc).join("");
+  $("cat-sc").innerHTML='<div class="card"><h2>Scuole</h2><p class="mini">Grado <b>I</b> = secondaria di I grado (11-14) · <b>II</b> = secondaria di II grado (15-17).</p>'+
+    '<div class="scroll"><table><thead>'+head+'</thead><tbody>'+righe+'<tr>'+rigaSc({}).replace(/^<tr[^>]*>/,'').replace(/<\/tr>$/,'')+'</tr></tbody></table></div></div>';
+  var box=$("cat-sc");
+  box.querySelectorAll(".cs-salva").forEach(function(b){ b.addEventListener("click", function(){ salvaSc(b.closest("tr")); }); });
+  box.querySelectorAll(".cs-del").forEach(function(b){ b.addEventListener("click", function(){ elimSc(b.closest("tr")); }); });
+  box.querySelectorAll(".cs-add").forEach(function(b){ b.addEventListener("click", function(){ salvaSc(b.closest("tr"), true); }); });
+}
+async function salvaSc(tr, nuovo){
+  var body=corpoSc(tr);
+  if(!body.nome){ catMsg("Il nome della scuola e' obbligatorio.","err"); return; }
+  try{
+    if(nuovo || !tr.getAttribute("data-id")){ await api("/catalogo/scuole",{method:"POST",body:body}); }
+    else { await api("/catalogo/scuole/"+tr.getAttribute("data-id"),{method:"PUT",body:body}); }
+    catMsg("Salvato.","ok"); catDati=await api("/catalogo"); disegnaScuole();
+  }catch(e){ catMsg(e.message,"err"); }
+}
+async function elimSc(tr){
+  if(!window.confirm("Eliminare questa scuola?")) return;
+  try{ await api("/catalogo/scuole/"+tr.getAttribute("data-id"),{method:"DELETE"}); catDati=await api("/catalogo"); disegnaScuole(); }
+  catch(e){ catMsg(e.message,"err"); }
 }
 
 /* ---------- PRESENZE / DOCUMENTI (operatore) ---------- */

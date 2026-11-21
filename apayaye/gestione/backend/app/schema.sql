@@ -129,3 +129,29 @@ create index if not exists ix_presenze_minore on presenze(minore_id);
 create index if not exists ix_sessioni_attivita on sessioni(attivita_id);
 create index if not exists ix_documenti_attivita on documenti(attivita_id);
 create index if not exists ix_documenti_operatore on documenti(operatore_id);
+
+-- Catalogo degli incarichi (ruoli retribuiti) del progetto: da qui vengono
+-- tariffa e descrizione per ricevute e Allegato G. Niente dati personali.
+create table if not exists catalogo_incarichi (
+  id              serial primary key,
+  codice          text,
+  descrizione     text not null,
+  ruolo           text,            -- Animatore / Tutor / Esperto / Formatore
+  tariffa         numeric(8,2),    -- euro/ora
+  fascia          text,            -- '11-14' / '15-17' / null
+  macro           text,            -- codice macro-attivita' ReGiS (es. 19283)
+  partner         text,            -- GdV / Bocs / Agriconsulting
+  ore_monte       numeric(9,2),    -- monte ore totale a progetto (tetto)
+  attivo          boolean not null default true
+);
+
+-- Scuole del progetto (istituti). Dati istituzionali, non personali.
+create table if not exists scuole (
+  id              serial primary key,
+  nome            text not null,
+  comune          text,
+  grado           text,            -- 'I' (11-14) / 'II' (15-17)
+  email           text,
+  pec             text,
+  attiva          boolean not null default true
+);
