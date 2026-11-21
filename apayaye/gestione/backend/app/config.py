@@ -16,6 +16,16 @@ class Settings(BaseSettings):
     soggetto: str = "La Giostra della Vita Societa' Cooperativa Sociale a r.l."
     titolo: str = "Apayaye"
     fascia_eta: str = "11-17 anni"
+    # Dropbox (facoltativo): per mostrare nella Rendicontazione i file veri dentro
+    # le cartelle del progetto, SENZA scriverli nel codice pubblico. Si legge solo,
+    # a chi ha fatto l'accesso (ufficio/admin). Se non configurato, l'app mostra
+    # comunque i collegamenti alle cartelle (come prima).
+    dropbox_token: str = ""              # token diretto (solo per prove rapide)
+    dropbox_refresh_token: str = ""      # consigliato: token di refresh dell'app Dropbox
+    dropbox_app_key: str = ""
+    dropbox_app_secret: str = ""
+    dropbox_path_root: str = ""          # id del namespace team-space, se la cartella e' condivisa (es. "12830409123")
+    apayaye_root: str = "/08 - Progetti in itinere/2023 - Agenzia coesione - Apayaye"
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @field_validator("database_url")

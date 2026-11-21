@@ -45,3 +45,22 @@ La regola sta in `ore.py` (un posto solo), così schermata ed export dicono la s
 - Creare il servizio Render del backend Apayaye.
 - Primo utente **admin** su invito; poi da lì si invitano ufficio, operatori, genitori.
 - Dati di minori: conservare informativa privacy e registro dei trattamenti (il titolare è la cooperativa).
+
+## Rendicontazione: collegare Dropbox (facoltativo)
+La schermata **Rendicontazione** apre ogni voce con i collegamenti alle cartelle
+del progetto su Dropbox. Se si collega Dropbox al server, sotto ogni cartella
+compare anche **l'elenco dei file veri** (anche con i nomi dei minori), che si
+legge **solo a chi ha fatto l'accesso** e **non sta mai nel codice** (la app web
+è pubblica). Se non lo si collega, restano i collegamenti alle cartelle: niente
+si rompe.
+
+Come collegarlo (variabili d'ambiente su Render, servizio del backend):
+1. Su dropbox.com/developers crea un'app (Scoped access, tipo *Full Dropbox*),
+   con permesso **`files.metadata.read`** (sola lettura).
+2. Genera un **refresh token** e imposta su Render:
+   - `DROPBOX_REFRESH_TOKEN`, `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET`
+   - (in alternativa, solo per prove: `DROPBOX_TOKEN` = token diretto, che scade)
+3. Se la cartella del progetto è **condivisa in uno spazio team**, imposta anche
+   `DROPBOX_PATH_ROOT` con l'id del namespace (per Apayaye: `12830409123`).
+4. La cartella del progetto è già impostata (`APAYAYE_ROOT`); l'endpoint
+   `GET /rendicontazione/documenti` legge **solo** dentro quella cartella.

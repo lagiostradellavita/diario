@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from .config import settings
-from .routers import auth, minori, export
+from .routers import auth, minori, export, rendicontazione
 
 app = FastAPI(title="Apayaye Gestione API", version="0.1.0")
 
@@ -43,6 +43,7 @@ async def errori_visibili(request: Request, call_next):
 app.include_router(auth.router)
 app.include_router(minori.router)
 app.include_router(export.router)
+app.include_router(rendicontazione.router)
 
 
 @app.get("/health", tags=["system"])

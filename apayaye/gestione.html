@@ -108,6 +108,14 @@
   .rc-tag.modello{background:#e4f2ec;color:var(--verde)}
   .rc-tag.cartella{background:#e7f0f5;color:var(--mare-scuro)}
   .rc-tag.app{background:#efe7f6;color:#6b4fae}
+  .rc-files{margin-top:10px}
+  .rc-filesec{margin-top:10px}
+  .rc-filehead{font-weight:700;font-size:.82rem;color:var(--ink)}
+  .rc-filelist{list-style:none;margin:5px 0 0;padding:0;display:flex;flex-direction:column;gap:3px}
+  .rc-filelist li{display:flex;gap:8px;align-items:flex-start;font-size:.86rem;line-height:1.3}
+  .rc-fico{flex:0 0 auto}
+  .rc-filelist a{color:var(--mare);text-decoration:none;word-break:break-word}
+  .rc-filelist a:hover{text-decoration:underline}
   .tag{font-size:.72rem;background:#eef3f6;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--soft)}
   .ver{font-size:.72rem;font-weight:400;opacity:.85;margin-left:8px}
   .tb-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -159,7 +167,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "2.2";
+var APP_VERSION = "2.3";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -668,6 +676,36 @@ function rcTabella(docs){
   return '<div class="scroll"><table><thead><tr><th>Documento</th><th>Tipo</th><th></th></tr></thead><tbody>'+righe+'</tbody></table></div>'+
     (haCartelle?'<p class="mini" style="margin:8px 2px 0">I singoli file (con i nomi dei minori) si aprono dentro la cartella su Dropbox.</p>':'');
 }
+function caricaFileVoce(li, voce){
+  var box = li.querySelector(".rc-files");
+  if(!box || box.getAttribute("data-loaded")==="1" || !voce) return;
+  box.setAttribute("data-loaded","1");
+  var cartelle = (voce.docs||[]).filter(function(d){ return d.k==="folder"; });
+  if(!cartelle.length) return;
+  cartelle.forEach(function(d){
+    var sec=document.createElement("div"); sec.className="rc-filesec";
+    sec.innerHTML='<div class="rc-filehead">'+esc(d.t)+' <span class="mini">— carico\u2026</span></div>';
+    box.appendChild(sec);
+    var full = DBX_BASE + d.p;
+    api("/rendicontazione/documenti?path="+encodeURIComponent(full)).then(function(r){
+      if(!r || r.configurato===false){
+        sec.innerHTML='<div class="rc-filehead">'+esc(d.t)+'</div><p class="mini">I file sono su Dropbox: usa \u00abApri \u2197\u00bb qui sopra. (Per vederli elencati qui, collega Dropbox al server.)</p>'; return;
+      }
+      if(r.errore || !r.file){
+        sec.innerHTML='<div class="rc-filehead">'+esc(d.t)+'</div><p class="mini">Non riesco a leggere la cartella ora: usa \u00abApri \u2197\u00bb.</p>'; return;
+      }
+      if(!r.file.length){
+        sec.innerHTML='<div class="rc-filehead">'+esc(d.t)+'</div><p class="mini">(cartella vuota)</p>'; return;
+      }
+      var voci=r.file.map(function(f){
+        return '<li><span class="rc-fico">'+(f.cartella?"\ud83d\udcc1":"\ud83d\udcc4")+'</span><a href="'+esc(f.url)+'" target="_blank" rel="noopener">'+esc(f.nome)+'</a></li>';
+      }).join("");
+      sec.innerHTML='<div class="rc-filehead">'+esc(d.t)+' <span class="mini">\u2014 '+r.file.length+' elementi</span></div><ul class="rc-filelist">'+voci+'</ul>';
+    }).catch(function(e){
+      sec.innerHTML='<div class="rc-filehead">'+esc(d.t)+'</div><p class="mini">'+esc((e&&e.message)||"errore")+'</p>';
+    });
+  });
+}
 function vistaRendic(m){
   m.innerHTML = '<div class="card rc-intro"><div class="rc-band"><h1>Rendicontazione</h1><span>PNRR · ReGiS</span></div>'+
     '<p class="muted">Tutto quello che serve per le attività e la rendicontazione del progetto. '+
@@ -678,14 +716,17 @@ function vistaRendic(m){
         '<button class="rc-head" type="button"><span class="rc-check">✓</span>'+
         '<span class="rc-tit"><b>'+esc(c.t)+'</b>'+(c.nota?'<div class="mini">'+esc(c.nota)+'</div>':'')+'</span>'+
         rcChip(c.chi)+'<span class="rc-caret">›</span></button>'+
-        '<div class="rc-body">'+rcTabella(c.docs)+'</div></li>';
+        '<div class="rc-body">'+rcTabella(c.docs)+'<div class="rc-files"></div></div></li>';
     }).join("")+'</ul></div>'+
     '<div class="card"><h2>La guida ufficiale</h2><p class="muted">I documenti ReGiS stanno nella cartella «10 - Regis» del progetto su Dropbox: Linee guida rendicontazione (SA) 2025, le slide del webinar, gli Indicatori e Target.</p>'+
     rcTabella([ {t:"Linee guida rendicontazione (SA) 2025", k:"file", p:"/08 - Rendicontazione/Modulistica/pe_linee_guida_sa_2025.pdf", tag:"modello"},
                 {t:"Cartella ReGiS (guide, indicatori, target)", k:"folder", p:"/10 - Regis", tag:"cartella"},
                 {t:"Modulistica ministeriale", k:"folder", p:"/08 - Rendicontazione/Modulistica", tag:"cartella"} ])+'</div>';
   Array.prototype.forEach.call(m.querySelectorAll(".rc-head"), function(h){
-    h.addEventListener("click", function(){ h.parentNode.classList.toggle("open"); });
+    h.addEventListener("click", function(){
+      var li=h.parentNode; li.classList.toggle("open");
+      if(li.classList.contains("open")){ try{ caricaFileVoce(li, CHECKLIST[+li.getAttribute("data-i")]); }catch(e){} }
+    });
   });
   Array.prototype.forEach.call(m.querySelectorAll(".rc-link.app"), function(b){
     b.addEventListener("click", function(e){ e.stopPropagation(); vistaCorr = b.getAttribute("data-v"); avviaApp(); });
