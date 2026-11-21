@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     soggetto: str = "La Giostra della Vita Societa' Cooperativa Sociale a r.l."
     titolo: str = "Apayaye"
     fascia_eta: str = "11-17 anni"
+    # Dati del committente per le ricevute dei lavoratori autonomi (si impostano
+    # su Render; se vuoti, la ricevuta lascia uno spazio da compilare a mano).
+    committente_piva: str = ""
+    committente_cf: str = ""
+    committente_sede: str = ""
     # Dropbox (facoltativo): per mostrare nella Rendicontazione i file veri dentro
     # le cartelle del progetto, SENZA scriverli nel codice pubblico. Si legge solo,
     # a chi ha fatto l'accesso (ufficio/admin). Se non configurato, l'app mostra

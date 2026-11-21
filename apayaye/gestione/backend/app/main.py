@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from .config import settings
+from .deps import utente_corrente
 from .routers import auth, minori, export, rendicontazione, presenze, catalogo, indicatori, operatori, genitore
 
 app = FastAPI(title="Apayaye Gestione API", version="0.1.0")
@@ -54,3 +55,16 @@ app.include_router(genitore.router)
 @app.get("/health", tags=["system"])
 def health():
     return {"status": "ok"}
+
+
+@app.get("/progetto", tags=["progetto"])
+def progetto_info(u: dict = Depends(utente_corrente)):
+    """Intestazione per i documenti (Allegato G, ricevute): soggetto, codici e
+    dati del committente. Serve a chi ha fatto l'accesso."""
+    return {
+        "soggetto": settings.soggetto, "clp": settings.clp, "cup": settings.cup,
+        "titolo": settings.titolo,
+        "committente_piva": settings.committente_piva,
+        "committente_cf": settings.committente_cf,
+        "committente_sede": settings.committente_sede,
+    }

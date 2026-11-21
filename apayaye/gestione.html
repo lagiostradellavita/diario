@@ -167,7 +167,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "2.9";
+var APP_VERSION = "3.0";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -272,8 +272,11 @@ function avviaApp(){
   Array.prototype.forEach.call($("nav").querySelectorAll("button"), function(b){
     b.addEventListener("click", function(){ vistaCorr = b.getAttribute("data-v"); avviaApp(); });
   });
+  caricaProgetto();
   render();
 }
+var progetto={soggetto:"La Giostra della Vita Società Cooperativa Sociale",clp:"2024-PE4-00024",cup:"J54C25000220004"};
+async function caricaProgetto(){ try{ var p=await api("/progetto"); if(p) progetto=p; }catch(e){} }
 
 function render(){
   var m = $("main");
@@ -584,17 +587,18 @@ function disegnaTimbratura(){
       '<div style="margin-top:12px"><button class="btn v" id="tb-entra">Timbra entrata</button></div>'+
       '<p class="mini">Scegli l’incarico e la scuola: servono a costruire l’Allegato G e la ricevuta.</p></div>';
   }
-  var mese=meseCorr();
+  var mese=meseCorr(), auto=(c.operatore&&c.operatore.tipo==="autonomo");
   h+='<div class="card"><h2>Le tue timbrature</h2>'+
     '<div class="row" style="align-items:flex-end"><div><label>Mese</label><input id="tb-mese" type="month" value="'+mese+'"></div>'+
     '<div style="flex:0"><label>&nbsp;</label><button class="btn g" id="tb-g">Allegato G del mese</button></div>'+
-    '<div style="flex:0"><label>&nbsp;</label><button class="btn g" id="tb-ric">Ricevuta del mese</button></div></div>'+
+    (auto?'<div style="flex:0"><label>&nbsp;</label><button class="btn g" id="tb-ric">Ricevuta del mese</button></div>':'')+'</div>'+
+    (auto?'':'<p class="mini">La ricevuta si genera per i <b>lavoratori autonomi</b>. Se sei un dipendente, la busta paga la trovi nella sezione <b>Buste paga</b>.</p>')+
     '<div id="tb-lista" class="muted" style="margin-top:12px">Carico…</div></div>';
   $("tb-body").innerHTML=h;
   if(ap){ $("tb-esci").addEventListener("click", timbraEsci); }
   else { $("tb-entra").addEventListener("click", timbraEntra); }
   $("tb-g").addEventListener("click", function(){ generaAllegatoG($("tb-mese").value); });
-  $("tb-ric").addEventListener("click", function(){ generaRicevuta($("tb-mese").value); });
+  if(auto) $("tb-ric").addEventListener("click", function(){ generaRicevuta($("tb-mese").value); });
   caricaTimbrature();
 }
 async function timbraEntra(){
@@ -634,9 +638,9 @@ function stampaFinestra(titolo, html){
   w.document.close();
 }
 function intestazioneProgetto(){
-  return '<div class="muted">Progetto Apayaye — Avviso 1/2022 “Personalizzazione” — '+
-    'CLP 2024-PE4-00024 · CUP J54C25000220004</div>'+
-    '<div class="muted">La Giostra della Vita Società Cooperativa Sociale</div>';
+  return '<div class="muted">Progetto '+esc(progetto.titolo||"Apayaye")+' — Avviso 1/2022 “Personalizzazione” — '+
+    'CLP '+esc(progetto.clp||"")+' · CUP '+esc(progetto.cup||"")+'</div>'+
+    '<div class="muted">'+esc(progetto.soggetto||"La Giostra della Vita Società Cooperativa Sociale")+'</div>';
 }
 function generaAllegatoG(mese, op, righe){
   op=op||(timbCtx&&timbCtx.operatore)||{}; righe=righe||timbMese(mese);
@@ -671,18 +675,27 @@ function generaRicevuta(mese, op, righe){
   var ritImp=lordo*rit, netto=lordo-ritImp, bollo=lordo>77.47?2:0;
   var nomeMese=new Date(mese+"-01").toLocaleDateString("it-IT",{month:"long",year:"numeric"});
   var indir=[op.indirizzo, (op.cap||"")+" "+(op.comune||""), op.provincia].filter(function(x){return x&&String(x).trim();}).join(" — ");
-  var h='<h1>Ricevuta per prestazione occasionale</h1>'+intestazioneProgetto()+
-    '<div class="box"><b>'+esc((op.cognome||"")+" "+(op.nome||""))+'</b>'+(op.codice_fiscale?'<br>C.F. '+esc(op.codice_fiscale):'')+
-    (indir?'<br>'+esc(indir):'')+(op.iban?'<br>IBAN '+esc(op.iban):'')+'</div>'+
-    '<p>Per l’attività svolta nel mese di <b>'+esc(nomeMese)+'</b> nell’ambito del progetto Apayaye:</p>'+
+  var comm=progetto.committente_piva||progetto.committente_cf
+    ? esc(progetto.soggetto||"La Giostra della Vita Società Cooperativa Sociale")+(progetto.committente_piva?'<br>P. IVA '+esc(progetto.committente_piva):'')+(progetto.committente_cf?'<br>C.F. '+esc(progetto.committente_cf):'')+(progetto.committente_sede?'<br>'+esc(progetto.committente_sede):'')
+    : esc(progetto.soggetto||"La Giostra della Vita Società Cooperativa Sociale")+'<br>P. IVA / C.F. ________________________';
+  var h='<h1>Ricevuta per prestazione di lavoro autonomo occasionale</h1>'+intestazioneProgetto()+
+    '<div class="row" style="display:flex;gap:16px;margin-top:10px">'+
+      '<div class="box" style="flex:1"><div class="muted">Il/La sottoscritto/a</div><b>'+esc((op.cognome||"")+" "+(op.nome||""))+'</b>'+(op.codice_fiscale?'<br>C.F. '+esc(op.codice_fiscale):'')+(indir?'<br>'+esc(indir):'')+(op.iban?'<br>IBAN '+esc(op.iban):'')+'</div>'+
+      '<div class="box" style="flex:1"><div class="muted">emette ricevuta a favore di</div><b>'+comm+'</b></div>'+
+    '</div>'+
+    '<p>per l’attività di lavoro autonomo occasionale svolta nel mese di <b>'+esc(nomeMese)+'</b> '+
+    'nell’ambito del progetto '+esc(progetto.titolo||"Apayaye")+':</p>'+
     '<table><thead><tr><th>Incarico</th><th>Ore</th><th>Tariffa</th><th>Importo</th></tr></thead><tbody>'+body+
     '<tr class="tot"><td>Compenso lordo</td><td>'+totOre.toFixed(2).replace(".",",")+'</td><td></td><td>'+eur(lordo)+'</td></tr></tbody></table>'+
     '<table style="margin-top:12px"><tbody>'+
     '<tr><td>Compenso lordo</td><td style="text-align:right">'+eur(lordo)+'</td></tr>'+
     '<tr><td>Ritenuta d’acconto ('+Math.round(rit*100)+'%)</td><td style="text-align:right">− '+eur(ritImp)+'</td></tr>'+
     '<tr class="tot"><td>Netto a pagare</td><td style="text-align:right">'+eur(netto)+'</td></tr>'+
-    (bollo?'<tr><td>Marca da bollo (compenso &gt; 77,47 €)</td><td style="text-align:right">'+eur(bollo)+'</td></tr>':'')+
     '</tbody></table>'+
+    (bollo?'<p style="margin-top:8px">Marca da bollo da '+eur(bollo)+' assolta (compenso superiore a 77,47 €).</p>':'')+
+    '<p class="muted" style="margin-top:10px">Compenso non soggetto a IVA né a contribuzione INPS gestione separata entro i limiti di legge. '+
+    'Prestazione di lavoro autonomo occasionale ai sensi dell’art. 2222 c.c. e art. 67, comma 1, lett. l) del TUIR. '+
+    'Si dichiara che l’attività è svolta in via del tutto occasionale e non abituale.</p>'+
     (senzaTariffa?'<p class="muted" style="margin-top:8px">⚠ '+senzaTariffa.toFixed(2).replace(".",",")+' ore senza tariffa (incarico senza €/h nel catalogo): non sono nel totale.</p>':'')+
     '<p class="muted" style="margin-top:8px">Bozza da verificare con l’ufficio prima dell’invio.</p>'+
     '<div class="firma"><div>Data ____________________</div><div>Firma ________________________</div></div>';
@@ -752,18 +765,19 @@ async function caricaTimbratureAdmin(){
     if(!rows.length){ L.innerHTML='<p class="muted">Nessuna timbratura chiusa in questo mese.</p>'; return; }
     // raggruppa per operatore
     var grp={}; rows.forEach(function(t){ (grp[t.operatore_id]=grp[t.operatore_id]||[]).push(t); });
+    function opDi(oid){ for(var i=0;i<opCache.length;i++){ if(String(opCache[i].id)===String(oid)) return opCache[i]; } return {}; }
     var h="";
     Object.keys(grp).forEach(function(oid){
       var rr=grp[oid], tot=rr.reduce(function(a,t){return a+(Number(t.ore)||0);},0), nome=rr[0].cognome+" "+rr[0].nome;
+      var auto=(opDi(oid).tipo==="autonomo");
       h+='<div class="card" style="background:#f8fbfc;margin-bottom:10px"><div class="row" style="justify-content:space-between;align-items:center">'+
-        '<b>'+esc(nome)+'</b> <span class="mini">'+rr.length+' timbrature · '+tot.toFixed(2).replace(".",",")+' ore</span></div>'+
+        '<b>'+esc(nome)+'</b> <span class="mini">'+rr.length+' timbrature · '+tot.toFixed(2).replace(".",",")+' ore'+(auto?' · autonomo':(opDi(oid).tipo?' · dipendente':''))+'</span></div>'+
         '<div class="scroll" style="margin-top:6px"><table><thead><tr><th>Giorno</th><th>Entrata</th><th>Uscita</th><th>Ore</th><th>Incarico</th><th>Scuola</th></tr></thead><tbody>'+
         rr.map(function(t){ return '<tr><td>'+esc(soloData(t.entrata))+'</td><td>'+esc(soloOra(t.entrata))+'</td><td>'+esc(soloOra(t.uscita))+'</td><td>'+(t.ore!=null?t.ore:"")+'</td><td>'+esc(t.incarico||"")+'</td><td>'+esc(t.scuola||"")+'</td></tr>'; }).join("")+
         '</tbody></table></div>'+
-        '<div style="margin-top:8px"><button class="btn g sm" data-g="'+oid+'">Allegato G</button> <button class="btn g sm" data-r="'+oid+'">Ricevuta</button></div></div>';
+        '<div style="margin-top:8px"><button class="btn g sm" data-g="'+oid+'">Allegato G</button>'+(auto?' <button class="btn g sm" data-r="'+oid+'">Ricevuta</button>':'')+'</div></div>';
     });
     L.innerHTML=h;
-    function opDi(oid){ for(var i=0;i<opCache.length;i++){ if(String(opCache[i].id)===String(oid)) return opCache[i]; } return {}; }
     L.querySelectorAll("[data-g]").forEach(function(b){ b.addEventListener("click", function(){ generaAllegatoG(mese, opDi(b.getAttribute("data-g")), grp[b.getAttribute("data-g")]); }); });
     L.querySelectorAll("[data-r]").forEach(function(b){ b.addEventListener("click", function(){ generaRicevuta(mese, opDi(b.getAttribute("data-r")), grp[b.getAttribute("data-r")]); }); });
   }catch(e){ L.innerHTML='<div class="msg err">'+esc(e.message)+'</div>'; }
