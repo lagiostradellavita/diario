@@ -100,14 +100,16 @@ def carica(cartella: str, nome_file: str, raw: bytes) -> dict:
     return {"path": d.get("path_display") or d.get("path_lower") or dest, "nome": d.get("name") or nome_file}
 
 
-def elenca(path: str) -> list:
-    """Elenca i figli diretti di una cartella. Torna [{nome, cartella, path}]."""
+def elenca(path: str, recursivo: bool = False) -> list:
+    """Elenca i figli di una cartella. Torna [{nome, cartella, path}].
+    Con recursivo=True scende anche nelle sottocartelle (utile per le buste
+    paga organizzate per mese)."""
     if not disponibile():
         raise RuntimeError("Dropbox non configurato")
     tok = _access_token()
     out = []
     url = "https://api.dropboxapi.com/2/files/list_folder"
-    payload = {"path": path, "recursive": False, "limit": 200,
+    payload = {"path": path, "recursive": recursivo, "limit": 500,
                "include_non_downloadable_files": True}
     while True:
         d = _post(url, payload, tok)

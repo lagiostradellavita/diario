@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     dropbox_app_secret: str = ""
     dropbox_path_root: str = ""          # id del namespace team-space, se la cartella e' condivisa (es. "12830409123")
     apayaye_root: str = "/08 - Progetti in itinere/2023 - Agenzia coesione - Apayaye"
+    # Cartella Dropbox delle buste paga degli operatori (le buste arriveranno da
+    # ott-nov 2026). Finche' e' vuota, la schermata "Buste paga" dice che non ce
+    # ne sono ancora. Si imposta su Render quando la cartella esiste.
+    buste_paga_path: str = ""
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @field_validator("database_url")

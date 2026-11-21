@@ -8,6 +8,7 @@ amministratori avranno viste d'insieme a parte.
 from datetime import date as Date
 from base64 import b64decode
 from typing import Optional, List
+import urllib.parse
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
@@ -15,6 +16,8 @@ from pydantic import BaseModel
 from sqlalchemy import text
 
 from ..deps import get_session, utente_corrente
+from ..config import settings
+from .. import dropbox_ls
 
 router = APIRouter(prefix="/presenze", tags=["presenze"])
 
@@ -258,6 +261,39 @@ def carica_documento(dati: DocumentoIn, u: dict = Depends(utente_corrente), db=D
         "nf": dati.nome_file, "mi": dati.mime, "di": len(raw), "co": raw, "ca": u["id"],
     }).scalar()
     return {"id": did}
+
+
+@router.get("/buste-paga")
+def buste_paga(u: dict = Depends(utente_corrente), db=Depends(get_session)):
+    """Le buste paga dell'operatore, prese dalla cartella Dropbox del progetto.
+    Finche' la cartella non e' configurata (o e' vuota) non c'e' nulla: le buste
+    arriveranno da ott-nov 2026. Abbina solo i file che nominano QUESTO operatore
+    (codice fiscale, oppure cognome E nome insieme), cosi' non si vedono quelle
+    degli altri."""
+    oid = _op_id(u)
+    op = db.execute(text(
+        "select cognome, nome, codice_fiscale from operatori where id=:i"
+    ), {"i": oid}).mappings().first() or {}
+    if not dropbox_ls.disponibile() or not settings.buste_paga_path:
+        return {"configurato": False, "buste": []}
+    try:
+        files = dropbox_ls.elenca(settings.buste_paga_path, recursivo=True)
+    except Exception as e:  # Dropbox non deve far cadere la schermata
+        return {"configurato": True, "errore": str(e)[:200], "buste": []}
+    cf = (op.get("codice_fiscale") or "").strip().lower()
+    cog = (op.get("cognome") or "").strip().lower()
+    nom = (op.get("nome") or "").strip().lower()
+    out = []
+    for f in files:
+        if f.get("cartella"):
+            continue
+        n = (f.get("nome") or "").lower()
+        if (cf and cf in n) or (cog and nom and cog in n and nom in n):
+            p = f.get("path") or ""
+            out.append({"nome": f.get("nome"), "path": p,
+                        "url": "https://www.dropbox.com/home" + urllib.parse.quote(p, safe="/")})
+    out.sort(key=lambda x: (x.get("nome") or ""), reverse=True)
+    return {"configurato": True, "buste": out}
 
 
 @router.get("/documenti")

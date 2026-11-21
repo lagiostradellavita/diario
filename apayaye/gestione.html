@@ -167,7 +167,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 "use strict";
-var APP_VERSION = "2.8";
+var APP_VERSION = "2.9";
 var LS = {
   get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
   set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
@@ -249,6 +249,7 @@ var VOCI = [
   {id:"rendic", et:"Rendicontazione", ruoli:["ufficio","admin","operatore"]},
   {id:"timbratura", et:"Timbratura", ruoli:["operatore"]},
   {id:"figli", et:"I miei figli", ruoli:["genitore"]},
+  {id:"buste", et:"Buste paga", ruoli:["operatore"]},
   {id:"attivita", et:"Attività e ore", ruoli:["ufficio","admin","operatore"]},
   {id:"documenti", et:"Documenti", ruoli:["ufficio","admin","operatore"]},
   {id:"indicatori", et:"Indicatori", ruoli:["ufficio","admin"]},
@@ -284,6 +285,7 @@ function render(){
   if(vistaCorr==="operatori") return vistaOperatori(m);
   if(vistaCorr==="timbratura") return vistaTimbratura(m);
   if(vistaCorr==="figli") return vistaFigli(m);
+  if(vistaCorr==="buste") return vistaBuste(m);
   if(vistaCorr==="catalogo") return vistaCatalogo(m);
   if(vistaCorr==="utenti") return vistaUtenti(m);
   if(vistaCorr==="attivita") return vistaAttivita(m);
@@ -685,6 +687,19 @@ function generaRicevuta(mese, op, righe){
     '<p class="muted" style="margin-top:8px">Bozza da verificare con l’ufficio prima dell’invio.</p>'+
     '<div class="firma"><div>Data ____________________</div><div>Firma ________________________</div></div>';
   stampaFinestra("Ricevuta "+mese, h);
+}
+
+/* ---------- BUSTE PAGA (operatore) ---------- */
+async function vistaBuste(m){
+  if(soloOperatore(m,"Buste paga")) return;
+  m.innerHTML='<div class="card"><h1>Buste paga</h1><p class="muted">Le tue buste paga, dalla cartella del progetto su Dropbox.</p><div id="bp-body" class="muted">Carico…</div></div>';
+  var d; try{ d=await api("/presenze/buste-paga"); }catch(e){ $("bp-body").innerHTML='<div class="msg inf">'+esc(e.message)+'</div>'; return; }
+  if(!d.configurato){ $("bp-body").innerHTML='<p class="muted">Non ci sono ancora buste paga. Arriveranno da ottobre-novembre: appena saranno caricate su Dropbox, le troverai qui.</p>'; return; }
+  if(d.errore){ $("bp-body").innerHTML='<div class="msg inf">Dropbox non ha risposto: '+esc(d.errore)+'</div>'; return; }
+  if(!d.buste.length){ $("bp-body").innerHTML='<p class="muted">Ancora nessuna busta paga a tuo nome.</p>'; return; }
+  $("bp-body").innerHTML='<div class="scroll"><table><thead><tr><th>Busta</th><th></th></tr></thead><tbody>'+
+    d.buste.map(function(b){ return '<tr><td>'+esc(b.nome)+'</td><td><a class="btn g sm" href="'+esc(b.url)+'" target="_blank" rel="noopener">Apri su Dropbox ↗</a></td></tr>'; }).join("")+
+    '</tbody></table></div>';
 }
 
 /* ---------- GENITORE: i miei figli ---------- */
