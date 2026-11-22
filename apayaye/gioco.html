@@ -255,7 +255,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="luoghi.js"></script>
-<script src="app.js"></script>
+<script>
+/* carica luoghi.js e app.js SEMPRE freschi (niente cache vecchia dopo un aggiornamento) */
+(function(){ var c = Date.now();
+  document.write('<script src="luoghi.js?c=' + c + '"><\/script>');
+  document.write('<script src="app.js?c=' + c + '"><\/script>');
+})();
+</script>
 </body>
 </html>
