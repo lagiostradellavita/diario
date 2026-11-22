@@ -32,10 +32,10 @@ function testoDistanza(m){
   return (m/1000).toFixed(1).replace(".", ",") + " km";
 }
 
-/* ---------- mappa stile Google Maps, stilizzata (Leaflet + CARTO Voyager) ---------- */
+/* ---------- mappa stradale (Leaflet + OpenStreetMap, senza chiave) ---------- */
 var map = L.map("mappa", { zoomControl:true, attributionControl:true });
-L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-  subdomains:"abcd", maxZoom:19, minZoom:9, attribution:"\u00a9 OpenStreetMap, \u00a9 CARTO"
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom:19, minZoom:9, attribution:"\u00a9 OpenStreetMap"
 }).addTo(map);
 
 /* percorso che unisce i luoghi in ordine */
@@ -340,7 +340,7 @@ if("serviceWorker" in navigator){
 }
 
 /* ---------- versione e aggiornamento ---------- */
-var APP_VERSION = "2.0";
+var APP_VERSION = "2.1";
 (function(){
   try{ var v=$("ver"); if(v) v.textContent = "v"+APP_VERSION; }catch(e){}
   var b=$("aggiorna");
