@@ -340,17 +340,28 @@ if("serviceWorker" in navigator){
 }
 
 /* ---------- versione e aggiornamento ---------- */
-var APP_VERSION = "2.2";
+var APP_VERSION = "2.3";
 (function(){
   try{ var v=$("ver"); if(v) v.textContent = "v"+APP_VERSION; }catch(e){}
+  function ricarica(){
+    // paracadute anti-anello: non ricaricare due volte entro 30 secondi
+    try{ var k="apayaye.ricaricato", last=+(sessionStorage.getItem(k)||0);
+      if(Date.now()-last < 30000) return;
+      sessionStorage.setItem(k, String(Date.now()));
+    }catch(e){}
+    location.replace(location.pathname + "?r=" + Date.now());
+  }
   var b=$("aggiorna");
-  if(b){ b.addEventListener("click", function(){ location.replace(location.pathname + "?r=" + Date.now()); }); }
+  if(b){ b.addEventListener("click", ricarica); }   // aggiornamento a mano
   function controlla(){
     try{
       fetch("app.js?c="+Date.now(), { cache:"no-store" }).then(function(r){ return r.text(); }).then(function(t){
         var m = t.match(/APP_VERSION\s*=\s*"([^"]+)"/);
-        var b=$("aggiorna");
-        if(m && b && m[1] !== APP_VERSION){ b.textContent = "\u21bb Aggiorna a v"+m[1]; b.className = "aggbtn nuovo"; }
+        if(m && m[1] !== APP_VERSION){
+          var bb=$("aggiorna");
+          if(bb){ bb.textContent = "\u21bb Aggiorna a v"+m[1]; bb.className = "aggbtn nuovo"; }
+          ricarica();                                 // aggiornamento automatico
+        }
       }).catch(function(){});
     }catch(e){}
   }
