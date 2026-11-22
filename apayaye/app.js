@@ -50,7 +50,7 @@ function pinIcon(l){
   var lab = l.dove.split("\u2013")[0].split(" di ")[0].trim();
   return L.divIcon({ className:"pinwrap",
     html:'<span class="pin" style="background:'+l.col+'"><span>'+l.emblema+'</span><span class="num">'+l.num+'</span></span><span class="lab">'+lab+'</span>',
-    iconSize:[96,58], iconAnchor:[48,42] });
+    iconSize:[130,86], iconAnchor:[65,60] });
 }
 LUOGHI.forEach(function(l){
   l._marker = L.marker(l.coord, { icon:pinIcon(l), title:l.dove }).addTo(map);
@@ -340,7 +340,7 @@ if("serviceWorker" in navigator){
 }
 
 /* ---------- versione e aggiornamento ---------- */
-var APP_VERSION = "2.3";
+var APP_VERSION = "2.4";
 (function(){
   try{ var v=$("ver"); if(v) v.textContent = "v"+APP_VERSION; }catch(e){}
   function ricarica(){
