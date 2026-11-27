@@ -122,7 +122,7 @@ function mostraCuriosita(l){
   ex.innerHTML = html;
   ex.style.display = html ? "" : "none";
 }
-function chiudi(){ velo.classList.remove("on"); sheet.classList.remove("on"); corrente = null; if("speechSynthesis" in window) speechSynthesis.cancel(); }
+function chiudi(){ velo.classList.remove("on"); sheet.classList.remove("on"); corrente = null; if("speechSynthesis" in window) speechSynthesis.cancel(); segnaAudio(false); }
 velo.addEventListener("click", chiudi);
 
 function aggiornaScheda(){
@@ -167,8 +167,11 @@ function narrazione(l){
   var c = (l.curiosita && l.curiosita.length) ? (" Lo sapevi? " + l.curiosita.join(" ")) : "";
   return "Ciao! Sono " + l.nome + ", il personaggio di " + l.dove + ". " + l.frase + " " + l.blurb + st + " " + l.fatto + c;
 }
+function segnaAudio(on){ var b=$("b-audio"); if(b) b.textContent = on ? "⏸ Ferma" : "🔊 Ascolta"; }
 function parla(l){
   if(!("speechSynthesis" in window)){ toast("La voce non è disponibile su questo telefono."); return; }
+  // Secondo tocco: ferma la lettura (pulsante che fa anche da stop).
+  if(speechSynthesis.speaking || speechSynthesis.pending){ speechSynthesis.cancel(); segnaAudio(false); return; }
   try{
     speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(narrazione(l));
@@ -176,8 +179,13 @@ function parla(l){
     var v = vocePreferita(); if(v) u.voice = v;
     u.rate = (l.voce && l.voce.rate) || 0.98;
     u.pitch = (l.voce && l.voce.pitch) || 1;
+    u.onstart = function(){ segnaAudio(true); };
+    u.onend = function(){ segnaAudio(false); };
+    u.onerror = function(){ segnaAudio(false); };
     speechSynthesis.speak(u);
-  }catch(e){ toast("Non riesco a far partire la voce."); }
+    // iPhone a volte parte "in pausa": lo si sblocca subito.
+    try{ speechSynthesis.resume(); }catch(e){}
+  }catch(e){ toast("Non riesco a far partire la voce."); segnaAudio(false); }
 }
 if("speechSynthesis" in window){ try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function(){ speechSynthesis.getVoices(); }; }catch(e){} }
 var bAudio = $("b-audio");
@@ -340,7 +348,7 @@ if("serviceWorker" in navigator){
 }
 
 /* ---------- versione e aggiornamento ---------- */
-var APP_VERSION = "2.6";
+var APP_VERSION = "2.7";
 (function(){
   try{ var v=$("ver"); if(v) v.textContent = "v"+APP_VERSION; }catch(e){}
   function ricarica(){
