@@ -159,8 +159,18 @@ function vocePreferita(){
   var vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
   var it = vs.filter(function(v){ return /^it/i.test(v.lang || ""); });
   if(!it.length) return null;
-  var belle = it.filter(function(v){ return /(siri|alice|federica|luca|enhanced|premium|neural)/i.test(v.name || ""); });
-  return belle[0] || it[0];
+  // Punteggio: piu' alto = voce piu' naturale. Le "compact" di iPhone suonano meccaniche.
+  function punti(v){
+    var n = (v.name || "").toLowerCase(), p = 0;
+    if(/siri/.test(n)) p += 6;
+    if(/(enhanced|premium|neural|migliorat|eloquen)/.test(n)) p += 5;
+    if(/(alice|federica|luca|emma|giovanni)/.test(n)) p += 2;
+    if(/compact/.test(n)) p -= 5;
+    if(v.localService === false) p += 1;   // voci di rete, spesso migliori
+    return p;
+  }
+  it.sort(function(a, b){ return punti(b) - punti(a); });
+  return it[0];
 }
 function narrazione(l){
   var st = l.storia ? (" " + l.storia) : "";
@@ -348,7 +358,7 @@ if("serviceWorker" in navigator){
 }
 
 /* ---------- versione e aggiornamento ---------- */
-var APP_VERSION = "2.7";
+var APP_VERSION = "2.8";
 (function(){
   try{ var v=$("ver"); if(v) v.textContent = "v"+APP_VERSION; }catch(e){}
   function ricarica(){
