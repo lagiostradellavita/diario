@@ -219,6 +219,7 @@ function popolaVoci(){
   var sel = $("sel-voce"); if(!sel) return;
   var vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
   var it = vs.filter(function(v){ return /^it/i.test(v.lang || ""); });
+  var visti = {}; it = it.filter(function(v){ var n=(v.name||"").toLowerCase(); if(visti[n]) return false; visti[n]=1; return true; });
   var scelta = voceSalvata();
   sel.innerHTML = '<option value="">Automatica (la migliore)</option>' + it.map(function(v){
     var nome = (v.name || "").replace(/</g,"").replace(/>/g,"");
@@ -401,7 +402,7 @@ if("serviceWorker" in navigator){
 }
 
 /* ---------- versione e aggiornamento ---------- */
-var APP_VERSION = "3.3";
+var APP_VERSION = "3.4";
 (function(){
   try{ var v=$("ver"); if(v) v.textContent = "v"+APP_VERSION; }catch(e){}
   function ricarica(){
