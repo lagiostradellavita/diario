@@ -155,10 +155,14 @@ cta.addEventListener("click", function(){
 ctaScan.addEventListener("click", function(){ apriScanner(); });
 
 /* ---------- voce del personaggio (parla la descrizione) ---------- */
+function voceSalvata(){ try{ return localStorage.getItem("apayaye.voce") || ""; }catch(e){ return ""; } }
+function rateSalvato(){ try{ var r = parseFloat(localStorage.getItem("apayaye.rate")); return (isFinite(r) && r > 0) ? r : 0.98; }catch(e){ return 0.98; } }
 function vocePreferita(){
   var vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
   var it = vs.filter(function(v){ return /^it/i.test(v.lang || ""); });
   if(!it.length) return null;
+  var scelta = voceSalvata();
+  if(scelta){ var m = it.filter(function(v){ return v.name === scelta; }); if(m.length) return m[0]; }
   // Punteggio: piu' alto = voce piu' naturale. Le "compact" di iPhone suonano meccaniche.
   function punti(v){
     var n = (v.name || "").toLowerCase(), p = 0;
@@ -187,7 +191,7 @@ function parla(l){
     var u = new SpeechSynthesisUtterance(narrazione(l));
     u.lang = "it-IT";
     var v = vocePreferita(); if(v) u.voice = v;
-    u.rate = (l.voce && l.voce.rate) || 0.98;
+    u.rate = rateSalvato();
     u.pitch = (l.voce && l.voce.pitch) || 1;
     u.onstart = function(){ segnaAudio(true); };
     u.onend = function(){ segnaAudio(false); };
@@ -197,9 +201,34 @@ function parla(l){
     try{ speechSynthesis.resume(); }catch(e){}
   }catch(e){ toast("Non riesco a far partire la voce."); segnaAudio(false); }
 }
-if("speechSynthesis" in window){ try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function(){ speechSynthesis.getVoices(); }; }catch(e){} }
+function popolaVoci(){
+  var sel = $("sel-voce"); if(!sel) return;
+  var vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+  var it = vs.filter(function(v){ return /^it/i.test(v.lang || ""); });
+  var scelta = voceSalvata();
+  sel.innerHTML = '<option value="">Automatica (la migliore)</option>' + it.map(function(v){
+    var nome = (v.name || "").replace(/</g,"").replace(/>/g,"");
+    return '<option value="'+nome.replace(/"/g,"&quot;")+'"'+(v.name===scelta?' selected':'')+'>'+nome+'</option>';
+  }).join("");
+}
+if("speechSynthesis" in window){ try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function(){ speechSynthesis.getVoices(); popolaVoci(); }; }catch(e){} }
 var bAudio = $("b-audio");
 if(bAudio){ bAudio.addEventListener("click", function(){ if(corrente) parla(corrente); }); }
+/* pannello: scegli la voce e la velocità (restano salvate) */
+(function(){
+  var ing = $("b-voce-opz"), pan = $("voce-opz"), sel = $("sel-voce"), velBox = $("vel");
+  if(ing && pan){ ing.addEventListener("click", function(){ pan.classList.toggle("on"); popolaVoci(); }); }
+  function anteprima(){ if(!corrente) return; try{ speechSynthesis.cancel(); }catch(e){} setTimeout(function(){ parla(corrente); }, 70); }
+  if(sel){ sel.addEventListener("change", function(){ try{ localStorage.setItem("apayaye.voce", sel.value); }catch(e){} anteprima(); }); }
+  if(velBox){
+    function segna(){ var r = rateSalvato(); Array.prototype.forEach.call(velBox.querySelectorAll("button"), function(b){ b.classList.toggle("on", Math.abs(parseFloat(b.getAttribute("data-r")) - r) < 0.02); }); }
+    Array.prototype.forEach.call(velBox.querySelectorAll("button"), function(b){
+      b.addEventListener("click", function(){ try{ localStorage.setItem("apayaye.rate", b.getAttribute("data-r")); }catch(e){} segna(); anteprima(); });
+    });
+    segna();
+  }
+  popolaVoci();
+})();
 
 /* ---------- cattura ---------- */
 function cattura(l, metodo){
@@ -358,7 +387,7 @@ if("serviceWorker" in navigator){
 }
 
 /* ---------- versione e aggiornamento ---------- */
-var APP_VERSION = "2.8";
+var APP_VERSION = "2.9";
 (function(){
   try{ var v=$("ver"); if(v) v.textContent = "v"+APP_VERSION; }catch(e){}
   function ricarica(){

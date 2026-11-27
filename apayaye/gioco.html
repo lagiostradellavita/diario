@@ -137,6 +137,20 @@ if ("serviceWorker" in navigator) {
     background:linear-gradient(180deg,#38b0d8,#1d7ea6); box-shadow:0 4px 10px rgba(29,126,166,.3);
     display:inline-flex; align-items:center; gap:7px}
   .ascolta:active{transform:translateY(1px)}
+  .audio-riga{display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap}
+  .audio-riga .ascolta{margin-top:0}
+  .ing{border:1px solid #d8c8a8; background:#fff; border-radius:999px; width:34px; height:34px;
+    display:inline-grid; place-items:center; font-size:1rem; cursor:pointer}
+  .voce-opz{display:none; margin-top:8px; padding:10px 12px; background:#fbf4e2; border-radius:14px;
+    border:1px solid #e7d9b6; font-family:var(--testo),system-ui}
+  .voce-opz.on{display:block}
+  .voce-opz label{display:block; font-size:.78rem; font-weight:700; color:#8a5a2a; margin:0 0 4px}
+  .voce-opz select{width:100%; padding:8px 10px; border-radius:10px; border:1px solid #d8c8a8;
+    background:#fff; font-size:.9rem; margin-bottom:10px}
+  .vel{display:flex; gap:6px}
+  .vel button{flex:1; border:1px solid #d8c8a8; background:#fff; border-radius:999px; padding:7px 0;
+    font-family:var(--display); font-weight:600; font-size:.82rem; cursor:pointer; color:#5a4a2a}
+  .vel button.on{background:#1d7ea6; border-color:#1d7ea6; color:#fff}
   .sheet-head{display:flex; gap:14px; align-items:center}
   .crea{width:96px;height:96px;flex:none}
   .crea svg{width:100%;height:100%; animation:galleggia 3.2s ease-in-out infinite}
@@ -239,7 +253,20 @@ if ("serviceWorker" in navigator) {
       <span class="quando" id="sheet-quando">—</span>
     </div>
   </div>
-  <button class="ascolta" id="b-audio">🔊 Ascolta</button>
+  <div class="audio-riga">
+    <button class="ascolta" id="b-audio">🔊 Ascolta</button>
+    <button class="ing" id="b-voce-opz" aria-label="Impostazioni voce" title="Scegli la voce">⚙️</button>
+  </div>
+  <div class="voce-opz" id="voce-opz">
+    <label for="sel-voce">Voce</label>
+    <select id="sel-voce"><option value="">Automatica (la migliore)</option></select>
+    <label>Velocità</label>
+    <div class="vel" id="vel">
+      <button data-r="0.8">Lenta</button>
+      <button data-r="0.98">Normale</button>
+      <button data-r="1.15">Veloce</button>
+    </div>
+  </div>
   <div class="voce" id="sheet-voce">—</div>
   <p class="blurb" id="sheet-blurb">—</p>
   <div class="fatto"><span>💡</span><span id="sheet-fatto">—</span></div>
