@@ -182,7 +182,7 @@ var PRON = {
   "Palagonia": "Palagonìa",
   "Mezzojuso": "Mezzojùso",
   "Catalfano": "Catalfàno",
-  "Sclafani": "Sclafàni"
+  "Sclafani": "Sclàfani"
 };
 function applicaPron(t){
   Object.keys(PRON).forEach(function(k){
@@ -401,7 +401,7 @@ if("serviceWorker" in navigator){
 }
 
 /* ---------- versione e aggiornamento ---------- */
-var APP_VERSION = "3.2";
+var APP_VERSION = "3.3";
 (function(){
   try{ var v=$("ver"); if(v) v.textContent = "v"+APP_VERSION; }catch(e){}
   function ricarica(){
