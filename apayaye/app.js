@@ -179,7 +179,7 @@ function vocePreferita(){
 /* pronuncia: come la voce DEVE leggere certi nomi (a schermo restano come sono).
    L'accento (ò ì à...) dice alla voce dove battere la sillaba. */
 var PRON = {
-  "Palagonia": "Palagònia"
+  "Palagonia": "Palagonìa"
 };
 function applicaPron(t){
   Object.keys(PRON).forEach(function(k){
@@ -398,7 +398,7 @@ if("serviceWorker" in navigator){
 }
 
 /* ---------- versione e aggiornamento ---------- */
-var APP_VERSION = "3.0";
+var APP_VERSION = "3.1";
 (function(){
   try{ var v=$("ver"); if(v) v.textContent = "v"+APP_VERSION; }catch(e){}
   function ricarica(){
