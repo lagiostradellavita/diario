@@ -176,6 +176,17 @@ function vocePreferita(){
   it.sort(function(a, b){ return punti(b) - punti(a); });
   return it[0];
 }
+/* pronuncia: come la voce DEVE leggere certi nomi (a schermo restano come sono).
+   L'accento (ò ì à...) dice alla voce dove battere la sillaba. */
+var PRON = {
+  "Palagonia": "Palagònia"
+};
+function applicaPron(t){
+  Object.keys(PRON).forEach(function(k){
+    try{ t = t.replace(new RegExp("\\b" + k + "\\b", "gi"), PRON[k]); }catch(e){}
+  });
+  return t;
+}
 function narrazione(l){
   var st = l.storia ? (" " + l.storia) : "";
   var c = (l.curiosita && l.curiosita.length) ? (" Lo sapevi? " + l.curiosita.join(" ")) : "";
@@ -188,7 +199,7 @@ function parla(l){
   if(speechSynthesis.speaking || speechSynthesis.pending){ speechSynthesis.cancel(); segnaAudio(false); return; }
   try{
     speechSynthesis.cancel();
-    var u = new SpeechSynthesisUtterance(narrazione(l));
+    var u = new SpeechSynthesisUtterance(applicaPron(narrazione(l)));
     u.lang = "it-IT";
     var v = vocePreferita(); if(v) u.voice = v;
     u.rate = rateSalvato();
@@ -387,7 +398,7 @@ if("serviceWorker" in navigator){
 }
 
 /* ---------- versione e aggiornamento ---------- */
-var APP_VERSION = "2.9";
+var APP_VERSION = "3.0";
 (function(){
   try{ var v=$("ver"); if(v) v.textContent = "v"+APP_VERSION; }catch(e){}
   function ricarica(){
